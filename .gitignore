@@ -6,6 +6,8 @@
 
 # Data (subscription JSON files)
 /data/*
+!/data/riffs.json
+!/data/collections.json
 !data/subscriptions/.gitkeep
 
 # Logs

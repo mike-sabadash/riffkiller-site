@@ -1,0 +1,26 @@
+[
+    {
+        "id": 1,
+        "name": "Led Zeppelin",
+        "isFavorite": false,
+        "imageUrl": "assets/img/collections-1.png"
+    },
+    {
+        "id": 2,
+        "name": "Classic Rock",
+        "isFavorite": true,
+        "imageUrl": "assets/img/collections-2.png"
+    },
+    {
+        "id": 3,
+        "name": "Blues Masters",
+        "isFavorite": false,
+        "imageUrl": "assets/img/collections-3.png"
+    },
+    {
+        "id": 4,
+        "name": "Metal Giants",
+        "isFavorite": false,
+        "imageUrl": "assets/img/collections-4.png"
+    }
+]

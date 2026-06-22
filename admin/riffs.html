@@ -110,6 +110,15 @@
         .segment-editor-loop-label { font-size: 13px; color: var(--color-text-tertiary); margin-left: 4px; }
         .segment-editor-loop-label:not(:empty) { color: #9355E5; font-weight: 500; }
         .segment-editor-video-src { font-size: 11px; color: var(--color-text-tertiary); margin-top: 6px; }
+        .segment-row input.start[aria-invalid="true"],
+        .segment-row input.end[aria-invalid="true"] { border-color: #F44336; background: rgba(244,67,54,0.1); }
+        .segment-row.overlap { background: rgba(244,67,54,0.1); border-radius: 6px; padding: 2px 0; }
+        .seg-rm-btn { cursor: pointer; opacity: 0.6; }
+        .seg-rm-btn:hover { opacity: 1; }
+        .seg-rm-btn:disabled { opacity: 0.2; cursor: not-allowed; }
+        .seg-move-btn { padding: 4px 8px; font-size: 11px; line-height: 1; cursor: pointer; background: rgba(255,255,255,0.06); border: 1px solid var(--color-border-light); border-radius: 6px; color: #fff; }
+        .seg-move-btn:hover { background: rgba(255,255,255,0.12); }
+        .seg-move-btn:disabled { opacity: 0.2; cursor: not-allowed; }
     </style>
 </head>
 <body>
@@ -489,21 +498,87 @@
                 if (d.success) { loadRiffs(); }
             });
     }
+    function segmentEditorNormalizeValue(v) { return parseFloat((parseFloat(v) || 0).toFixed(3)); }
+    function segmentEditorValidateRows() {
+        var rows = document.querySelectorAll('#segmentRows .segment-row');
+        for (var i = 0; i < rows.length; i++) {
+            rows[i].classList.remove('overlap');
+            var sIn = rows[i].querySelector('.start');
+            var eIn = rows[i].querySelector('.end');
+            var sv = segmentEditorNormalizeValue(sIn.value);
+            var ev = segmentEditorNormalizeValue(eIn.value);
+            sIn.setAttribute('aria-invalid', sv < 0 ? 'true' : 'false');
+            eIn.setAttribute('aria-invalid', ev <= sv ? 'true' : 'false');
+            if (i > 0) {
+                var prevEnd = segmentEditorNormalizeValue(rows[i-1].querySelector('.end').value);
+                if (sv < prevEnd) { rows[i].classList.add('overlap'); rows[i-1].classList.add('overlap'); }
+            }
+        }
+    }
     function addSegmentRow(container, start, end, name, color) {
         var n = (container.children.length + 1);
         var defaultName = name || ('Shot ' + n);
         var segColor = color || SEGMENT_COLORS[0].hex;
         var isCustom = segColor && !SEGMENT_COLORS.some(function(c){ return c.hex===segColor; });
         var div = document.createElement('div'); div.className = 'segment-row' + (isCustom ? ' color-custom' : '');
-        div.innerHTML = '<input type="number" step="0.001" class="start" placeholder="start" value="'+(start!=null?start:0)+'"><input type="number" step="0.001" class="end" placeholder="end" value="'+(end!=null?end:0)+'"><input type="text" class="name" placeholder="Shot '+n+'" value="'+(defaultName||'').replace(/"/g,'&quot;')+'"><select class="color-select">'+buildColorSelectOptions(segColor)+'</select><input type="text" class="color-hex" placeholder="#hex" value="'+(isCustom?segColor:'')+'" maxlength="7"><button type="button" class="btn btn-secondary btn-small rm-seg">−</button>';
+        var sv = segmentEditorNormalizeValue(start);
+        var ev = segmentEditorNormalizeValue(end);
+        div.innerHTML = '<input type="number" step="0.001" class="start" placeholder="start" value="'+sv+'"><input type="number" step="0.001" class="end" placeholder="end" value="'+ev+'"><input type="text" class="name" placeholder="Shot '+n+'" value="'+(defaultName||'').replace(/"/g,'&quot;')+'"><select class="color-select">'+buildColorSelectOptions(segColor)+'</select><input type="text" class="color-hex" placeholder="#hex" value="'+(isCustom?segColor:'')+'" maxlength="7"><button type="button" class="btn btn-secondary btn-small seg-move-btn seg-move-up" title="Вверх">▲</button><button type="button" class="btn btn-secondary btn-small seg-move-btn seg-move-down" title="Вниз">▼</button><button type="button" class="btn btn-secondary btn-small rm-seg">−</button>';
         container.appendChild(div);
+        var segsCount = container.children.length;
+        if (segsCount > 1) {
+            var firstRm = container.querySelector('.segment-row:first-child .rm-seg');
+            if (firstRm) firstRm.disabled = false;
+        }
         if (typeof segmentEditorRenderStrip === 'function') segmentEditorRenderStrip();
-        div.querySelector('.rm-seg').onclick = function(){ div.remove(); if (segmentEditorSelectedIndex >= container.children.length) segmentEditorSelectedIndex = Math.max(0, container.children.length - 1); if (typeof segmentEditorRenderStrip === 'function') segmentEditorRenderStrip(); };
+        div.querySelector('.start').addEventListener('blur', function(){ this.value = segmentEditorNormalizeValue(this.value); segmentEditorValidateRows(); if (typeof segmentEditorRenderStrip === 'function') segmentEditorRenderStrip(); });
+        div.querySelector('.end').addEventListener('blur', function(){ this.value = segmentEditorNormalizeValue(this.value); segmentEditorValidateRows(); if (typeof segmentEditorRenderStrip === 'function') segmentEditorRenderStrip(); });
+        div.querySelector('.rm-seg').onclick = function(){
+            var wasSelected = Array.prototype.indexOf.call(container.children, div);
+            div.remove();
+            var cnt = container.children.length;
+            if (cnt === 0) { addSegmentRow(container, 0, 0, 'Shot 1'); }
+            if (segmentEditorSelectedIndex >= cnt) segmentEditorSelectedIndex = Math.max(0, cnt - 1);
+            segmentEditorRenumberRows();
+            segmentEditorUpdateMoveBtns();
+            if (typeof segmentEditorRenderStrip === 'function') segmentEditorRenderStrip();
+        };
+        div.querySelector('.seg-move-up').onclick = function(){
+            var prev = div.previousElementSibling;
+            if (!prev) return;
+            container.insertBefore(div, prev);
+            segmentEditorRenumberRows();
+            segmentEditorUpdateMoveBtns();
+            if (typeof segmentEditorRenderStrip === 'function') segmentEditorRenderStrip();
+        };
+        div.querySelector('.seg-move-down').onclick = function(){
+            var next = div.nextElementSibling;
+            if (!next) return;
+            container.insertBefore(next, div);
+            segmentEditorRenumberRows();
+            segmentEditorUpdateMoveBtns();
+            if (typeof segmentEditorRenderStrip === 'function') segmentEditorRenderStrip();
+        };
         div.querySelector('.color-select').onchange = function(){
             var v = this.value;
             if (v==='custom') { div.classList.add('color-custom'); div.querySelector('.color-hex').value = div.querySelector('.color-hex').value||'#9355E5'; }
             else { div.classList.remove('color-custom'); }
         };
+    }
+    function segmentEditorRenumberRows() {
+        var rows = document.querySelectorAll('#segmentRows .segment-row');
+        rows.forEach(function(row, i) {
+            row.querySelector('.name').placeholder = 'Shot ' + (i+1);
+        });
+    }
+    function segmentEditorUpdateMoveBtns() {
+        var rows = document.querySelectorAll('#segmentRows .segment-row');
+        rows.forEach(function(row, i) {
+            var up = row.querySelector('.seg-move-up');
+            var down = row.querySelector('.seg-move-down');
+            if (up) up.disabled = (i === 0);
+            if (down) down.disabled = (i === rows.length - 1);
+        });
     }
     function loadRiff(id) {
         fetch(listUrl).then(function(r){return r.json();}).then(function(list){
@@ -523,8 +598,9 @@
             document.getElementById('thumbnail').value = riff.thumbnail||'';
             document.getElementById('lessonVideo').value = riff.lessonVideo||'';
             var c = document.getElementById('segmentRows'); c.innerHTML = '';
-            (riff.segments||[]).forEach(function(s, i){ addSegmentRow(c, s.start, s.end, s.name || ('Shot ' + (i+1)), s.color); });
+            (riff.segments||[]).forEach(function(s, i){ addSegmentRow(c, segmentEditorNormalizeValue(s.start), segmentEditorNormalizeValue(s.end), s.name || ('Shot ' + (i+1)), s.color); });
             if(!riff.segments||riff.segments.length===0) addSegmentRow(c, 0, 0, 'Shot 1');
+            segmentEditorUpdateMoveBtns();
             document.getElementById('riffForm').dataset.editId = riff.id;
             segmentEditorSetVideo(riff.videoFile || riff.videoFileRight || '');
             if (collectionsFormCache.length) {
@@ -638,8 +714,8 @@
             var segColor = (colSel && colSel.value === 'custom' && colHex) ? (colHex.value || '').trim() : (colSel ? colSel.value : '');
             if (!segColor || !/^#[0-9A-Fa-f]{6}$/.test(segColor)) segColor = SEGMENT_COLORS[0].hex;
             out.push({
-                start: parseFloat(startIn && startIn.value) || 0,
-                end: parseFloat(endIn && endIn.value) || 0,
+                start: segmentEditorNormalizeValue(startIn && startIn.value),
+                end: segmentEditorNormalizeValue(endIn && endIn.value),
                 name: (nameIn && nameIn.value) || '',
                 color: segColor,
                 rowEl: row
@@ -707,6 +783,7 @@
             var n = container.children.length + 1;
             addSegmentRow(container, start, end, 'Shot ' + n, null);
             segmentEditorSelectedIndex = segs.length;
+            segmentEditorUpdateMoveBtns();
             segmentEditorRenderStrip();
             segmentEditorUpdateLoopLabel();
             return;
@@ -760,15 +837,15 @@
         var stripDuration = segmentEditorGetStripDuration();
         var idx = segmentEditorDrag.index;
         if (segmentEditorDrag.side === 'left') {
-            var curEnd = parseFloat(endIn.value) || 0;
-            var prevEnd = idx > 0 ? (parseFloat(segs[idx - 1].end) || 0) : -MIN_SEGMENT_GAP;
+            var curEnd = segmentEditorNormalizeValue(endIn.value);
+            var prevEnd = idx > 0 ? (segmentEditorNormalizeValue(segs[idx - 1].end)) : -MIN_SEGMENT_GAP;
             var newStart = Math.max(prevEnd + MIN_SEGMENT_GAP, Math.min(t, curEnd - MIN_SEGMENT_GAP));
-            if (startIn) startIn.value = newStart.toFixed(3);
+            if (startIn) startIn.value = segmentEditorNormalizeValue(newStart);
         } else {
-            var curStart = parseFloat(startIn.value) || 0;
-            var maxEnd = idx < segs.length - 1 ? (parseFloat(segs[idx + 1].start) || stripDuration) - MIN_SEGMENT_GAP : stripDuration;
+            var curStart = segmentEditorNormalizeValue(startIn.value);
+            var maxEnd = idx < segs.length - 1 ? (segmentEditorNormalizeValue(segs[idx + 1].start)) - MIN_SEGMENT_GAP : stripDuration;
             var newEnd = Math.max(curStart + MIN_SEGMENT_GAP, Math.min(t, maxEnd));
-            if (endIn) endIn.value = newEnd.toFixed(3);
+            if (endIn) endIn.value = segmentEditorNormalizeValue(newEnd);
         }
         segmentEditorRenderStrip();
         segmentEditorUpdateTimeDisplay();
@@ -850,6 +927,7 @@
             document.getElementById('lessonVideo').value = '';
             document.getElementById('segmentRows').innerHTML = '';
             addSegmentRow(document.getElementById('segmentRows'), 0, 0, 'Shot 1');
+            segmentEditorUpdateMoveBtns();
             segmentEditorSetVideo('');
             renderCollChecks([]);
         }
@@ -884,7 +962,7 @@
             var colHex = row.querySelector('.color-hex');
             var segColor = (colSel && colSel.value==='custom' && colHex) ? (colHex.value||'').trim() : (colSel ? colSel.value : null);
             if (!segColor || !/^#[0-9A-Fa-f]{6}$/.test(segColor)) segColor = SEGMENT_COLORS[0].hex;
-            segs.push({ start: parseFloat(row.querySelector('.start').value)||0, end: parseFloat(row.querySelector('.end').value)||0, name: n || ('Shot ' + (i+1)), color: segColor });
+            segs.push({ start: segmentEditorNormalizeValue(row.querySelector('.start').value), end: segmentEditorNormalizeValue(row.querySelector('.end').value), name: n || ('Shot ' + (i+1)), color: segColor });
         });
         var submitBtn = document.getElementById('submitBtn'); submitBtn.disabled = true;
         Promise.all([
@@ -906,7 +984,9 @@
                 fb.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 setTimeout(function(){ fb.classList.remove('show'); }, 4000);
                 document.getElementById('videoFileUpload').value=''; document.getElementById('videoFileRightUpload').value=''; document.getElementById('thumbnailUpload').value=''; document.getElementById('lessonVideoUpload').value='';
+                var keepEditId = document.getElementById('riffForm').dataset.editId;
                 loadRiffs();
+                if (keepEditId) { document.getElementById('riffSelect').value = keepEditId; document.getElementById('riffSelect').dispatchEvent(new Event('change')); }
             } else showMsg(d.error||'Ошибка', true);
         }).catch(function(err){ submitBtn.disabled = false; showMsg(err.message||'Ошибка', true); });
     };
@@ -920,6 +1000,7 @@
     });
     loadRiffs();
     addSegmentRow(document.getElementById('segmentRows'), 0, 0, 'Shot 1');
+    segmentEditorUpdateMoveBtns();
 
     (function initSegmentEditor() {
         segmentEditorSetVideo('');
@@ -1025,9 +1106,11 @@
         var segmentRowsEl = document.getElementById('segmentRows');
         if (segmentRowsEl) {
             segmentRowsEl.addEventListener('input', function() {
+                segmentEditorValidateRows();
                 if (typeof segmentEditorRenderStrip === 'function') segmentEditorRenderStrip();
             });
             segmentRowsEl.addEventListener('change', function() {
+                segmentEditorValidateRows();
                 if (typeof segmentEditorRenderStrip === 'function') segmentEditorRenderStrip();
             });
         }
