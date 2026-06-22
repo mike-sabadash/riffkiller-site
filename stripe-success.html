@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Riff Killer - Payment Successful</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&family=Zen+Dots&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/reset.css">
+    <link rel="stylesheet" href="css/variables.css">
+    <link rel="icon" type="image/svg+xml" href="assets/icons/favicon.svg">
+    <style>
+        body { background-color: #111629; color: #fff; font-family: 'Roboto', sans-serif; min-height: 100vh;
+        min-height: 100dvh; display: flex; align-items: center; justify-content: center; margin: 0; padding: 20px; text-align: center; }
+        .success-box { max-width: 420px; padding: 40px; background: rgba(255,255,255,0.03); border-radius: 24px; border: 1px solid rgba(255,255,255,0.1); }
+        .success-box h1 { font-family: 'Zen Dots', cursive; font-size: 24px; font-weight: 400; margin-bottom: 12px; }
+        .success-box p { color: rgba(255,255,255,0.7); margin-bottom: 24px; }
+        .success-box a { display: inline-block; padding: 12px 24px; background: #9355E5; color: #fff; text-decoration: none; border-radius: 8px; font-weight: 500; transition: background 0.2s; }
+        .success-box a:hover { background: #7B3FC7; }
+        #confetti-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; }
+        .success-box { position: relative; z-index: 2; }
+    </style>
+</head>
+<body>
+    <canvas id="confetti-canvas" aria-hidden="true"></canvas>
+    <div class="success-box">
+        <h1>You're in!</h1>
+        <p id="message">Thank you for subscribing. Redirecting to your profile in 3 seconds...</p>
+        <a href="profile.html?success=stripe" id="profileLink">Go to profile</a>
+    </div>
+
+    <script src="config/env-config.php"></script>
+    <script src="js/stripe-config.js"></script>
+    <script src="js/patreon-config.js"></script>
+    <script src="js/auth-manager.js"></script>
+    <script>
+        (function() {
+            var params = new URLSearchParams(window.location.search);
+            var sessionId = params.get('session_id');
+
+            function runConfetti() {
+                var canvas = document.getElementById('confetti-canvas');
+                var ctx = canvas.getContext('2d');
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+                var particles = [];
+                var colors = ['#9355E5', '#6B3DA6', '#4CAF50', '#FFD700', '#fff'];
+                for (var i = 0; i < 80; i++) {
+                    particles.push({
+                        x: Math.random() * canvas.width,
+                        y: Math.random() * canvas.height,
+                        r: 4 + Math.random() * 6,
+                        c: colors[Math.floor(Math.random() * colors.length)],
+                        vx: (Math.random() - 0.5) * 6,
+                        vy: -2 - Math.random() * 8
+                    });
+                }
+                function draw() {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    particles.forEach(function(p) {
+                        p.x += p.vx;
+                        p.y += p.vy;
+                        p.vy += 0.15;
+                        ctx.fillStyle = p.c;
+                        ctx.beginPath();
+                        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+                        ctx.fill();
+                    });
+                    if (particles.some(function(p) { return p.y < canvas.height + 20; })) {
+                        requestAnimationFrame(draw);
+                    }
+                }
+                draw();
+            }
+
+            runConfetti();
+
+            var redirectDelayMs = 3000;
+
+            var auth = window.patreonAuth || window.authManager;
+
+            if (!sessionId) {
+                if (auth && typeof auth.setStripeOnlySession === 'function') {
+                    auth.setStripeOnlySession(null, { status: 'active', plan: 'monthly' });
+                } else if (auth && typeof auth.updateSubscription === 'function') {
+                    auth.updateSubscription('stripe', { status: 'active', plan: 'monthly' });
+                }
+                setTimeout(function() { window.location.href = 'profile.html?success=stripe'; }, redirectDelayMs);
+                return;
+            }
+
+            var getSessionUrl = (window.STRIPE_CONFIG && window.STRIPE_CONFIG.getSessionUrl) || '/stripe-session.php';
+            fetch(getSessionUrl + '?session_id=' + encodeURIComponent(sessionId))
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    if (data.success && data.subscription && auth && typeof auth.setStripeOnlySession === 'function') {
+                        auth.setStripeOnlySession(sessionId, data.subscription);
+                    } else if (auth && typeof auth.setStripeOnlySession === 'function') {
+                        auth.setStripeOnlySession(sessionId, { status: 'active', plan: 'monthly' });
+                    } else if (auth && typeof auth.updateSubscription === 'function') {
+                        auth.updateSubscription('stripe', data.subscription || { status: 'active', plan: 'monthly' });
+                    }
+                    setTimeout(function() { window.location.href = 'profile.html?success=stripe'; }, redirectDelayMs);
+                })
+                .catch(function(err) {
+                    console.warn('Stripe session fetch failed', err);
+                    if (auth && typeof auth.setStripeOnlySession === 'function') {
+                        auth.setStripeOnlySession(sessionId, { status: 'active', plan: 'monthly' });
+                    } else if (auth && typeof auth.updateSubscription === 'function') {
+                        auth.updateSubscription('stripe', { status: 'active', plan: 'monthly' });
+                    }
+                    setTimeout(function() { window.location.href = 'profile.html?success=stripe'; }, redirectDelayMs);
+                });
+        })();
+    </script>
+</body>
+</html>

@@ -1,0 +1,1955 @@
+/* ==========================================================================
+   Practice Page Styles - ИСПРАВЛЕНО ДЛЯ МОБИЛЬНЫХ
+   ========================================================================== */
+
+/* === БОКОВАЯ ПАНЕЛЬ СЛЕВА === */
+
+.sidebar-left {
+    position: fixed;
+    left: 20px;
+    top: 0;
+    height: 100vh;
+    height: 100dvh;
+    max-height: 100svh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: var(--spacing-xl);
+    z-index: 100;
+}
+
+.author-signature {
+    margin-bottom: 30px;
+}
+
+.signature-img {
+    width: 8px;
+    height: 36px;
+    opacity: 0.35;
+}
+
+.social-sidebar-link {
+    display: block;
+    transition: opacity var(--transition-fast);
+}
+
+.social-sidebar-link:hover {
+    opacity: 0.8;
+}
+
+.social-sidebar-icon {
+    width: 24px;
+    height: 24px;
+    opacity: 0.35;
+}
+
+@media (max-width: 900px) {
+    .sidebar-left {
+        display: none;
+    }
+}
+
+/* === ХЛЕБНЫЕ КРОШКИ И ЗАГОЛОВОК === */
+.practice-header {
+    margin-bottom: 50px;
+}
+
+.practice-meta-row{
+    display:flex;
+    justify-content:flex-end;
+    margin-top:12px;
+}
+
+.practice-progress-pill{
+    padding:8px 12px;
+    border-radius:999px;
+    font-size:13px;
+    color:rgba(255,255,255,0.88);
+    background:rgba(255,255,255,0.06);
+    border:1px solid rgba(255,255,255,0.12);
+}
+
+.breadcrumbs {
+    display: flex;
+    align-items: center;
+    gap: 22px;
+}
+
+.breadcrumb-arrow {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    transition: opacity var(--transition-fast);
+}
+
+.breadcrumb-arrow:hover {
+    opacity: 0.8;
+}
+
+.arrow-icon {
+    width: 45px;
+    height: 14px;
+}
+
+.practice-title {
+    font-family: var(--font-family-primary);
+    font-weight: var(--font-weight-regular);
+    font-size: 36px;
+    color: var(--color-text-primary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    line-height: 1;
+}
+
+.breadcrumb-link {
+    color: var(--color-text-primary);
+    text-decoration: none;
+    transition: opacity var(--transition-fast);
+}
+
+.breadcrumb-link:hover {
+    opacity: 0.8;
+}
+
+.breadcrumb-separator {
+    color: var(--color-text-primary);
+    opacity: 1;
+}
+
+.breadcrumb-current {
+    color: var(--color-text-primary);
+    opacity: 0.6;
+}
+
+/* === КОНТРОЛЫ НАД ВИДЕО === */
+.video-top-controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+    width: 728px;
+    max-width: 100%;
+    position: relative;
+    z-index: 10;
+    pointer-events: auto;
+}
+
+.hand-controls {
+    display: flex;
+    gap: 10px;
+    pointer-events: auto;
+}
+
+/* Над плеером: стекло + 12px как landing / profile */
+.mode-btn {
+    font-family: 'Inter', system-ui, sans-serif;
+    font-weight: 500;
+    font-size: 0.8125rem;
+    color: rgba(214, 220, 238, 0.88);
+    padding: 8px 14px;
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.035);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.03);
+    cursor: pointer;
+    transition: border-color 0.2s ease, background 0.2s ease, color 0.2s ease;
+    line-height: 1;
+    white-space: nowrap;
+    pointer-events: auto;
+    position: relative;
+    z-index: 11;
+}
+
+.mode-btn:hover {
+    color: rgba(244, 247, 255, 0.95);
+    border-color: rgba(255, 255, 255, 0.14);
+    background: rgba(255, 255, 255, 0.055);
+}
+
+.mode-btn.active {
+    color: rgba(244, 247, 255, 0.98);
+    border-color: rgba(147, 85, 229, 0.55);
+    background: rgba(147, 85, 229, 0.14);
+}
+
+.tab-toggle-btn {
+    font-family: 'Inter', system-ui, sans-serif;
+    font-weight: 500;
+    font-size: 0.8125rem;
+    color: rgba(214, 220, 238, 0.88);
+    padding: 8px 12px 8px 10px;
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.035);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.03);
+    cursor: pointer;
+    transition: border-color 0.2s ease, background 0.2s ease, color 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    line-height: 1;
+    white-space: nowrap;
+    pointer-events: auto;
+    position: relative;
+    z-index: 11;
+}
+
+.tab-toggle-btn:hover {
+    color: rgba(244, 247, 255, 0.95);
+    border-color: rgba(255, 255, 255, 0.14);
+    background: rgba(255, 255, 255, 0.055);
+}
+
+.tab-toggle-btn.active {
+    color: rgba(244, 247, 255, 0.98);
+    border-color: rgba(147, 85, 229, 0.5);
+    background: rgba(147, 85, 229, 0.1);
+}
+
+.tab-icon {
+    width: 16px;
+    height: 16px;
+    opacity: 0.5;
+}
+
+.tab-toggle-btn.active .tab-icon,
+.tab-toggleBtn:hover .tab-icon {
+    opacity: 0.8;
+}
+
+.tab-text {
+    line-height: 1;
+}
+
+/* On mobile, shorten to "Tabs" to prevent overflow */
+@media (max-width: 768px) {
+    .tab-toggle-btn .tab-icon {
+        display:none;
+    }
+    .tab-toggle-btn .tab-text {
+        font-size: 0;
+    }
+    .tab-toggle-btn .tab-text::after {
+        content: 'Tabs';
+        font-size: 14px;
+        font-family: var(--font-family-primary);
+        font-weight: 500;
+    }
+}
+
+/* === ВИДЕОПЛЭЕР === */
+.video-player-container {
+    width: 100%;
+    margin-bottom: 20px;
+    /* ИСПРАВЛЕНИЕ: не перехватываем события */
+    pointer-events: none;
+}
+
+.video-wrapper {
+    position: relative;
+    width: 728px;
+    max-width: 100%;
+    background: #0a0a0f;
+    border-radius: 16px;
+    overflow: hidden;
+    aspect-ratio: 16/9;
+    pointer-events: auto;
+}
+
+.video-wrapper.video-loading {
+    background-size: cover;
+    background-position: center;
+    background-color: #1a1f33;
+}
+
+.video-loading-placeholder {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 25;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    background: rgba(0, 0, 0, 0.75);
+    border-radius: 16px;
+    padding: 24px;
+}
+
+.video-loading-spinner {
+    width: 48px;
+    height: 48px;
+    border: 4px solid rgba(255, 255, 255, 0.15);
+    border-top-color: #9355E5;
+    border-radius: 50%;
+    animation: video-spin 0.9s linear infinite;
+    flex-shrink: 0;
+}
+
+@keyframes video-spin {
+    to { transform: rotate(360deg); }
+}
+
+.video-loading-text {
+    margin: 0;
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.video-loading-progress-wrap {
+    width: 100%;
+    max-width: 200px;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.video-loading-progress-bar {
+    height: 100%;
+    width: 0%;
+    background: #9355E5;
+    border-radius: 4px;
+    transition: width 0.2s ease;
+}
+
+.video-error-state {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 6;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    background: rgba(0, 0, 0, 0.85);
+    border-radius: 16px;
+}
+
+.video-error-text {
+    margin: 0;
+    font-size: 15px;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.video-retry-btn {
+    padding: 10px 24px;
+    background: #6B3DA6;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.video-retry-btn:hover {
+    background: #5A2D95;
+}
+
+/* Optional visual hint while video is loading (no pointer blocking) */
+.riff-timeline.timeline-loading .segment {
+    opacity: 0.65;
+}
+
+/* Видео элементы */
+.video-element {
+    position: absolute;
+    top: 0;
+    left: 0;
+    background: #000;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    background: #000;
+    transition: opacity 0.2s ease;
+    z-index: 1;
+    /* ИСПРАВЛЕНИЕ: видео может перехватывать клики */
+    pointer-events: auto;
+}
+
+/* Режимы видео */
+.left-mode .video-element.left-hand {
+    opacity: 1;
+    z-index: 2;
+}
+
+.left-mode .video-element.right-hand {
+    opacity: 0;
+    z-index: 1;
+    /* ИСПРАВЛЕНИЕ: скрытое видео не должно перехватывать клики */
+    pointer-events: none;
+}
+
+.right-mode .video-element.left-hand {
+    opacity: 0;
+    z-index: 1;
+    pointer-events: none;
+}
+
+.right-mode .video-element.right-hand {
+    opacity: 1;
+    z-index: 2;
+}
+
+/* Сплит режим */
+.split-mode {
+    position: relative;
+    overflow: hidden;
+}
+
+.split-mode .video-element.left-hand {
+    opacity: 1;
+    z-index: 2;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    pointer-events: auto;
+}
+
+.split-mode .video-element.right-hand {
+    opacity: 1;
+    z-index: 3;
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    width: 30%;
+    max-width: 250px;
+    height: auto;
+    aspect-ratio: 16/9;
+    background: #000;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    pointer-events: auto;
+}
+
+/* Метка для PIP видео в сплит режиме */
+.split-mode .video-element.right-hand::before {
+    content: 'Right Hand';
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 500;
+    z-index: 4;
+    pointer-events: none;
+}
+
+/* ПРЕЛОАДЕР ВИДЕО */
+.video-preloader {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 50;
+    border-radius: 16px;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+}
+
+.video-preloader.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.loader-spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    border-top-color: #9355E5;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Оверлей видео: при воспроизведении скрыт, при паузе — десктоп: по hover, мобилка: всегда */
+.video-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 30;
+    transition: opacity 0.25s ease;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 16px;
+    cursor: pointer;
+    pointer-events: auto;
+}
+
+/* Играет — оверлей скрыт всегда */
+.video-wrapper.playing .video-overlay {
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
+/* Пауза: десктоп — оверлей только при наведении */
+@media (hover: hover) {
+    .video-wrapper:not(.playing) .video-overlay {
+        opacity: 0;
+        pointer-events: none;
+    }
+    .video-wrapper:not(.playing):hover .video-overlay {
+        opacity: 1;
+        pointer-events: auto;
+    }
+}
+
+/* Пауза: мобилка — оверлей виден (тап = play) */
+@media (hover: none) {
+    .video-wrapper:not(.playing) .video-overlay {
+        opacity: 1;
+        pointer-events: auto;
+    }
+}
+
+.video-overlay.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.play-btn {
+    width: 80px;
+    height: 80px;
+    border-radius: 20px;
+    background: rgba(0, 0, 0, 0.5);
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    backdrop-filter: blur(4px);
+    pointer-events: auto;
+}
+
+.play-btn:hover {
+    background: rgba(0, 0, 0, 0.7);
+    transform: scale(1.05);
+}
+
+.play-xl-icon {
+    width: 32px;
+    height: 32px;
+    filter: brightness(0) invert(1);
+}
+
+/* === LESSON MODE BUTTON === */
+.lesson-mode-btn {
+    position: absolute;
+    bottom: 32px;
+    right: 12px;
+    z-index: 45;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    background: rgba(0, 0, 0, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.lesson-mode-btn:hover {
+    background: rgba(147, 85, 229, 0.6);
+    border-color: rgba(147, 85, 229, 0.8);
+}
+.lesson-mode-btn.active {
+    background: #9355E5;
+    border-color: #9355E5;
+}
+.lesson-mode-icon {
+    font-size: 16px;
+}
+
+/* Lesson mode: одно видео на весь экран */
+.video-wrapper.lesson-mode .video-element.left-hand,
+.video-wrapper.lesson-mode .video-element.right-hand {
+    display: none !important;
+}
+.video-wrapper.lesson-mode .video-element.lesson-video {
+    display: block !important;
+    opacity: 1 !important;
+    z-index: 2;
+}
+
+/* Таймер воспроизведения: отдельный слой в панели под плеером (секунды : мс, end сегмента) */
+.practice-timer-layer {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+    min-width: 72px;
+    padding: 6px 10px;
+    background: rgba(0, 0, 0, 0.75);
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    pointer-events: none;
+}
+.practice-timer-time {
+    font-family: var(--font-family-primary), monospace;
+    font-size: 14px;
+    font-weight: 600;
+    color: #fff;
+    letter-spacing: 0.06em;
+    line-height: 1.2;
+}
+.practice-timer-seg-end {
+    font-family: var(--font-family-primary), monospace;
+    font-size: 11px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.85);
+}
+
+/* === ТАЙМЛАЙН РИФФА === */
+.riff-timeline {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 26px;  /* БЫЛО 24px, СТАЛО 26px */
+    background: rgba(0, 0, 0, 0.8);
+    border-radius: 12px;
+    z-index: 40;
+    overflow: visible;
+    pointer-events: auto;
+}
+
+.timeline-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    padding: 0 6px;
+    pointer-events: auto;
+    overflow: visible;
+}
+
+.timeline-segments {
+    position: absolute;
+    top: 50%;
+    left: 6px;
+    right: 6px;
+    transform: translateY(-50%);
+    height: 6px;  /* БЫЛО 4px, СТАЛО 6px */
+    display: flex;
+    gap: 6px;
+    pointer-events: auto;
+    overflow: visible;
+    z-index: 2;
+}
+
+.segment {
+    flex: 1;
+    height: 100%;
+    background: color-mix(in srgb, var(--segment-color, #9355E5) 25%, transparent);
+    border-radius: 3px;
+    position: relative;
+    overflow: visible;
+    cursor: pointer;
+    pointer-events: auto;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.segment.active {
+    background: color-mix(in srgb, var(--segment-color, #9355E5) 32%, transparent);
+}
+
+/* Стили для заливки сегментов */
+.segment-fill {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 0%;
+    background: color-mix(in srgb, var(--segment-color, #9355E5) 40%, transparent);
+    border-radius: 3px;
+    transition: width 0.3s linear;
+    pointer-events: none;
+    overflow: hidden;
+    z-index: 0;
+}
+
+.segment.active .segment-fill {
+    background: var(--segment-color, #9355E5);
+    box-shadow: 0 0 4px 0 color-mix(in srgb, var(--segment-color, #9355E5) 80%, transparent);
+}
+
+/* Стиль для All Riff режима */
+.all-riff-active .segment .segment-fill {
+    background: var(--segment-color, #9355E5);
+}
+
+/* Speed Trainer: компактный бейдж над активной полоской (10px от сегмента) */
+.segment-trainer-speed {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: calc(100% + 10px);
+    z-index: 4;
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    line-height: 1.2;
+    color: rgba(255, 255, 255, 0.96);
+    white-space: nowrap;
+    pointer-events: none;
+    padding: 5px 11px;
+    border-radius: 10px;
+    background: rgba(6, 8, 18, 0.78);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    box-shadow:
+        0 4px 16px rgba(0, 0, 0, 0.5),
+        inset 0 1px 0 rgba(255, 255, 255, 0.07);
+    backdrop-filter: blur(12px) saturate(1.1);
+    -webkit-backdrop-filter: blur(12px) saturate(1.1);
+}
+
+.segment.active .segment-trainer-speed {
+    border-color: color-mix(in srgb, var(--segment-color, #9355e5) 50%, rgba(255, 255, 255, 0.12));
+    box-shadow:
+        0 4px 18px rgba(0, 0, 0, 0.55),
+        0 0 0 1px color-mix(in srgb, var(--segment-color, #9355e5) 22%, transparent),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+@media (max-width: 480px) {
+    .segment-trainer-speed {
+        font-size: 11px;
+        padding: 4px 9px;
+        letter-spacing: 0.06em;
+    }
+}
+
+/* === ЭЛЕМЕНТЫ УПРАВЛЕНИЯ ВИДЕО (ПОД ПЛЕЕРОМ) === */
+.video-controls-below {
+    width: 728px;
+    max-width: 100%;
+    margin-top: 20px;
+    /* ИСПРАВЛЕНИЕ: гарантируем кликабельность */
+    pointer-events: auto;
+    position: relative;
+    z-index: 10;
+}
+
+.controls-below-container {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    width: 100%;
+    pointer-events: auto;
+}
+
+.practice-tools{
+    margin-left:auto;
+    display:flex;
+    align-items:center;
+    gap:12px;
+}
+
+/* Тёмная размытая дорожка; видимая «кнопка» только у .active */
+.practice-modes {
+    display: inline-flex;
+    align-items: center;
+    background: rgba(4, 6, 14, 0.55);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    padding: 4px;
+    gap: 2px;
+    backdrop-filter: blur(18px) saturate(1.1);
+    -webkit-backdrop-filter: blur(18px) saturate(1.1);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+/* Неактивный пункт — без плашки, только текст */
+.practice-mode-btn {
+    border: none;
+    background: transparent;
+    box-shadow: none;
+    color: rgba(230, 234, 248, 0.72);
+    padding: 7px 14px;
+    border-radius: 10px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    font-family: 'Inter', system-ui, sans-serif;
+    cursor: pointer;
+    transition: color 0.18s ease, background 0.18s ease, box-shadow 0.18s ease;
+}
+
+.practice-mode-btn.active {
+    background: linear-gradient(180deg, rgba(168, 112, 255, 0.55) 0%, rgba(147, 85, 229, 0.45) 100%);
+    color: #ffffff;
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.12), 0 2px 10px rgba(147, 85, 229, 0.35);
+}
+
+.practice-mode-btn:hover:not(.active) {
+    background: transparent;
+    color: rgba(255, 255, 255, 0.92);
+}
+
+.practice-mode-btn.active:hover {
+    background: linear-gradient(180deg, rgba(178, 125, 255, 0.62) 0%, rgba(147, 85, 229, 0.52) 100%);
+    color: #ffffff;
+}
+
+.practice-learned-btn {
+    background: rgba(147, 85, 229, 0.12);
+    border: 1px solid rgba(147, 85, 229, 0.5);
+    color: rgba(255, 255, 255, 0.95);
+    border-radius: 12px;
+    padding: 7px 13px;
+    font-size: 12px;
+    font-weight: 500;
+    font-family: 'Inter', system-ui, sans-serif;
+    cursor: pointer;
+    transition: background 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
+}
+
+.practice-learned-btn:hover{
+    background:rgba(147,85,229,0.26);
+    border-color:rgba(147,85,229,0.55);
+    transform:translateY(-0.5px);
+}
+
+.practice-learned-btn.learned{
+    background:rgba(76,175,80,0.14);
+    border-color:rgba(76,175,80,0.35);
+}
+
+/* Overlay контейнер поверх видео для Normal / Speed Trainer / Mark learned */
+.practice-tools-overlay{
+    position:absolute;
+    top:12px;
+    right:12px;
+    display:flex;
+    flex-direction:column;
+    align-items:flex-end;
+    gap:8px;
+    z-index:46;
+}
+
+@media (max-width: 768px){
+    .practice-tools-overlay{
+        top:8px;
+        right:8px;
+        gap:6px;
+    }
+}
+
+.control-buttons {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+    pointer-events: auto;
+}
+
+.control-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.2s ease, border-color 0.2s ease;
+    pointer-events: auto;
+    position: relative;
+    z-index: 11;
+}
+
+.control-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.12);
+}
+
+.control-btn.active {
+    background: var(--color-text-primary);
+}
+
+/* Loop active: лёгкое свечение + pulse */
+#loopButton.active {
+    animation: loop-pulse 1.8s ease-in-out infinite;
+    box-shadow: 0 0 10px rgba(147, 85, 229, 0.35);
+}
+@keyframes loop-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.82; }
+}
+
+.control-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.control-btn:disabled:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.08);
+}
+
+.control-icon {
+    width: 20px;
+    height: 20px;
+    pointer-events: none;
+}
+
+.control-btn.active .control-icon {
+    filter: brightness(0) saturate(100%) invert(17%) sepia(15%) saturate(1000%) hue-rotate(210deg) brightness(90%) contrast(85%);
+}
+
+.play-control .play-icon,
+.play-control .stop-icon {
+    width: 20px;
+    height: 20px;
+    pointer-events: none;
+}
+
+.play-control.active .stop-icon {
+    filter: brightness(0) saturate(100%) invert(17%) sepia(15%) saturate(1000%) hue-rotate(210deg) brightness(90%) contrast(85%);
+}
+
+/* === КНОПКИ УПРАВЛЕНИЯ СЕГМЕНТАМИ === */
+.segment-controls-container {
+    margin-top: 32px;
+    width: 728px;
+    max-width: 100%;
+    pointer-events: auto;
+    position: relative;
+    z-index: 10;
+}
+
+.segment-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    pointer-events: auto;
+    touch-action: manipulation;
+}
+
+/* === PRACTICE ONBOARDING OVERLAY === */
+.practice-onboarding-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(4, 6, 20, 0.82);
+    backdrop-filter: blur(10px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1200;
+    box-sizing: border-box;
+    padding: max(20px, env(safe-area-inset-top, 0px)) 20px
+        calc(max(24px, env(safe-area-inset-bottom, 0px)) + var(--rk-mobile-browser-chrome-bottom, 52px));
+}
+
+.practice-onboarding-card {
+    background: linear-gradient(180deg, #101225 0%, #050615 100%);
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    max-width: 420px;
+    width: calc(100% - 40px);
+    max-height: min(85vh, 560px);
+    max-height: min(560px, 85dvh);
+    max-height: min(560px, 78svh);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 24px 22px 20px;
+    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.7);
+    box-sizing: border-box;
+}
+
+.practice-onboarding-title {
+    font-family: var(--font-family-accent, 'Zen Dots', system-ui);
+    font-size: 18px;
+    margin: 0 0 14px 0;
+    color: var(--color-text-primary);
+    letter-spacing: 0.02em;
+}
+
+.practice-onboarding-steps {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 18px 0;
+    font-size: 14px;
+    color: var(--color-text-secondary);
+}
+
+.practice-onboarding-steps li {
+    margin-bottom: 8px;
+}
+
+.practice-onboarding-steps li strong {
+    color: var(--color-text-primary);
+}
+
+.practice-onboarding-hint{
+    margin: 4px 0 16px;
+    font-size: 13px;
+    color: var(--color-text-tertiary);
+    line-height: 1.5;
+}
+
+.practice-onboarding-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.onboarding-btn {
+    border-radius: 999px;
+    padding: 8px 16px;
+    font-size: 13px;
+    cursor: pointer;
+    border: 1px solid transparent;
+    font-family: inherit;
+}
+
+.onboarding-btn.secondary {
+    background: transparent;
+    color: var(--color-text-tertiary);
+    border-color: rgba(255, 255, 255, 0.18);
+}
+
+.onboarding-btn.secondary:hover {
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.onboarding-btn.primary {
+    background: #9355E5;
+    color: #fff;
+    border-color: #9355E5;
+}
+
+.onboarding-btn.primary:hover {
+    background: #7B3FC7;
+}
+
+/* === SPEED TRAINER INTRO (один раз, localStorage) === */
+.speed-trainer-intro-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 1250;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    padding: max(24px, env(safe-area-inset-top, 0px)) 22px
+        calc(max(28px, env(safe-area-inset-bottom, 0px)) + var(--rk-mobile-browser-chrome-bottom, 52px));
+    background: rgba(4, 6, 20, 0.88);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    /* сами кликабельны даже если предок когда‑то задавал pointer-events: none */
+    pointer-events: auto;
+}
+
+.speed-trainer-intro-card {
+    width: 100%;
+    max-width: 440px;
+    margin: 0 auto;
+    padding: 32px 28px 28px;
+    border-radius: 22px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: linear-gradient(165deg, #12152a 0%, #080a14 55%, #05060f 100%);
+    box-shadow:
+        0 24px 64px rgba(0, 0, 0, 0.65),
+        inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    box-sizing: border-box;
+    pointer-events: auto;
+}
+
+.speed-trainer-intro-title {
+    font-family: var(--font-family-accent, 'Zen Dots', system-ui);
+    font-size: 20px;
+    font-weight: 400;
+    line-height: 1.25;
+    letter-spacing: 0.03em;
+    color: #ffffff;
+    margin: 0 0 22px 0;
+}
+
+.speed-trainer-intro-body {
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 15px;
+    line-height: 1.65;
+    color: rgba(230, 234, 248, 0.88);
+    margin-bottom: 28px;
+}
+
+.speed-trainer-intro-lead {
+    margin: 0 0 18px 0;
+}
+
+.speed-trainer-intro-lead strong {
+    color: #ffffff;
+    font-weight: 600;
+}
+
+.speed-trainer-intro-list {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 18px 0;
+}
+
+.speed-trainer-intro-list li {
+    position: relative;
+    padding-left: 0;
+    margin-bottom: 12px;
+    color: rgba(220, 225, 240, 0.9);
+}
+
+.speed-trainer-intro-list li:last-child {
+    margin-bottom: 0;
+}
+
+.speed-trainer-intro-kicker {
+    display: inline-block;
+    min-width: 2.75em;
+    font-weight: 700;
+    font-size: 15px;
+    letter-spacing: 0.02em;
+    color: #ffffff;
+}
+
+.speed-trainer-intro-note {
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.55;
+    color: rgba(180, 188, 210, 0.82);
+}
+
+/* Та же кнопка, что «Got it» в онбординге Practice (.onboarding-btn.primary) */
+.speed-trainer-intro-submit {
+    width: 100%;
+    box-sizing: border-box;
+    display: block;
+    margin: 0;
+    padding: 12px 22px;
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: center;
+}
+
+@media (max-width: 480px) {
+    .speed-trainer-intro-card {
+        padding: 26px 20px 22px;
+        border-radius: 18px;
+    }
+
+    .speed-trainer-intro-title {
+        font-size: 17px;
+        margin-bottom: 18px;
+    }
+
+    .speed-trainer-intro-body {
+        font-size: 14px;
+        margin-bottom: 22px;
+    }
+}
+
+.segment-btn {
+    height: 44px;
+    min-height: 44px;
+    padding: 0 16px;
+    border-radius: 12px;
+    border: none;
+    background: var(--segment-color, #6B3DA6);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    font-family: 'Inter', system-ui, sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+    color: #FFFFFF;
+    white-space: nowrap;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.segment-btn.all-riff {
+    background: rgba(255, 255, 255, 0.07);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: rgba(244, 247, 255, 0.92);
+    --segment-color: #393148;
+}
+
+.segment-btn.active {
+    background: #FFFFFF !important;
+    color: #393148 !important;
+}
+
+.segment-btn.active .segment-icon {
+    filter: brightness(0) invert(0.2);
+}
+
+.segment-icon {
+    width: 18px;
+    height: 18px;
+}
+
+/* Убираем старые стили для времени */
+.segment-time {
+    display: none;
+}
+
+/* АКТИВНАЯ КНОПКА СЕГМЕНТА - БЕЛЫЙ ФОН, ТЕМНЫЙ ТЕКСТ И ИКОНКИ */
+.segment-btn.active {
+    background: #FFFFFF !important;
+    color: #393148 !important;
+}
+
+.segment-btn.active:hover {
+    background: #F0F0F0 !important;
+}
+
+/* Инвертируем иконки для активных кнопок */
+.segment-btn.active .segment-icon {
+    filter: brightness(0) saturate(100%) invert(17%) sepia(15%) saturate(1000%) hue-rotate(210deg) brightness(90%) contrast(85%) !important;
+}
+
+/* Для All Riff кнопки в активном состоянии */
+.segment-btn.all-riff.active {
+    background: #FFFFFF !important;
+    color: #393148 !important;
+}
+
+.segment-btn.all-riff.active:hover {
+    background: #F0F0F0 !important;
+}
+
+.segment-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.segment-icon {
+    width: 18px;
+    height: 18px;
+    pointer-events: none;
+}
+
+.segment-btn .play-icon {
+    display: block;
+}
+
+.segment-btn .stop-icon {
+    display: none;
+}
+
+.segment-btn.active .play-icon {
+    display: none;
+}
+
+.segment-btn.active .stop-icon {
+    display: block;
+}
+
+.segment-name {
+    font-weight: 600;
+    color: inherit;
+    pointer-events: none;
+}
+
+.segment-time {
+    font-weight: 400;
+    color: inherit;
+    opacity: 0.7;
+    margin-left: 6px;
+    pointer-events: none;
+}
+
+/* Для активной кнопки делаем время темным */
+.segment-btn.active .segment-time {
+    color: #393148 !important;
+    opacity: 0.9;
+}
+
+/* === RECENTLY PRACTICED === */
+.recently-practiced {
+    margin-top: 40px;
+    width: 100%;
+    pointer-events: auto;
+}
+
+.riffs-header {
+    margin-bottom: 30px;
+}
+
+.riffs-title {
+    font-family: var(--font-family-primary);
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-regular);
+    color: var(--color-text-primary);
+    margin-bottom: 0;
+}
+
+.riffs-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(var(--width-riff-card), 1fr));
+    gap: 20px;
+    justify-content: start;
+}
+
+/* === КНОПКИ СКОРОСТИ === */
+.speed-controls {
+    display: flex;
+    gap: 8px;
+    margin-left: auto;
+    pointer-events: auto;
+}
+
+/* Кнопки скорости — тот же glass, что у mode-btn */
+.speed-btn {
+    height: 44px;
+    padding: 0 16px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.035);
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    /* неактивные: × и цифра приглушены */
+    color: rgba(255, 255, 255, 0.38);
+    font-family: 'Inter', system-ui, sans-serif;
+    font-weight: 500;
+    font-size: 14px;
+    cursor: pointer;
+    transition: border-color 0.2s ease, background 0.2s ease, color 0.2s ease;
+    white-space: nowrap;
+    min-width: 52px;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: auto;
+    position: relative;
+    z-index: 11;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
+.speed-btn:hover:not(.active) {
+    color: rgba(255, 255, 255, 0.55);
+    border-color: rgba(255, 255, 255, 0.14);
+    background: rgba(255, 255, 255, 0.055);
+}
+
+.speed-btn.active {
+    /* выбранная: × и число полностью белые */
+    color: #ffffff;
+    border-color: rgba(147, 85, 229, 0.55);
+    background: rgba(147, 85, 229, 0.14);
+}
+
+.speed-btn.active:hover {
+    color: #ffffff;
+}
+
+/* === НОТИФИКАЦИИ === */
+.notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: rgba(107, 61, 166, 0.95);
+    color: white;
+    padding: 12px 20px;
+    border-radius: 12px;
+    font-family: var(--font-family-primary);
+    font-weight: 600;
+    font-size: 14px;
+    z-index: 10000;
+    opacity: 0;
+    transform: translateY(-20px);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 8px 25px rgba(107, 61, 166, 0.3);
+    pointer-events: none;
+    backdrop-filter: blur(10px);
+}
+
+.notification.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* === АДАПТИВНОСТЬ === */
+@media (max-width: 768px) {
+    .video-wrapper,
+    .video-top-controls,
+    .video-controls-below,
+    .segment-controls-container {
+        width: 100%;
+        max-width: 728px;
+    }
+    
+    .practice-title {
+        font-size: 28px;
+    }
+    
+    .breadcrumbs {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+    
+    .video-top-controls {
+        flex-direction: row;
+        align-items: center;
+        gap: 10px;
+        pointer-events: auto !important;
+    }
+    
+    .hand-controls {
+        pointer-events: auto !important;
+        flex: 1 1 auto;
+        overflow-x: auto;
+        padding-bottom: 2px;
+    }
+    
+    .mode-btn {
+        pointer-events: auto !important;
+        z-index: 100 !important;
+        white-space: nowrap;
+    }
+    
+    .tab-toggle-btn {
+        pointer-events: auto !important;
+        z-index: 100 !important;
+        flex-shrink: 0;
+        margin-left: 8px;
+    }
+    
+    .controls-below-container {
+        flex-direction: row;
+        justify-content: space-between;
+        gap: 15px;
+        pointer-events: auto !important;
+    }
+    
+    .control-buttons {
+        justify-content: flex-start;
+        pointer-events: auto !important;
+        flex: 1 1 auto;
+    }
+    
+    .control-btn {
+        pointer-events: auto !important;
+        z-index: 100 !important;
+    }
+    
+    .speed-controls {
+        pointer-events: auto !important;
+        gap: 6px;
+        flex: 1 1 48%;
+    }
+    
+    .speed-btn {
+        pointer-events: auto !important;
+        z-index: 100 !important;
+        padding: 8px 10px;
+        font-size: 13px;
+        min-width: 0;
+    }
+    
+    .segment-btn {
+        height: 46px;
+        padding: 0 14px;
+        font-size: 14px;
+        gap: 10px;
+        pointer-events: auto !important;
+        z-index: 100 !important;
+    }
+    
+    .segment-icon {
+        width: 20px;
+        height: 20px;
+    }
+    
+    .play-btn {
+        width: 70px;
+        height: 70px;
+    }
+    
+    .play-xl-icon {
+        width: 28px;
+        height: 28px;
+    }
+    
+    /* Сплит режим для мобильных */
+    .split-mode .video-element.right-hand {
+        width: 35%;
+        bottom: 15px;
+        right: 15px;
+    }
+    
+    .notification {
+        top: 15px;
+        right: 15px;
+        left: 15px;
+        text-align: center;
+    }
+}
+
+@media (max-width: 640px) {
+    .controls-below-container {
+        flex-wrap: nowrap;
+        justify-content: space-between;
+        gap: 10px;
+    }
+    
+    .control-buttons {
+        flex: 1 1 auto;
+        justify-content: flex-start;
+        gap: 8px;
+    }
+    
+    .speed-controls {
+        flex: 0 0 auto;
+        margin-left: 0;
+        justify-content: flex-end;
+    }
+
+    .control-btn {
+        width: 44px;
+        height: 44px;
+    }
+    
+    .segment-controls {
+        justify-content: flex-start;
+        overflow-x: auto;
+        padding-bottom: 5px;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+    }
+    
+    .segment-controls::-webkit-scrollbar {
+        display: none;
+    }
+    
+    .segment-btn {
+        flex-shrink: 0;
+    }
+    
+    .split-mode .video-element.right-hand {
+        width: 40%;
+        max-width: 180px;
+    }
+}
+
+@media (max-width: 480px) {
+    .practice-title {
+        font-size: 24px;
+        flex-wrap: wrap;
+    }
+    
+    .mode-btn,
+    .tab-toggle-btn {
+        font-size: 12px;
+        padding: 6px 10px;
+    }
+    
+    .control-btn {
+        width: 42px;
+        height: 42px;
+    }
+    
+    .play-btn {
+        width: 65px;
+        height: 65px;
+        border-radius: 18px;
+    }
+    
+    .play-xl-icon {
+        width: 26px;
+        height: 26px;
+    }
+    
+    .segment-btn {
+        height: 42px;
+        font-size: 13px;
+        padding: 0 12px;
+    }
+    
+    .split-mode .video-element.right-hand {
+        width: 45%;
+        bottom: 12px;
+        right: 12px;
+        border-radius: 10px;
+    }
+    
+    .notification {
+        padding: 10px 16px;
+        font-size: 13px;
+    }
+}
+
+@media (max-width: 360px) {
+    .controls-below-container {
+        flex-direction: row;
+        justify-content: space-between;
+    }
+    
+    .control-buttons {
+        gap: 5px;
+    }
+
+    .control-btn {
+        width: 40px;
+        height: 40px;
+    }
+    
+    .segment-btn {
+        height: 42px;
+        font-size: 13px;
+        padding: 0 10px;
+    }
+    
+    .hand-controls {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .split-mode .video-element.right-hand {
+        width: 50%;
+        bottom: 10px;
+        right: 10px;
+    }
+}
+
+/* === УЛУЧШЕНИЯ ДЛЯ МОБИЛЬНЫХ УСТРОЙСТВ === */
+@media (max-width: 768px) {
+    .video-wrapper {
+        border-radius: 12px;
+    }
+    
+    .riff-timeline {
+        height: 24px;
+        border-radius: 10px;
+    }
+    
+    .timeline-segments {
+        height: 5px;
+        gap: 4px;
+    }
+
+    .control-buttons {
+        gap: 8px;
+    }
+    
+    .segment-controls {
+        gap: 8px;
+    }
+    
+    .segment-btn {
+        font-size: 13px;
+        height: 42px;
+        padding: 0 10px;
+    }
+}
+
+/* Улучшения для очень маленьких экранов */
+@media (max-width: 480px) {
+    .segment-controls {
+        gap: 6px;
+    }
+    
+    .controls-below-container {
+        flex-direction: row;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .control-buttons {
+        flex: 1 1 auto;
+        justify-content: flex-start;
+    }
+
+    .speed-controls {
+        flex: 0 0 auto;
+        justify-content: flex-end;
+        margin-left: 0;
+    }
+
+    .segment-btn {
+        font-size: 12px;
+        height: 38px;
+        padding: 0 8px;
+        gap: 6px;
+    }
+    
+    .segment-icon {
+        width: 16px;
+        height: 16px;
+    }
+    
+    .control-btn {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+    }
+    
+    .control-icon {
+        width: 18px;
+        height: 18px;
+    }
+}
+
+/* В practice.css добавьте в конец файла */
+
+/* Усиление стилей для активной кнопки */
+.control-btn.active {
+    background: #FFFFFF !important;
+}
+
+.control-btn.active .control-icon,
+.control-btn.active .play-icon,
+.control-btn.active .stop-icon {
+    filter: brightness(0) saturate(100%) invert(17%) sepia(15%) saturate(1000%) hue-rotate(210deg) brightness(90%) contrast(85%) !important;
+}
+
+.play-control.active {
+    background: #FFFFFF !important;
+}
+
+.play-control.active .stop-icon {
+    display: block !important;
+}
+
+.play-control.active .play-icon {
+    display: none !important;
+}
+
+/* ================== ДОБАВИТЬ В КОНЕЦ ФАЙЛА practice.css ================== */
+
+/* Стили для оверлея при наведении */
+.video-wrapper:hover .video-overlay:not(.hidden) {
+    opacity: 1;
+}
+
+.video-wrapper .video-overlay {
+    transition: opacity 0.3s ease;
+}
+
+/* Усиление стилей для активной кнопки Play/Stop */
+.control-btn.active {
+    background: #FFFFFF !important;
+}
+
+.control-btn.active .control-icon,
+.control-btn.active .play-icon,
+.control-btn.active .stop-icon {
+    filter: brightness(0) saturate(100%) invert(17%) sepia(15%) saturate(1000%) hue-rotate(210deg) brightness(90%) contrast(85%) !important;
+}
+
+.play-control.active {
+    background: #FFFFFF !important;
+}
+
+.play-control.active .stop-icon {
+    display: block !important;
+}
+
+.play-control.active .play-icon {
+    display: none !important;
+}
+
+/* Стили для большой кнопки play при наведении */
+.video-overlay {
+    transition: opacity 0.3s ease;
+    cursor: pointer;
+}
+
+.video-overlay.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.play-btn {
+    transition: all 0.2s ease;
+}
+
+.play-btn:hover {
+    transform: scale(1.1);
+    background: rgba(0, 0, 0, 0.8);
+}
+
+/* Для мобильных устройств отключаем hover-эффекты */
+@media (max-width: 768px) {
+    .video-overlay.hidden {
+        opacity: 0;
+    }
+    
+    .video-wrapper:hover .video-overlay {
+        opacity: 1;
+    }
+}
+
+/* Исправление для оверлея видео */
+.video-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 30;
+    transition: opacity 0.3s ease;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 16px;
+    opacity: 1;
+    cursor: pointer;
+    pointer-events: auto;
+}
+
+.video-overlay.hidden {
+    display: none; /* Меняем с opacity на display none */
+}
+
+/* Кнопка play в оверлее */
+.play-btn {
+    width: 80px;
+    height: 80px;
+    border-radius: 20px;
+    background: rgba(0, 0, 0, 0.5);
+    border: none;
+    display: flex !important; /* Принудительно показываем */
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    backdrop-filter: blur(4px);
+}
+
+.play-xl-icon {
+    width: 32px;
+    height: 32px;
+    filter: brightness(0) invert(1);
+    display: block !important; /* Принудительно показываем */
+}
+
+/* Добавь этот CSS в файл practice.css */
+
+/* === ТАБЫ ПОВЕРХ ВИДЕО === */
+.tabs-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.8);
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+}
+
+.tabs-overlay.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.tabs-image {
+    max-width: 100%;
+   /*  max-height: 90%;*/
+    object-fit: contain;
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    pointer-events: none;
+}
+
+/* Делаем видео полупрозрачным когда табы показаны */
+.tabs-overlay:not(.hidden) ~ .video-element {
+    opacity: 0.3 !important;
+}
+
+/* Корректировка для split режима */
+.split-mode .tabs-overlay:not(.hidden) ~ .video-element.right-hand {
+    opacity: 0.3 !important;
+}
+
+/* Добавь этот CSS в конец файла practice.css */
+
+/* Исправление для мобильной версии - кнопка Tabs всегда справа */
+@media (max-width: 768px) {
+    .video-top-controls {
+        flex-direction: row !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        gap: 10px;
+    }
+    
+    .hand-controls {
+        flex: 0 1 auto;
+    }
+    
+    .tab-toggle-btn {
+        align-self: center !important;
+        margin-left: auto;
+        flex-shrink: 0;
+    }
+}
+
+/* Унификация размеров кнопок */
+.mode-btn,
+.tab-toggle-btn {
+    height: 36px !important;
+    padding: 0 16px !important;
+    font-size: 14px !important;
+    border-radius: 10px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    box-sizing: border-box !important;
+}
+
+/* Стиль для активного состояния TabToggle (как у mode-btn) */
+.tab-toggle-btn.active {
+    color: var(--color-text-primary) !important;
+    border-color: var(--color-text-primary) !important;
+    background: rgba(255, 255, 255, 0.1) !important;
+}
+
+.tab-toggle-btn.active .tab-icon {
+    opacity: 0.8 !important;
+}

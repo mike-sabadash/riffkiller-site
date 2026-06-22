@@ -1,0 +1,30 @@
+const express = require('express');
+const app = express();
+const port = 3000;
+
+app.get('/', (req, res) => {
+  res.send('Hello World!');
+});
+
+app.listen(port, () => {
+  console.log(`✅ Сервер запущен на http://localhost:${port}`);
+});
+  UW PICO 5.09                               File: server.cjs                                Modified  
+
+  res.send('Hello World!');
+});
+
+app.listen(port, () => {
+  console.log(`✅ Сервер запущен на http://localhost:${port}`);
+});
+
+
+
+
+
+^G Get Help      ^O WriteOut      ^R Read File     ^Y Prev Pg       ^K Cut Text      ^C Cur Pos       
+^X Exit          ^J Justify       ^W Where is      ^V Next Pg       ^U UnCut Text    ^T To Spell      
+  UW PICO 5.09                               File: server.cjs                                Modified  
+
+  res.send('Hello World!');
+});

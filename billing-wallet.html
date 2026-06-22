@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <script src="js/rk-theme-init.js"></script>
+    <meta name="theme-color" content="#0a0a0a" id="rk-theme-color">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Riff Killer - Pay with crypto (wallet)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <!-- Inter = тот же variable-шрифт, что на landing.html (opsz) -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/reset.css">
+    <link rel="stylesheet" href="css/variables.css">
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="css/rk-header.css">
+    <link rel="stylesheet" href="css/rk-theme-light.css">
+    <link rel="icon" type="image/svg+xml" href="assets/icons/favicon.svg">
+    <style>
+        body { background-color: var(--color-primary); color: var(--color-text-primary); min-height: 100vh; min-height: 100dvh; font-family: var(--font-family-primary); }
+        .wallet-page { max-width: 520px; margin: 0 auto; padding: 32px 20px calc(48px + var(--rk-viewport-pad-bottom)); }
+        .wallet-header { text-align: center; margin-bottom: 28px; }
+        .wallet-header h1 { font-family: var(--font-family-accent); font-size: var(--font-size-xl); font-weight: 400; margin-bottom: 8px; }
+        .wallet-header p { color: var(--color-text-tertiary); font-size: var(--font-size-sm); line-height: 1.5; }
+        .wallet-step { background: rgba(255,255,255,0.03); border: 1px solid var(--color-border-light); border-radius: var(--radius-lg); padding: 20px 24px; margin-bottom: 20px; }
+        .wallet-step h3 { font-size: var(--font-size-base); font-weight: 500; margin: 0 0 12px 0; color: var(--color-text-secondary); }
+        .wallet-step p { font-size: var(--font-size-sm); color: var(--color-text-secondary); line-height: 1.5; margin: 0 0 12px 0; }
+        .wallet-step p:last-child { margin-bottom: 0; }
+        .plans-row { display: flex; gap: 12px; justify-content: center; margin-bottom: 16px; }
+        .plan-card { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); border-radius: 12px; padding: 16px 24px; text-align: center; cursor: pointer; transition: border-color 0.2s, background 0.2s; }
+        .plan-card.selected { border-color: #9355E5; background: rgba(147,85,229,0.12); }
+        .plan-card .name { font-weight: 500; margin-bottom: 4px; }
+        .plan-card .price { font-size: 20px; }
+        .plan-card .period { font-size: 12px; color: var(--color-text-tertiary); }
+        .address-wrap { display: flex; align-items: center; gap: 10px; background: rgba(0,0,0,0.25); border-radius: 10px; padding: 12px 14px; border: 1px solid var(--color-border-light); margin: 12px 0; }
+        .address-wrap code { font-size: 13px; word-break: break-all; color: var(--color-text-secondary); flex: 1; }
+        .btn-copy { flex-shrink: 0; padding: 8px 14px; font-size: 13px; background: rgba(147,85,229,0.4); color: #fff; border: 1px solid rgba(147,85,229,0.6); border-radius: 8px; cursor: pointer; font-family: inherit; }
+        .btn-copy:hover { background: rgba(147,85,229,0.6); }
+        .amount-big { font-size: 18px; font-weight: 500; color: var(--color-text-primary); margin: 8px 0; }
+        .wallet-form label { display: block; font-size: 13px; color: var(--color-text-secondary); margin-bottom: 6px; }
+        .wallet-form input, .wallet-form textarea { width: 100%; padding: 12px 14px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.05); color: #fff; font-size: 1rem; box-sizing: border-box; margin-bottom: 14px; font-family: inherit; }
+        .wallet-form input::placeholder, .wallet-form textarea::placeholder { color: rgba(255,255,255,0.4); }
+        .wallet-form textarea { min-height: 72px; resize: vertical; }
+        .wallet-form .hint { font-size: 12px; color: var(--color-text-tertiary); margin: -6px 0 14px 0; }
+        .btn-submit { width: 100%; padding: 14px; font-size: 1rem; font-weight: 500; background: #9355E5; color: #fff; border: none; border-radius: 10px; cursor: pointer; font-family: inherit; transition: background 0.2s; }
+        .btn-submit:hover { background: #7B3FC7; }
+        .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; }
+        .wallet-success { text-align: center; padding: 24px; background: rgba(76,175,80,0.1); border: 1px solid rgba(76,175,80,0.3); border-radius: var(--radius-lg); margin-top: 20px; display: none; }
+        .wallet-success.visible { display: block; }
+        .wallet-success p { margin: 0 0 8px 0; color: var(--color-text-primary); }
+        .wallet-success .email { font-weight: 500; }
+        .wallet-error { color: #e57373; font-size: 14px; margin-top: 10px; display: none; }
+        .wallet-error.visible { display: block; }
+        .back-link { display: inline-block; margin-top: 24px; color: var(--color-text-tertiary); text-decoration: none; font-size: var(--font-size-sm); }
+        .back-link:hover { color: var(--color-text-primary); }
+        #walletUnavailable { text-align: center; padding: 24px; color: var(--color-text-tertiary); display: none; }
+        #walletUnavailable.visible { display: block; }
+    </style>
+</head>
+<body data-rk-header="app" data-logo-href="index.html" data-nav-active="billing">
+    <div id="site-header-mount"></div>
+    <script src="js/site-header.js"></script>
+    <div class="page-container">
+        <main class="main-content">
+            <div class="wallet-page">
+                <div class="wallet-header">
+                    <h1>Pay with crypto</h1>
+                    <p>Send the amount to our wallet. Then leave your email — we'll send you a promo code to activate access.</p>
+                </div>
+
+                <div id="walletUnavailable">
+                    <p>Pay to wallet is not configured right now. Use Card or Patreon on the <a href="billing.html" class="back-link">billing page</a>.</p>
+                </div>
+
+                <div id="walletFlow">
+                    <div class="wallet-step">
+                        <h3>1. Choose plan</h3>
+                        <div class="plans-row">
+                            <div class="plan-card selected" id="planMonthly" data-plan="monthly">
+                                <div class="name">Monthly</div>
+                                <div class="price" id="priceMonthly">$9</div>
+                                <div class="period">per month</div>
+                            </div>
+                            <div class="plan-card" id="planYearly" data-plan="yearly">
+                                <div class="name">Yearly</div>
+                                <div class="price" id="priceYearly">$90</div>
+                                <div class="period">per year (save $18)</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="wallet-step">
+                        <h3>2. Send payment</h3>
+                        <p><strong id="walletNetwork">—</strong></p>
+                        <p>Copy the address and send the amount below. Use only this network to avoid loss.</p>
+                        <div class="address-wrap">
+                            <code id="walletAddress"></code>
+                            <button type="button" class="btn-copy" id="copyBtn">Copy</button>
+                        </div>
+                        <p class="amount-big">Amount to send: <span id="amountToSend">$9</span> USD equivalent</p>
+                    </div>
+
+                    <div class="wallet-step">
+                        <h3>3. Leave your email</h3>
+                        <p>After you've sent the payment, enter your email below. We'll send you a promo code to activate premium (usually within 24 hours).</p>
+                        <form class="wallet-form" id="notifyForm">
+                            <label for="userEmail">Your email</label>
+                            <input type="email" id="userEmail" name="email" placeholder="you@example.com" required>
+                            <label for="userNote">Transaction hash or note (optional)</label>
+                            <textarea id="userNote" name="note" placeholder="Paste tx hash or any note to help us find your payment"></textarea>
+                            <p class="hint">If you leave the transaction hash, we can confirm faster.</p>
+                            <button type="submit" class="btn-submit" id="submitBtn">I've sent payment — send me the promo code</button>
+                        </form>
+                        <p class="wallet-error" id="formError"></p>
+                        <div class="wallet-success" id="formSuccess">
+                            <p>Got it. We'll send your access to <span class="email" id="successEmail"></span> once we confirm the payment.</p>
+                            <p style="font-size: 13px; color: var(--color-text-tertiary);">Check your inbox (and spam). If you don't get the code within 24 hours, reply to our email or contact support.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <a href="billing.html" class="back-link">← Back to plans</a>
+            </div>
+        </main>
+    </div>
+
+    <script src="js/patreon-config.js"></script>
+    <script src="js/auth-manager.js"></script>
+    <script src="js/site-header-behaviors.js"></script>
+    <script src="js/rk-theme.js"></script>
+    <script>
+        (function() {
+            var flow = document.getElementById('walletFlow');
+            var unavailable = document.getElementById('walletUnavailable');
+            var walletAddress = document.getElementById('walletAddress');
+            var walletNetwork = document.getElementById('walletNetwork');
+            var amountToSend = document.getElementById('amountToSend');
+            var priceMonthly = document.getElementById('priceMonthly');
+            var priceYearly = document.getElementById('priceYearly');
+            var planMonthly = document.getElementById('planMonthly');
+            var planYearly = document.getElementById('planYearly');
+            var copyBtn = document.getElementById('copyBtn');
+            var notifyForm = document.getElementById('notifyForm');
+            var userEmail = document.getElementById('userEmail');
+            var userNote = document.getElementById('userNote');
+            var submitBtn = document.getElementById('submitBtn');
+            var formError = document.getElementById('formError');
+            var formSuccess = document.getElementById('formSuccess');
+            var successEmail = document.getElementById('successEmail');
+
+            var params = typeof URLSearchParams !== 'undefined' && window.location.search ? new URLSearchParams(window.location.search) : null;
+            var plan = (params && params.get('plan') === 'yearly') ? 'yearly' : 'monthly';
+            var wallet = { address: '', network: '—', amountMonthly: '9', amountYearly: '90' };
+
+            function setPlan(p) {
+                plan = p;
+                planMonthly.classList.toggle('selected', p === 'monthly');
+                planYearly.classList.toggle('selected', p === 'yearly');
+                amountToSend.textContent = '$' + (p === 'yearly' ? wallet.amountYearly : wallet.amountMonthly);
+            }
+
+            var origin = window.location.origin || '';
+            fetch(origin + '/api/crypto-wallet.php')
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    if (!data.success || !data.address) {
+                        if (flow) flow.style.display = 'none';
+                        if (unavailable) { unavailable.classList.add('visible'); }
+                        return;
+                    }
+                    wallet = {
+                        address: data.address,
+                        network: data.network || '—',
+                        amountMonthly: data.amountMonthly || '9',
+                        amountYearly: data.amountYearly || '90'
+                    };
+                    if (walletAddress) walletAddress.textContent = data.address;
+                    if (walletNetwork) walletNetwork.textContent = data.network || '—';
+                    if (priceMonthly) priceMonthly.textContent = '$' + wallet.amountMonthly;
+                    if (priceYearly) priceYearly.textContent = '$' + wallet.amountYearly;
+                    amountToSend.textContent = '$' + wallet.amountMonthly;
+                    setPlan(plan);
+                })
+                .catch(function() {
+                    if (flow) flow.style.display = 'none';
+                    if (unavailable) unavailable.classList.add('visible');
+                });
+
+            if (planMonthly) planMonthly.addEventListener('click', function() { setPlan('monthly'); });
+            if (planYearly) planYearly.addEventListener('click', function() { setPlan('yearly'); });
+
+            if (copyBtn && walletAddress) {
+                copyBtn.addEventListener('click', function() {
+                    var text = walletAddress.textContent;
+                    if (navigator.clipboard && navigator.clipboard.writeText) {
+                        navigator.clipboard.writeText(text).then(function() {
+                            copyBtn.textContent = 'Copied';
+                            setTimeout(function() { copyBtn.textContent = 'Copy'; }, 2000);
+                        });
+                    } else {
+                        var ta = document.createElement('textarea');
+                        ta.value = text;
+                        document.body.appendChild(ta);
+                        ta.select();
+                        document.execCommand('copy');
+                        document.body.removeChild(ta);
+                        copyBtn.textContent = 'Copied';
+                        setTimeout(function() { copyBtn.textContent = 'Copy'; }, 2000);
+                    }
+                });
+            }
+
+            if (notifyForm) {
+                notifyForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    formError.classList.remove('visible');
+                    var email = (userEmail && userEmail.value) ? userEmail.value.trim() : '';
+                    if (!email) {
+                        formError.textContent = 'Please enter your email.';
+                        formError.classList.add('visible');
+                        return;
+                    }
+                    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                        formError.textContent = 'Please enter a valid email.';
+                        formError.classList.add('visible');
+                        return;
+                    }
+                    submitBtn.disabled = true;
+                    submitBtn.textContent = 'Sending…';
+                    var note = (userNote && userNote.value) ? userNote.value.trim() : '';
+                    fetch(origin + '/api/crypto-wallet-notify.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email: email, plan: plan, note: note })
+                    })
+                    .then(function(r) { return r.json(); })
+                    .then(function(data) {
+                        if (data.success) {
+                            if (successEmail) successEmail.textContent = email;
+                            formSuccess.classList.add('visible');
+                            notifyForm.reset();
+                        } else {
+                            formError.textContent = data.error || 'Could not send. Try again.';
+                            formError.classList.add('visible');
+                        }
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = "I've sent payment — send me the promo code";
+                    })
+                    .catch(function() {
+                        formError.textContent = 'Network error. Try again.';
+                        formError.classList.add('visible');
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = "I've sent payment — send me the promo code";
+                    });
+                });
+            }
+        })();
+    </script>
+</body>
+</html>

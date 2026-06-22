@@ -1,0 +1,1067 @@
+/**
+ * Светлая тема: логичные поверхности и акцентные «засветы» (фиолетовый тинт),
+ * не механическое invert и не серая «грязь» вместо glow.
+ * Токены базовых цветов — в variables.css (html[data-theme="light"]).
+ * Подключать после components.css / variables.css.
+ */
+
+/* --------------------------------------------------------------------------
+   Riffs hub (app.html)
+   -------------------------------------------------------------------------- */
+html[data-theme='light'] body.riffs-hub {
+    background: #ececee;
+    color: #16161f;
+}
+
+/* Фон: светло-серые «ореолы», без лилового */
+html[data-theme='light'] body.riffs-hub::before {
+    background:
+        radial-gradient(ellipse 92% 72% at 12% 38%, rgba(120, 125, 140, 0.09) 0%, transparent 58%),
+        radial-gradient(ellipse 88% 68% at 88% 24%, rgba(100, 108, 125, 0.07) 0%, transparent 52%),
+        radial-gradient(ellipse 74% 54% at 72% 88%, rgba(130, 135, 150, 0.06) 0%, transparent 55%),
+        #ececee;
+}
+
+html[data-theme='light'] body.riffs-hub .riffs-hero-eyebrow {
+    color: rgba(107, 63, 168, 0.95);
+}
+
+html[data-theme='light'] body.riffs-hub .riffs-hero-title {
+    color: #12121a;
+}
+
+html[data-theme='light'] body.riffs-hub .riffs-hero-lead {
+    color: rgba(18, 18, 26, 0.58);
+}
+
+html[data-theme='light'] body.riffs-hub .riffs-panel {
+    background: rgba(255, 255, 255, 0.78);
+    border-color: rgba(18, 18, 26, 0.08);
+    border-bottom-color: rgba(18, 18, 26, 0.05);
+    box-shadow: 0 16px 40px -24px rgba(0, 0, 0, 0.06);
+}
+
+html[data-theme='light'] body.riffs-hub .collections-title {
+    color: #12121a;
+}
+
+html[data-theme='light'] body.riffs-hub .filter-label {
+    color: rgba(18, 18, 26, 0.5);
+}
+
+html[data-theme='light'] body.riffs-hub .custom-select {
+    border-color: rgba(18, 18, 26, 0.12);
+    background: rgba(255, 255, 255, 0.92);
+}
+
+html[data-theme='light'] body.riffs-hub .custom-select:hover {
+    border-color: rgba(18, 18, 26, 0.2);
+}
+
+html[data-theme='light'] body.riffs-hub .custom-select:focus-within {
+    border-color: rgba(147, 85, 229, 0.55);
+    box-shadow: 0 0 0 3px rgba(147, 85, 229, 0.15);
+}
+
+html[data-theme='light'] body.riffs-hub .select-input {
+    color: #12121a;
+}
+
+/* Обычные карточки: без обводки; Free — рамка цвета бейджа (блик ::after не трогаем) */
+html[data-theme='light'] body.riffs-hub .riff-card-stack:not(.riff-card-stack--free) .riff-card,
+html[data-theme='light'] .rk-riff-gallery .riff-card-stack:not(.riff-card-stack--free) .riff-card {
+    border: none !important;
+    background: rgba(255, 255, 255, 0.72);
+    filter: none;
+    box-shadow: 0 10px 28px -14px rgba(0, 0, 0, 0.07);
+}
+
+html[data-theme='light'] body.riffs-hub .riff-card-stack:not(.riff-card-stack--free):hover .riff-card,
+html[data-theme='light'] .rk-riff-gallery .riff-card-stack:not(.riff-card-stack--free):hover .riff-card {
+    filter: none;
+    border: none !important;
+    box-shadow: 0 14px 32px -14px rgba(0, 0, 0, 0.09);
+}
+
+html[data-theme='light'] body.riffs-hub .riff-card-stack--free .riff-card,
+html[data-theme='light'] .rk-riff-gallery .riff-card-stack--free .riff-card,
+html[data-theme='light'] body.riffs-hub .riff-card-stack--free:hover .riff-card,
+html[data-theme='light'] .rk-riff-gallery .riff-card-stack--free:hover .riff-card {
+    filter: none;
+    border: none !important;
+    box-shadow:
+        0 0 0 1px rgba(22, 135, 72, 0.65),
+        0 10px 28px -14px rgba(0, 0, 0, 0.06);
+}
+
+html[data-theme='light'] body.riffs-hub .riff-free-tag,
+html[data-theme='light'] .rk-riff-gallery .riff-free-tag,
+html[data-theme='light'] body.profile-page .riff-free-tag {
+    background: linear-gradient(
+        180deg,
+        rgb(36, 155, 82) 0%,
+        rgb(24, 138, 70) 45%,
+        rgb(18, 120, 60) 100%
+    ) !important;
+    color: rgba(255, 255, 255, 0.98) !important;
+}
+
+/* Текст под карточкой — градиент на превью не нужен */
+html[data-theme='light'] body.riffs-hub .riff-overlay,
+html[data-theme='light'] .rk-riff-gallery .riff-overlay,
+html[data-theme='light'] body.riffs-hub .riff-overlay--hub,
+html[data-theme='light'] .rk-riff-gallery .riff-overlay--hub {
+    background: transparent !important;
+}
+
+html[data-theme='light'] body.riffs-hub .riff-meta-below .riff-artist,
+html[data-theme='light'] body.riffs-hub .riffs-section .riff-artist,
+html[data-theme='light'] .rk-riff-gallery .riff-meta-below .riff-artist {
+    color: rgba(18, 18, 26, 0.55);
+}
+
+/* Most killed — как блок Collections: тот же ритм заголовка и подзаголовка */
+html[data-theme='light'] body.riffs-hub .riffs-title {
+    font-family: 'Inter', system-ui, sans-serif;
+    font-weight: 600;
+    font-size: 1.25rem;
+    line-height: 1.3;
+    letter-spacing: 0;
+    color: #12121a;
+}
+
+html[data-theme='light'] body.riffs-hub .riffs-section-desc {
+    font-family: 'Inter', system-ui, sans-serif;
+    font-weight: 400;
+    font-size: 0.9375rem;
+    line-height: 1.6;
+    letter-spacing: 0;
+    color: rgba(18, 18, 26, 0.58);
+    max-width: 36em;
+}
+
+/* --------------------------------------------------------------------------
+   Profile — полная светлая тема (перебивает profile.css + profile-landing-sync)
+   -------------------------------------------------------------------------- */
+
+/* Страница: как riffs-hub light — не чёрный фон */
+html[data-theme='light'] body.profile-page {
+    background: #ececee !important;
+    background-image: none !important;
+    color: #16161f;
+}
+
+html[data-theme='light'] body.profile-page::before {
+    background:
+        radial-gradient(ellipse 92% 72% at 12% 42%, rgba(120, 125, 140, 0.09) 0%, transparent 58%),
+        radial-gradient(ellipse 88% 68% at 86% 28%, rgba(100, 108, 125, 0.07) 0%, transparent 52%),
+        radial-gradient(ellipse 74% 54% at 70% 86%, rgba(130, 135, 150, 0.06) 0%, transparent 55%),
+        #ececee;
+    filter: none;
+}
+
+/* Шапка профиля */
+html[data-theme='light'] body.profile-page .profile-name {
+    color: #12121a !important;
+}
+
+html[data-theme='light'] body.profile-page .profile-email {
+    color: rgba(18, 18, 26, 0.55) !important;
+}
+
+html[data-theme='light'] body.profile-page .profile-content .section-title,
+html[data-theme='light'] body.profile-page .profile-content .subscription-payment-title,
+html[data-theme='light'] body.profile-page .section-title,
+html[data-theme='light'] body.profile-page .card-title {
+    color: #12121a !important;
+}
+
+html[data-theme='light'] body.profile-page .profile-avatar {
+    border-color: rgba(18, 18, 26, 0.12);
+}
+
+html[data-theme='light'] body.profile-page .profile-settings-btn img {
+    filter: brightness(0);
+    opacity: 0.55;
+}
+
+html[data-theme='light'] body.profile-page .profile-settings-btn:hover img {
+    opacity: 0.85;
+}
+
+html[data-theme='light'] body.profile-page .status-badge.status-active {
+    background: rgba(0, 168, 112, 0.1);
+    border-color: rgba(0, 168, 112, 0.55);
+    color: #0a5c40;
+}
+
+/* 4 плашки Practice overview + карточки подписки / платежей / настроек */
+html[data-theme='light'] body.profile-page .practice-stat,
+html[data-theme='light'] body.profile-page .subscription-card,
+html[data-theme='light'] body.profile-page .payment-card,
+html[data-theme='light'] body.profile-page .profile-settings-card {
+    background: rgba(255, 255, 255, 0.96) !important;
+    border-color: rgba(18, 18, 26, 0.1) !important;
+    box-shadow: none;
+    filter: none;
+}
+
+html[data-theme='light'] body.profile-page .practice-stat::after,
+html[data-theme='light'] body.profile-page .subscription-card::after,
+html[data-theme='light'] body.profile-page .payment-card::after,
+html[data-theme='light'] body.profile-page .profile-settings-card::after {
+    opacity: 0 !important;
+}
+
+html[data-theme='light'] body.profile-page .practice-stat-value {
+    color: #12121a !important;
+}
+
+html[data-theme='light'] body.profile-page .practice-stat-label {
+    color: rgba(18, 18, 26, 0.52) !important;
+}
+
+/* Подписка / платежи */
+html[data-theme='light'] body.profile-page .subscription-card,
+html[data-theme='light'] body.profile-page .payment-card,
+html[data-theme='light'] body.profile-page .game-dashboard .card {
+    box-shadow: none;
+}
+
+html[data-theme='light'] body.profile-page .card-header {
+    border-bottom-color: rgba(18, 18, 26, 0.08);
+}
+
+html[data-theme='light'] body.profile-page .card-header h3 {
+    color: #12121a;
+}
+
+html[data-theme='light'] body.profile-page .subscription-detail-row,
+html[data-theme='light'] body.profile-page .payment-entry {
+    border-bottom-color: rgba(18, 18, 26, 0.1);
+}
+
+html[data-theme='light'] body.profile-page .subscription-detail-label,
+html[data-theme='light'] body.profile-page .subscription-detail-value,
+html[data-theme='light'] body.profile-page .payment-date,
+html[data-theme='light'] body.profile-page .payment-amount {
+    color: rgba(18, 18, 26, 0.88) !important;
+}
+
+html[data-theme='light'] body.profile-page .payment-method {
+    color: rgba(18, 18, 26, 0.5) !important;
+}
+
+html[data-theme='light'] body.profile-page .subscription-detail-value.status-active {
+    color: #1b5e20 !important;
+}
+
+html[data-theme='light'] body.profile-page .subscription-details-loading,
+html[data-theme='light'] body.profile-page .subscription-details-empty-text {
+    color: rgba(18, 18, 26, 0.55);
+}
+
+html[data-theme='light'] body.profile-page .section-separator {
+    border-top-color: rgba(18, 18, 26, 0.14);
+    border-top-style: dashed;
+}
+
+/* Game dashboard — стекло на светлом */
+html[data-theme='light'] body.profile-page .game-dashboard .card {
+    border-color: rgba(18, 18, 26, 0.1);
+    box-shadow: none;
+    background: rgba(255, 255, 255, 0.97) !important;
+}
+
+html[data-theme='light'] body.profile-page .game-dashboard .streak-card {
+    background: rgba(255, 255, 255, 0.97) !important;
+}
+
+html[data-theme='light'] body.profile-page .game-dashboard .challenge-card {
+    background: rgba(255, 255, 255, 0.97) !important;
+}
+
+html[data-theme='light'] body.profile-page .game-dashboard .streak-card::after,
+html[data-theme='light'] body.profile-page .game-dashboard .challenge-card::after,
+html[data-theme='light'] body.profile-page .game-dashboard .card::after {
+    opacity: 0 !important;
+}
+
+html[data-theme='light'] body.profile-page .game-dashboard .row-label,
+html[data-theme='light'] body.profile-page .row-label {
+    color: rgba(18, 18, 26, 0.55) !important;
+}
+
+html[data-theme='light'] body.profile-page .main-number {
+    color: #12121a;
+}
+
+html[data-theme='light'] body.profile-page .fraction {
+    color: rgba(18, 18, 26, 0.32);
+}
+
+html[data-theme='light'] body.profile-page .target-number {
+    color: rgba(18, 18, 26, 0.48);
+}
+
+html[data-theme='light'] body.profile-page .main-unit {
+    color: rgba(18, 18, 26, 0.45);
+}
+
+html[data-theme='light'] body.profile-page .progress-hint {
+    color: rgba(18, 18, 26, 0.5);
+}
+
+html[data-theme='light'] body.profile-page .game-dashboard .progress-bar,
+html[data-theme='light'] body.profile-page .progress-bar {
+    background: rgba(18, 18, 26, 0.08) !important;
+}
+
+html[data-theme='light'] body.profile-page .streak-fill,
+html[data-theme='light'] body.profile-page .challenge-fill,
+html[data-theme='light'] body.profile-page .game-dashboard .challenge-fill {
+    box-shadow: none !important;
+}
+
+html[data-theme='light'] body.profile-page .challenge-icon-duo .challenge-sword-mirrored,
+html[data-theme='light'] body.profile-page .challenge-icon-duo .challenge-guitar-normal {
+    text-shadow: none !important;
+}
+
+html[data-theme='light'] body.profile-page .streak-card .fire-emoji {
+    filter: none;
+    text-shadow: none;
+}
+
+html[data-theme='light'] body.profile-page .badge {
+    background: rgba(18, 18, 26, 0.05);
+    border-color: rgba(18, 18, 26, 0.1);
+    color: rgba(18, 18, 26, 0.88);
+}
+
+html[data-theme='light'] body.profile-page .badge-orange {
+    background: rgba(255, 140, 0, 0.1);
+    border-color: rgba(200, 100, 0, 0.35);
+    color: #a65a00;
+    box-shadow: none;
+}
+
+html[data-theme='light'] body.profile-page .badge-purple {
+    background: rgba(18, 18, 26, 0.06);
+    border-color: rgba(18, 18, 26, 0.12);
+    color: rgba(18, 18, 26, 0.78);
+    box-shadow: none;
+}
+
+html[data-theme='light'] body.profile-page .chip,
+html[data-theme='light'] body.profile-page .dynamic-chip {
+    background: rgba(18, 18, 26, 0.04);
+    border-color: rgba(18, 18, 26, 0.1);
+    color: rgba(18, 18, 26, 0.78);
+}
+
+html[data-theme='light'] body.profile-page .chip.achieved {
+    background: rgba(255, 140, 0, 0.12);
+    border-color: rgba(255, 140, 0, 0.4);
+    color: #b45309;
+}
+
+html[data-theme='light'] body.profile-page .completed-chip {
+    background: rgba(46, 125, 50, 0.12);
+    border-color: rgba(46, 125, 50, 0.4);
+    color: #1b5e20;
+}
+
+html[data-theme='light'] body.profile-page .info-icon {
+    color: rgba(18, 18, 26, 0.45);
+}
+
+html[data-theme='light'] body.profile-page .info-icon:hover {
+    color: rgba(107, 63, 168, 0.95);
+}
+
+html[data-theme='light'] body.profile-page .info-icon[data-tooltip]::after {
+    background: rgba(255, 255, 255, 0.98);
+    color: #12121a;
+    border-color: rgba(18, 18, 26, 0.1);
+    box-shadow: 0 12px 32px rgba(55, 45, 95, 0.14);
+}
+
+html[data-theme='light'] body.profile-page .info-icon[data-tooltip]::before {
+    border-top-color: rgba(255, 255, 255, 0.98);
+}
+
+/* Недавняя практика — как в хабе: без обводки, кроме Free */
+html[data-theme='light'] body.profile-page .riff-card-stack:not(.riff-card-stack--free) .riff-card {
+    background: rgba(255, 255, 255, 0.72);
+    border: none !important;
+    box-shadow: 0 8px 24px -12px rgba(0, 0, 0, 0.06);
+}
+
+html[data-theme='light'] body.profile-page .riff-card-stack--free .riff-card {
+    background: rgba(255, 255, 255, 0.72);
+    border: none !important;
+    box-shadow:
+        0 0 0 1px rgba(22, 135, 72, 0.65),
+        0 8px 24px -12px rgba(0, 0, 0, 0.06);
+}
+
+/* Fallback, если разметка без stack */
+html[data-theme='light'] body.profile-page .riffs-grid .riff-card:not(.riff-card-free) {
+    border: none !important;
+    box-shadow: 0 8px 24px -12px rgba(0, 0, 0, 0.06);
+}
+
+html[data-theme='light'] body.profile-page .riff-overlay {
+    background: transparent !important;
+}
+
+html[data-theme='light'] body.profile-page .riff-song {
+    color: #12121a;
+}
+
+html[data-theme='light'] body.profile-page .riff-artist {
+    color: rgba(18, 18, 26, 0.55);
+}
+
+html[data-theme='light'] body.profile-page .riff-favorite-btn {
+    background: rgba(255, 255, 255, 0.85);
+    color: rgba(18, 18, 26, 0.55);
+    border: 1px solid rgba(18, 18, 26, 0.08);
+}
+
+html[data-theme='light'] body.profile-page .riff-difficulty {
+    color: #fff;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+}
+
+/* Достижения */
+html[data-theme='light'] body.profile-page .achievement-card {
+    background: rgba(255, 255, 255, 0.96) !important;
+    border: 1px solid rgba(18, 18, 26, 0.1) !important;
+    box-shadow: none;
+}
+
+/* First Blood (ещё не earned): чуть заметнее контур только в светлой теме */
+html[data-theme='light'] body.profile-page .achievement-card[data-id='first_kill']:not(.earned) {
+    border-width: 2px !important;
+    border-color: rgba(18, 18, 26, 0.18) !important;
+}
+
+html[data-theme='light'] body.profile-page .achievement-card.earned {
+    background: rgba(255, 255, 255, 0.98) !important;
+    box-shadow: none;
+}
+
+html[data-theme='light'] body.profile-page .achievement-card.earned:hover {
+    background: #ffffff !important;
+}
+
+html[data-theme='light'] body.profile-page .achievement-name {
+    color: #12121a !important;
+}
+
+html[data-theme='light'] body.profile-page .achievement-desc {
+    color: rgba(18, 18, 26, 0.55) !important;
+}
+
+html[data-theme='light'] body.profile-page .achievement-progress {
+    color: rgba(18, 18, 26, 0.55);
+}
+
+html[data-theme='light'] body.profile-page .achievement-progress .progress-bar {
+    background: rgba(18, 18, 26, 0.08);
+}
+
+html[data-theme='light'] body.profile-page .view-all-link {
+    color: rgba(107, 63, 168, 0.9) !important;
+}
+
+html[data-theme='light'] body.profile-page .view-all-link:hover {
+    color: #5b2d9e !important;
+}
+
+/* Формы / промо / кнопки (profile-landing-sync) */
+html[data-theme='light'] body.profile-page .profile-edit-input {
+    background: #ffffff;
+    border-color: rgba(18, 18, 26, 0.14);
+    color: #12121a;
+}
+
+html[data-theme='light'] body.profile-page .profile-edit-label,
+html[data-theme='light'] body.profile-page .profile-edit-hint {
+    color: rgba(18, 18, 26, 0.65);
+}
+
+html[data-theme='light'] body.profile-page .profile-avatar-upload-label {
+    border-color: rgba(18, 18, 26, 0.14);
+    background: rgba(255, 255, 255, 0.9);
+    color: #12121a;
+}
+
+html[data-theme='light'] body.profile-page .load-more-btn {
+    border-color: rgba(18, 18, 26, 0.16);
+    background: rgba(255, 255, 255, 0.85);
+    color: #12121a;
+}
+
+html[data-theme='light'] body.profile-page .load-more-btn:hover {
+    background: rgba(147, 85, 229, 0.08);
+    border-color: rgba(147, 85, 229, 0.35);
+}
+
+/* Manage / Apply / Save — почти чёрные, без фиолетового свечения */
+html[data-theme='light'] body.profile-page .btn-primary.btn-manage,
+html[data-theme='light'] body.profile-page #profilePromoBtn,
+html[data-theme='light'] body.profile-page .profile-edit-save-btn {
+    background: #1c1c22 !important;
+    color: #fafafa !important;
+    border-color: #1c1c22 !important;
+    box-shadow: none !important;
+}
+
+html[data-theme='light'] body.profile-page .btn-primary.btn-manage:hover,
+html[data-theme='light'] body.profile-page #profilePromoBtn:hover,
+html[data-theme='light'] body.profile-page .profile-edit-save-btn:hover {
+    background: #2a2a32 !important;
+    border-color: #2a2a32 !important;
+    box-shadow: none !important;
+}
+
+html[data-theme='light'] body.profile-page .subscription-details-actions .btn-primary:not(.btn-manage),
+html[data-theme='light'] body.profile-page #profilePromoSection .btn-primary:not(#profilePromoBtn),
+html[data-theme='light'] body.profile-page .subscription-view-plans-btn {
+    box-shadow: none;
+}
+
+/* View Plans — остаётся акцентным фиолетовым */
+html[data-theme='light'] body.profile-page .subscription-view-plans-btn {
+    background: #9355e5 !important;
+    color: #ffffff !important;
+    border-color: #9355e5 !important;
+}
+
+html[data-theme='light'] body.profile-page .subscription-view-plans-btn:hover {
+    background: #7c45c7 !important;
+    border-color: #7c45c7 !important;
+}
+
+html[data-theme='light'] body.profile-page .profile-password-reset {
+    color: #6b3fa8;
+}
+
+html[data-theme='light'] body.profile-page .profile-password-reset:hover {
+    color: #5b2d9e;
+}
+
+html[data-theme='light'] body.profile-page .profile-promo-pill {
+    border-color: rgba(18, 18, 26, 0.14);
+    background: rgba(255, 255, 255, 0.85);
+    color: #2d1f4a;
+}
+
+html[data-theme='light'] body.profile-page .profile-promo-pill:hover {
+    background: rgba(147, 85, 229, 0.08);
+    border-color: rgba(147, 85, 229, 0.35);
+}
+
+html[data-theme='light'] body.profile-page .muted,
+html[data-theme='light'] body.profile-page .subtext {
+    color: rgba(18, 18, 26, 0.55);
+}
+
+html[data-theme='light'] body.profile-page .btn-secondary,
+html[data-theme='light'] body.profile-page .outline-btn {
+    border-color: rgba(18, 18, 26, 0.14);
+    color: #12121a;
+    background: rgba(255, 255, 255, 0.85);
+}
+
+html[data-theme='light'] body.profile-page .btn-secondary:hover {
+    border-color: rgba(147, 85, 229, 0.35);
+    box-shadow: 0 0 0 3px rgba(147, 85, 229, 0.12);
+}
+
+/* Тултип streak-flame */
+html[data-theme='light'] body.profile-page .streak-flame:hover::after {
+    background: rgba(255, 255, 255, 0.98);
+    color: #12121a;
+    border-color: rgba(18, 18, 26, 0.1);
+}
+
+/* Mastery / stars — читаемость на светлом */
+html[data-theme='light'] body.profile-page .mastery-label {
+    color: rgba(18, 18, 26, 0.6);
+}
+
+html[data-theme='light'] body.profile-page .mastery-stars[data-tooltip]:hover::after {
+    background: rgba(255, 255, 255, 0.98);
+    color: #12121a;
+    border-color: rgba(18, 18, 26, 0.1);
+}
+
+/* --------------------------------------------------------------------------
+   Practice
+   -------------------------------------------------------------------------- */
+html[data-theme='light'] body.practice-page {
+    background: var(--rk-body-gradient);
+    color: var(--color-text-primary);
+}
+
+/* Над плеером: Normal / Speed Trainer, Tabs */
+html[data-theme='light'] body.practice-page .mode-btn,
+html[data-theme='light'] body.practice-page .tab-toggle-btn {
+    color: rgba(18, 18, 26, 0.78);
+    border-color: rgba(18, 18, 26, 0.12);
+    background: rgba(255, 255, 255, 0.92);
+    box-shadow: none;
+}
+
+html[data-theme='light'] body.practice-page .mode-btn:hover,
+html[data-theme='light'] body.practice-page .tab-toggle-btn:hover {
+    color: #12121a;
+    border-color: rgba(18, 18, 26, 0.18);
+    background: #ffffff;
+}
+
+html[data-theme='light'] body.practice-page .mode-btn.active,
+html[data-theme='light'] body.practice-page .tab-toggle-btn.active {
+    color: #12121a;
+    border-color: rgba(147, 85, 229, 0.45);
+    background: rgba(147, 85, 229, 0.08);
+    box-shadow: none;
+}
+
+/* SVG в табах — белые на светлом фоне → тёмные */
+html[data-theme='light'] body.practice-page .tab-toggle-btn .tab-icon {
+    filter: brightness(0) saturate(100%);
+    opacity: 0.45;
+}
+
+html[data-theme='light'] body.practice-page .tab-toggle-btn:hover .tab-icon,
+html[data-theme='light'] body.practice-page .tab-toggle-btn.active .tab-icon {
+    opacity: 0.72;
+}
+
+/* Хлебные крошки: стрелка назад */
+html[data-theme='light'] body.practice-page .breadcrumb-arrow .arrow-icon {
+    filter: brightness(0) saturate(100%);
+    opacity: 0.72;
+}
+
+html[data-theme='light'] body.practice-page .breadcrumb-arrow:hover .arrow-icon {
+    opacity: 0.95;
+}
+
+html[data-theme='light'] body.practice-page .practice-progress-pill {
+    color: rgba(18, 18, 26, 0.78);
+    background: rgba(255, 255, 255, 0.9);
+    border-color: rgba(18, 18, 26, 0.12);
+}
+
+html[data-theme='light'] body.practice-page .speed-btn {
+    color: rgba(18, 18, 26, 0.42);
+    border-color: rgba(18, 18, 26, 0.1);
+    background: rgba(255, 255, 255, 0.9);
+    box-shadow: none;
+}
+
+html[data-theme='light'] body.practice-page .speed-btn:hover:not(.active) {
+    color: rgba(18, 18, 26, 0.62);
+    border-color: rgba(18, 18, 26, 0.16);
+    background: #ffffff;
+}
+
+html[data-theme='light'] body.practice-page .speed-btn.active {
+    color: #12121a;
+    border-color: rgba(18, 18, 26, 0.22);
+    background: rgba(18, 18, 26, 0.06);
+}
+
+html[data-theme='light'] body.practice-page .control-btn {
+    background: rgba(255, 255, 255, 0.94);
+    border-color: rgba(18, 18, 26, 0.12);
+}
+
+html[data-theme='light'] body.practice-page .control-btn:hover {
+    background: #ffffff;
+    border-color: rgba(18, 18, 26, 0.18);
+}
+
+html[data-theme='light'] body.practice-page .control-btn.active {
+    background: #12121a;
+    color: #fff;
+}
+
+html[data-theme='light'] body.practice-page #loopButton.active {
+    box-shadow: none;
+    animation: none;
+}
+
+/*
+ * Кнопки под плеером: иконки SVG белые. На светлой кнопке — затемняем;
+ * на активной (тёмный фон) — снимаем filter из practice.css, иконки снова белые.
+ */
+html[data-theme='light'] body.practice-page .control-btn:not(.active) .control-icon,
+html[data-theme='light'] body.practice-page .control-btn:not(.active) .play-icon {
+    filter: brightness(0) saturate(100%) opacity(0.78) !important;
+}
+
+html[data-theme='light'] body.practice-page .control-btn.active .control-icon,
+html[data-theme='light'] body.practice-page .control-btn.active .play-icon,
+html[data-theme='light'] body.practice-page .control-btn.active .stop-icon {
+    filter: none !important;
+    opacity: 1;
+}
+
+/* All Riff: play/stop на светлой подложке */
+html[data-theme='light'] body.practice-page .segment-btn.all-riff:not(.active) .segment-icon {
+    filter: brightness(0) saturate(100%) opacity(0.8) !important;
+}
+
+html[data-theme='light'] body.practice-page .riff-timeline {
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(18, 18, 26, 0.1);
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.05);
+}
+
+html[data-theme='light'] body.practice-page .video-wrapper {
+    background: #e4e5ea;
+    border: 1px solid rgba(18, 18, 26, 0.08);
+}
+
+html[data-theme='light'] body.practice-page .practice-timer-time {
+    color: #12121a;
+}
+
+html[data-theme='light'] body.practice-page .practice-timer-seg-end {
+    color: rgba(18, 18, 26, 0.65);
+}
+
+/* Под плеером: режимы, Learned, сегменты */
+html[data-theme='light'] body.practice-page .practice-modes {
+    background: rgba(255, 255, 255, 0.95);
+    border-color: rgba(18, 18, 26, 0.12);
+    box-shadow: none;
+}
+
+html[data-theme='light'] body.practice-page .practice-mode-btn {
+    color: rgba(18, 18, 26, 0.62);
+}
+
+html[data-theme='light'] body.practice-page .practice-mode-btn.active {
+    background: rgba(18, 18, 26, 0.08) !important;
+    color: #12121a !important;
+    box-shadow: inset 0 0 0 1px rgba(18, 18, 26, 0.1) !important;
+}
+
+html[data-theme='light'] body.practice-page .practice-mode-btn:hover:not(.active) {
+    color: #12121a;
+}
+
+html[data-theme='light'] body.practice-page .practice-mode-btn.active:hover {
+    background: rgba(18, 18, 26, 0.1) !important;
+    color: #12121a !important;
+}
+
+html[data-theme='light'] body.practice-page .practice-learned-btn {
+    background: rgba(255, 255, 255, 0.92);
+    border-color: rgba(18, 18, 26, 0.14);
+    color: #12121a;
+}
+
+html[data-theme='light'] body.practice-page .practice-learned-btn:hover {
+    background: #ffffff;
+    border-color: rgba(18, 18, 26, 0.22);
+}
+
+html[data-theme='light'] body.practice-page .practice-learned-btn.learned {
+    background: rgba(46, 125, 50, 0.12);
+    border-color: rgba(46, 125, 50, 0.35);
+    color: #1b5e20;
+}
+
+html[data-theme='light'] body.practice-page .segment-btn.all-riff {
+    background: rgba(255, 255, 255, 0.92);
+    border: 1px solid rgba(18, 18, 26, 0.12);
+    color: rgba(18, 18, 26, 0.82);
+}
+
+html[data-theme='light'] body.practice-page .segment-btn.active,
+html[data-theme='light'] body.practice-page .segment-btn.all-riff.active {
+    background: #f6f6f8 !important;
+    color: #12121a !important;
+    border: 1px solid rgba(18, 18, 26, 0.14) !important;
+    box-shadow: 0 0 0 1px rgba(18, 18, 26, 0.05) !important;
+}
+
+html[data-theme='light'] body.practice-page .segment-btn.active:hover,
+html[data-theme='light'] body.practice-page .segment-btn.all-riff.active:hover {
+    background: #efeff2 !important;
+}
+
+html[data-theme='light'] body.practice-page .segment.active .segment-fill {
+    box-shadow: none !important;
+}
+
+html[data-theme='light'] body.practice-page .segment-trainer-speed {
+    color: #12121a;
+    background: rgba(255, 255, 255, 0.95);
+    border-color: rgba(18, 18, 26, 0.12);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+}
+
+html[data-theme='light'] body.practice-page .segment.active .segment-trainer-speed {
+    border-color: rgba(18, 18, 26, 0.14);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+/* Онбординг / Speed Trainer intro */
+html[data-theme='light'] body.practice-page .practice-onboarding-backdrop,
+html[data-theme='light'] body.practice-page .speed-trainer-intro-backdrop {
+    background: rgba(245, 246, 250, 0.88);
+}
+
+html[data-theme='light'] body.practice-page .practice-onboarding-card {
+    background: #ffffff;
+    border-color: rgba(18, 18, 26, 0.1);
+    box-shadow: 0 24px 48px rgba(0, 0, 0, 0.1);
+}
+
+html[data-theme='light'] body.practice-page .onboarding-btn.secondary {
+    border-color: rgba(18, 18, 26, 0.16);
+    color: rgba(18, 18, 26, 0.65);
+}
+
+html[data-theme='light'] body.practice-page .onboarding-btn.secondary:hover {
+    background: rgba(18, 18, 26, 0.04);
+}
+
+html[data-theme='light'] body.practice-page .speed-trainer-intro-card {
+    background: linear-gradient(165deg, #ffffff 0%, #f4f4f6 55%, #ececee 100%);
+    border-color: rgba(18, 18, 26, 0.1);
+    box-shadow: 0 20px 48px rgba(0, 0, 0, 0.1);
+}
+
+html[data-theme='light'] body.practice-page .speed-trainer-intro-title {
+    color: #12121a;
+}
+
+html[data-theme='light'] body.practice-page .speed-trainer-intro-body,
+html[data-theme='light'] body.practice-page .speed-trainer-intro-list li {
+    color: rgba(18, 18, 26, 0.72);
+}
+
+html[data-theme='light'] body.practice-page .speed-trainer-intro-lead strong,
+html[data-theme='light'] body.practice-page .speed-trainer-intro-kicker {
+    color: #12121a;
+}
+
+html[data-theme='light'] body.practice-page .speed-trainer-intro-note {
+    color: rgba(18, 18, 26, 0.52);
+}
+
+/* --------------------------------------------------------------------------
+   Footer (rk-site-footer)
+   -------------------------------------------------------------------------- */
+html[data-theme='light'] .footer {
+    border-top-color: rgba(18, 18, 26, 0.08);
+}
+
+html[data-theme='light'] .footer-text {
+    color: rgba(18, 18, 26, 0.52);
+}
+
+html[data-theme='light'] .footer-link {
+    color: rgba(107, 63, 168, 0.95);
+}
+
+html[data-theme='light'] .footer-link:hover {
+    color: #5b2d9e;
+}
+
+html[data-theme='light'] .footer .social-link {
+    border-color: rgba(18, 18, 26, 0.1);
+    background: rgba(255, 255, 255, 0.75);
+    color: rgba(18, 18, 26, 0.55);
+}
+
+html[data-theme='light'] .footer .social-link:hover {
+    border-color: rgba(147, 85, 229, 0.35);
+    color: #6b3fa8;
+    box-shadow: 0 0 0 3px rgba(147, 85, 229, 0.1);
+}
+
+/* --------------------------------------------------------------------------
+   Collection / generic pages на base (без riffs-hub)
+   -------------------------------------------------------------------------- */
+html[data-theme='light'] body:not(.riffs-hub):not(.practice-page) .collection-header-section,
+html[data-theme='light'] body:not(.riffs-hub):not(.practice-page) .collection-banner {
+    border-color: rgba(18, 18, 26, 0.08);
+}
+
+/* --------------------------------------------------------------------------
+   Coming soon / Tailwind index — мягкий фон
+   -------------------------------------------------------------------------- */
+html[data-theme='light'] body.bg-neutral-950 {
+    background-color: #ececee !important;
+    color: #1a1a24 !important;
+}
+
+html[data-theme='light'] #comingSoonLanding {
+    background: linear-gradient(180deg, #f2f2f4 0%, #e8e9ec 50%, #f0f0f2 100%) !important;
+}
+
+html[data-theme='light'] #comingSoonLanding .text-white {
+    color: #12121a !important;
+}
+
+html[data-theme='light'] #comingSoonLanding .text-neutral-400,
+html[data-theme='light'] #comingSoonLanding .text-neutral-500,
+html[data-theme='light'] #comingSoonLanding .text-neutral-600 {
+    color: rgba(18, 18, 26, 0.55) !important;
+}
+
+html[data-theme='light'] #comingSoonLanding .border-neutral-800,
+html[data-theme='light'] #comingSoonLanding .bg-neutral-900\/80 {
+    border-color: rgba(18, 18, 26, 0.1) !important;
+    background-color: rgba(255, 255, 255, 0.85) !important;
+}
+
+/* --------------------------------------------------------------------------
+   Landing (marketing): те же принципы — светлый фон, цветные «ореолы», не серые тени
+   -------------------------------------------------------------------------- */
+html[data-theme='light'] body[data-rk-header='landing'] {
+    color: #12121a;
+}
+
+html[data-theme='light'] body[data-rk-header='landing'] .ambient-bg {
+    background:
+        radial-gradient(ellipse 92% 72% at 12% 48%, rgba(120, 125, 140, 0.09) 0%, transparent 58%),
+        radial-gradient(ellipse 88% 68% at 88% 28%, rgba(100, 108, 125, 0.07) 0%, transparent 52%),
+        radial-gradient(ellipse 74% 54% at 70% 86%, rgba(130, 135, 150, 0.06) 0%, transparent 55%),
+        #ececee;
+    filter: none;
+}
+
+html[data-theme='light'] body[data-rk-header='landing'] .hero-title {
+    color: #12121a;
+}
+
+html[data-theme='light'] body[data-rk-header='landing'] .hero-sub {
+    color: rgba(18, 18, 26, 0.62);
+}
+
+html[data-theme='light'] body[data-rk-header='landing'] .btn-outline {
+    border-color: rgba(18, 18, 26, 0.14);
+    background: rgba(255, 255, 255, 0.75);
+    color: #2d1f4a;
+}
+
+html[data-theme='light'] body[data-rk-header='landing'] .btn-outline:hover {
+    border-color: rgba(147, 85, 229, 0.38);
+    background: rgba(147, 85, 229, 0.08);
+    color: #16161f;
+}
+
+html[data-theme='light'] body[data-rk-header='landing'] .btn-primary {
+    box-shadow: 0 8px 28px rgba(147, 85, 229, 0.35);
+}
+
+html[data-theme='light'] body[data-rk-header='landing'] .section-title,
+html[data-theme='light'] body[data-rk-header='landing'] h2,
+html[data-theme='light'] body[data-rk-header='landing'] h3 {
+    color: #12121a;
+}
+
+html[data-theme='light'] body[data-rk-header='landing'] .footer-text {
+    color: rgba(18, 18, 26, 0.52);
+}
+
+/* --------------------------------------------------------------------------
+   Billing / Stripe / Cryptomus / Wallet — карточки на светлом фоне
+   -------------------------------------------------------------------------- */
+/* !important — перебивает инлайн-стили billing.html */
+html[data-theme='light'] .plan-card {
+    background: rgba(255, 255, 255, 0.96) !important;
+    border-color: rgba(18, 18, 26, 0.1) !important;
+}
+
+html[data-theme='light'] .plan-card:hover {
+    background: #ffffff !important;
+    border-color: rgba(147, 85, 229, 0.28) !important;
+}
+
+html[data-theme='light'] .plan-card.selected {
+    border-color: rgba(147, 85, 229, 0.55) !important;
+    background: rgba(147, 85, 229, 0.08) !important;
+    box-shadow: 0 0 0 1px rgba(147, 85, 229, 0.12);
+}
+
+html[data-theme='light'] .wallet-step {
+    background: rgba(255, 255, 255, 0.96);
+    border-color: rgba(18, 18, 26, 0.1);
+}
+
+/* billing.html — method-card (инлайн rgba на тёмном) */
+html[data-theme='light'] .method-card {
+    background: rgba(255, 255, 255, 0.96) !important;
+    border-color: rgba(18, 18, 26, 0.1) !important;
+    box-shadow: 0 14px 36px -18px rgba(55, 45, 95, 0.08);
+}
+
+html[data-theme='light'] .method-card:hover {
+    background: #ffffff !important;
+    border-color: rgba(147, 85, 229, 0.22) !important;
+}
+
+html[data-theme='light'] .method-cta.secondary a {
+    background: transparent !important;
+    border-color: rgba(18, 18, 26, 0.16) !important;
+    color: #12121a !important;
+}
+
+html[data-theme='light'] .method-cta.secondary a:hover {
+    background: rgba(147, 85, 229, 0.08) !important;
+    border-color: rgba(147, 85, 229, 0.35) !important;
+    color: #16161f !important;
+}
+
+/* --------------------------------------------------------------------------
+   Coming soon (index.html): второй логотип для светлой темы
+   -------------------------------------------------------------------------- */
+html[data-theme='light'] .coming-soon-logo--dark {
+    display: none !important;
+}
+
+html[data-theme='light'] .coming-soon-logo--light {
+    display: block !important;
+}
+
+.coming-soon-logo--light {
+    display: none;
+}
+
+/* billing-wallet — поля и блок адреса */
+html[data-theme='light'] .address-wrap {
+    background: rgba(245, 246, 250, 0.98);
+    border-color: rgba(18, 18, 26, 0.1);
+}
+
+html[data-theme='light'] .wallet-form input,
+html[data-theme='light'] .wallet-form textarea {
+    border-color: rgba(18, 18, 26, 0.14);
+    background: #ffffff;
+    color: #12121a;
+}
+
+html[data-theme='light'] .wallet-form input::placeholder,
+html[data-theme='light'] .wallet-form textarea::placeholder {
+    color: rgba(18, 18, 26, 0.45);
+}
+
+/* Stripe / Cryptomus — сводка плана (inline style в разметке) */
+html[data-theme='light'] #planSummary {
+    background: rgba(255, 255, 255, 0.92) !important;
+    border: 1px solid rgba(18, 18, 26, 0.1) !important;
+}

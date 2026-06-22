@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <script src="js/rk-theme-init.js"></script>
+    <meta name="theme-color" content="#0a0a0a" id="rk-theme-color">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Riff Killer - Collection</title>
+    
+    <!-- Шрифты -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <!-- Inter = тот же variable-шрифт, что на landing.html (opsz) -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&family=Roboto:wght@400;500&family=Zen+Dots&display=swap" rel="stylesheet">
+    
+    <!-- CSS файлы -->
+    <link rel="stylesheet" href="css/reset.css">
+    <link rel="stylesheet" href="css/variables.css">
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="css/rk-header.css">
+    <link rel="stylesheet" href="css/riffs-hub.css">
+    <link rel="stylesheet" href="css/rk-theme-light.css">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="assets/icons/favicon.svg">
+</head>
+<body class="riffs-hub" data-rk-header="app" data-logo-href="index.html" data-nav-active="riffs">
+    <div id="site-header-mount"></div>
+    <script src="js/site-header.js"></script>
+    <div class="page-container">
+        <!-- Основной контент -->
+        <main class="main-content">
+            
+            <!-- Заголовок коллекции -->
+            <section class="collection-header-section">
+                <div class="collection-banner" id="collectionBanner">
+                    <!-- Баннер будет загружен через JavaScript -->
+                </div>
+                <h1 class="collection-title" id="collectionTitle">Collection Name</h1>
+            </section>
+            
+            <!-- Риффы в коллекции -->
+            <section class="riffs-section">
+                <!-- Заголовок -->
+                <div class="riffs-header">
+                    <h2 class="riffs-title" id="collectionRiffsCount">Riffs in Collection (0)</h2>
+                </div>
+                
+                <!-- Карточки риффов -->
+                <div class="riffs-grid" id="collectionRiffsGrid">
+                    <!-- Карточки будут добавлены через JavaScript -->
+                </div>
+                
+                <!-- Сообщение если коллекция пуста -->
+                <div id="emptyCollectionMessage" style="display: none; text-align: center; padding: 60px 20px;">
+                    <h3 style="color: var(--color-text-tertiary); margin-bottom: 20px; font-weight: 400;">
+                        This collection is empty
+                    </h3>
+                    <p style="color: var(--color-text-tertiary); opacity: 0.7;">
+                        Add riffs to this collection from the main page
+                    </p>
+                </div>
+            </section>
+            
+        </main>
+        
+        <!-- Футер -->
+        <footer class="footer">
+            <div class="footer-container">
+                <!-- Копирайт и автор -->
+                <div class="footer-copyright">
+                    <p class="footer-text">© 2024 Riff Killer. All rights reserved. <a href="billing.html" class="footer-link">Pricing</a></p>
+                </div>
+                
+                <!-- Социальные сети -->
+                <div class="footer-social">
+                    <a href="https://www.instagram.com/mikesabad" class="social-link" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+                        <svg class="social-icon" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                            <path d="M12 16C14.2091 16 16 14.2091 16 12C16 9.79086 14.2091 8 12 8C9.79086 8 8 9.79086 8 12C8 14.2091 9.79086 16 12 16Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M3 16V8C3 5.23858 5.23858 3 8 3H16C18.7614 3 21 5.23858 21 8V16C21 18.7614 18.7614 21 16 21H8C5.23858 21 3 18.7614 3 16Z" stroke="currentColor" stroke-width="1.5"/>
+                            <path d="M17.5 6.51L17.51 6.49889" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </a>
+                    <a href="https://www.youtube.com/@Mikesabadash" class="social-link" target="_blank" rel="noopener noreferrer" aria-label="YouTube">
+                        <svg class="social-icon" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                            <path d="M22.54 6.42C22.4213 5.94541 22.1793 5.51057 21.8387 5.15941C21.4981 4.80824 21.0708 4.55318 20.6 4.42C18.88 4 12 4 12 4C12 4 5.12 4 3.4 4.46C2.92925 4.59318 2.50193 4.84824 2.1613 5.19941C1.82068 5.55057 1.57875 5.98541 1.46 6.46C1.14521 8.20556 0.991236 9.97631 1 11.75C0.991236 13.5237 1.14521 15.2944 1.46 17.04C1.59096 17.5158 1.83831 17.9507 2.17814 18.3011C2.51798 18.6515 2.93884 18.9058 3.4 19.04C5.12 19.5 12 19.5 12 19.5C12 19.5 18.88 19.5 20.6 19.04C21.0708 18.9068 21.4981 18.6518 21.8387 18.3006C22.1793 17.9494 22.4213 17.5146 22.54 17.04C22.8528 15.2944 23.0068 13.5237 22.995 11.75C23.0068 9.97631 22.8528 8.20556 22.54 6.42Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M9.75 15.02L15.5 11.75L9.75 8.48001V15.02Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </a>
+                    <a href="https://www.facebook.com/profile.php?id=100079596300383" class="social-link" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
+                        <svg class="social-icon" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                            <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </a>
+                    <a href="https://patreon.com" class="social-link" target="_blank" rel="noopener noreferrer" aria-label="Patreon">
+                        <svg class="social-icon" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                            <path d="M4.5 3C3.11929 3 2 4.11929 2 5.5V18.5C2 19.8807 3.11929 21 4.5 21H7V3H4.5Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            <circle cx="15" cy="9" r="5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+        </footer>
+        
+    </div>
+    
+    <!-- JavaScript (Patreon: config before auth) -->
+    <script src="js/patreon-config.js"></script>
+    <script src="js/auth-manager.js"></script>
+    <script src="js/site-header-behaviors.js"></script>
+    <script src="js/rk-theme.js"></script>
+
+<!-- Специфичный для страницы -->
+<script src="js/collection.js?v=2"></script>
+</body>
+</html>

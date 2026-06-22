@@ -1,0 +1,211 @@
+/* ==========================================================================
+   CSS Variables - Дизайн-токены проекта
+   ========================================================================== */
+
+:root {
+    /* ===== ЦВЕТА ===== */
+    
+    /* Основные цвета (в стиле landing: #0a0a0a, #0f0f12) */
+    --color-primary: #0a0a0a;          /* Основной фон */
+    --color-white: #ffffff;            /* Белый цвет */
+    
+    /* Текст */
+    --color-text-primary: #ffffff;     /* Основной текст */
+    --color-text-secondary: rgba(255, 255, 255, 0.8);   /* Вторичный текст */
+    --color-text-tertiary: rgba(255, 255, 255, 0.5);    /* Третичный текст */
+    --color-text-muted: rgba(255, 255, 255, 0.5);       /* Приглушенный текст */
+    
+    /* Границы */
+    --color-border: #7C7C7C;           /* Цвет рамок */
+    --color-border-light: rgba(255, 255, 255, 0.1); /* Светлые границы */
+    
+    /* Интерактивные элементы */
+    --color-button-bg: #ffffff;        /* Фон кнопок */
+    --color-button-text: #111629;      /* Текст кнопок */
+    
+    /* Состояния */
+    --color-hover: rgba(255, 255, 255, 0.1);    /* Ховер состояние */
+    --color-active: rgba(255, 255, 255, 0.2);   /* Активное состояние */
+    
+    /* Акцентные цвета */
+    --color-accent-gold: #FFD700;      /* Золотой для избранного */
+    --color-accent-hover: rgba(255, 215, 0, 0.2); /* Ховер золотого */
+    
+    /* ===== ТИПОГРАФИКА ===== */
+    
+    /* Семейства шрифтов */
+    --font-family-primary: 'Roboto', sans-serif;
+    --font-family-accent: 'Zen Dots', cursive;
+    /* Шапка — как landing.html (Inter) */
+    --font-header-ui: 'Inter', system-ui, -apple-system, sans-serif;
+    
+    /* Размеры шрифтов */
+    --font-size-xs: 10px;              /* Очень маленький */
+    --font-size-sm: 14px;              /* Маленький */
+    --font-size-base: 16px;            /* Базовый */
+    --font-size-lg: 18px;              /* Большой */
+    --font-size-xl: 24px;              /* Очень большой */
+    
+    /* Начертания */
+    --font-weight-regular: 400;
+    --font-weight-medium: 500;
+    
+    /* Межбуквенные интервалы */
+    --letter-spacing-normal: normal;
+    --letter-spacing-wide: 0.124em;    /* 124% */
+    
+    /* Межстрочные интервалы */
+    --line-height-normal: 1;
+    --line-height-base: 1.5;
+    
+    /* ===== ОТСТУПЫ И РАЗМЕРЫ ===== */
+    
+    /* Базовые отступы */
+    --spacing-xs: 4px;                 /* Очень маленький */
+    --spacing-sm: 8px;                 /* Маленький */
+    --spacing-md: 12px;                /* Средний */
+    --spacing-lg: 20px;                /* Большой */
+    --spacing-xl: 40px;                /* Очень большой */
+    --spacing-2xl: 60px;               /* Двойной большой */
+    --spacing-3xl: 80px;               /* Тройной большой */
+    --spacing-4xl: 90px;               /* 90px как в макете */
+    --spacing-5xl: 120px;              /* Боковые отступы */
+    
+    /* Зазор под фикс. шапку в .main-content = calc(var(--height-header) + Npx) в base.css */
+    --height-header: 30px;
+    --height-select: 33px;
+    --height-collection-card: 180px;
+    --width-collection-card: 300px;
+    --width-nav-arrows: 74px;
+    --height-nav-arrows: 32px;
+    --size-arrow-button: 32px;
+    --size-arrow-icon: 26.7px;
+    
+    /* ===== РАЗМЕРЫ ДЛЯ КАРТОЧЕК РИФФОВ ===== */
+    --height-riff-card: 180px;         /* Высота карточки риффа */
+    --width-riff-card: 214px;          /* Ширина карточки риффа */
+    
+    /* ===== СКРУГЛЕНИЯ ===== */
+    --radius-sm: 6px;                  /* Маленькое скругление */
+    --radius-md: 8px;                  /* Среднее скругление */
+    --radius-lg: 20px;                 /* Большое скругление */
+    --radius-full: 9999px;             /* Полное скругление */
+    
+    /* ===== ТЕНИ И ЭФФЕКТЫ ===== */
+    --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.1);
+    --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.2);
+    --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.3);
+    --shadow-xl: 0 12px 24px rgba(0, 0, 0, 0.4);
+    
+    /* ===== Z-INDEX УРОВНИ ===== */
+    --z-dropdown: 100;
+    --z-modal: 1000;
+    --z-tooltip: 1100;
+    
+    /* ===== ПЕРЕХОДЫ ===== */
+    --transition-fast: 150ms ease;
+    --transition-base: 250ms ease;
+    --transition-slow: 350ms ease;
+    
+    /* ===== БЛЮР ЭФФЕКТЫ ===== */
+    --blur-sm: blur(4px);
+    --blur-md: blur(8px);
+    --blur-lg: blur(16px);
+
+    /*
+     * Мобильный браузер: нижняя панель (адресная строка, тулбары) часто перекрывает контент.
+     * safe-area-inset-bottom — только «чёлка»/home indicator, не вся панель Chrome/Safari.
+     */
+    --rk-mobile-browser-chrome-bottom: 52px;
+    --rk-viewport-pad-bottom: calc(env(safe-area-inset-bottom, 0px) + var(--rk-mobile-browser-chrome-bottom));
+
+    /* Фон страницы (base.css) */
+    --rk-body-gradient: linear-gradient(180deg, #0a0a0a 0%, #0f0f12 50%, #0a0a0a 100%);
+
+    /* Шапка и мобильное меню — токены для смены темы */
+    --rk-header-bar-bg: rgba(18, 18, 22, 0.28);
+    --rk-header-divider: rgba(255, 255, 255, 0.06);
+    --rk-header-link: #ffffff;
+    --rk-header-login-muted-opacity: 0.8;
+    --rk-burger-color: #ffffff;
+    --rk-mobile-overlay-bg: rgba(0, 0, 0, 0.72);
+    --rk-mobile-panel-bg: rgba(10, 10, 12, 0.97);
+    --rk-mobile-panel-border: rgba(255, 255, 255, 0.06);
+    --rk-mobile-panel-shadow: -8px 0 40px rgba(0, 0, 0, 0.45);
+    --rk-mobile-nav-text: #ffffff;
+    --rk-mobile-nav-border: rgba(255, 255, 255, 0.06);
+    --rk-mobile-nav-hover: #c4b5fc;
+    --rk-mobile-auth-top-border: rgba(255, 255, 255, 0.08);
+    --rk-topbar-primary-glow: 0 8px 20px rgba(147, 85, 229, 0.28);
+    --rk-topbar-primary-glow-hover: 0 10px 24px rgba(147, 85, 229, 0.35);
+    --rk-topbar-outline-border: rgba(255, 255, 255, 0.2);
+    --rk-topbar-outline-bg: rgba(255, 255, 255, 0.03);
+    --rk-topbar-outline-text: #eef2ff;
+    --rk-topbar-outline-hover-bg: rgba(255, 255, 255, 0.08);
+    --rk-topbar-outline-hover-border: rgba(255, 255, 255, 0.4);
+    --rk-topbar-outline-hover-text: #ffffff;
+}
+
+html {
+    color-scheme: dark;
+}
+
+/*
+ * Светлая тема: логичные поверхности и «засветы» = чистый фиолетовый тинт, не серая тень.
+ */
+html[data-theme='light'] {
+    color-scheme: light;
+
+    --color-primary: #f4f4f8;
+    --color-white: #ffffff;
+    --color-text-primary: #12121a;
+    --color-text-secondary: rgba(18, 18, 26, 0.82);
+    --color-text-tertiary: rgba(18, 18, 26, 0.52);
+    --color-text-muted: rgba(18, 18, 26, 0.48);
+    --color-border: #b8bcc8;
+    --color-border-light: rgba(18, 18, 26, 0.1);
+    --color-button-bg: #12121a;
+    --color-button-text: #ffffff;
+    --color-hover: rgba(18, 18, 26, 0.06);
+    --color-active: rgba(18, 18, 26, 0.1);
+    --color-accent-gold: #b8860b;
+    --color-accent-hover: rgba(147, 85, 229, 0.14);
+
+    --shadow-sm: 0 1px 3px rgba(40, 35, 70, 0.06);
+    --shadow-md: 0 6px 20px rgba(45, 38, 85, 0.08);
+    --shadow-lg: 0 12px 32px rgba(45, 38, 90, 0.1);
+    --shadow-xl: 0 20px 48px rgba(40, 35, 80, 0.12);
+
+    /* Светлая тема: нейтральный серый градиент без лилового фона */
+    --rk-body-gradient: linear-gradient(180deg, #f5f5f6 0%, #ebecee 48%, #f3f3f5 100%);
+
+    --rk-header-bar-bg: rgba(255, 255, 255, 0.86);
+    --rk-header-divider: rgba(18, 18, 26, 0.08);
+    --rk-header-link: #16161f;
+    --rk-header-login-muted-opacity: 0.72;
+    --rk-burger-color: #16161f;
+    --rk-mobile-overlay-bg: rgba(245, 246, 250, 0.72);
+    --rk-mobile-panel-bg: rgba(255, 255, 255, 0.98);
+    --rk-mobile-panel-border: rgba(18, 18, 26, 0.08);
+    --rk-mobile-panel-shadow: -12px 0 48px rgba(75, 60, 130, 0.12);
+    --rk-mobile-nav-text: #1a1a24;
+    --rk-mobile-nav-border: rgba(18, 18, 26, 0.08);
+    --rk-mobile-nav-hover: #6b3fa8;
+    --rk-mobile-auth-top-border: rgba(18, 18, 26, 0.1);
+    /* Акцентное свечение кнопки — тот же пурпур, плотнее (не серая «грязь») */
+    --rk-topbar-primary-glow: 0 8px 28px rgba(147, 85, 229, 0.38);
+    --rk-topbar-primary-glow-hover: 0 12px 32px rgba(124, 69, 199, 0.42);
+    --rk-topbar-outline-border: rgba(18, 18, 26, 0.14);
+    --rk-topbar-outline-bg: rgba(147, 85, 229, 0.06);
+    --rk-topbar-outline-text: #2d1f4a;
+    --rk-topbar-outline-hover-bg: rgba(147, 85, 229, 0.1);
+    --rk-topbar-outline-hover-border: rgba(147, 85, 229, 0.35);
+    --rk-topbar-outline-hover-text: #16161f;
+}
+
+/* Угол conic на рамке: анимируется без поворота геометрии (блики «ездят» по линии) */
+@property --rk-conic-from {
+    syntax: '<angle>';
+    inherits: false;
+    initial-value: 38deg;
+}

@@ -1,0 +1,8 @@
+<IfModule mod_headers.c>
+    Header set Accept-Ranges bytes
+    Header set Content-Range bytes
+    <FilesMatch "\.(mp4|webm|ogg)$">
+        Header set Accept-Ranges bytes
+        Header set Content-Type video/mp4
+    </FilesMatch>
+</IfModule>

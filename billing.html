@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <script src="js/rk-theme-init.js"></script>
+    <meta name="theme-color" content="#0a0a0a" id="rk-theme-color">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Riff Killer - Premium Billing</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <!-- Inter = тот же variable-шрифт, что на landing.html (opsz) -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&family=Roboto:wght@400;500&family=Zen+Dots&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/reset.css">
+    <link rel="stylesheet" href="css/variables.css">
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="css/rk-header.css">
+    <link rel="stylesheet" href="css/rk-theme-light.css">
+    <link rel="icon" type="image/svg+xml" href="assets/icons/favicon.svg">
+    <style>
+        body { background-color: var(--color-primary); color: var(--color-text-primary); min-height: 100vh; min-height: 100dvh; font-family: var(--font-family-primary); }
+        .billing-main { max-width: 1000px; margin: 0 auto; padding: 24px 16px calc(48px + var(--rk-viewport-pad-bottom)); }
+        .billing-header { text-align: center; margin-bottom: 32px; }
+        .billing-header h1 { font-family: var(--font-family-accent); font-size: var(--font-size-xl); font-weight: 400; margin-bottom: 8px; }
+        .billing-header p { color: var(--color-text-tertiary); font-size: var(--font-size-sm); }
+        .plan-section { margin-bottom: 40px; }
+        .plan-section h2 { font-size: var(--font-size-base); font-weight: 500; color: var(--color-text-secondary); margin-bottom: 16px; text-align: center; }
+        .plans-row { display: flex; flex-wrap: wrap; gap: 16px; justify-content: center; margin-bottom: 8px; }
+        .plan-card { background: rgba(255,255,255,0.03); border: 1px solid var(--color-border-light); border-radius: var(--radius-lg); padding: 20px 28px; text-align: center; cursor: pointer; transition: border-color 0.2s, background 0.2s; min-width: 140px; }
+        .plan-card:hover { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.2); }
+        .plan-card.selected { border-color: #9355E5; background: rgba(147,85,229,0.08); }
+        .plan-name { font-size: var(--font-size-base); font-weight: 500; margin-bottom: 4px; }
+        .plan-price { font-size: 24px; color: var(--color-text-primary); }
+        .plan-period { color: var(--color-text-tertiary); font-size: var(--font-size-sm); }
+        .plan-save { margin-top: 4px; font-size: var(--font-size-xs); color: #4CAF50; }
+        .methods-section h2 { font-size: var(--font-size-base); font-weight: 500; color: var(--color-text-secondary); margin-bottom: 20px; text-align: center; }
+        .methods-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+        .method-card { background: rgba(255,255,255,0.03); border: 1px solid var(--color-border-light); border-radius: var(--radius-lg); padding: 24px; display: flex; flex-direction: column; transition: border-color 0.2s, background 0.2s; }
+        .method-card:hover { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.15); }
+        .method-icon { font-size: 32px; margin-bottom: 12px; }
+        .method-card h3 { font-size: var(--font-size-lg); font-weight: 500; margin-bottom: 4px; }
+        .method-tag { font-size: var(--font-size-xs); color: var(--color-text-tertiary); margin-bottom: 12px; }
+        .method-desc { font-size: var(--font-size-sm); color: var(--color-text-secondary); margin-bottom: 12px; line-height: 1.5; }
+        .method-meta { font-size: var(--font-size-sm); color: var(--color-text-tertiary); margin-bottom: 16px; }
+        .method-meta span { display: block; margin-bottom: 4px; }
+        .method-cta { margin-top: auto; }
+        .method-cta a, .method-cta button { display: block; width: 100%; padding: 12px 20px; font-size: var(--font-size-sm); font-weight: 500; background: #9355E5; color: #fff; border: none; border-radius: var(--radius-md); cursor: pointer; text-align: center; text-decoration: none; transition: background 0.2s; font-family: inherit; }
+        .method-cta button:disabled { opacity: 0.7; cursor: not-allowed; }
+        .stripe-error { color: #F44336; font-size: var(--font-size-sm); margin-top: 8px; text-align: center; display: none; }
+        .method-cta a:hover, .method-cta button:hover { background: #7B3FC7; }
+        .method-cta.secondary a { background: transparent; border: 1px solid rgba(255,255,255,0.3); }
+        .method-cta.secondary a:hover { background: rgba(255,255,255,0.08); }
+        .billing-actions { text-align: center; margin-top: 32px; display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; align-items: center; }
+        .billing-actions a { color: var(--color-text-tertiary); text-decoration: none; font-size: var(--font-size-sm); }
+        .billing-actions a:hover { color: var(--color-text-primary); }
+        .billing-actions .btn-profile { background: #9355E5; color: #fff; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-size: 14px; }
+        .billing-actions .btn-profile:hover { background: #7B3FC7; color: #fff; }
+        @media (max-width: 640px) {
+            .billing-main { padding: 16px 12px 40px; }
+            .plans-row { flex-direction: column; align-items: stretch; }
+            .plan-card { min-width: auto; }
+            .methods-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body data-rk-header="app" data-logo-href="index.html" data-nav-active="billing">
+    <div id="site-header-mount"></div>
+    <script src="js/site-header.js"></script>
+    <div class="page-container">
+        <main class="main-content">
+            <div class="billing-main">
+                <header class="billing-header">
+                    <h1>Riff Killer</h1>
+                    <p>Full access to all riffs, tabs, slow-mo and practice tools. Choose how to subscribe.</p>
+                </header>
+
+                <section class="plan-section">
+                    <h2>Plan</h2>
+                    <div class="plans-row">
+                        <div class="plan-card selected" id="planMonthly" data-plan="monthly">
+                            <div class="plan-name">Monthly</div>
+                            <div class="plan-price">$9</div>
+                            <div class="plan-period">per month</div>
+                        </div>
+                        <div class="plan-card" id="planYearly" data-plan="yearly">
+                            <div class="plan-name">Yearly</div>
+                            <div class="plan-price">$90</div>
+                            <div class="plan-period">per year</div>
+                            <div class="plan-save">Save $18</div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="methods-section">
+                    <h2>Payment methods</h2>
+                    <div class="methods-grid">
+                        <div class="method-card">
+                            <span class="method-icon">💳</span>
+                            <h3>Card</h3>
+                            <span class="method-tag">Stripe</span>
+                            <p class="method-desc">Pay with credit or debit card. Monthly or yearly plan.</p>
+                            <div class="method-cta">
+                                <a href="billing-stripe.html" id="stripeLink">Subscribe with Card</a>
+                            </div>
+                        </div>
+                        <div class="method-card">
+                            <span class="method-icon">₿</span>
+                            <h3>Crypto</h3>
+                            <span class="method-tag">Cryptomus</span>
+                            <p class="method-desc">Pay with card or USDT via Cryptomus. Automatic activation after payment.</p>
+                            <div class="method-cta">
+                                <a href="billing-cryptomus.html" id="cryptoLink">Subscribe with Cryptomus</a>
+                            </div>
+                        </div>
+                        <div class="method-card" style="border-color: rgba(147,85,229,0.4);">
+                            <span class="method-icon">🎸</span>
+                            <h3>Patreon</h3>
+                            <span class="method-tag">Riff Killer plan</span>
+                            <p class="method-desc">Subscribe on Patreon to get full access. After subscribing, log in with Patreon on this site to activate.</p>
+                            <div class="method-cta">
+                                <button type="button" id="patreonBtn">Subscribe on Patreon</button>
+                            </div>
+                            <p class="method-desc" style="margin-top:12px;font-size:12px;color:var(--color-text-tertiary);" id="patreonHint">Not logged in? You will sign in with Patreon first, then open the plan page.</p>
+                        </div>
+                    </div>
+                </section>
+
+                <div class="billing-actions">
+                    <a href="#" id="backLink">Back</a>
+                    <a href="profile.html" class="btn-profile" id="profileLink" style="display: none;">Go to Profile</a>
+                </div>
+            </div>
+        </main>
+
+        <footer class="footer">
+            <div class="footer-container">
+                <div class="footer-copyright">
+                    <p class="footer-text">© 2024 Riff Killer. All rights reserved. <a href="billing.html" class="footer-link">Pricing</a></p>
+                </div>
+                <div class="footer-social">
+                    <a href="https://www.instagram.com/mikesabad" class="social-link" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+                        <svg class="social-icon" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                            <path d="M12 16C14.2091 16 16 14.2091 16 12C16 9.79086 14.2091 8 12 8C9.79086 8 8 9.79086 8 12C8 14.2091 9.79086 16 12 16Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M3 16V8C3 5.23858 5.23858 3 8 3H16C18.7614 3 21 5.23858 21 8V16C21 18.7614 18.7614 21 16 21H8C5.23858 21 3 18.7614 3 16Z" stroke="currentColor" stroke-width="1.5"/>
+                            <path d="M17.5 6.51L17.51 6.49889" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </a>
+                    <a href="https://www.youtube.com/@Mikesabadash" class="social-link" target="_blank" rel="noopener noreferrer" aria-label="YouTube">
+                        <svg class="social-icon" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                            <path d="M22.54 6.42C22.4213 5.94541 22.1793 5.51057 21.8387 5.15941C21.4981 4.80824 21.0708 4.55318 20.6 4.42C18.88 4 12 4 12 4C12 4 5.12 4 3.4 4.46C2.92925 4.59318 2.50193 4.84824 2.1613 5.19941C1.82068 5.55057 1.57875 5.98541 1.46 6.46C1.14521 8.20556 0.991236 9.97631 1 11.75C0.991236 13.5237 1.14521 15.2944 1.46 17.04C1.59096 17.5158 1.83831 17.9507 2.17814 18.3011C2.51798 18.6515 2.93884 18.9058 3.4 19.04C5.12 19.5 12 19.5 12 19.5C12 19.5 18.88 19.5 20.6 19.04C21.0708 18.9068 21.4981 18.6518 21.8387 18.3006C22.1793 17.9494 22.4213 17.5146 22.54 17.04C22.8528 15.2944 23.0068 13.5237 22.995 11.75C23.0068 9.97631 22.8528 8.20556 22.54 6.42Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M9.75 15.02L15.5 11.75L9.75 8.48001V15.02Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </a>
+                    <a href="https://www.facebook.com/profile.php?id=100079596300383" class="social-link" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
+                        <svg class="social-icon" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                            <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </a>
+                    <a href="https://patreon.com" class="social-link" target="_blank" rel="noopener noreferrer" aria-label="Patreon">
+                        <svg class="social-icon" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                            <path d="M4.5 3C3.11929 3 2 4.11929 2 5.5V18.5C2 19.8807 3.11929 21 4.5 21H7V3H4.5Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            <circle cx="15" cy="9" r="5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script src="config/env-config.php"></script>
+    <script src="js/patreon-config.js"></script>
+    <script src="js/auth-manager.js"></script>
+    <script src="js/site-header-behaviors.js"></script>
+    <script src="js/rk-theme.js"></script>
+    <script>
+        (function() {
+            var appEntry = (function() { try { return sessionStorage.getItem('appEntry') || 'index.html'; } catch (e) { return 'index.html'; } })();
+            var patreonBtn = document.getElementById('patreonBtn');
+            var backLink = document.getElementById('backLink');
+            var profileLink = document.getElementById('profileLink');
+
+            if (window.patreonAuth && profileLink) {
+                if (window.patreonAuth.isAuthenticated || (typeof window.patreonAuth.hasActiveSubscription === 'function' && window.patreonAuth.hasActiveSubscription())) {
+                    profileLink.style.display = 'inline-block';
+                }
+            }
+            var patreonHint = document.getElementById('patreonHint');
+            if (patreonHint && window.patreonAuth && window.patreonAuth.isAuthenticated) {
+                patreonHint.textContent = 'Click to open the Riff Killer plan on Patreon. After subscribing, refresh this page or log in again to activate access.';
+            }
+
+            backLink.addEventListener('click', function(e) {
+                e.preventDefault();
+                if (window.history.length > 1) {
+                    var ref = document.referrer || '';
+                    var origin = window.location.origin || '';
+                    if (ref.indexOf(origin) === 0 && ref.indexOf('billing.html') === -1) {
+                        window.history.back();
+                        return;
+                    }
+                }
+                window.location.href = appEntry;
+            });
+            var planMonthly = document.getElementById('planMonthly');
+            var planYearly = document.getElementById('planYearly');
+            var stripeLink = document.getElementById('stripeLink');
+            var cryptoLink = document.getElementById('cryptoLink');
+            var selectedPlan = 'monthly';
+            function updatePlanLinks() {
+                var q = selectedPlan === 'yearly' ? '?plan=yearly' : '?plan=monthly';
+                if (stripeLink) stripeLink.href = 'billing-stripe.html' + q;
+                if (cryptoLink) cryptoLink.href = 'billing-cryptomus.html' + q;
+            }
+            function setPlan(plan) {
+                selectedPlan = plan;
+                if (planMonthly) { planMonthly.classList.toggle('selected', plan === 'monthly'); }
+                if (planYearly) { planYearly.classList.toggle('selected', plan === 'yearly'); }
+                updatePlanLinks();
+            }
+            if (planMonthly) planMonthly.addEventListener('click', function() { setPlan('monthly'); });
+            if (planYearly) planYearly.addEventListener('click', function() { setPlan('yearly'); });
+            var planParam = (typeof URLSearchParams !== 'undefined' && window.location.search) ? new URLSearchParams(window.location.search).get('plan') : null;
+            if (planParam === 'yearly') setPlan('yearly');
+            else updatePlanLinks();
+
+            if (patreonBtn) patreonBtn.addEventListener('click', function() {
+                var auth = window.patreonAuth;
+                var campaignUrl = (typeof PATREON_CONFIG !== 'undefined' && PATREON_CONFIG.campaignUrl) ? PATREON_CONFIG.campaignUrl : 'https://www.patreon.com/cw/MikeSabadash?vanity=MikeSabadash';
+                if (auth && auth.isAuthenticated) {
+                    window.open(campaignUrl, '_blank', 'noopener,noreferrer');
+                    return;
+                }
+                if (auth && typeof auth.loginPatreon === 'function') {
+                    auth.loginPatreon({ afterAuth: 'campaign' });
+                } else if (auth && typeof auth.login === 'function') {
+                    auth.login();
+                } else {
+                    window.location.href = 'profile.html';
+                }
+            });
+        })();
+    </script>
+</body>
+</html>

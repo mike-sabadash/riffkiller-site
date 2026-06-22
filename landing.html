@@ -1,0 +1,1314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <script src="js/rk-theme-init.js"></script>
+    <meta name="theme-color" content="#0a0a0a" id="rk-theme-color">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Riff Killer – Kill every riff. One shot at a time.</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/variables.css">
+    <link rel="stylesheet" href="css/rk-header.css">
+    <link rel="stylesheet" href="css/rk-site-footer.css">
+    <link rel="stylesheet" href="css/rk-theme-light.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* ===== Local TT Travels Next fonts (from /fonts) ===== */
+        @font-face {
+            font-family: 'TT Travels Next';
+            src: url('fonts/TT_Travels_Next_Trial_Regular.ttf') format('truetype');
+            font-weight: 400;
+            font-style: normal;
+            font-display: swap;
+        }
+        @font-face {
+            font-family: 'TT Travels Next';
+            src: url('fonts/TT_Travels_Next_Trial_Medium.ttf') format('truetype');
+            font-weight: 500;
+            font-style: normal;
+            font-display: swap;
+        }
+        @font-face {
+            font-family: 'TT Travels Next';
+            src: url('fonts/TT_Travels_Next_Trial_Bold.ttf') format('truetype');
+            font-weight: 700;
+            font-style: normal;
+            font-display: swap;
+        }
+        @font-face {
+            font-family: 'TT Travels Next';
+            src: url('fonts/TT_Travels_Next_Trial_Black.ttf') format('truetype');
+            font-weight: 800;
+            font-style: normal;
+            font-display: swap;
+        }
+
+        html {
+            width: 100%;
+            overflow-x: hidden;
+        }
+
+        body {
+            background: #000000;
+            color: #f2f4fb;
+            font-family: 'Inter', sans-serif;
+            line-height: 1.6;
+            scroll-behavior: smooth;
+            -webkit-font-smoothing: antialiased;
+            text-rendering: optimizeLegibility;
+            position: relative;
+            width: 100%;
+            max-width: 100%;
+            overflow-x: hidden;
+            min-height: 100vh;
+            min-height: 100dvh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Глобальные мягкие засветы (видны через полупрозрачные плашки) */
+        .ambient-bg {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            /* слабее слева у верха, чтобы не конкурировать с hero */
+            background:
+                radial-gradient(ellipse 90% 70% at 14% 50%, rgba(200, 208, 222, 0.055) 0%, transparent 58%),
+                radial-gradient(ellipse 88% 68% at 86% 26%, rgba(64, 196, 172, 0.2) 0%, transparent 52%),
+                radial-gradient(ellipse 72% 52% at 70% 85%, rgba(147, 85, 229, 0.14) 0%, transparent 55%),
+                #000000;
+            filter: saturate(1.05);
+        }
+
+        main, footer {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Крупные заголовки */
+        h1, .section-title {
+            font-family: 'TT Travels Next', 'Space Grotesk', 'Inter', sans-serif;
+            font-weight: 600;
+            letter-spacing: 0.01em;
+        }
+
+        /* Более стандартные мелкие заголовки */
+        h2, h3, .card h3, .price-card h3, .riff-title {
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            letter-spacing: 0;
+        }
+
+        main {
+            flex: 1 1 auto;
+            padding-top: 54px;
+            width: 100%;
+            max-width: 100%;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1240px;
+            margin: 0 auto;
+            padding: 0 28px;
+        }
+
+        /* Кнопки — как на заглушке index.html (Tailwind rounded-xl ≈ 12px, py-3) */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 24px;
+            font-weight: 500;
+            font-size: 0.875rem;
+            line-height: 1.25rem;
+            border-radius: 12px;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            text-decoration: none;
+            background: transparent;
+            border: none;
+            font-family: 'Inter', sans-serif;
+        }
+        .btn-primary {
+            background: #9355E5;
+            color: white;
+            box-shadow: 0 8px 20px rgba(147, 85, 229, 0.28);
+        }
+        .btn-primary:hover {
+            background: #7c45c7;
+            transform: translateY(-2px);
+        }
+        .btn-outline {
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.03);
+            color: #eef2ff;
+        }
+        .btn-outline:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.4);
+        }
+
+        section {
+            padding: 112px 0;
+            position: relative;
+        }
+        /* Все секции кроме героя — чуть плотнее по вертикали (контент от Shots и ниже приподнят) */
+        section:not(.hero-section) {
+            padding: 100px 0;
+        }
+        /* Локальный засвет у края: выше/ниже без резкой границы (маска + мягче радиал) */
+        section.section-glow-left::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: -6%;
+            width: 100%;
+            height: 92%;
+            background: radial-gradient(ellipse 102% 100% at 0% 44%, rgba(188, 196, 212, 0.062) 0%, transparent 80%);
+            filter: blur(56px);
+            pointer-events: none;
+            z-index: 0;
+            -webkit-mask-image: linear-gradient(to bottom,
+                transparent 0%,
+                rgba(0, 0, 0, 0.45) 10%,
+                #000 22%,
+                #000 78%,
+                rgba(0, 0, 0, 0.5) 90%,
+                transparent 100%);
+            mask-image: linear-gradient(to bottom,
+                transparent 0%,
+                rgba(0, 0, 0, 0.45) 10%,
+                #000 22%,
+                #000 78%,
+                rgba(0, 0, 0, 0.5) 90%,
+                transparent 100%);
+        }
+        section.section-glow-right::before {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: -6%;
+            width: 100%;
+            height: 90%;
+            background: radial-gradient(ellipse 98% 96% at 100% 40%, rgba(64, 196, 172, 0.15) 0%, transparent 78%);
+            filter: blur(52px);
+            pointer-events: none;
+            z-index: 0;
+            -webkit-mask-image: linear-gradient(to bottom,
+                transparent 0%,
+                rgba(0, 0, 0, 0.4) 10%,
+                #000 22%,
+                #000 78%,
+                rgba(0, 0, 0, 0.45) 90%,
+                transparent 100%);
+            mask-image: linear-gradient(to bottom,
+                transparent 0%,
+                rgba(0, 0, 0, 0.4) 10%,
+                #000 22%,
+                #000 78%,
+                rgba(0, 0, 0, 0.45) 90%,
+                transparent 100%);
+        }
+        section.section-glow-left .container,
+        section.section-glow-right .container {
+            position: relative;
+            z-index: 1;
+        }
+        /*
+         * Стык hero → первая секция (Shots): без «вылезания» ::before вверх и без борьбы слоёв blur+animation.
+         * Иначе WebKit/Chromium дают мерцание/залипание скролла на границе блоков.
+         */
+        .hero-section + section.section-glow-left {
+            isolation: isolate;
+        }
+        .hero-section + section.section-glow-left::before {
+            top: 0;
+            height: 86%;
+            -webkit-mask-image: linear-gradient(to bottom,
+                rgba(0, 0, 0, 0.25) 0%,
+                rgba(0, 0, 0, 0.55) 14%,
+                #000 26%,
+                #000 76%,
+                rgba(0, 0, 0, 0.48) 88%,
+                transparent 100%);
+            mask-image: linear-gradient(to bottom,
+                rgba(0, 0, 0, 0.25) 0%,
+                rgba(0, 0, 0, 0.55) 14%,
+                #000 26%,
+                #000 76%,
+                rgba(0, 0, 0, 0.48) 88%,
+                transparent 100%);
+        }
+
+        .section-title {
+            font-size: 2.62rem;
+            font-weight: 600;
+            text-align: center;
+            margin-bottom: 28px;
+            line-height: 1.16;
+            letter-spacing: 0;
+            max-width: 760px;
+            margin-left: auto;
+            margin-right: auto;
+            text-wrap: balance;
+        }
+        /* Один паттерн: заголовок → сетка / прайс / сравнение = один зазор 60px */
+        .section-title:has(+ .tools-grid),
+        .section-title:has(+ .grid-3),
+        .section-title:has(+ .pricing),
+        .section-title:has(+ .comparison) {
+            margin-bottom: 0;
+        }
+        .section-sub {
+            text-align: center;
+            color: #888888;
+            max-width: 560px;
+            margin: 0 auto 56px;
+            font-size: 1rem;
+            line-height: 1.5;
+        }
+        .section-eyebrow {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 26px;
+            padding: 5px 12px;
+            border-radius: 999px;
+            font-size: 0.68rem;
+            font-weight: 500;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+            border: 1px solid rgba(255,255,255,0.09);
+            color: rgba(214, 220, 238, 0.72);
+            background: rgba(255,255,255,0.015);
+            /* Лёгкий подъём только плашки — без отрицательных margin у блока intro (нет сжатия секций / налезаний) */
+            margin: 0 auto 16px;
+            transform: translateY(-10px);
+            width: fit-content;
+            max-width: 100%;
+        }
+        /* Блоки сразу после заголовка (без section-sub между ними) */
+        .section-title + .tools-grid,
+        .section-title + .grid-3,
+        .section-title + .pricing,
+        .section-title + .comparison {
+            margin-top: 60px;
+        }
+
+        /* Карточки, сетки, прочие стили (оставлены без изменений) */
+        .grid-3, .tools-grid {
+            display: grid;
+            gap: 16px;
+            overflow: visible;
+            padding-bottom: 32px;
+            transform: translate3d(0, 0, 0);
+        }
+        .grid-3 {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            align-items: stretch;
+        }
+        .tools-grid {
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+        }
+        .card {
+            position: relative;
+            z-index: 0;
+            overflow: visible;
+            isolation: isolate;
+            transform: translate3d(0, 0, 0);
+            background: rgba(255, 255, 255, 0.035);
+            border-radius: 20px;
+            padding: 28px 24px 26px;
+            border: 1px solid rgba(255, 255, 255, 0.065);
+            transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+            box-shadow: 0 1px 0 rgba(255, 255, 255, 0.035);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+        /* Контент выше псевдо-свечения (без z-index:-1 → нет артефактов WebKit при анимациях фона) */
+        .card > * {
+            position: relative;
+            z-index: 1;
+        }
+        /* Мягкое свечение под плашкой — без filter на псевдоэлементе */
+        /* Свечение только внутри скругления карточки — не вылезает вниз, не обрезается */
+        .card::after {
+            content: '';
+            position: absolute;
+            z-index: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            height: 52%;
+            border-radius: 0 0 20px 20px;
+            background: radial-gradient(ellipse 95% 85% at 50% 100%,
+                rgba(147, 85, 229, 0.09) 0%,
+                rgba(147, 85, 229, 0.022) 50%,
+                transparent 72%);
+            opacity: 0.65;
+            pointer-events: none;
+        }
+        .card:hover {
+            background: rgba(255, 255, 255, 0.055);
+            border-color: rgba(255,255,255,0.1);
+            box-shadow: 0 10px 32px rgba(0, 0, 0, 0.22);
+        }
+        .card.tool-card:hover {
+            background:
+                radial-gradient(120% 90% at 50% 38%, rgba(159, 101, 255, 0.12) 0%, transparent 58%),
+                rgba(255, 255, 255, 0.055);
+        }
+        .card-icon {
+            font-size: 1.4rem;
+            margin-bottom: 14px;
+            opacity: 0.9;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+        }
+        .card-icon img {
+            width: 32px;
+            height: 32px;
+            object-fit: contain;
+            display: block;
+        }
+        .card h3 {
+            font-size: 1.05rem;
+            margin-bottom: 8px;
+            font-weight: 600;
+            line-height: 1.34;
+            color: rgba(244, 247, 255, 0.95);
+        }
+        .card p {
+            color: #a0a0a0;
+            font-size: 0.95rem;
+            line-height: 1.52;
+        }
+
+        /* Отзывы: цитата сверху, имя/роль прижаты к нижнему краю карточки */
+        .card-testimonial {
+            padding: 32px 28px 30px;
+            text-align: left;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            min-height: 100%;
+        }
+        .testimonial-quote {
+            font-size: 1.05rem;
+            line-height: 1.68;
+            font-weight: 400;
+            color: rgba(242, 244, 251, 0.92);
+            margin: 0;
+            flex: 1 1 auto;
+        }
+        .testimonial-meta {
+            margin-top: auto;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .testimonial-name {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.95);
+            margin: 0 0 4px;
+            letter-spacing: 0.01em;
+        }
+        .testimonial-name--light {
+            color: rgba(248, 250, 255, 0.98);
+        }
+        .testimonial-role {
+            font-size: 0.8125rem;
+            font-weight: 400;
+            color: rgba(160, 165, 182, 0.85);
+            margin: 0;
+            line-height: 1.45;
+        }
+        .testimonial-role--italic {
+            font-style: italic;
+        }
+
+        /* Секции с бейджем над заголовком */
+        .section-intro {
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+        }
+        .section-intro > .section-eyebrow {
+            align-self: center;
+        }
+        .section-intro > .section-title {
+            width: 100%;
+        }
+
+
+        /* Hero видео-мок + свечение под блоком */
+        .hero-video-wrap {
+            position: relative;
+            z-index: 0;
+            margin-top: 72px;
+            padding-bottom: 36px;
+            isolation: isolate;
+            transform: translate3d(0, 0, 0);
+        }
+        .hero-video {
+            position: relative;
+            z-index: 1;
+            background: rgba(255, 255, 255, 0.04);
+            border-radius: 36px;
+            border: none;
+            overflow: hidden;
+            box-shadow: 0 20px 48px -20px rgba(0, 0, 0, 0.38);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+        .hero-video::after {
+            content: '';
+            position: absolute;
+            z-index: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            height: 42%;
+            border-radius: 0 0 36px 36px;
+            background: radial-gradient(ellipse 92% 88% at 50% 100%,
+                rgba(147, 85, 229, 0.09) 0%,
+                rgba(147, 85, 229, 0.028) 52%,
+                transparent 74%);
+            opacity: 0.58;
+            pointer-events: none;
+        }
+        .video-preview {
+            position: relative;
+            z-index: 1;
+            background: #07090f;
+            display: flex;
+            flex-direction: column;
+        }
+        .split-demo {
+            display: flex;
+            gap: 16px;
+            background: transparent;
+            padding: 16px;
+        }
+        .split-left, .split-right {
+            flex: 1;
+            aspect-ratio: 16 / 9;
+            background: #1b1d2b;
+            border: none;
+            border-radius: 28px;
+            position: relative;
+            overflow: hidden;
+        }
+        .split-preview-img {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center;
+            display: block;
+        }
+        .video-label {
+            position: absolute;
+            bottom: 16px;
+            left: 16px;
+            z-index: 2;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(6px);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        .timeline-mock {
+            padding: 16px 20px;
+            background: #0c0e18;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            border-top: 1px solid rgba(255,255,255,0.05);
+        }
+        .segments {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .segment {
+            background: #23253b;
+            padding: 6px 14px;
+            border-radius: 40px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        .controls-demo {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+        .control-badge {
+            background: #2c2e46;
+            padding: 6px 12px;
+            border-radius: 32px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .comparison {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            justify-content: center;
+            overflow: visible;
+            padding-bottom: 36px;
+            transform: translate3d(0, 0, 0);
+        }
+        .comp-card {
+            position: relative;
+            z-index: 0;
+            flex: 1;
+            min-width: 260px;
+            isolation: isolate;
+            transform: translate3d(0, 0, 0);
+            background: rgba(255, 255, 255, 0.035);
+            border-radius: 20px;
+            overflow: visible;
+            border: 1px solid rgba(255,255,255,0.065);
+            box-shadow: 0 1px 0 rgba(255, 255, 255, 0.035);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+        .comp-card > * {
+            position: relative;
+            z-index: 1;
+        }
+        .comp-card::after {
+            content: '';
+            position: absolute;
+            z-index: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            height: 48%;
+            border-radius: 0 0 20px 20px;
+            background: radial-gradient(ellipse 95% 88% at 50% 100%,
+                rgba(147, 85, 229, 0.09) 0%,
+                rgba(147, 85, 229, 0.025) 50%,
+                transparent 72%);
+            opacity: 0.62;
+            pointer-events: none;
+        }
+        .comp-video {
+            background: rgba(20, 22, 38, 0.85);
+            aspect-ratio: 16/9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            color: #b0b0c5;
+            border-radius: 20px 20px 0 0;
+            overflow: hidden;
+        }
+        .comp-caption {
+            padding: 20px;
+            text-align: center;
+            border-radius: 0 0 20px 20px;
+            background: rgba(0, 0, 0, 0.18);
+        }
+
+        .riff-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 14px;
+            max-width: 760px;
+            margin-left: auto;
+            margin-right: auto;
+            overflow: visible;
+            padding-bottom: 28px;
+            transform: translate3d(0, 0, 0);
+        }
+        .riff-card {
+            position: relative;
+            z-index: 0;
+            isolation: isolate;
+            transform: translate3d(0, 0, 0);
+            background: rgba(255, 255, 255, 0.035);
+            border-radius: 14px;
+            overflow: hidden;
+            transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 1px 0 rgba(255, 255, 255, 0.035);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+        .riff-card > * {
+            position: relative;
+            z-index: 1;
+        }
+        .riff-card::after {
+            content: '';
+            position: absolute;
+            z-index: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            height: 42%;
+            border-radius: 0 0 14px 14px;
+            background: radial-gradient(ellipse 95% 88% at 50% 100%,
+                rgba(147, 85, 229, 0.075) 0%,
+                rgba(147, 85, 229, 0.022) 50%,
+                transparent 72%);
+            opacity: 0.6;
+            pointer-events: none;
+        }
+        .riff-img {
+            background: rgba(22, 24, 34, 0.9);
+            aspect-ratio: 4 / 3;
+            display: block;
+            overflow: hidden;
+            border-radius: 14px 14px 0 0;
+        }
+        .riff-img img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center;
+            display: block;
+        }
+        .riff-info {
+            padding: 12px 14px 14px;
+            background: rgba(6, 8, 14, 0.16);
+            border-top: 1px solid rgba(0, 0, 0, 0.42);
+        }
+        .riff-title {
+            font-weight: 600;
+            font-size: 0.875rem;
+            line-height: 1.35;
+        }
+        .riff-artist {
+            font-size: 0.75rem;
+            color: rgba(154, 155, 181, 0.92);
+            margin-top: 4px;
+            line-height: 1.4;
+        }
+
+        .pricing {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            flex-wrap: wrap;
+            overflow: visible;
+            padding-bottom: 36px;
+            transform: translate3d(0, 0, 0);
+        }
+        .price-card {
+            position: relative;
+            z-index: 0;
+            isolation: isolate;
+            transform: translate3d(0, 0, 0);
+            background: rgba(255, 255, 255, 0.035);
+            border-radius: 22px;
+            padding: 32px 26px;
+            flex: 1;
+            min-width: 260px;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.065);
+            box-shadow: 0 1px 0 rgba(255, 255, 255, 0.035);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+        .price-card > * {
+            position: relative;
+            z-index: 1;
+        }
+        .price-card::after {
+            content: '';
+            position: absolute;
+            z-index: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            height: 50%;
+            border-radius: 0 0 22px 22px;
+            background: radial-gradient(ellipse 95% 88% at 50% 100%,
+                rgba(147, 85, 229, 0.085) 0%,
+                rgba(147, 85, 229, 0.024) 50%,
+                transparent 72%);
+            opacity: 0.58;
+            pointer-events: none;
+        }
+        .price-card.featured {
+            border: 1px solid rgba(147, 85, 229, 0.55);
+            background:
+                radial-gradient(120% 90% at 50% 0%, rgba(147, 85, 229, 0.18) 0%, transparent 55%),
+                rgba(255, 255, 255, 0.06);
+        }
+        .price {
+            font-size: 2.6rem;
+            font-weight: 700;
+            margin: 18px 0;
+        }
+        .price small {
+            font-size: 1rem;
+            font-weight: 400;
+            color: #a0a0b5;
+        }
+        .price-card p {
+            color: #a0a0a0;
+            font-size: 0.95rem;
+            line-height: 1.52;
+        }
+
+        /* Футер — css/rk-site-footer.css (как app / practice) */
+        a {
+            color: inherit;
+            text-decoration: none;
+        }
+        a:hover {
+            color: #9355E5;
+        }
+
+        .hero-section {
+            padding-top: 40px;
+            padding-bottom: 76px;
+            position: relative;
+            z-index: 0;
+            /* Только hidden: смешение overflow-x/y (hidden + visible) ломает скролл/репейнт на стыке со следующей секцией */
+            overflow: hidden;
+        }
+        @media (min-width: 901px) {
+            .hero-section {
+                padding-top: 100px;
+            }
+        }
+        /* Логотип и авторизация к краям вьюпорта (контент героя ниже по-прежнему ~1240px) */
+        .topbar.topbar--landing .container.topbar-inner {
+            max-width: none;
+            width: 100%;
+        }
+
+        /* Метафора табулатуры: линии + точки, с плавным уходом в прозрачность к низу зоны */
+        .hero-tab-pattern {
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 0;
+            width: 100%;
+            max-width: 100%;
+            height: clamp(480px, 62vh, 820px);
+            z-index: 1;
+            pointer-events: none;
+            background-image:
+                repeating-linear-gradient(
+                    to bottom,
+                    transparent 0,
+                    transparent calc(50px - 1px),
+                    rgba(255, 255, 255, 0.07) calc(50px - 1px),
+                    rgba(255, 255, 255, 0.07) 50px
+                ),
+                radial-gradient(circle at 11% 75px, rgba(255, 255, 255, 0.065) 0 2px, transparent 3px),
+                radial-gradient(circle at 19% 175px, rgba(255, 255, 255, 0.065) 0 2px, transparent 3px),
+                radial-gradient(circle at 8% 275px, rgba(255, 255, 255, 0.065) 0 2px, transparent 3px),
+                radial-gradient(circle at 24% 375px, rgba(255, 255, 255, 0.065) 0 2px, transparent 3px),
+                radial-gradient(circle at 16% 475px, rgba(255, 255, 255, 0.065) 0 2px, transparent 3px),
+                radial-gradient(circle at 88% 125px, rgba(255, 255, 255, 0.065) 0 2px, transparent 3px),
+                radial-gradient(circle at 92% 225px, rgba(255, 255, 255, 0.065) 0 2px, transparent 3px),
+                radial-gradient(circle at 84% 325px, rgba(255, 255, 255, 0.065) 0 2px, transparent 3px),
+                radial-gradient(circle at 78% 425px, rgba(255, 255, 255, 0.065) 0 2px, transparent 3px),
+                radial-gradient(circle at 50% 200px, rgba(255, 255, 255, 0.055) 0 2px, transparent 3px),
+                radial-gradient(circle at 48% 350px, rgba(255, 255, 255, 0.055) 0 2px, transparent 3px);
+            -webkit-mask-image: linear-gradient(to bottom,
+                rgba(0, 0, 0, 1) 0%,
+                rgba(0, 0, 0, 1) 48%,
+                rgba(0, 0, 0, 0.35) 72%,
+                rgba(0, 0, 0, 0) 100%
+            );
+            mask-image: linear-gradient(to bottom,
+                rgba(0, 0, 0, 1) 0%,
+                rgba(0, 0, 0, 1) 48%,
+                rgba(0, 0, 0, 0.35) 72%,
+                rgba(0, 0, 0, 0) 100%
+            );
+        }
+        /*
+         * Фоновые горизонтальные полоски первого блока (.hero-tab-pattern).
+         * Сейчас скрыты. Чтобы вернуть: на <section class="hero-section"> добавь класс hero-section--tab-lines
+         * (ищи в файле: hero-section--tab-lines или hero-tab-pattern).
+         */
+        .hero-section:not(.hero-section--tab-lines) .hero-tab-pattern {
+            display: none !important;
+        }
+
+        .hero-aurora {
+            position: absolute;
+            inset: -35% -25% -25% -25%;
+            z-index: 0;
+            pointer-events: none;
+            background:
+                radial-gradient(ellipse 50% 44% at 86% 14%, rgba(64, 196, 172, 0.3) 0%, transparent 58%),
+                radial-gradient(ellipse 44% 40% at 10% 38%, rgba(195, 204, 220, 0.07) 0%, transparent 62%),
+                radial-gradient(ellipse 40% 44% at 58% 92%, rgba(147, 85, 229, 0.22) 0%, transparent 62%);
+            filter: blur(56px);
+            opacity: 0.88;
+            animation: heroAuroraDrift 22s ease-in-out infinite alternate;
+            /* Нижний край без «среза» при overflow: обрезка героя не даёт резкой линии свечения */
+            -webkit-mask-image: linear-gradient(to bottom,
+                #000 0%,
+                #000 48%,
+                rgba(0, 0, 0, 0.4) 74%,
+                transparent 94%);
+            mask-image: linear-gradient(to bottom,
+                #000 0%,
+                #000 48%,
+                rgba(0, 0, 0, 0.4) 74%,
+                transparent 94%);
+        }
+        @keyframes heroAuroraDrift {
+            0%   { transform: translate(0, 0) scale(1); }
+            33%  { transform: translate(3%, -2%) scale(1.04); }
+            66%  { transform: translate(-2%, 2%) scale(1.02); }
+            100% { transform: translate(2%, 1%) scale(1.06); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .hero-aurora { animation: none; }
+        }
+        .hero-section .container {
+            position: relative;
+            z-index: 2;
+        }
+
+        .hero-title {
+            font-size: 3.5rem;
+            font-weight: 600;
+            letter-spacing: 0;
+            line-height: 1.14;
+            max-width: 720px;
+            margin-left: auto;
+            margin-right: auto;
+            margin-top: 0;
+        }
+        /* Ровно 2 строки: вторая целиком без переноса внутри (на очень узком экране — можно сломать) */
+        .hero-title-line2 {
+            white-space: nowrap;
+        }
+        /* Огонь + shot: эмодзи ~высота слова, цвет shot ближе к красному */
+        .hero-shot-group {
+            display: inline-flex;
+            align-items: baseline;
+            gap: 0;
+            white-space: nowrap;
+        }
+        .hero-shot-fire {
+            font-size: 1.05em;
+            line-height: 1;
+            display: inline-block;
+            vertical-align: -0.04em;
+            margin-right: -0.1em;
+            transform: translateX(-5px);
+        }
+        .hero-shot-word {
+            display: inline-block;
+            /* Рыжий/красный только у левого края; почти всё слово — фиолетовое */
+            background: linear-gradient(
+                90deg,
+                #ff9348 0%,
+                #e84830 4%,
+                #c94bdc 10%,
+                #9d52e8 22%,
+                #9355e5 38%,
+                #9355e5 100%
+            );
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            -webkit-text-fill-color: transparent;
+        }
+        @supports not (background-clip: text) {
+            .hero-shot-word {
+                color: #e63232;
+                background: none;
+                -webkit-text-fill-color: currentColor;
+            }
+        }
+        .hero-sub {
+            font-size: 1.04rem;
+            color: #888888;
+            max-width: 560px;
+            margin-left: auto;
+            margin-right: auto;
+            margin-top: 28px;
+            line-height: 1.5;
+        }
+        .hero-cta {
+            margin-top: 24px;
+            margin-bottom: 22px;
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        /* Только герой: белая кнопка, тёмный полужирный текст */
+        .btn-hero-try.btn-primary {
+            background: #ffffff !important;
+            color: #0d0d12 !important;
+            font-weight: 600;
+            border: 1px solid rgba(0, 0, 0, 0.08) !important;
+            box-shadow: 0 10px 32px rgba(0, 0, 0, 0.18);
+        }
+        .btn-hero-try.btn-primary:hover {
+            background: #f0f0f3 !important;
+            color: #0d0d12 !important;
+            transform: translateY(-2px);
+            box-shadow: 0 14px 40px rgba(0, 0, 0, 0.22);
+        }
+        .tools-section .container {
+            position: relative;
+            z-index: 1;
+        }
+
+        .tools-section .section-title {
+            max-width: 720px;
+            font-size: 2.65rem;
+            margin-left: auto;
+            margin-right: auto;
+            align-self: center;
+            width: 100%;
+        }
+        .tool-card {
+            min-height: 170px;
+            text-align: center;
+            padding: 22px 18px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background:
+                radial-gradient(120% 90% at 50% 38%, rgba(159, 101, 255, 0.09) 0%, transparent 58%),
+                rgba(255, 255, 255, 0.032);
+            border-color: rgba(255, 255, 255, 0.065);
+            box-shadow: 0 1px 0 rgba(255, 255, 255, 0.035);
+        }
+        .tool-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 999px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: #c68dff;
+            font-size: 0.9rem;
+            margin-bottom: 14px;
+            background: rgba(196, 141, 255, 0.055);
+            border: 1px solid rgba(196, 141, 255, 0.14);
+        }
+
+        @media (max-width: 1024px) {
+            .hero-title { font-size: 2.95rem; }
+            .section-title { font-size: 2.22rem; }
+            section { padding: 88px 0; }
+            section:not(.hero-section) { padding: 76px 0; }
+            .hero-section { padding-bottom: 52px; }
+            /* Без отрицательных margin у eyebrow/intro: иначе «дыра» над бейджем и залипание скролла */
+            .tools-section .section-title { font-size: 2.28rem; }
+            .section-title + .tools-grid,
+            .section-title + .grid-3,
+            .section-title + .pricing,
+            .section-title + .comparison {
+                margin-top: 48px;
+            }
+            .grid-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .riff-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                max-width: 100%;
+            }
+        }
+
+        @media (max-width: 900px) {
+            .tools-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        }
+
+        @media (max-width: 768px) {
+            .container { padding: 0 20px; }
+            section { padding: 66px 0; }
+            section:not(.hero-section) { padding: 56px 0; }
+            .hero-section { padding-bottom: 40px; }
+            .section-title { font-size: 1.92rem; margin-bottom: 22px; }
+            .section-sub { margin-bottom: 44px; font-size: 0.96rem; max-width: 520px; }
+            .section-title + .tools-grid,
+            .section-title + .grid-3,
+            .section-title + .pricing,
+            .section-title + .comparison {
+                margin-top: 40px;
+            }
+            .hero-video-wrap { margin-top: 44px; }
+            .timeline-mock { flex-direction: column; align-items: stretch; gap: 12px; }
+            .controls-demo { justify-content: center; }
+            .hero-title { font-size: 2.2rem; line-height: 1.16; }
+            .hero-sub { font-size: 0.98rem; margin-top: 22px; max-width: 520px; }
+            .split-demo { padding: 12px; gap: 16px; }
+            .card { padding: 20px 16px; }
+            .card-testimonial { padding: 26px 20px 24px; }
+            .testimonial-meta { padding-top: 16px; }
+            .price-card { padding: 30px 24px; }
+        }
+
+        @media (max-width: 560px) {
+            .container { padding: 0 14px; }
+            .hero-title { font-size: 1.88rem; }
+            .hero-title-line2 { white-space: normal; }
+            .split-demo { flex-direction: column; }
+            .split-left, .split-right { border-radius: 22px; }
+            .hero-video { border-radius: 28px; }
+            .hero-video::after { border-radius: 0 0 28px 28px; }
+            .hero-tab-pattern {
+                height: clamp(380px, 68vh, 620px);
+            }
+            .section-title + .tools-grid,
+            .section-title + .grid-3,
+            .section-title + .pricing,
+            .section-title + .comparison {
+                margin-top: 30px;
+            }
+            .grid-3, .tools-grid, .riff-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body data-rk-header="landing" data-logo-href="#">
+<div class="ambient-bg" aria-hidden="true"></div>
+<div id="site-header-mount"></div>
+<script src="js/site-header.js"></script>
+
+<main>
+    <!-- Hero. Полоски на фоне: добавь класс hero-section--tab-lines к section ниже -->
+    <section class="hero-section">
+        <div class="hero-aurora" aria-hidden="true"></div>
+        <div class="hero-tab-pattern" aria-hidden="true"></div>
+        <div class="container">
+            <div class="hero-intro" style="text-align: center; max-width: 800px; margin: 0 auto;">
+                <h1 class="hero-title">Kill every riff.<br><span class="hero-title-line2">One <span class="hero-shot-group"><span class="hero-shot-fire" aria-hidden="true">🔥</span><span class="hero-shot-word">shot</span></span> at a time.</span></h1>
+                <p class="hero-sub">Short breakdowns, left/right hand split, slow motion, loops, synced tabs — all in one app.</p>
+                <div class="hero-cta">
+                    <button type="button" class="btn btn-primary btn-hero-try">Try Free →</button>
+                    <button type="button" class="btn btn-outline">See how it works</button>
+                </div>
+            </div>
+
+            <div class="hero-video-wrap">
+            <div class="hero-video">
+                <div class="video-preview">
+                    <div class="split-demo">
+                        <div class="split-left">
+                            <img class="split-preview-img" src="assets/img/left_hand_mainpage.jpg" alt="Left hand — fretboard view" width="1280" height="720" fetchpriority="high" decoding="async">
+                            <span class="video-label">🎸 Left hand</span>
+                        </div>
+                        <div class="split-right">
+                            <img class="split-preview-img" src="assets/img/right_hand_mainpage.jpg" alt="Right hand — picking hand view" width="1280" height="720" decoding="async">
+                            <span class="video-label">🎸 Right hand</span>
+                        </div>
+                    </div>
+                    <div class="timeline-mock">
+                        <div class="segments">
+                            <span class="segment">Shot 1 (0:00)</span>
+                            <span class="segment">Shot 2 (0:03)</span>
+                            <span class="segment">Shot 3 (0:07)</span>
+                            <span class="segment">Shot 4 (0:11)</span>
+                            <span class="segment active" style="background:#9355E5;">Shot 5 (0:14)</span>
+                            <span class="segment">Shot 6 (0:17)</span>
+                        </div>
+                        <div class="controls-demo">
+                            <span class="control-badge">⏵ 0.5x</span>
+                            <span class="control-badge">0.75x</span>
+                            <span class="control-badge">1x</span>
+                            <span class="control-badge">🔁 Loop</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Killer Shots (3 pillars) -->
+    <section class="section-glow-left">
+        <div class="container section-intro">
+            <div class="section-eyebrow">Shots</div>
+            <div class="section-title">One riff. One shot.</div>
+            <div class="section-sub">Every riff sliced into 10–20 second focused segments – each "shot" is a micro‑lesson.</div>
+            <div class="grid-3">
+                <div class="card">
+                    <div class="card-icon" aria-hidden="true"><img src="assets/icons/landing_guitar.png" alt="" width="32" height="32" decoding="async"></div>
+                    <h3>Left / Right hand split</h3>
+                    <p>See exactly what each hand is doing. No more guessing. Watch both angles simultaneously.</p>
+                </div>
+                <div class="card">
+                    <div class="card-icon" aria-hidden="true"><img src="assets/icons/landing_ul.png" alt="" width="32" height="32" decoding="async"></div>
+                    <h3>Slow motion</h3>
+                    <p>0.5x and 0.75x without losing pitch. Master the hardest phrases at your own tempo.</p>
+                </div>
+                <div class="card">
+                    <div class="card-icon" aria-hidden="true"><img src="assets/icons/landing_loop.png" alt="" width="32" height="32" decoding="async"></div>
+                    <h3>Loop any shot</h3>
+                    <p>Repeat a segment until it's perfect. Built‑in loop lets you practice until muscle memory kicks in.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Before / After -->
+    <section class="section-glow-right">
+        <div class="container section-intro">
+            <div class="section-eyebrow">Compare</div>
+            <div class="section-title">Traditional lessons vs. Riff Killer</div>
+            <div class="comparison">
+                <div class="comp-card">
+                    <div class="comp-video">🎥 YouTube (one angle)</div>
+                    <div class="comp-caption"><strong>Before</strong><br>Endless searching, manual tabs, missing hand positions.</div>
+                </div>
+                <div class="comp-card">
+                    <div class="comp-video" style="background: #151a2a;">🎸 Riff Killer – split view</div>
+                    <div class="comp-caption"><strong>Riff Killer</strong><br>Left + right hand, synced tabs, slow mo, loop — everything in one place.</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Tools -->
+    <section class="tools-section section-glow-left">
+        <div class="container section-intro">
+            <div class="section-eyebrow">Tools</div>
+            <div class="section-title">Everything you need to 10x your workflow</div>
+            <div class="tools-grid">
+                <div class="card tool-card"><span class="tool-icon">●</span><h3>Split View</h3><p>Both hands, side by side.</p></div>
+                <div class="card tool-card"><span class="tool-icon">●</span><h3>Slow Motion</h3><p>0.5x and 0.75x playback.</p></div>
+                <div class="card tool-card"><span class="tool-icon">●</span><h3>Loop</h3><p>Repeat any shot endlessly.</p></div>
+                <div class="card tool-card"><span class="tool-icon">●</span><h3>Synced Tabs</h3><p>Tab notation aligned with video.</p></div>
+                <div class="card tool-card"><span class="tool-icon">●</span><h3>Any Device</h3><p>Works on phone, tablet, desktop.</p></div>
+                <div class="card tool-card"><span class="tool-icon">●</span><h3>Fresh Riffs</h3><p>New tracks added monthly.</p></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials -->
+    <section class="section-glow-right">
+        <div class="container section-intro">
+            <div class="section-eyebrow">Voices</div>
+            <div class="section-title">What guitarists are saying</div>
+            <div class="grid-3">
+                <div class="card card-testimonial">
+                    <p class="testimonial-quote">“Split view is a game changer. I learned Black Dog in two days after struggling for weeks.”</p>
+                    <div class="testimonial-meta">
+                        <p class="testimonial-name">Alex</p>
+                        <p class="testimonial-role">Intermediate player</p>
+                    </div>
+                </div>
+                <div class="card card-testimonial">
+                    <p class="testimonial-quote">“Finally, an app that shows the right hand clearly. Slow mo + loop helped me nail the solo.”</p>
+                    <div class="testimonial-meta">
+                        <p class="testimonial-name">Jess</p>
+                        <p class="testimonial-role testimonial-role--italic">Gigging musician</p>
+                    </div>
+                </div>
+                <div class="card card-testimonial">
+                    <p class="testimonial-quote">“Exactly what I needed. No fluff, just riffs. The shot‑based learning feels like a cheat code.”</p>
+                    <div class="testimonial-meta">
+                        <p class="testimonial-name testimonial-name--light">Mike</p>
+                        <p class="testimonial-role">Producer</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Riff Library -->
+    <section class="section-glow-left">
+        <div class="container section-intro">
+            <div class="section-eyebrow">Library</div>
+            <div class="section-title">Riff Library</div>
+            <div class="section-sub">100+ famous riffs, growing every month. Rock, metal, blues, funk.</div>
+            <div class="riff-grid">
+                <div class="riff-card"><div class="riff-img"><img src="assets/img/riff_mainpage_blackdog.jpg" alt="" width="320" height="240" loading="lazy" decoding="async"></div><div class="riff-info"><div class="riff-title">Black Dog</div><div class="riff-artist">Led Zeppelin</div></div></div>
+                <div class="riff-card"><div class="riff-img"><img src="assets/img/riff_sweet_child_o_mine.jpg" alt="" width="320" height="240" loading="lazy" decoding="async"></div><div class="riff-info"><div class="riff-title">Sweet Child O' Mine</div><div class="riff-artist">Guns N' Roses</div></div></div>
+                <div class="riff-card"><div class="riff-img"><img src="assets/img/riff_burn.jpg" alt="" width="320" height="240" loading="lazy" decoding="async"></div><div class="riff-info"><div class="riff-title">Burn</div><div class="riff-artist">Deep Purple</div></div></div>
+                <div class="riff-card"><div class="riff-img"><img src="assets/img/riff_back_in_black.jpg" alt="" width="320" height="240" loading="lazy" decoding="async"></div><div class="riff-info"><div class="riff-title">Back in Black</div><div class="riff-artist">AC/DC</div></div></div>
+                <div class="riff-card"><div class="riff-img"><img src="assets/img/riff_purple_haze.jpg" alt="" width="320" height="240" loading="lazy" decoding="async"></div><div class="riff-info"><div class="riff-title">Purple Haze</div><div class="riff-artist">Jimi Hendrix</div></div></div>
+                <div class="riff-card"><div class="riff-img"><img src="assets/img/riff_enter_sandman.jpg" alt="" width="320" height="240" loading="lazy" decoding="async"></div><div class="riff-info"><div class="riff-title">Enter Sandman</div><div class="riff-artist">Metallica</div></div></div>
+            </div>
+            <div style="text-align: center; margin-top: 40px;"><button class="btn btn-outline">Explore all riffs →</button></div>
+        </div>
+    </section>
+
+    <!-- Pricing -->
+    <section class="section-glow-right" id="plans">
+        <div class="container section-intro">
+            <div class="section-eyebrow">Plans</div>
+            <div class="section-title">Start killing riffs today</div>
+            <div class="pricing">
+                <div class="price-card"><h3>Free trial</h3><div class="price">$0</div><p>One full riff: Black Dog<br>Try the split view, slow mo, loop.</p><button class="btn btn-outline" style="margin-top: 24px;">Try Free</button></div>
+                <div class="price-card featured"><h3>Premium</h3><div class="price">$6 <small>/month</small></div><p>Full library, all features, new riffs monthly</p><button class="btn btn-primary" style="margin-top: 24px;">Subscribe</button></div>
+                <div class="price-card"><h3>Annual</h3><div class="price">$60 <small>/year</small></div><p>Save 16% vs monthly</p><button class="btn btn-outline" style="margin-top: 24px;">Get yearly</button></div>
+            </div>
+        </div>
+    </section>
+</main>
+
+<footer class="footer">
+    <div class="footer-container">
+        <div class="footer-copyright">
+            <p class="footer-text">© 2024 Riff Killer. All rights reserved. <a href="billing.html" class="footer-link">Pricing</a></p>
+        </div>
+        <div class="footer-social">
+            <a href="https://www.instagram.com/mikesabad" class="social-link" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+                <svg class="social-icon" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                    <path d="M12 16C14.2091 16 16 14.2091 16 12C16 9.79086 14.2091 8 12 8C9.79086 8 8 9.79086 8 12C8 14.2091 9.79086 16 12 16Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M3 16V8C3 5.23858 5.23858 3 8 3H16C18.7614 3 21 5.23858 21 8V16C21 18.7614 18.7614 21 16 21H8C5.23858 21 3 18.7614 3 16Z" stroke="currentColor" stroke-width="1.5"/>
+                    <path d="M17.5 6.51L17.51 6.49889" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </a>
+            <a href="https://www.youtube.com/@Mikesabadash" class="social-link" target="_blank" rel="noopener noreferrer" aria-label="YouTube">
+                <svg class="social-icon" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                    <path d="M22.54 6.42C22.4213 5.94541 22.1793 5.51057 21.8387 5.15941C21.4981 4.80824 21.0708 4.55318 20.6 4.42C18.88 4 12 4 12 4C12 4 5.12 4 3.4 4.46C2.92925 4.59318 2.50193 4.84824 2.1613 5.19941C1.82068 5.55057 1.57875 5.98541 1.46 6.46C1.14521 8.20556 0.991236 9.97631 1 11.75C0.991236 13.5237 1.14521 15.2944 1.46 17.04C1.59096 17.5158 1.83831 17.9507 2.17814 18.3011C2.51798 18.6515 2.93884 18.9058 3.4 19.04C5.12 19.5 12 19.5 12 19.5C12 19.5 18.88 19.5 20.6 19.04C21.0708 18.9068 21.4981 18.6518 21.8387 18.3006C22.1793 17.9494 22.4213 17.5146 22.54 17.04C22.8528 15.2944 23.0068 13.5237 22.995 11.75C23.0068 9.97631 22.8528 8.20556 22.54 6.42Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M9.75 15.02L15.5 11.75L9.75 8.48001V15.02Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </a>
+            <a href="https://www.facebook.com/profile.php?id=100079596300383" class="social-link" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
+                <svg class="social-icon" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                    <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </a>
+            <a href="https://patreon.com" class="social-link" target="_blank" rel="noopener noreferrer" aria-label="Patreon">
+                <svg class="social-icon" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                    <path d="M4.5 3C3.11929 3 2 4.11929 2 5.5V18.5C2 19.8807 3.11929 21 4.5 21H7V3H4.5Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    <circle cx="15" cy="9" r="5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </a>
+        </div>
+    </div>
+</footer>
+
+<script src="js/patreon-config.js"></script>
+<script src="js/auth-manager.js"></script>
+<script src="js/site-header-behaviors.js"></script>
+<script src="js/rk-theme.js"></script>
+<script>
+    document.querySelectorAll('.btn').forEach(function (btn) {
+        if (btn.closest('header.topbar') || btn.closest('#mobileMenuOverlay')) return;
+        btn.addEventListener('click', function () {
+            var t = (btn.textContent || '').toLowerCase();
+            if (t.indexOf('try free') !== -1 || t.indexOf('subscribe') !== -1 || t.indexOf('get yearly') !== -1) {
+                alert('🚀 This is a demo. In production, you would be redirected to billing or free trial.');
+            }
+        });
+    });
+</script>
+</body>
+</html>

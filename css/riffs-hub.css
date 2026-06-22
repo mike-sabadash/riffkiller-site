@@ -1,0 +1,809 @@
+/**
+ * Страница риффов (app.html) — визуальная система как landing + profile.
+ * Все селекторы с body.riffs-hub — не трогаем collection/practice.
+ */
+
+@font-face {
+    font-family: 'TT Travels Next';
+    src: url('../fonts/TT_Travels_Next_Trial_Medium.ttf') format('truetype');
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'TT Travels Next';
+    src: url('../fonts/TT_Travels_Next_Trial_Bold.ttf') format('truetype');
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+}
+
+body.riffs-hub {
+    background: #000000;
+    background-image: none;
+    color: #f2f4fb;
+    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    /* Сетка Most killed: один min для дорожки + общий gap с полосой коллекций */
+    --riffs-hub-tile-min: 200px;
+    --riffs-hub-grid-gap: var(--spacing-lg);
+}
+
+/* Узкая полоса скролла коллекций: чуть уже карточки → заметнее «торчит» вторая карточка */
+@media (max-width: 640px) {
+    body.riffs-hub {
+        --width-collection-card: 268px;
+        --height-collection-card: 168px;
+    }
+}
+
+@media (max-width: 420px) {
+    body.riffs-hub {
+        --width-collection-card: 252px;
+        --height-collection-card: 160px;
+    }
+}
+
+body.riffs-hub::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background:
+        radial-gradient(ellipse 90% 70% at 14% 42%, rgba(200, 208, 222, 0.055) 0%, transparent 58%),
+        radial-gradient(ellipse 88% 68% at 86% 22%, rgba(64, 196, 172, 0.18) 0%, transparent 52%),
+        radial-gradient(ellipse 72% 52% at 72% 88%, rgba(147, 85, 229, 0.16) 0%, transparent 55%),
+        #000000;
+    filter: saturate(1.05);
+}
+
+body.riffs-hub .page-container {
+    position: relative;
+    z-index: 1;
+    max-width: 1240px;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 28px;
+    padding-right: 28px;
+    padding-top: var(--spacing-xl);
+    /* Нижний отступ: safe-area; основной зазор у .main-content (base.css) */
+    padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    min-height: 100dvh;
+    box-sizing: border-box;
+}
+
+body.riffs-hub .page-container > .main-content {
+    flex: 1 1 auto;
+}
+
+body.riffs-hub .page-container > .footer {
+    margin-top: auto;
+    flex-shrink: 0;
+}
+
+@media (max-width: 900px) {
+    body.riffs-hub .page-container {
+        padding-left: 20px;
+        padding-right: 20px;
+    }
+}
+
+/* --- Hero --- */
+body.riffs-hub .riffs-hero {
+    margin-bottom: 40px;
+    max-width: 42rem;
+}
+
+/* Eyebrow — как акцентные метки на лендинге */
+body.riffs-hub .riffs-hero-eyebrow {
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(196, 181, 252, 0.98);
+    margin: 0 0 10px;
+}
+
+/* Единственный крупный display — TT (как hero на landing) */
+body.riffs-hub .riffs-hero-title {
+    font-family: 'TT Travels Next', 'Space Grotesk', 'Inter', system-ui, sans-serif;
+    font-weight: 600;
+    font-size: clamp(1.75rem, 4vw, 2.35rem);
+    line-height: 1.15;
+    letter-spacing: 0.01em;
+    color: rgba(244, 247, 255, 0.98);
+    margin: 0 0 12px;
+}
+
+/* Лид — Inter regular, как вторичный текст на profile */
+body.riffs-hub .riffs-hero-lead {
+    font-family: 'Inter', system-ui, sans-serif;
+    font-weight: 400;
+    margin: 0;
+    font-size: 0.9375rem;
+    line-height: 1.6;
+    letter-spacing: 0;
+    color: rgba(160, 165, 182, 0.92);
+    max-width: 36em;
+}
+
+/* --- Collections: стеклянная панель --- */
+body.riffs-hub .collections-section {
+    margin-bottom: 48px;
+}
+
+body.riffs-hub .riffs-panel {
+    background: rgba(255, 255, 255, 0.04);
+    /*
+     * Одна запись border: … задаёт одинаковую обводку сверху и снизу — визуально «одна интенсивность».
+     * Нижний край панели (над фоном страницы) делаем тише: слабее border-bottom.
+     */
+    border-width: 1px;
+    border-style: solid;
+    border-color: rgba(255, 255, 255, 0.09);
+    border-bottom-color: rgba(255, 255, 255, 0.034);
+    border-radius: 24px;
+    backdrop-filter: blur(20px) saturate(1.1);
+    -webkit-backdrop-filter: blur(20px) saturate(1.1);
+    padding: 18px 20px 12px;
+    box-shadow: 0 24px 48px -24px rgba(0, 0, 0, 0.55);
+    overflow: visible;
+}
+
+@media (max-width: 900px) {
+    body.riffs-hub .riffs-panel {
+        padding: 14px 16px 10px;
+    }
+}
+
+body.riffs-hub .collections-header {
+    margin-bottom: 16px;
+    padding-bottom: 0;
+    padding-right: 6px;
+    box-sizing: border-box;
+}
+
+/* Секции — Inter 600 как h2/h3 на landing, не TT */
+body.riffs-hub .collections-title {
+    font-family: 'Inter', system-ui, sans-serif;
+    font-weight: 600;
+    font-size: 1.25rem;
+    line-height: 1.3;
+    letter-spacing: 0;
+    color: rgba(244, 247, 255, 0.95);
+}
+
+body.riffs-hub .filter-label {
+    font-family: 'Inter', system-ui, sans-serif;
+    color: rgba(160, 165, 182, 0.9);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+body.riffs-hub .custom-select {
+    height: 40px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(0, 0, 0, 0.35);
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+body.riffs-hub .custom-select:hover {
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+body.riffs-hub .custom-select:focus-within {
+    border-color: rgba(147, 85, 229, 0.55);
+    box-shadow: 0 0 0 3px rgba(147, 85, 229, 0.2);
+}
+
+body.riffs-hub .select-input {
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 0.8125rem;
+    color: rgba(244, 247, 255, 0.92);
+    line-height: 40px;
+    font-weight: 500;
+}
+
+/*
+ * Стрелки: одна обводка — только круг в SVG (как в base components).
+ * Раньше дублировалось: border у кнопки + stroke у circle.
+ */
+body.riffs-hub .collections-nav {
+    gap: 6px;
+    width: auto;
+    min-width: 0;
+    margin-right: 2px;
+    flex-shrink: 0;
+}
+
+body.riffs-hub .nav-arrow {
+    width: var(--size-arrow-button);
+    height: var(--size-arrow-button);
+    border: none;
+    background: transparent;
+    border-radius: 50%;
+}
+
+body.riffs-hub .nav-arrow:hover:not([disabled]) {
+    background-color: rgba(255, 255, 255, 0.08);
+}
+
+body.riffs-hub .nav-arrow:active:not([disabled]) {
+    background-color: rgba(255, 255, 255, 0.12);
+}
+
+body.riffs-hub .nav-arrow svg {
+    width: var(--size-arrow-icon);
+    height: var(--size-arrow-icon);
+}
+
+body.riffs-hub .nav-arrow svg circle,
+body.riffs-hub .nav-arrow svg path {
+    stroke: rgba(244, 247, 255, 0.88);
+}
+
+/* Карточки коллекций */
+body.riffs-hub .collection-card {
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    box-shadow: none;
+}
+
+body.riffs-hub .collection-card:hover {
+    transform: translateY(-5px);
+    box-shadow: none;
+    border-color: rgba(147, 85, 229, 0.2);
+}
+
+/* Слои: картинка снизу, градиент поверх (иначе img перекрывает и полоса «обрезана») */
+body.riffs-hub .collection-image {
+    z-index: 0;
+}
+
+/*
+ * Затемнение без «полосы поперёк»: to top → 0% у НИЗА карточки, 100% у верха блока оверлея.
+ * Низ сильнее в прозрач; верх блока тоже в 0 — плавный вход в фото; чуть плотнее только у текста.
+ */
+body.riffs-hub .collection-overlay {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    height: min(46%, 118px);
+    min-height: 88px;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    border-radius: 0;
+    pointer-events: none;
+    z-index: 1;
+    background: linear-gradient(
+        to top,
+        transparent 0%,
+        transparent 14%,
+        rgba(6, 6, 10, 0.06) 28%,
+        rgba(6, 6, 10, 0.2) 52%,
+        rgba(6, 6, 10, 0.12) 74%,
+        rgba(6, 6, 10, 0.03) 92%,
+        transparent 100%
+    );
+}
+
+body.riffs-hub .collection-content {
+    position: absolute;
+    z-index: 2;
+}
+
+body.riffs-hub .collection-card .favorite-btn {
+    position: relative;
+    z-index: 3;
+}
+
+/* Меньше пустого места под карточками внутри панели; запас под hover */
+body.riffs-hub .collections-grid-wrapper {
+    padding-top: 12px;
+    padding-bottom: 12px;
+    margin-top: -6px;
+    margin-bottom: -4px;
+}
+
+/* Мобильный: стрелки и свайп выравниваются по левому краю карточки (без «обрезания пополам») */
+@media (max-width: 900px) {
+    body.riffs-hub .collections-grid-wrapper {
+        scroll-snap-type: x mandatory;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    body.riffs-hub .collections-grid .collection-card {
+        scroll-snap-align: start;
+        scroll-snap-stop: always;
+    }
+}
+
+body.riffs-hub .collection-name {
+    font-family: 'Inter', system-ui, sans-serif;
+    font-weight: 600;
+    font-size: 0.8125rem;
+    line-height: 1.25;
+    letter-spacing: 0.01em;
+}
+
+body.riffs-hub .video-count {
+    font-family: 'Inter', system-ui, sans-serif;
+    font-weight: 500;
+    font-size: 0.8125rem;
+}
+
+/* --- Riffs section header --- */
+body.riffs-hub .riffs-section {
+    margin-top: 8px;
+}
+
+body.riffs-hub .riffs-section-head {
+    margin-bottom: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+body.riffs-hub .riffs-title {
+    font-family: 'Inter', system-ui, sans-serif;
+    font-weight: 600;
+    font-size: 1.25rem;
+    line-height: 1.3;
+    letter-spacing: 0;
+    color: rgba(244, 247, 255, 0.95);
+    margin: 0;
+}
+
+body.riffs-hub .riffs-section-desc {
+    font-family: 'Inter', system-ui, sans-serif;
+    font-weight: 400;
+    margin: 0;
+    font-size: 0.875rem;
+    line-height: 1.55;
+    letter-spacing: 0;
+    color: rgba(160, 165, 182, 0.88);
+    max-width: 40em;
+}
+
+/*
+ * Сетка Most killed — паттерн «равномерная плитка» (как Netflix/Apple Music grid shelf):
+ * - один repeat(auto-fill, minmax(...)) без конкурирующих media columns
+ * - min(min(100%, --tile-min), 1fr): на узком контейнере одна колонка на всю ширину
+ * - карточка width:100% в ячейке — без «дыр» от justify-items:start + max-width
+ * - gap = тот же ритм, что у .collections-grid (--spacing-lg)
+ */
+body.riffs-hub .riffs-grid,
+.rk-riff-gallery .riffs-grid {
+    display: grid;
+    width: 100%;
+    grid-template-columns: repeat(
+        auto-fill,
+        minmax(min(100%, var(--riffs-hub-tile-min)), 1fr)
+    );
+    gap: var(--riffs-hub-grid-gap);
+    align-items: start;
+}
+
+/* Обёртка + подпись; без box-shadow на stack — тень только на .riff-card (drop-shadow) */
+body.riffs-hub .riff-card-stack,
+.rk-riff-gallery .riff-card-stack {
+    width: 100%;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    cursor: pointer;
+    border-radius: 0;
+    box-shadow: none;
+    transition: transform 0.25s ease;
+}
+
+body.riffs-hub .riff-card-stack:hover,
+.rk-riff-gallery .riff-card-stack:hover {
+    transform: translateY(-5px);
+}
+
+body.riffs-hub .riff-meta-below,
+.rk-riff-gallery .riff-meta-below {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    padding: 0 2px;
+    text-align: left;
+    background: transparent;
+    box-shadow: none;
+}
+
+body.riffs-hub .riff-meta-below .riff-song,
+.rk-riff-gallery .riff-meta-below .riff-song {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+body.riffs-hub .riff-meta-below .riff-artist,
+.rk-riff-gallery .riff-meta-below .riff-artist {
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+@media (max-width: 400px) {
+    body.riffs-hub,
+    .rk-riff-gallery {
+        --riffs-hub-tile-min: 156px;
+    }
+}
+
+/* Мобильная сетка: ровно 2 риффа в ряд */
+@media (max-width: 639px) {
+    body.riffs-hub .riffs-grid,
+    .rk-riff-gallery .riffs-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+    }
+}
+
+/* Карточка риффа — 5:3 как коллекция; ширина = ячейка сетки */
+body.riffs-hub .riff-card,
+.rk-riff-gallery .riff-card {
+    width: 100%;
+    max-width: none;
+    height: auto;
+    min-height: 0;
+    aspect-ratio: 5 / 3;
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.02);
+    box-shadow: none;
+    transition:
+        border-color 0.2s ease,
+        transform 0.25s ease,
+        filter 0.25s ease;
+    filter: drop-shadow(0 12px 28px rgba(0, 0, 0, 0.42));
+}
+
+body.riffs-hub .riff-card-stack:hover .riff-card,
+.rk-riff-gallery .riff-card-stack:hover .riff-card {
+    filter: drop-shadow(0 18px 40px rgba(0, 0, 0, 0.48));
+    border-color: rgba(255, 255, 255, 0.12);
+}
+
+/* Free: без зелёного glow в filter — рамка как у earned (conic + блики, без размытия) */
+body.riffs-hub .riff-card-stack--free .riff-card,
+.rk-riff-gallery .riff-card-stack--free .riff-card {
+    filter: drop-shadow(0 12px 28px rgba(0, 0, 0, 0.42));
+}
+
+body.riffs-hub .riff-card-stack--free:hover .riff-card,
+.rk-riff-gallery .riff-card-stack--free:hover .riff-card {
+    filter: drop-shadow(0 18px 40px rgba(0, 0, 0, 0.48));
+}
+
+body.riffs-hub .riff-card:hover,
+.rk-riff-gallery .riff-card:hover {
+    transform: none;
+    box-shadow: none;
+}
+
+body.riffs-hub .riff-card-free,
+.rk-riff-gallery .riff-card-free {
+    position: relative;
+    border-color: transparent;
+    box-shadow: none;
+}
+
+/* Слои: картинка → оверлей → рамка 2px → бейджи/кнопки */
+body.riffs-hub .riff-card-free .riff-image-container,
+.rk-riff-gallery .riff-card-free .riff-image-container {
+    z-index: 0;
+}
+
+body.riffs-hub .riff-card-free .riff-overlay,
+.rk-riff-gallery .riff-card-free .riff-overlay {
+    z-index: 1;
+}
+
+body.riffs-hub .riff-card-free::after,
+.rk-riff-gallery .riff-card-free::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 2px;
+    pointer-events: none;
+    z-index: 2;
+    box-sizing: border-box;
+    --rk-conic-from: 38deg;
+    transition: --rk-conic-from 0.55s cubic-bezier(0.4, 0, 0.2, 1);
+    background: conic-gradient(
+        from var(--rk-conic-from) at 50% 48%,
+        rgba(21, 110, 55, 0.72) 0deg,
+        rgba(210, 255, 228, 0.98) 7deg,
+        rgba(210, 255, 228, 0.98) 13deg,
+        rgba(21, 110, 55, 0.72) 20deg,
+        rgba(21, 110, 55, 0.72) 210deg,
+        rgba(225, 255, 238, 0.98) 218deg,
+        rgba(225, 255, 238, 0.98) 226deg,
+        rgba(21, 110, 55, 0.72) 234deg,
+        rgba(21, 110, 55, 0.72) 360deg
+    );
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask-composite: exclude;
+}
+
+body.riffs-hub .riff-card-free:hover::after,
+.rk-riff-gallery .riff-card-free:hover::after {
+    --rk-conic-from: 66deg;
+}
+
+body.riffs-hub .riff-card-free .riff-difficulty,
+.rk-riff-gallery .riff-card-free .riff-difficulty,
+body.riffs-hub .riff-card-free .riff-favorite-btn,
+.rk-riff-gallery .riff-card-free .riff-favorite-btn,
+body.riffs-hub .riff-card-free .riff-free-tag,
+.rk-riff-gallery .riff-card-free .riff-free-tag {
+    z-index: 3;
+}
+
+body.riffs-hub .riff-overlay,
+.rk-riff-gallery .riff-overlay {
+    height: 72px;
+    background: linear-gradient(
+        to top,
+        rgba(6, 6, 10, 0.52) 0%,
+        rgba(6, 6, 10, 0.2) 45%,
+        transparent 100%
+    );
+}
+
+/* Нижнее затемнение: высокая полоса, очень плавный почти незаметный переход */
+body.riffs-hub .riff-overlay--hub,
+.rk-riff-gallery .riff-overlay--hub {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 42%;
+    min-height: 72px;
+    max-height: 112px;
+    background: linear-gradient(
+        to top,
+        rgba(4, 4, 8, 0.34) 0%,
+        rgba(4, 4, 8, 0.2) 22%,
+        rgba(4, 4, 8, 0.1) 48%,
+        rgba(4, 4, 8, 0.04) 72%,
+        transparent 100%
+    );
+}
+
+body.riffs-hub .riff-meta-below .riff-song,
+body.riffs-hub .riffs-section .riff-song,
+.rk-riff-gallery .riff-meta-below .riff-song {
+    font-family: 'Inter', system-ui, sans-serif;
+    font-weight: 600;
+    font-size: 0.875rem;
+    line-height: 1.25;
+    letter-spacing: 0;
+}
+
+body.riffs-hub .riff-meta-below .riff-artist,
+body.riffs-hub .riffs-section .riff-artist,
+.rk-riff-gallery .riff-meta-below .riff-artist {
+    font-family: 'Inter', system-ui, sans-serif;
+    font-weight: 400;
+    color: rgba(160, 165, 182, 0.92);
+    font-size: 0.8125rem;
+    line-height: 1.3;
+}
+
+/* Сложность: компактнее, без градиента/тени, скругление ближе к радиусу карточки (16px) */
+body.riffs-hub .riff-difficulty,
+.rk-riff-gallery .riff-difficulty {
+    font-family: 'Inter', system-ui, sans-serif;
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 0.5625rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    text-transform: none;
+    color: #fff;
+    z-index: 2;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    box-shadow: none;
+}
+
+body.riffs-hub .riff-difficulty--beginner,
+.rk-riff-gallery .riff-difficulty--beginner {
+    background: #15803d;
+}
+
+body.riffs-hub .riff-difficulty--intermediate,
+.rk-riff-gallery .riff-difficulty--intermediate {
+    background: #b45309;
+}
+
+body.riffs-hub .riff-difficulty--advanced,
+.rk-riff-gallery .riff-difficulty--advanced {
+    background: #be123c;
+}
+
+/*
+ * FREE: внизу карточки, цвет как тёмный сегмент зелёной рамки (conic),
+ * без скругления снизу; форма «вкладки» — узкий верх, широкий низ, вогнутые переходы по бокам.
+ */
+body.riffs-hub .riff-free-tag,
+.rk-riff-gallery .riff-free-tag {
+    font-family: 'Inter', system-ui, sans-serif;
+    position: absolute;
+    left: 50%;
+    right: auto;
+    top: auto;
+    transform: translateX(-50%);
+    bottom: 0;
+    margin: 0;
+    min-width: 4.75rem;
+    padding: 7px 20px 9px;
+    text-align: center;
+    box-sizing: border-box;
+    border: none;
+    border-radius: 0;
+    /* совпадает с rgb(21, 110, 55) из рамки ::after */
+    background: linear-gradient(
+        180deg,
+        rgba(28, 118, 62, 0.98) 0%,
+        rgb(21, 110, 55) 45%,
+        rgb(17, 92, 48) 100%
+    );
+    color: rgba(225, 255, 238, 0.96);
+    font-size: 0.625rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    line-height: 1;
+    text-shadow: 0 1px 0 rgba(0, 0, 0, 0.22);
+    box-shadow:
+        inset 0 1px 0 rgba(210, 255, 228, 0.2),
+        0 0 0 1px rgba(21, 110, 55, 0.85);
+    z-index: 3;
+    clip-path: polygon(
+        0% 100%,
+        0% 38%,
+        2.5% 20%,
+        7% 9%,
+        14% 3%,
+        24% 0%,
+        76% 0%,
+        86% 3%,
+        93% 9%,
+        97.5% 20%,
+        100% 38%,
+        100% 100%
+    );
+    -webkit-clip-path: polygon(
+        0% 100%,
+        0% 38%,
+        2.5% 20%,
+        7% 9%,
+        14% 3%,
+        24% 0%,
+        76% 0%,
+        86% 3%,
+        93% 9%,
+        97.5% 20%,
+        100% 38%,
+        100% 100%
+    );
+}
+
+body.riffs-hub .riff-favorite-btn,
+.rk-riff-gallery .riff-favorite-btn {
+    background: rgba(8, 8, 12, 0.55);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+body.riffs-hub .riff-favorite-btn:hover,
+.rk-riff-gallery .riff-favorite-btn:hover {
+    background: rgba(147, 85, 229, 0.35);
+    border-color: rgba(147, 85, 229, 0.5);
+}
+
+body.riffs-hub .riff-image-preloader,
+.rk-riff-gallery .riff-image-preloader {
+    background: linear-gradient(145deg, rgba(20, 20, 28, 0.95) 0%, rgba(10, 10, 14, 0.98) 100%) !important;
+}
+
+body.riffs-hub .riff-preloader-spinner,
+.rk-riff-gallery .riff-preloader-spinner {
+    border-color: rgba(255, 255, 255, 0.12) !important;
+    border-top-color: #9355e5 !important;
+    border-left-color: rgba(147, 85, 229, 0.45) !important;
+}
+
+/* Токены сетки для блоков с классом .rk-riff-gallery (practice / profile / …) */
+.rk-riff-gallery {
+    --riffs-hub-tile-min: 200px;
+    --riffs-hub-grid-gap: var(--spacing-lg);
+}
+
+body.riffs-hub .footer {
+    border-top-color: rgba(255, 255, 255, 0.08);
+    /* вертикальные отступы — из rk-site-footer.css (как лендинг) */
+}
+
+body.riffs-hub .footer-container {
+    max-width: 1240px;
+    padding-left: 0;
+    padding-right: 0;
+}
+
+body.riffs-hub .footer-text {
+    font-family: 'Inter', system-ui, sans-serif;
+    font-weight: 400;
+    font-size: 0.8125rem;
+    line-height: 1.45;
+    color: rgba(160, 165, 182, 0.85);
+}
+
+body.riffs-hub .footer-link {
+    color: rgba(196, 181, 252, 0.95);
+}
+
+body.riffs-hub .footer-link:hover {
+    color: #e9d5ff;
+    opacity: 1;
+}
+
+body.riffs-hub .social-link {
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.03);
+}
+
+body.riffs-hub .social-link:hover {
+    background: rgba(147, 85, 229, 0.15);
+    border-color: rgba(147, 85, 229, 0.35);
+    opacity: 1;
+}
+
+/* Адаптив: ритм как у старого .riffs-header в components.css */
+@media (max-width: 639px) {
+    body.riffs-hub .riffs-section-head {
+        margin-bottom: 20px;
+    }
+
+    body.riffs-hub .riffs-hero {
+        margin-bottom: 28px;
+    }
+}
+
+@media (max-width: 480px) {
+    body.riffs-hub .riffs-section-head {
+        margin-bottom: 16px;
+    }
+}

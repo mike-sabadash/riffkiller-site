@@ -1,0 +1,799 @@
+/**
+ * Единая шапка Riff Killer — лендинг + приложение.
+ * Разметка: js/site-header.js (классы topbar / container / topbar-inner — как на landing.html).
+ *
+ * Важно: на лендинге и в приложении должен подключаться ОДИН И ТОТ ЖЕ вариант Inter
+ * (variable + opsz 14..32), иначе меню выглядит по-разному — тоньше/светлее на лендинге.
+ * См. <link Google Fonts> — скопируйте строку с landing.html на все app-страницы.
+ */
+:root {
+    /* Выше любой страничной шапки (в т.ч. index с завышенным z-index), но ниже auth-modal */
+    --rk-mobile-overlay-z: 10060;
+    --rk-mobile-panel-z: 10061;
+    /* Только кнопка-бургер (крестик) поверх оверлея; ниже auth-modal (10080) */
+    --rk-mobile-burger-float-z: 10070;
+    /* Дублируем токены из variables.css — landing/index подключают только rk-header */
+    --rk-mobile-browser-chrome-bottom: 52px;
+    --rk-viewport-pad-bottom: calc(env(safe-area-inset-bottom, 0px) + var(--rk-mobile-browser-chrome-bottom));
+    --rk-header-font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    /* Одинаковый зазор между пунктами на лендинге и в приложении */
+    --rk-header-nav-gap: 44px;
+    /* Вертикаль шапки + кнопки (чуть ниже по высоте, чем landing .btn 44px) */
+    --rk-header-pad-y: 12px;
+    --rk-header-btn-min-height: 38px;
+}
+
+/* Стабильная ширина под скроллбар — иначе центр меню «прыгает» на 10–15px между страницами */
+html {
+    scrollbar-gutter: stable;
+}
+
+.topbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1200;
+    width: 100%;
+    box-sizing: border-box;
+    margin: 0;
+    padding: var(--rk-header-pad-y) 0;
+    isolation: isolate;
+    background: var(--rk-header-bar-bg, rgba(18, 18, 22, 0.28));
+    /* Линия снизу через box-shadow: с backdrop-filter border-bottom на WebKit «плывёт» относительно плашки */
+    border-bottom: none;
+    box-shadow: 0 1px 0 0 var(--rk-header-divider, rgba(255, 255, 255, 0.06));
+    backdrop-filter: blur(24px) saturate(1.12);
+    -webkit-backdrop-filter: blur(24px) saturate(1.12);
+    font-family: var(--rk-header-font-family);
+    /* Как body на landing.html — одна и та же отрисовка текста в шапке */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    font-optical-sizing: auto;
+}
+
+/*
+ * Строка шапки: flex + меню по центру в absolute — центр не уезжает,
+ * когда слева/справа разная ширина (логотип vs кнопки; landing vs app).
+ */
+/* Полоса на всю ширину вьюпорта (как на лендинге) — одинаково в Practice, Profile и т.д. */
+.topbar .container.topbar-inner {
+    max-width: none;
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 28px;
+    padding-right: 28px;
+    box-sizing: border-box;
+    position: relative;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+}
+
+.topbar-logo-wrap {
+    flex: 1 1 0;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    position: relative;
+    z-index: 1;
+    text-decoration: none;
+    color: inherit;
+}
+
+.topbar-logo-wrap:hover {
+    opacity: 0.92;
+}
+
+.topbar-logo {
+    width: 127px;
+    height: 16px;
+    display: block;
+    object-fit: contain;
+    object-position: left center;
+    filter: brightness(0.98);
+}
+
+/* Тёмная тема: белый wordmark (logo.svg). Светлая: чёрный контур (logo-main.svg), та же визуальная высота ~16px */
+.topbar-logo--light {
+    display: none;
+    width: auto;
+    height: 16px;
+    max-width: 122px;
+    aspect-ratio: 137 / 18;
+    filter: none;
+}
+
+html[data-theme='light'] .topbar-logo--dark {
+    display: none;
+}
+
+html[data-theme='light'] .topbar-logo--light {
+    display: block;
+}
+
+/* Переключатель темы — рядом с авторизацией */
+.rk-theme-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    padding: 0;
+    border: 1px solid var(--rk-topbar-outline-border, rgba(255, 255, 255, 0.2));
+    border-radius: 12px;
+    background: var(--rk-topbar-outline-bg, rgba(255, 255, 255, 0.03));
+    color: var(--rk-header-link, #ffffff);
+    cursor: pointer;
+    flex-shrink: 0;
+    transition:
+        background 0.2s ease,
+        border-color 0.2s ease,
+        color 0.2s ease,
+        box-shadow 0.2s ease;
+    -webkit-appearance: none;
+    appearance: none;
+    box-sizing: border-box;
+}
+
+.rk-theme-toggle:hover {
+    border-color: rgba(147, 85, 229, 0.45);
+    color: var(--rk-mobile-nav-hover, #c4b5fc);
+    box-shadow: 0 0 0 3px rgba(147, 85, 229, 0.12);
+}
+
+html[data-theme='light'] .rk-theme-toggle:hover {
+    box-shadow: 0 0 0 3px rgba(147, 85, 229, 0.18);
+}
+
+.rk-theme-toggle svg {
+    width: 20px;
+    height: 20px;
+    display: block;
+}
+
+.rk-theme-toggle .rk-theme-icon-moon {
+    display: none;
+}
+
+html[data-theme='light'] .rk-theme-toggle .rk-theme-icon-sun {
+    display: none;
+}
+
+html[data-theme='light'] .rk-theme-toggle .rk-theme-icon-moon {
+    display: block;
+}
+
+.rk-theme-toggle--mobile {
+    width: 100%;
+    margin-bottom: 12px;
+    min-height: 44px;
+    gap: 12px;
+    flex-direction: row;
+    justify-content: flex-start;
+    padding-left: 14px;
+    padding-right: 14px;
+}
+
+.rk-theme-toggle--mobile .rk-theme-toggle-label {
+    font-family: var(--rk-header-font-family);
+    font-size: 15px;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+}
+
+/* Имя рядом с аватаркой (разметка из auth-manager.js — инлайн-стили #fff) */
+html[data-theme='light'] .profile-mini,
+html[data-theme='light'] .profile-mini:hover {
+    color: var(--rk-header-link, #16161f);
+}
+
+html[data-theme='light'] .profile-mini-name {
+    color: inherit;
+}
+
+.topbar .topbar-links {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 2;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: center;
+    gap: var(--rk-header-nav-gap);
+    min-width: 0;
+    pointer-events: auto;
+}
+
+/* Как на лендинге: все пункты полностью белые, одинаковый вес 500 (без «серых» неактивных). */
+.topbar .topbar-links a,
+.topbar .topbar-links .topbar-link-btn {
+    box-sizing: border-box;
+    font-family: var(--rk-header-font-family);
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 20px;
+    letter-spacing: 0.4px;
+    text-transform: capitalize;
+    color: var(--rk-header-link, #ffffff);
+    text-decoration: none;
+    background: none;
+    border: none;
+    padding: 0;
+    margin: 0;
+    cursor: pointer;
+    white-space: nowrap;
+    opacity: 1;
+    transition: opacity 0.15s ease;
+    -webkit-appearance: none;
+    appearance: none;
+    vertical-align: baseline;
+}
+
+.topbar .topbar-links a:hover,
+.topbar .topbar-links .topbar-link-btn:hover {
+    opacity: 0.88;
+}
+
+.topbar-actions {
+    flex: 1 1 0;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    position: relative;
+    z-index: 1;
+}
+
+.topbar .topbar-actions .auth-buttons {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    font-family: var(--rk-header-font-family);
+}
+
+.topbar .topbar-actions .login-text {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--rk-header-btn-min-height);
+    font-family: var(--rk-header-font-family);
+    font-weight: 500;
+    font-size: 14px;
+    line-height: 20px;
+    letter-spacing: 0.4px;
+    color: var(--rk-header-link, #ffffff);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: opacity 0.15s ease;
+}
+
+.topbar .topbar-actions .login-text:hover {
+    opacity: var(--rk-header-login-muted-opacity, 0.8);
+}
+
+/*
+ * Кнопки шапки: чуть ниже landing .btn (padding по вертикали меньше).
+ * Перебивает base.css .btn (padding 12px 60px + иной line-height) — из‑за этого «прыгала» высота.
+ */
+.topbar .topbar-actions .btn,
+.topbar--landing .topbar-actions > .btn {
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: var(--rk-header-btn-min-height);
+    padding: 9px 22px;
+    font-family: var(--rk-header-font-family);
+    font-weight: 500;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    border-radius: 12px;
+    border-style: solid;
+    border-width: 1px;
+    border-color: transparent;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: opacity 0.15s ease, background 0.2s ease, border-color 0.2s ease, transform 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.topbar .btn-primary {
+    background: #9355e5;
+    color: #ffffff;
+    box-shadow: var(--rk-topbar-primary-glow, 0 8px 20px rgba(147, 85, 229, 0.28));
+}
+
+.topbar .btn-primary:hover {
+    background: #7c45c7;
+    color: #ffffff;
+    transform: translateY(-2px);
+    box-shadow: var(--rk-topbar-primary-glow-hover, 0 10px 24px rgba(147, 85, 229, 0.35));
+}
+
+/* Та же специфичность, что у блока .btn шапки — иначе border остаётся transparent */
+.topbar .topbar-actions .btn.btn-outline,
+.topbar--landing .topbar-actions > .btn.btn-outline {
+    border-color: var(--rk-topbar-outline-border, rgba(255, 255, 255, 0.2));
+    background: var(--rk-topbar-outline-bg, rgba(255, 255, 255, 0.03));
+    color: var(--rk-topbar-outline-text, #eef2ff);
+}
+
+.topbar .topbar-actions .btn.btn-outline:hover,
+.topbar--landing .topbar-actions > .btn.btn-outline:hover {
+    background: var(--rk-topbar-outline-hover-bg, rgba(255, 255, 255, 0.08));
+    border-color: var(--rk-topbar-outline-hover-border, rgba(255, 255, 255, 0.4));
+    color: var(--rk-topbar-outline-hover-text, #ffffff);
+}
+
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/*
+ * Бургер: линии через ::before/::after + currentColor.
+ * На страницах с backdrop-filter у шапки дочерние span иногда «пропадают» в compositing — псевдоэлементы кнопки стабильнее.
+ * .burger-anchor — место в шапке, когда кнопка .is-open уезжает в position:fixed поверх оверлея (лого остаётся под затемнением).
+ */
+.burger-anchor {
+    display: none;
+    width: 26px;
+    height: 18px;
+    flex-shrink: 0;
+    flex-grow: 0;
+    align-self: center;
+    position: relative;
+    box-sizing: border-box;
+}
+
+.burger-menu {
+    display: none;
+    width: 26px;
+    height: 18px;
+    padding: 0;
+    border: none;
+    cursor: pointer;
+    z-index: 1210;
+    position: relative;
+    flex-shrink: 0;
+    flex-grow: 0;
+    box-sizing: border-box;
+    color: var(--rk-burger-color, #ffffff);
+    background: transparent;
+    -webkit-appearance: none;
+    appearance: none;
+    isolation: isolate;
+}
+
+/*
+ * Открытое меню: крестик над оверлеем (z 10060) и панелью.
+ * Координаты задаёт JS (getBoundingClientRect при переносе в body) — без «прыжка» относительно якоря.
+ */
+.burger-menu.is-open {
+    z-index: var(--rk-mobile-burger-float-z);
+    margin: 0;
+}
+
+.burger-menu::before,
+.burger-menu::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    border-radius: 1px;
+    background-color: currentColor;
+    top: 50%;
+    margin-top: -1px;
+    transition: transform 0.32s cubic-bezier(0.4, 0, 0.15, 1), opacity 0.22s ease;
+    transform-origin: center;
+    pointer-events: none;
+}
+
+.burger-menu::before {
+    transform: translateY(-4px);
+}
+
+.burger-menu::after {
+    transform: translateY(4px);
+}
+
+.burger-menu.is-open::before {
+    transform: translateY(0) rotate(45deg);
+}
+
+.burger-menu.is-open::after {
+    transform: translateY(0) rotate(-45deg);
+}
+
+/* Старые span из кэшированной разметки — не показывать поверх псевдоэлементов */
+.burger-menu .burger-line {
+    display: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .burger-menu::before,
+    .burger-menu::after {
+        transition-duration: 0.01ms;
+    }
+    .mobile-menu,
+    .mobile-menu-overlay {
+        transition-duration: 0.01ms !important;
+    }
+}
+
+.mobile-menu-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--rk-mobile-overlay-bg, rgba(0, 0, 0, 0.72));
+    z-index: var(--rk-mobile-overlay-z);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+        visibility 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+        backdrop-filter 0.36s ease;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    /* Сосед .topbar, не потомок — не наследует его шрифт */
+    font-family: var(--rk-header-font-family);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    font-optical-sizing: auto;
+}
+
+.mobile-menu-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.mobile-menu {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: min(300px, 92vw);
+    /* dvh — динамическая высота; svh — «узкий» вьюпорт с открытыми тулбарами → панель не уезжает под панель браузера */
+    height: 100vh;
+    height: 100dvh;
+    max-height: 100vh;
+    max-height: 100svh;
+    min-height: 0;
+    background-color: var(--rk-mobile-panel-bg, rgba(10, 10, 12, 0.97));
+    z-index: var(--rk-mobile-panel-z);
+    padding-top: calc(56px + env(safe-area-inset-top, 0px) + 8px);
+    padding-left: 22px;
+    padding-right: 22px;
+    /* Запас снизу: safe-area + типичная высота нижнего UI браузера */
+    padding-bottom: calc(12px + var(--rk-viewport-pad-bottom));
+    box-shadow: var(--rk-mobile-panel-shadow, -8px 0 40px rgba(0, 0, 0, 0.45));
+    transform: translateX(100%);
+    transition: transform 0.42s cubic-bezier(0.32, 0.72, 0, 1);
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    overflow-x: hidden;
+    overscroll-behavior-y: contain;
+    -webkit-overflow-scrolling: touch;
+    border-left: 1px solid var(--rk-mobile-panel-border, rgba(255, 255, 255, 0.06));
+    box-sizing: border-box;
+}
+
+.mobile-menu-overlay.active .mobile-menu {
+    transform: translateX(0);
+}
+
+/* Лендинг: кнопки авторизации сверху панели */
+.topbar-landing-desktop-auth {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+.mobile-menu-landing-auth {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 24px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--rk-mobile-nav-border, rgba(255, 255, 255, 0.08));
+}
+
+.mobile-landing-btn {
+    width: 100%;
+    justify-content: center;
+    box-sizing: border-box;
+}
+
+.mobile-nav--landing {
+    margin-bottom: 24px;
+}
+
+.mobile-nav-link {
+    font-family: var(--rk-header-font-family);
+    font-weight: 500;
+    font-size: 15px;
+    line-height: 1.25;
+    letter-spacing: 0.02em;
+    color: var(--rk-mobile-nav-text, #ffffff);
+    text-decoration: none;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--rk-mobile-nav-border, rgba(255, 255, 255, 0.06));
+    transition: color 0.15s ease, opacity 0.15s ease;
+    display: block;
+}
+
+.mobile-nav-link:hover {
+    color: var(--rk-mobile-nav-hover, #c4b5fc);
+}
+
+.mobile-nav--landing .mobile-nav-link:last-child {
+    border-bottom: none;
+}
+
+/* Единый ритм с лендингом: .mobile-nav-link (отступы, шрифт, разделители) */
+.mobile-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin-bottom: 32px;
+}
+
+.mobile-menu:not(.mobile-menu--landing) .mobile-nav {
+    margin-bottom: 28px;
+}
+
+.mobile-menu-overlay .mobile-nav-item {
+    font-family: var(--rk-header-font-family);
+    font-weight: 500;
+    font-size: 15px;
+    line-height: 1.25;
+    letter-spacing: 0.02em;
+    color: var(--rk-mobile-nav-text, #ffffff);
+    background: none;
+    border: none;
+    border-bottom: 1px solid var(--rk-mobile-nav-border, rgba(255, 255, 255, 0.06));
+    text-align: left;
+    padding: 14px 0;
+    cursor: pointer;
+    opacity: 0.82;
+    transition: color 0.15s ease, opacity 0.15s ease;
+    position: relative;
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.mobile-menu-overlay .mobile-nav-item:last-child {
+    border-bottom: none;
+}
+
+.mobile-menu-overlay .mobile-nav-item:hover,
+.mobile-menu-overlay .mobile-nav-item:focus-visible {
+    opacity: 1;
+    color: var(--rk-mobile-nav-hover, #c4b5fc);
+}
+
+.mobile-menu-overlay .mobile-nav-item.active {
+    opacity: 1;
+    color: var(--rk-mobile-nav-text, #ffffff);
+}
+
+.mobile-menu-overlay .mobile-nav-item.active::after {
+    display: none;
+}
+
+.mobile-auth {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin-top: auto;
+    padding-top: 20px;
+    border-top: 1px solid var(--rk-mobile-auth-top-border, rgba(255, 255, 255, 0.08));
+    /* Нижний отступ только у контейнера панели — иначе двойной safe-area */
+    padding-bottom: 0;
+    flex-shrink: 0;
+}
+
+.mobile-menu-overlay .mobile-login-btn {
+    font-family: var(--rk-header-font-family);
+    font-weight: 500;
+    font-size: 15px;
+    line-height: 1.25;
+    letter-spacing: 0.02em;
+    color: var(--rk-mobile-nav-text, #ffffff);
+    background: none;
+    border: none;
+    border-bottom: 1px solid var(--rk-mobile-nav-border, rgba(255, 255, 255, 0.06));
+    text-align: left;
+    padding: 14px 0;
+    cursor: pointer;
+    opacity: 0.82;
+    transition: color 0.15s ease, opacity 0.15s ease;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.mobile-menu-overlay .mobile-login-btn:hover,
+.mobile-menu-overlay .mobile-login-btn:focus-visible {
+    opacity: 1;
+    color: var(--rk-mobile-nav-hover, #c4b5fc);
+}
+
+.mobile-menu-overlay .mobile-signup-btn {
+    width: 100%;
+    box-sizing: border-box;
+    justify-content: center;
+    margin-top: 14px;
+    padding: 12px 22px;
+    min-height: 44px;
+    font-family: var(--rk-header-font-family);
+    font-weight: 500;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    letter-spacing: 0.02em;
+    border-radius: 12px;
+}
+
+@media (max-width: 900px) {
+    /*
+     * Мобильная шапка: выше строка + логотип и бургер строго по центру по вертикали.
+     * --rk-header-mobile-row — высота «полосы» контента (лого/бургер); нужна для fixed-бургера и отступа панели.
+     */
+    :root {
+        --rk-header-pad-y: 16px;
+        --rk-header-mobile-row: 48px;
+        /* base.css: margin-top у .main-content — под более высокую topbar */
+        --height-header: 40px;
+    }
+
+    .topbar .container.topbar-inner {
+        gap: 12px;
+        padding-left: 20px;
+        padding-right: 20px;
+        min-height: var(--rk-header-mobile-row);
+        align-items: center;
+    }
+
+    .topbar-logo-wrap {
+        flex: 0 1 auto;
+        min-width: 0;
+        max-width: none;
+        overflow: hidden;
+        min-height: var(--rk-header-mobile-row);
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        align-self: center;
+    }
+
+    .topbar .topbar-links {
+        display: none !important;
+        position: absolute;
+        visibility: hidden;
+        pointer-events: none;
+    }
+
+    .topbar-actions {
+        flex: 0 0 auto;
+        flex-shrink: 0;
+        max-width: none;
+        margin-left: auto;
+        /* Базовое min-width:0 + flex-shrink давало схлопывание колонки — бургер обрезался */
+        min-width: min-content;
+        min-height: var(--rk-header-mobile-row);
+        align-items: center;
+        align-self: center;
+    }
+
+    .topbar-actions .auth-buttons {
+        display: none !important;
+    }
+
+    .topbar-landing-desktop-auth {
+        display: none !important;
+    }
+
+    .topbar-actions .btn {
+        padding: 7px 14px;
+        font-size: 0.92rem;
+    }
+
+    .topbar-logo,
+    .topbar-logo--light {
+        width: min(127px, 50vw);
+        height: auto;
+        max-height: 22px;
+        object-fit: contain;
+        object-position: left center;
+    }
+
+    .topbar-logo {
+        aspect-ratio: 127 / 16;
+    }
+
+    .topbar-logo--light {
+        width: auto;
+        max-width: min(122px, 48vw);
+        aspect-ratio: 137 / 18;
+    }
+
+    .burger-anchor {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 44px;
+        min-width: 44px;
+        min-height: var(--rk-header-mobile-row);
+        height: var(--rk-header-mobile-row);
+        align-self: center;
+    }
+
+    .burger-menu {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        align-self: center;
+    }
+
+    .mobile-menu {
+        padding-top: calc(
+            (var(--rk-header-pad-y) * 2 + var(--rk-header-mobile-row)) + env(safe-area-inset-top, 0px) + 8px
+        );
+    }
+}
+
+@media (min-width: 901px) {
+    .burger-anchor {
+        display: none !important;
+    }
+
+    .burger-menu {
+        display: none !important;
+    }
+}
+
+@media (max-width: 560px) {
+    /* Падинг шапки синхронизируем на :root — для .mobile-menu padding-top и fixed-бургера */
+    :root {
+        --rk-header-pad-y: 14px;
+    }
+
+    .topbar {
+        padding: var(--rk-header-pad-y) 0;
+    }
+
+    .topbar-actions {
+        gap: 8px;
+    }
+
+    .topbar-actions .btn {
+        padding: 6px 12px;
+        font-size: 0.85rem;
+    }
+}

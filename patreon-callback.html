@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Riff Killer - Patreon Authorization</title>
+    
+    <style>
+        body {
+            background-color: #111629;
+            color: white;
+            font-family: 'Roboto', sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            min-height: 100dvh;
+            margin: 0;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .callback-container {
+            max-width: 400px;
+            padding: 40px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .loader {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            border-top-color: #9355E5;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        h1 {
+            font-size: 24px;
+            margin-bottom: 10px;
+            font-weight: 400;
+        }
+        
+        p {
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 20px;
+        }
+        
+        .error-message {
+            color: #F44336;
+            margin-top: 20px;
+            padding: 10px;
+            background: rgba(244, 67, 54, 0.1);
+            border-radius: 8px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="callback-container">
+        <div class="loader"></div>
+        <h1>Connecting to Patreon...</h1>
+        <p>Please wait while we complete the authorization</p>
+        <div class="error-message" id="errorMessage"></div>
+    </div>
+    
+    <script src="js/patreon-config.js"></script>
+    <script src="js/auth-manager.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const code = urlParams.get('code');
+            const state = urlParams.get('state');
+            const error = urlParams.get('error');
+            const errorDiv = document.getElementById('errorMessage');
+
+            // Diagnostic: log exactly what the page received (helps find server redirects that strip query string)
+            console.log('[Patreon callback] URL=', window.location.href, '| search=', window.location.search, '| code=', code ? '(present)' : 'MISSING', '| state=', state ? '(present)' : '', '| error=', error || '');
+
+            if (error) {
+                console.error('[Patreon callback] REDIRECT SOURCE: error param -> index.html?auth=error (4s)');
+                document.querySelector('.loader').style.display = 'none';
+                document.querySelector('h1').textContent = 'Authorization failed';
+                errorDiv.style.display = 'block';
+                errorDiv.textContent = 'Authorization was denied or failed. You can try again from the main page.';
+                setTimeout(() => { window.location.href = 'index.html?auth=error'; }, 4000);
+                return;
+            }
+
+            if (!code) {
+                console.warn('[Patreon callback] REDIRECT SOURCE: no code in URL -> index.html (4s). If Patreon sent ?code=..., server may be stripping query string.');
+                document.querySelector('.loader').style.display = 'none';
+                document.querySelector('h1').textContent = 'Missing code';
+                errorDiv.style.display = 'block';
+                errorDiv.textContent = 'No authorization code received. Please start login from the main page.';
+                setTimeout(() => { window.location.href = 'index.html'; }, 4000);
+                return;
+            }
+
+            try {
+                const redirectUri = (typeof PATREON_CONFIG !== 'undefined' && PATREON_CONFIG.redirectUri)
+                    ? PATREON_CONFIG.redirectUri
+                    : 'https://riffkiller.fun/patreon-callback.html';
+                const response = await fetch('patreon-exchange.php', {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ code: code, state: state || null, redirect_uri: redirectUri })
+                });
+                const rawBody = await response.text();
+                let data = {};
+                try {
+                    data = rawBody ? JSON.parse(rawBody) : {};
+                } catch (parseErr) {
+                    console.error('[Patreon callback] Exchange response not JSON. status=', response.status, 'body (first 300)=', rawBody.substring(0, 300));
+                }
+                console.log('[Patreon callback] Exchange: status=', response.status, 'ok=', response.ok, 'data.success=', data.success, 'data.error=', data.error || '');
+
+                if (!response.ok && !data.error) {
+                    data.success = false;
+                    data.error = 'Server returned ' + response.status + (response.status === 404 ? ' (patreon-exchange.php not found?)' : '');
+                }
+
+                if (data.success) {
+                    var planPageUrl = 'https://www.patreon.com/cw/MikeSabadash?vanity=MikeSabadash';
+                    if (typeof PATREON_CONFIG !== 'undefined' && PATREON_CONFIG.campaignUrl && PATREON_CONFIG.campaignUrl.indexOf('patreon.com') !== -1) {
+                        planPageUrl = PATREON_CONFIG.campaignUrl;
+                    }
+                    console.log('[Patreon callback] Success -> Patreon plan page (800ms)');
+                    if (window.patreonAuth) {
+                        window.patreonAuth.token = data.token;
+                        window.patreonAuth.userData = data.user;
+                        window.patreonAuth.isAuthenticated = true;
+                        window.patreonAuth.updateSubscription('patreon', data.subscription || { status: 'active' });
+                        window.patreonAuth.saveSession();
+                        window.patreonAuth.notifyListeners();
+                        window.patreonAuth.updateAllAuthButtons();
+                    }
+                    document.querySelector('h1').textContent = 'Success!';
+                    document.querySelector('p').textContent = 'Taking you to Patreon to complete your subscription...';
+                    setTimeout(function() {
+                        window.location.href = planPageUrl;
+                    }, 800);
+                } else {
+                    console.error('[Patreon callback] REDIRECT SOURCE: exchange failed (data.success false) -> throw -> catch -> index.html?auth=error (5s)', { status: response.status, data: data });
+                    let errMsg = data.error || 'Server error';
+                    if (data.patreon_description) errMsg += ' (' + data.patreon_description + ')';
+                    if (data.patreon_error) errMsg += ' [code: ' + data.patreon_error + ']';
+                    throw new Error(errMsg);
+                }
+            } catch (e) {
+                console.error('[Patreon callback] REDIRECT SOURCE: catch -> index.html?auth=error (5s). Error:', e && e.message, e);
+                document.querySelector('.loader').style.display = 'none';
+                document.querySelector('h1').textContent = 'Something went wrong';
+                errorDiv.style.display = 'block';
+                errorDiv.textContent = (e && e.message) || 'Could not complete sign in. Please try again from the main page.';
+                setTimeout(() => { window.location.href = 'index.html?auth=error'; }, 5000);
+            }
+        });
+    </script>
+</body>
+</html>

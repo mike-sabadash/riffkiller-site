@@ -1,0 +1,536 @@
+/**
+ * Profile ↔ landing.html — единая визуальная система:
+ * чёрный фон + ambient, стеклянные плашки, Inter, акцент #9355E5, сетка 16px, заголовки секций.
+ * Подключать после profile.css и инлайн-стилей profile.html.
+ */
+
+@font-face {
+    font-family: 'TT Travels Next';
+    src: url('../fonts/TT_Travels_Next_Trial_Medium.ttf') format('truetype');
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'TT Travels Next';
+    src: url('../fonts/TT_Travels_Next_Trial_Bold.ttf') format('truetype');
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* --- Страница: как landing body + .ambient-bg --- */
+body.profile-page {
+    background: #000000;
+    background-image: none;
+    color: #f2f4fb;
+    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+}
+
+body.profile-page::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background:
+        radial-gradient(ellipse 90% 70% at 14% 50%, rgba(200, 208, 222, 0.055) 0%, transparent 58%),
+        radial-gradient(ellipse 88% 68% at 86% 26%, rgba(64, 196, 172, 0.2) 0%, transparent 52%),
+        radial-gradient(ellipse 72% 52% at 70% 85%, rgba(147, 85, 229, 0.14) 0%, transparent 55%),
+        #000000;
+    filter: saturate(1.05);
+}
+
+body.profile-page .page-container {
+    position: relative;
+    z-index: 1;
+}
+
+/* Типографика внутри приложения профиля */
+body.profile-page .profile-content,
+body.profile-page .profile-content input,
+body.profile-page .profile-content button,
+body.profile-page .profile-content textarea {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+body.profile-page .page-container > footer {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+/* Имя — как крупные заголовки на лендинге (TT Travels) */
+body.profile-page .profile-name {
+    font-family: 'TT Travels Next', 'Space Grotesk', 'Inter', system-ui, sans-serif;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    color: rgba(244, 247, 255, 0.98);
+}
+
+body.profile-page .profile-email {
+    color: rgba(160, 165, 182, 0.9);
+    font-size: 0.8125rem;
+}
+
+/* Заголовки секций — как h2/h3 на лендинге (Inter 600), левое выравнивание для app */
+body.profile-page .profile-content .section-title,
+body.profile-page .profile-content .subscription-payment-title {
+    font-family: 'Inter', system-ui, sans-serif;
+    font-weight: 600;
+    font-size: 1.25rem;
+    line-height: 1.3;
+    letter-spacing: 0;
+    color: rgba(244, 247, 255, 0.95);
+    margin-bottom: 20px;
+}
+
+body.profile-page .profile-content .recent-section .section-title,
+body.profile-page .profile-content .profile-card-section .section-title {
+    margin-bottom: 20px;
+}
+
+/* Вертикальный ритм между крупными блоками */
+body.profile-page .profile-header {
+    margin-bottom: 48px;
+}
+
+@media (max-width: 768px) {
+    body.profile-page .profile-section {
+        position: relative;
+    }
+
+    body.profile-page .profile-header-main {
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        max-width: 100%;
+        margin: 0 auto;
+    }
+
+    body.profile-page .profile-header-body {
+        padding-right: 0 !important;
+        padding-left: 0 !important;
+        max-width: 100%;
+    }
+
+    body.profile-page .profile-header-top {
+        align-items: center;
+    }
+
+    body.profile-page .profile-header {
+        padding-top: 52px;
+    }
+
+    body.profile-page .profile-header-actions {
+        position: absolute;
+        top: 10px;
+        right: max(4px, env(safe-area-inset-right, 0px));
+        left: auto;
+        z-index: 2;
+    }
+}
+
+body.profile-page .practice-stats-section {
+    margin-bottom: 48px;
+}
+
+body.profile-page .game-dashboard {
+    gap: 16px;
+    margin-top: 32px;
+    margin-bottom: 48px;
+}
+
+body.profile-page .achievements-section {
+    margin-bottom: 48px;
+}
+
+body.profile-page .achievements-section .section-header {
+    margin-bottom: 20px;
+    padding: 0;
+}
+
+body.profile-page .achievements-section .section-header .section-title {
+    margin-bottom: 0;
+}
+
+body.profile-page .recent-section {
+    margin-bottom: 48px;
+}
+
+/* Сетки — как .grid-3 / .tools-grid на лендинге */
+body.profile-page .practice-stats-grid,
+body.profile-page .subscription-payment-grid,
+body.profile-page .achievements-grid {
+    gap: 16px;
+}
+
+body.profile-page .practice-stats-grid {
+    margin-bottom: 32px;
+}
+
+/* --- Стеклянные плашки (как .card / .price-card на landing) --- */
+body.profile-page .practice-stat,
+body.profile-page .subscription-card,
+body.profile-page .payment-card,
+body.profile-page .profile-settings-card {
+    background: rgba(255, 255, 255, 0.035);
+    border: 1px solid rgba(255, 255, 255, 0.065);
+    border-radius: 20px;
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.035);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+}
+
+body.profile-page .practice-stat::after,
+body.profile-page .subscription-card::after,
+body.profile-page .payment-card::after,
+body.profile-page .profile-settings-card::after {
+    content: '';
+    position: absolute;
+    z-index: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 52%;
+    border-radius: 0 0 20px 20px;
+    background: radial-gradient(ellipse 95% 85% at 50% 100%,
+        rgba(147, 85, 229, 0.09) 0%,
+        rgba(147, 85, 229, 0.022) 50%,
+        transparent 72%);
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+body.profile-page .practice-stat > *,
+body.profile-page .subscription-card > *,
+body.profile-page .payment-card > *,
+body.profile-page .profile-settings-card > * {
+    position: relative;
+    z-index: 1;
+}
+
+body.profile-page .practice-stat-value {
+    font-family: 'Inter', system-ui, sans-serif;
+    color: rgba(244, 247, 255, 0.95);
+}
+
+body.profile-page .practice-stat-label {
+    font-family: 'Inter', system-ui, sans-serif;
+    color: rgba(160, 165, 182, 0.88);
+    letter-spacing: 0.04em;
+}
+
+/* Разделители внутри карточек */
+body.profile-page .subscription-detail-row,
+body.profile-page .payment-entry {
+    border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+
+body.profile-page .subscription-detail-label,
+body.profile-page .subscription-detail-value,
+body.profile-page .payment-date,
+body.profile-page .payment-amount {
+    color: rgba(242, 244, 251, 0.88);
+    font-family: 'Inter', system-ui, sans-serif;
+}
+
+body.profile-page .payment-method {
+    color: rgba(160, 165, 182, 0.85);
+}
+
+/* Статус и промо — как .section-eyebrow / .btn-outline */
+body.profile-page .status-badge.status-active {
+    font-family: 'Inter', system-ui, sans-serif;
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    background: rgba(255, 255, 255, 0.02);
+    color: rgba(214, 220, 238, 0.88);
+    font-size: 0.68rem;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    border-radius: 999px;
+    padding: 6px 14px;
+}
+
+body.profile-page .profile-promo-pill {
+    font-family: 'Inter', system-ui, sans-serif;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.03);
+    color: #eef2ff;
+    border-radius: 12px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    padding: 10px 18px;
+    transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+body.profile-page .profile-promo-pill:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.35);
+}
+
+/* Кнопка промокода в шапке временно скрыта */
+body.profile-page .profile-header .profile-promo-pill {
+    display: none !important;
+}
+
+body.profile-page .profile-avatar {
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Акцент #9355E5 как .btn-primary на лендинге */
+body.profile-page .subscription-details-actions .btn-primary,
+body.profile-page #profilePromoSection .btn-primary,
+body.profile-page .profile-edit-save-btn,
+body.profile-page .subscription-view-plans-btn {
+    background: #9355e5;
+    border-color: #9355e5;
+    color: #fff;
+    font-weight: 500;
+    box-shadow: 0 8px 20px rgba(147, 85, 229, 0.28);
+}
+
+body.profile-page .subscription-details-actions .btn-primary:hover,
+body.profile-page #profilePromoSection .btn-primary:hover,
+body.profile-page .profile-edit-save-btn:hover,
+body.profile-page .subscription-view-plans-btn:hover {
+    background: #7c45c7;
+    border-color: #7c45c7;
+    color: #fff;
+    opacity: 1;
+}
+
+body.profile-page .profile-password-reset {
+    color: #b99cf0;
+}
+
+body.profile-page .profile-password-reset:hover {
+    color: #d4c4f7;
+}
+
+/* Поля формы */
+body.profile-page .profile-edit-label,
+body.profile-page .profile-edit-hint,
+body.profile-page .profile-promo-message {
+    font-family: 'Inter', system-ui, sans-serif;
+}
+
+body.profile-page .profile-edit-input {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    color: #f2f4fb;
+}
+
+body.profile-page .profile-avatar-upload-label {
+    font-family: 'Inter', system-ui, sans-serif;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.03);
+}
+
+body.profile-page .load-more-btn {
+    font-family: 'Inter', system-ui, sans-serif;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.03);
+    color: #eef2ff;
+    font-weight: 500;
+}
+
+body.profile-page .load-more-btn:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.35);
+}
+
+/* Game dashboard — те же стекло + лёгкий tint как tool-card */
+body.profile-page .game-dashboard .card {
+    border-radius: 20px;
+    padding: 24px 22px;
+    border: 1px solid rgba(255, 255, 255, 0.065);
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.035);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    /* visible — иначе тултипы info-icon обрезаются; свечение ::after остаётся снизу в пределах карточки */
+    overflow: visible;
+}
+
+body.profile-page .game-dashboard .streak-card {
+    /* без верхнего рыжего свечения — только стекло как у каркаса */
+    background: rgba(255, 255, 255, 0.035);
+}
+
+body.profile-page .game-dashboard .challenge-card {
+    background:
+        radial-gradient(120% 90% at 50% 0%, rgba(147, 85, 229, 0.14) 0%, transparent 55%),
+        rgba(255, 255, 255, 0.035);
+}
+
+body.profile-page .game-dashboard .card::after {
+    content: '';
+    position: absolute;
+    z-index: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 52%;
+    width: auto;
+    top: auto;
+    border-radius: 0 0 20px 20px;
+    filter: none;
+    opacity: 0.65;
+    pointer-events: none;
+}
+
+body.profile-page .game-dashboard .streak-card::after {
+    background: radial-gradient(ellipse 95% 85% at 50% 100%,
+        rgba(255, 140, 0, 0.12) 0%,
+        rgba(255, 140, 0, 0.03) 50%,
+        transparent 72%);
+}
+
+body.profile-page .game-dashboard .challenge-card::after {
+    background: radial-gradient(ellipse 95% 85% at 50% 100%,
+        rgba(147, 85, 229, 0.09) 0%,
+        rgba(147, 85, 229, 0.022) 50%,
+        transparent 72%);
+}
+
+body.profile-page .game-dashboard .content-col {
+    z-index: 2;
+}
+
+body.profile-page .game-dashboard .card-icon {
+    border: none;
+    background: transparent;
+    border-radius: 0;
+    flex-shrink: 0;
+    min-width: 1.25em;
+}
+
+body.profile-page .challenge-icon-duo .challenge-sword-mirrored,
+body.profile-page .challenge-icon-duo .challenge-guitar-normal {
+    text-shadow: 0 0 14px rgba(147, 85, 229, 0.5);
+}
+
+body.profile-page .challenge-fill {
+    background: linear-gradient(90deg, #9355e5, #b38bff);
+    box-shadow: 0 0 12px rgba(147, 85, 229, 0.45);
+}
+
+body.profile-page .row-label {
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+body.profile-page .badge-purple {
+    background: rgba(147, 85, 229, 0.15);
+    border-color: rgba(147, 85, 229, 0.5);
+    color: rgba(244, 247, 255, 0.95);
+}
+
+/* Achievements — стекло + featured border как price-card.featured */
+body.profile-page .achievement-card {
+    background: rgba(255, 255, 255, 0.035);
+    border: 1px solid rgba(255, 255, 255, 0.065);
+    border-radius: 20px;
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.035);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+/* Earned: без glow; два блика только на обводке 1px (conic + mask) */
+body.profile-page .achievement-card.earned {
+    position: relative;
+    border: none;
+    border-radius: 21px 19px 22px 20px;
+    background:
+        radial-gradient(115% 82% at 48% 0%, rgba(147, 85, 229, 0.1) 0%, transparent 52%),
+        rgba(255, 255, 255, 0.035);
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+body.profile-page .achievement-card.earned::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    pointer-events: none;
+    z-index: 0;
+    --rk-conic-from: 38deg;
+    transition: --rk-conic-from 0.55s cubic-bezier(0.4, 0, 0.2, 1);
+    background: conic-gradient(
+        from var(--rk-conic-from) at 50% 48%,
+        rgba(120, 78, 200, 0.55) 0deg,
+        rgba(236, 226, 255, 0.98) 7deg,
+        rgba(236, 226, 255, 0.98) 13deg,
+        rgba(120, 78, 200, 0.55) 20deg,
+        rgba(120, 78, 200, 0.55) 210deg,
+        rgba(244, 236, 255, 0.98) 218deg,
+        rgba(244, 236, 255, 0.98) 226deg,
+        rgba(120, 78, 200, 0.55) 234deg,
+        rgba(120, 78, 200, 0.55) 360deg
+    );
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask-composite: exclude;
+}
+
+body.profile-page .achievement-card.earned > * {
+    position: relative;
+    z-index: 1;
+}
+
+body.profile-page .achievement-card.earned:hover {
+    border: none;
+    border-radius: 21px 19px 22px 20px;
+    background:
+        radial-gradient(115% 82% at 48% 0%, rgba(147, 85, 229, 0.12) 0%, transparent 52%),
+        rgba(255, 255, 255, 0.035);
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+body.profile-page .achievement-card.earned:hover::before {
+    --rk-conic-from: 66deg;
+}
+
+body.profile-page .achievement-name {
+    font-weight: 600;
+    color: rgba(244, 247, 255, 0.95);
+}
+
+body.profile-page .achievement-desc {
+    color: rgba(160, 165, 182, 0.9);
+}
+
+body.profile-page .achievement-progress .progress-bar > div {
+    background: #9355e5;
+}
+
+body.profile-page .view-all-link {
+    font-family: 'Inter', system-ui, sans-serif;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    color: rgba(160, 165, 182, 0.85);
+}
+
+body.profile-page .view-all-link:hover {
+    color: rgba(244, 247, 255, 0.95);
+}
+
+@media (max-width: 640px) {
+    body.profile-page .game-dashboard .card {
+        padding: 18px 16px;
+    }
+}

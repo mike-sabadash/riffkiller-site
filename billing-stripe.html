@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <script src="js/rk-theme-init.js"></script>
+    <meta name="theme-color" content="#0a0a0a" id="rk-theme-color">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Riff Killer - Subscribe with Stripe</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&family=Zen+Dots&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/reset.css">
+    <link rel="stylesheet" href="css/variables.css">
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="css/rk-theme-light.css">
+    <link rel="icon" type="image/svg+xml" href="assets/icons/favicon.svg">
+    <style>
+        body { background-color: var(--color-primary); color: var(--color-text-primary); min-height: 100vh;
+        min-height: 100dvh; }
+        .page-container { max-width: 960px; margin: 0 auto; padding: 40px 20px; }
+        .billing-header { text-align: center; margin-bottom: 40px; }
+        .billing-header h1 { font-family: var(--font-family-accent); font-size: var(--font-size-xl); font-weight: 400; margin-bottom: 8px; }
+        .billing-header p { color: var(--color-text-tertiary); }
+        .plans-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 24px; justify-content: center; margin-bottom: 32px; }
+        .plan-card { background: rgba(255,255,255,0.03); border: 1px solid var(--color-border-light); border-radius: var(--radius-lg); padding: 28px; text-align: center; cursor: pointer; transition: border-color 0.2s, background 0.2s; }
+        .plan-card:hover { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.2); }
+        .plan-card.selected { border-color: #9355E5; background: rgba(147,85,229,0.08); }
+        .plan-name { font-size: var(--font-size-lg); font-weight: 500; margin-bottom: 4px; }
+        .plan-price { font-size: 28px; color: var(--color-text-primary); margin-bottom: 4px; }
+        .plan-period { color: var(--color-text-tertiary); font-size: var(--font-size-sm); }
+        .plan-save { margin-top: 8px; font-size: var(--font-size-sm); color: #4CAF50; }
+        .checkout-wrap { text-align: center; }
+        .btn-checkout { display: inline-block; padding: 14px 32px; font-size: var(--font-size-base); font-weight: 500; background: #9355E5; color: #fff; border: none; border-radius: var(--radius-md); cursor: pointer; transition: background 0.2s; }
+        .btn-checkout:hover { background: #7B3FC7; }
+        .btn-checkout:disabled { opacity: 0.6; cursor: not-allowed; }
+        .error-msg { color: #F44336; margin-top: 16px; text-align: center; display: none; }
+        .back-link { display: inline-block; margin-top: 24px; color: var(--color-text-tertiary); text-decoration: none; font-size: var(--font-size-sm); }
+        .back-link:hover { color: var(--color-text-primary); }
+    </style>
+</head>
+<body>
+    <div class="page-container">
+        <header class="billing-header">
+            <h1>Riff Killer Premium</h1>
+            <p>Get full access with Stripe</p>
+        </header>
+
+        <div class="plan-summary" id="planSummary" style="text-align: center; margin-bottom: 24px; padding: 16px; background: rgba(255,255,255,0.03); border-radius: 12px; border: 1px solid var(--color-border-light);">
+            <div id="planSummaryText" style="font-size: 1.1rem; color: var(--color-text-secondary);"></div>
+            <a href="billing.html" style="font-size: 0.85rem; color: var(--color-text-tertiary); margin-top: 8px; display: inline-block;">Change plan</a>
+        </div>
+
+        <div class="checkout-wrap">
+            <button type="button" class="btn-checkout" id="checkoutBtn">Continue to Stripe Checkout</button>
+            <p class="error-msg" id="errorMsg"></p>
+            <a href="billing.html" class="back-link">Back</a>
+        </div>
+    </div>
+
+    <script src="config/env-config.php"></script>
+    <script src="js/stripe-config.js"></script>
+    <script src="js/patreon-config.js"></script>
+    <script src="js/auth-manager.js"></script>
+    <script src="js/rk-theme.js"></script>
+    <script>
+        (function() {
+            var params = new URLSearchParams(window.location.search);
+            var plan = (params.get('plan') === 'yearly') ? 'yearly' : 'monthly';
+            var btn = document.getElementById('checkoutBtn');
+            var errEl = document.getElementById('errorMsg');
+            var summaryText = document.getElementById('planSummaryText');
+
+            if (summaryText) {
+                summaryText.textContent = plan === 'yearly' ? 'Yearly — $90/year (Save $18)' : 'Monthly — $9/month';
+            }
+
+            function showError(msg) {
+                errEl.textContent = msg || 'Something went wrong.';
+                errEl.style.display = 'block';
+            }
+
+            btn.addEventListener('click', function() {
+                btn.disabled = true;
+                errEl.style.display = 'none';
+
+                var base = window.location.origin + window.location.pathname.replace(/\/[^/]*$/, '');
+                var successUrl = base + '/stripe-success.html';
+                var cancelUrl = base + '/stripe-cancel.html';
+                var userId = (window.patreonAuth && window.patreonAuth.userData && window.patreonAuth.userData.id) ? window.patreonAuth.userData.id : '';
+
+                fetch((window.STRIPE_CONFIG && window.STRIPE_CONFIG.createCheckoutUrl) || '/stripe-checkout.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        plan: plan,
+                        userId: userId,
+                        success_url: successUrl,
+                        cancel_url: cancelUrl
+                    })
+                })
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    if (data.success && (data.url || data.sessionId)) {
+                        window.location.href = data.url || ('https://checkout.stripe.com/c/pay/' + data.sessionId);
+                        return;
+                    }
+                    showError(data.error || 'Could not start checkout');
+                    btn.disabled = false;
+                })
+                .catch(function() {
+                    showError('Network error. Please try again.');
+                    btn.disabled = false;
+                });
+            });
+        })();
+    </script>
+</body>
+</html>

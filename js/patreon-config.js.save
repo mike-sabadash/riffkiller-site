@@ -1,0 +1,11 @@
+// ==========================================================================
+// Patreon Configuration
+// ==========================================================================
+
+const PATREON_CONFIG = {
+    clientId: 'ВАШ_CLIENT_ID_ИЗ_PATREON',
+    redirectUri: 'http://localhost:8000/patreon-callback.html',
+    apiBase: 'https://www.patreon.com/api/oauth2',
+    responseType: 'code',
+    scope: 'identity identity[email] identity.memberships campaigns'
+};

@@ -1,0 +1,311 @@
+/* ==========================================================================
+   Base Styles - Базовые стили проекта
+   ========================================================================== */
+
+/* === ОСНОВНЫЕ СТИЛИ СТРАНИЦЫ === */
+body {
+    background: var(--rk-body-gradient);
+    background-color: var(--color-primary);
+    color: var(--color-text-primary);
+    font-family: var(--font-family-primary);
+    font-weight: var(--font-weight-regular);
+    font-size: var(--font-size-base);
+    line-height: var(--line-height-base);
+    min-height: 100vh;
+    min-height: 100dvh;
+    overflow-x: hidden;
+    animation: fadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Без transform на body — иначе position:fixed у шапки может вести себя иначе (новый containing block). */
+@keyframes fadeIn {
+    from {
+        opacity: 0.7;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+/* === КОНТЕЙНЕР СТРАНИЦЫ === */
+.page-container {
+    width: 100%;
+    min-height: 100vh;
+    min-height: 100dvh;
+    padding: var(--spacing-xl) var(--spacing-5xl) 0;
+    max-width: 1440px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+}
+
+.page-container > .main-content {
+    flex: 1 1 auto;
+    min-height: 0;
+    /* Зазор перед футером — как на лендинге / профиле */
+    padding-bottom: calc(56px + env(safe-area-inset-bottom, 0px));
+}
+
+/* === ОСНОВНОЙ КОНТЕНТ === */
+.main-content {
+    margin-top: calc(var(--height-header) + 44px); /* fixed header + vertical paddings */
+}
+
+/* Чуть плотнее верхний отступ только на главной (index.html) */
+.index-page .main-content {
+    margin-top: calc(var(--height-header) + 34px);
+}
+
+/* === ЗАГОЛОВКИ === */
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-family-primary);
+    font-weight: var(--font-weight-regular);
+    line-height: var(--line-height-normal);
+    margin-bottom: var(--spacing-md);
+}
+
+/* Специфичные стили для заголовков коллекций */
+.collections-title {
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-regular);
+    margin-bottom: 0;
+}
+
+/* === ССЫЛКИ === */
+a {
+    color: var(--color-text-primary);
+    transition: opacity var(--transition-fast);
+}
+
+/* Только обычные ссылки: затемнение через opacity.
+   Ссылки-кнопки (.btn) не трогаем — у них свой hover (фон/тень), иначе Manage ≠ Save/Apply */
+a:hover:not(.btn) {
+    opacity: 0.8;
+}
+
+/* === КНОПКИ === */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--spacing-md) var(--spacing-2xl);
+    border-radius: var(--radius-md);
+    font-family: var(--font-family-primary);
+    font-weight: var(--font-weight-medium);
+    font-size: var(--font-size-sm);
+    cursor: pointer;
+    transition: all var(--transition-base);
+    white-space: nowrap;
+    border: 1px solid transparent;
+}
+
+.btn-primary {
+    background-color: var(--color-button-bg);
+    color: var(--color-button-text);
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.btn-primary:active {
+    transform: translateY(0);
+    box-shadow: var(--shadow-sm);
+}
+
+/* === ФОРМЫ === */
+input,
+select,
+textarea {
+    font-family: var(--font-family-primary);
+    font-size: var(--font-size-sm);
+    color: var(--color-text-primary);
+    background-color: transparent;
+}
+
+/* Убираем стандартные стили у select */
+select {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+}
+
+/* Плейсхолдеры */
+::placeholder {
+    color: var(--color-text-tertiary);
+    opacity: 1;
+}
+
+::-webkit-input-placeholder {
+    color: var(--color-text-tertiary);
+}
+
+::-moz-placeholder {
+    color: var(--color-text-tertiary);
+}
+
+:-ms-input-placeholder {
+    color: var(--color-text-tertiary);
+}
+
+/* === УТИЛИТАРНЫЕ КЛАССЫ === */
+
+/* Скрытие элементов */
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* Центрирование */
+.text-center {
+    text-align: center;
+}
+
+/* Flex утилиты */
+.flex {
+    display: flex;
+}
+
+.flex-center {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.flex-between {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+/* Отступы */
+.mt-1 { margin-top: var(--spacing-xs); }
+.mt-2 { margin-top: var(--spacing-sm); }
+.mt-3 { margin-top: var(--spacing-md); }
+.mt-4 { margin-top: var(--spacing-lg); }
+.mt-5 { margin-top: var(--spacing-xl); }
+
+.mb-1 { margin-bottom: var(--spacing-xs); }
+.mb-2 { margin-bottom: var(--spacing-sm); }
+.mb-3 { margin-bottom: var(--spacing-md); }
+.mb-4 { margin-bottom: var(--spacing-lg); }
+.mb-5 { margin-bottom: var(--spacing-xl); }
+
+/* === Grid утилиты для адаптивной сетки === */
+
+/* Контейнер для сетки */
+.grid-container {
+    width: 100%;
+    margin: 0 auto;
+}
+
+/* Автоматическая сетка с минимальной шириной */
+.auto-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: var(--spacing-lg);
+}
+
+/* Утилиты для выравнивания сетки */
+.grid-align-start {
+    justify-content: start;
+}
+
+.grid-align-center {
+    justify-content: center;
+}
+
+.grid-align-end {
+    justify-content: end;
+}
+
+/* Отступы между строками сетки */
+.grid-row-gap-sm {
+    row-gap: var(--spacing-sm);
+}
+
+.grid-row-gap-md {
+    row-gap: var(--spacing-md);
+}
+
+.grid-row-gap-lg {
+    row-gap: var(--spacing-lg);
+}
+
+/* Адаптивные колонки */
+.grid-cols-1 { grid-template-columns: repeat(1, 1fr); }
+.grid-cols-2 { grid-template-columns: repeat(2, 1fr); }
+.grid-cols-3 { grid-template-columns: repeat(3, 1fr); }
+.grid-cols-4 { grid-template-columns: repeat(4, 1fr); }
+.grid-cols-5 { grid-template-columns: repeat(5, 1fr); }
+.grid-cols-6 { grid-template-columns: repeat(6, 1fr); }
+
+/* === АДАПТИВНОСТЬ === */
+@media (max-width: 1400px) {
+    .page-container {
+        padding: var(--spacing-xl) 100px 0;
+    }
+}
+
+@media (max-width: 1200px) {
+    .page-container {
+        padding: var(--spacing-xl) 80px 0;
+    }
+}
+
+@media (max-width: 1024px) {
+    .page-container {
+        padding: var(--spacing-xl) 60px 0;
+    }
+}
+
+@media (max-width: 900px) {
+    .page-container {
+        padding: var(--spacing-xl) 50px 0;
+    }
+}
+
+@media (max-width: 768px) {
+    .page-container {
+        padding: var(--spacing-xl) 40px 0;
+    }
+}
+
+@media (max-width: 640px) {
+    .page-container {
+        padding: var(--spacing-xl) 30px 0;
+    }
+}
+
+@media (max-width: 560px) {
+    .page-container {
+        padding: var(--spacing-xl) 25px 0;
+    }
+}
+
+@media (max-width: 480px) {
+    .page-container {
+        padding: var(--spacing-xl) 20px 0;
+    }
+}
+
+@media (max-width: 400px) {
+    .page-container {
+        padding: var(--spacing-xl) 15px 0;
+    }
+}
+
+@media (max-width: 350px) {
+    .page-container {
+        padding: var(--spacing-xl) 12px 0;
+    }
+}

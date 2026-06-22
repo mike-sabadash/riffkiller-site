@@ -1,0 +1,1038 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Riff Killer — Админка риффов</title>
+    <link rel="stylesheet" href="../css/reset.css">
+    <link rel="stylesheet" href="../css/variables.css">
+    <!-- Не подключаем base.css и components.css — там стили заглушки; админка риффов самодостаточна -->
+    <link rel="icon" type="image/svg+xml" href="../assets/icons/favicon.svg">
+    <style>
+        html, body { background: #111629 !important; background-image: none !important; color: #fff; font-family: Roboto, sans-serif; min-height: 100vh; min-height: 100dvh; padding: 24px; margin: 0; padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px) + 52px); }
+        .admin-wrap { max-width: 720px; margin: 0 auto; }
+        h1 { font-family: var(--font-family-accent); font-size: 24px; margin-bottom: 24px; }
+        .back { display: inline-block; margin-bottom: 20px; color: var(--color-text-tertiary); text-decoration: none; font-size: 14px; }
+        .back:hover { color: var(--color-text-primary); }
+        .form-section { background: rgba(255,255,255,0.03); border: 1px solid var(--color-border-light); border-radius: 12px; padding: 20px; margin-bottom: 20px; }
+        .form-section h2 { font-size: 16px; font-weight: 500; margin-bottom: 16px; color: var(--color-text-secondary); }
+        .form-row { margin-bottom: 14px; }
+        .form-row label { display: block; font-size: 13px; color: var(--color-text-tertiary); margin-bottom: 4px; }
+        .form-row input[type="text"], .form-row input[type="number"], .form-row select { width: 100%; max-width: 360px; padding: 10px 12px; background: rgba(255,255,255,0.06); border: 1px solid var(--color-border-light); border-radius: 8px; color: #fff; font-size: 14px; }
+        .form-row input[type="number"] { max-width: 120px; }
+        .form-row input[type="file"] { font-size: 13px; color: var(--color-text-tertiary); }
+        .form-row input[type="checkbox"] { margin-right: 8px; vertical-align: middle; }
+        .segment-header { display: flex; gap: 10px; align-items: center; margin-bottom: 6px; font-size: 12px; color: var(--color-text-tertiary); }
+        .segment-header .seg-start, .segment-header .seg-end { width: 80px; }
+        .segment-header .seg-name { flex: 1; min-width: 120px; }
+        .segment-header .seg-color { width: 140px; }
+        .segment-row { display: flex; gap: 10px; align-items: center; margin-bottom: 8px; }
+        .segment-row input.start, .segment-row input.end { width: 80px; }
+        .segment-row input.name { flex: 1; min-width: 120px; }
+        .segment-row select.color-select { width: 100px; padding: 6px 8px; background: rgba(255,255,255,0.06); border: 1px solid var(--color-border-light); border-radius: 6px; color: #fff; font-size: 13px; }
+        .segment-row input.color-hex { width: 70px; padding: 6px 8px; font-size: 12px; display: none; }
+        .segment-row.color-custom input.color-hex { display: inline-block; }
+        .riff-list select { width: 100%; max-width: 400px; padding: 10px 12px; background: rgba(255,255,255,0.06); border: 1px solid var(--color-border-light); border-radius: 8px; color: #fff; font-size: 14px; }
+        .btn { padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; border: none; font-family: inherit; }
+        .btn-primary { background: #9355E5; color: #fff; }
+        .btn-primary:hover { background: #7B3FC7; }
+        .btn-secondary { background: rgba(255,255,255,0.1); color: #fff; border: 1px solid var(--color-border-light); }
+        .btn-secondary:hover { background: rgba(255,255,255,0.15); }
+        .btn-small { padding: 6px 12px; font-size: 12px; }
+        .msg { margin-top: 12px; padding: 12px 16px; border-radius: 8px; font-size: 14px; display: none; font-weight: 500; }
+        .msg.success { background: rgba(76,175,80,0.25); color: #4CAF50; display: block; border: 1px solid rgba(76,175,80,0.4); }
+        .msg.error { background: rgba(244,67,54,0.2); color: #F44336; display: block; }
+        .save-feedback { margin-top: 12px; padding: 14px 18px; background: rgba(76,175,80,0.3); border: 1px solid #4CAF50; border-radius: 10px; font-size: 15px; color: #4CAF50; display: none; }
+        .save-feedback.show { display: flex; align-items: center; gap: 10px; animation: savePulse 0.4s ease; }
+        @keyframes savePulse { 0%{ transform: scale(0.98); opacity:0.8; } 100%{ transform: scale(1); opacity:1; } }
+        .admin-tabs { display: flex; gap: 4px; margin-bottom: 24px; border-bottom: 1px solid var(--color-border-light); }
+        .admin-tabs a { padding: 10px 16px; color: var(--color-text-tertiary); text-decoration: none; font-size: 14px; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+        .admin-tabs a:hover { color: var(--color-text-primary); }
+        .admin-tabs a.active { color: var(--color-text-primary); border-bottom-color: #9355E5; }
+        .tab-pane { display: none; }
+        .tab-pane.active { display: block; }
+        .riff-list-cards { display: flex; flex-direction: column; gap: 8px; }
+        .riff-card { display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; transition: background 0.15s, border-color 0.15s; }
+        .riff-card:hover { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.12); }
+        .riff-card.riff-dragging { box-shadow: 0 12px 28px rgba(0,0,0,0.45); z-index: 100; pointer-events: none; }
+        .riff-card-placeholder { height: 52px; min-height: 52px; border: 2px dashed rgba(147,85,229,0.4); border-radius: 10px; background: rgba(147,85,229,0.06); transition: height 0.15s; }
+        .riff-card-shift, .riff-card-placeholder.riff-shift { transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        .riff-move-btns { display: flex; flex-direction: column; gap: 2px; }
+        .riff-move-btns button { padding: 4px; background: none; border: none; color: var(--color-text-tertiary); cursor: pointer; font-size: 14px; line-height: 1; }
+        .riff-move-btns button:hover { color: var(--color-text-primary); }
+        .riff-move-btns button:disabled { opacity: 0.3; cursor: not-allowed; }
+        .riff-list-song { font-weight: 500; flex: 1; min-width: 0; }
+        .riff-list-artist { color: var(--color-text-tertiary); font-size: 13px; flex: 1; min-width: 0; }
+        .riff-list-actions { display: flex; gap: 8px; align-items: center; flex-shrink: 0; }
+        .riff-list-empty { padding: 40px; text-align: center; color: var(--color-text-tertiary); }
+        .reorder-feedback { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); padding: 10px 20px; background: rgba(76,175,80,0.9); color: #fff; border-radius: 8px; font-size: 14px; opacity: 0; transition: opacity 0.2s; z-index: 100; }
+        .riff-list-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-bottom: 16px; }
+        .riff-list-toolbar label { font-size: 13px; color: var(--color-text-tertiary); }
+        .riff-list-toolbar select { padding: 6px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.06); color: #fff; font-size: 13px; }
+        .coll-picks { display: flex; flex-direction: column; gap: 8px; max-width: 480px; max-height: 220px; overflow-y: auto; padding: 8px; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; background: rgba(0,0,0,0.15); }
+        .coll-pick { display: flex; align-items: flex-start; gap: 10px; font-size: 14px; cursor: pointer; padding: 6px 4px; border-radius: 6px; }
+        .coll-pick:hover { background: rgba(255,255,255,0.05); }
+        .coll-pick input { margin-top: 3px; flex-shrink: 0; }
+        .coll-pick-hint { font-size: 12px; color: var(--color-text-tertiary); margin-top: 6px; line-height: 1.45; max-width: 480px; }
+        .riff-grip { cursor: grab; padding: 8px; margin: -8px; color: rgba(255,255,255,0.4); display: inline-flex; align-items: center; justify-content: center; user-select: none; touch-action: none; flex-shrink: 0; }
+        .riff-grip:hover { color: rgba(255,255,255,0.7); }
+        .riff-grip:active { cursor: grabbing; }
+        .riff-grip svg { width: 18px; height: 18px; }
+        .riff-move-cell { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+        /* Разметка сегментов по видео */
+        .segment-editor-video-wrap { margin-bottom: 16px; }
+        .segment-editor-hint { font-size: 12px; color: var(--color-text-tertiary); margin-bottom: 10px; }
+        .segment-editor-video-box { position: relative; max-width: 640px; background: #000; border-radius: 10px; overflow: hidden; aspect-ratio: 16/9; }
+        .segment-editor-video-box video { width: 100%; height: 100%; display: block; object-fit: contain; }
+        .segment-editor-overlay { position: absolute; left: 0; right: 0; bottom: 0; padding: 12px 14px; background: linear-gradient(transparent, rgba(0,0,0,0.85)); display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+        .segment-editor-timeline-wrap { width: 100%; flex: 0 0 100%; margin-bottom: 6px; }
+        .segment-editor-timeline { width: 100%; height: 8px; margin: 0; -webkit-appearance: none; appearance: none; background: rgba(255,255,255,0.2); border-radius: 4px; cursor: pointer; }
+        .segment-editor-timeline::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%; background: #9355E5; cursor: grab; }
+        .segment-editor-timeline::-moz-range-thumb { width: 16px; height: 16px; border-radius: 50%; background: #9355E5; cursor: grab; border: none; }
+        .segment-editor-strip { width: 100%; flex: 0 0 100%; height: 24px; margin-bottom: 4px; background: rgba(0,0,0,0.5); border-radius: 6px; overflow: hidden; position: relative; }
+        .segment-editor-segs-wrap { position: relative; width: 100%; height: 100%; border-radius: 6px; }
+        .segment-editor-playhead { position: absolute; top: 0; bottom: 0; width: 2px; background: #fff; z-index: 10; pointer-events: none; left: 0; box-shadow: 0 0 4px rgba(0,0,0,0.8); }
+        .segment-editor-strip-footer { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+        .segment-editor-seg { position: absolute; top: 2px; bottom: 2px; border-radius: 4px; pointer-events: auto; cursor: pointer; box-sizing: border-box; border-right: 2px solid rgba(0,0,0,0.5); }
+        .segment-editor-seg:last-child { border-right-width: 0; }
+        .segment-editor-seg .seg-handle { position: absolute; top: 0; bottom: 0; width: 10px; cursor: ew-resize; pointer-events: auto; z-index: 2; }
+        .segment-editor-seg .seg-handle-left { left: 0; border-radius: 4px 0 0 4px; }
+        .segment-editor-seg .seg-handle-right { right: 0; left: auto; border-radius: 0 4px 4px 0; }
+        .segment-editor-seg .seg-handle:hover { background: rgba(255,255,255,0.3); }
+        .segment-editor-seg.selected { box-shadow: 0 0 0 1px rgba(255,255,255,0.9); }
+        .segment-editor-seg.selected.looped { box-shadow: 0 0 0 1px rgba(255,255,255,0.9), 0 0 0 2px #9355E5; }
+        .segment-editor-seg.looped { box-shadow: 0 0 0 2px #9355E5; }
+        .segment-editor-plus { padding: 6px 12px; border: 1px dashed rgba(255,255,255,0.4); border-radius: 4px; background: rgba(147,85,229,0.2); color: #fff; font-size: 13px; line-height: 1; cursor: pointer; }
+        .segment-editor-plus:hover { background: rgba(147,85,229,0.4); border-color: rgba(255,255,255,0.6); }
+        .segment-editor-time { font-family: monospace; font-size: 20px; font-weight: 600; color: #fff; letter-spacing: 0.05em; min-width: 80px; }
+        .segment-editor-controls { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+        .segment-editor-controls .btn.active { background: #9355E5; color: #fff; }
+        .segment-editor-loop-label { font-size: 13px; color: var(--color-text-tertiary); margin-left: 4px; }
+        .segment-editor-loop-label:not(:empty) { color: #9355E5; font-weight: 500; }
+        .segment-editor-video-src { font-size: 11px; color: var(--color-text-tertiary); margin-top: 6px; }
+    </style>
+</head>
+<body>
+    <div class="admin-wrap">
+        <a href="index.php" class="back">← В админку</a>
+        <h1>Риффы</h1>
+        <nav class="admin-tabs">
+            <a href="#" class="admin-tab active" data-tab="list">Список</a>
+            <a href="#" class="admin-tab" data-tab="edit">Редактировать</a>
+        </nav>
+        <div class="tab-pane active" id="tabList">
+            <div class="form-section">
+                <h2>Все риффы <button type="button" class="btn btn-primary btn-small" id="btnNewRiff" style="margin-left:12px;">+ Новый рифф</button></h2>
+                <div class="riff-list-toolbar">
+                    <label>Сортировка:</label>
+                    <select id="sortBy">
+                        <option value="order">Порядок в приложении</option>
+                        <option value="artist">Исполнитель</option>
+                        <option value="genre">Жанр</option>
+                        <option value="difficulty">Сложность</option>
+                        <option value="added">По добавлению</option>
+                    </select>
+                    <select id="sortDir">
+                        <option value="asc">Сначала старые / A→Z</option>
+                        <option value="desc">Сначала новые / Z→A</option>
+                    </select>
+                </div>
+                <div id="riffListBody"></div>
+            </div>
+        </div>
+        <div class="tab-pane" id="tabEdit">
+        <div class="form-section riff-list">
+            <h2>Редактировать рифф</h2>
+            <div class="form-row">
+                <label>Выберите рифф или оставьте «Новый»</label>
+                <select id="riffSelect"><option value="">— Новый рифф —</option></select>
+            </div>
+        </div>
+        <form id="riffForm">
+            <div class="form-section">
+                <h2>Основное</h2>
+                <div class="form-row"><label>Song</label><input type="text" id="song" required placeholder="Black Dog"></div>
+                <div class="form-row"><label>Artist</label><input type="text" id="artist" required placeholder="Led Zeppelin"></div>
+                <div class="form-row"><label>Duration (сек)</label><input type="number" id="duration" step="0.1" min="0" required placeholder="16.5"></div>
+                <div class="form-row"><label>Difficulty</label><select id="difficulty"><option value="beginner">beginner</option><option value="intermediate" selected>intermediate</option><option value="advanced">advanced</option></select></div>
+                <div class="form-row"><label>Genre</label><select id="genre"><option value="rock" selected>rock</option><option value="metal">metal</option><option value="blues">blues</option><option value="country">country</option><option value="punk">punk</option><option value="funk">funk</option><option value="jazz">jazz</option><option value="pop">pop</option><option value="other">other</option></select></div>
+                <div class="form-row"><label><input type="checkbox" id="isFree" name="isFree"> Бесплатный рифф (без подписки)</label></div>
+            </div>
+            <div class="form-section">
+                <h2>Коллекции</h2>
+                <p class="coll-pick-hint">Отметьте подборки, где показывать этот рифф. Список короткий даже при сотнях риффов. Сами коллекции создаются в админке «Коллекции».</p>
+                <div id="collChecks" class="coll-picks"></div>
+            </div>
+            <div class="form-section">
+                <h2>Видео и превью</h2>
+                <div class="form-row"><label>Lesson video (опционально — одно видео для режима разбора)</label><input type="text" id="lessonVideo" placeholder="assets/video/.../lesson.mp4"><input type="file" id="lessonVideoUpload" accept="video/mp4,.mp4" style="margin-top:6px"></div>
+                <div class="form-row"><label>Video left</label><input type="text" id="videoFile" placeholder="assets/video/.../left.mp4"><input type="file" id="videoFileUpload" accept="video/mp4,.mp4" style="margin-top:6px"></div>
+                <div class="form-row"><label>Video right</label><input type="text" id="videoFileRight" placeholder="assets/video/.../right.mp4"><input type="file" id="videoFileRightUpload" accept="video/mp4,.mp4" style="margin-top:6px"></div>
+                <div class="form-row"><label>Thumbnail</label><input type="text" id="thumbnail" placeholder="assets/img/riff-1.png"><input type="file" id="thumbnailUpload" accept="image/*" style="margin-top:6px"></div>
+            </div>
+            <div class="form-section">
+                <h2>Сегменты</h2>
+                <div class="segment-editor-video-wrap">
+                    <p class="segment-editor-hint">Верхняя шкала и полоса сегментов одной ширины; белая черта — текущее место воспроизведения. Клик по сегменту — выделение, двигайте границы. «+ Добавить сегмент» — под полосой.</p>
+                    <div class="segment-editor-video-box" id="segmentEditorVideoBox">
+                        <video id="segmentEditorVideo" preload="auto" playsinline></video>
+                        <div class="segment-editor-overlay" id="segmentEditorOverlay">
+                            <div class="segment-editor-timeline-wrap">
+                                <input type="range" class="segment-editor-timeline" id="segmentEditorTimeline" min="0" max="100" value="0" step="0.001" title="Перетащите для перемотки">
+                            </div>
+                            <div class="segment-editor-strip" id="segmentEditorStrip">
+                                <div class="segment-editor-segs-wrap" id="segmentEditorSegsWrap"></div>
+                                <div class="segment-editor-playhead" id="segmentEditorPlayhead" aria-hidden="true"></div>
+                            </div>
+                            <div class="segment-editor-strip-footer">
+                                <button type="button" class="segment-editor-plus" id="segmentEditorPlus" title="Добавить сегмент">+ Добавить сегмент</button>
+                            </div>
+                            <div class="segment-editor-time" id="segmentEditorTime">0.00</div>
+                            <div class="segment-editor-controls">
+                                <button type="button" class="btn btn-primary btn-small" id="segmentEditorPlayPause">▶ Play</button>
+                                <button type="button" class="btn btn-secondary btn-small" id="segmentEditorLoop" title="Зациклить выбранный сегмент">Зациклить</button>
+                                <span id="segmentEditorLoopLabel" class="segment-editor-loop-label" aria-live="polite"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="segment-editor-video-src" id="segmentEditorVideoSrc"></div>
+                </div>
+                <div class="segment-header">
+                    <span class="seg-start">start</span>
+                    <span class="seg-end">end</span>
+                    <span class="seg-name">Название</span>
+                    <span class="seg-color">Цвет</span>
+                </div>
+                <div id="segmentRows"></div>
+            </div>
+            <div class="form-section">
+                <button type="submit" class="btn btn-primary" id="submitBtn">Сохранить</button>
+                <button type="button" class="btn btn-secondary" id="deleteBtn" style="margin-left:10px; display:none;">Удалить</button>
+                <div id="saveFeedback" class="save-feedback"><span style="font-size:18px">✓</span> <span>Изменения сохранены</span></div>
+                <div id="msg" class="msg"></div>
+            </div>
+        </form>
+        </div>
+    </div>
+    <script src="../js/segment-offsets.js"></script>
+    <script>
+(function() {
+    var listUrl = '/api/riffs/list.php';
+    var saveUrl = '/api/riffs/save.php';
+    var reorderUrl = '/api/riffs/reorder.php';
+    var uploadUrl = '/api/upload.php';
+    var colListUrl = '/api/collections/list.php';
+    var riffsCache = [];
+    var collectionsFormCache = [];
+    var SEGMENT_COLORS = [
+        { name: 'По умолчанию', hex: '#9355E5' },
+        { name: 'Синий', hex: '#2196F3' },
+        { name: 'Зелёный', hex: '#4CAF50' },
+        { name: 'Оранжевый', hex: '#FF9800' },
+        { name: 'Красный', hex: '#F44336' },
+        { name: 'Жёлтый', hex: '#FFC107' },
+        { name: 'Голубой', hex: '#00BCD4' },
+        { name: 'Розовый', hex: '#E91E63' },
+        { name: 'Бирюзовый', hex: '#009688' }
+    ];
+    function slug(s) { return (''+(document.getElementById('artist').value||'')).toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9\-]/g,''); }
+    function buildColorSelectOptions(selected) {
+        var opt = SEGMENT_COLORS.map(function(c){ return '<option value="'+c.hex+'"'+(selected===c.hex?' selected':'')+'>'+c.name+'</option>'; }).join('');
+        return opt + '<option value="custom"'+(selected&&!SEGMENT_COLORS.some(function(c){return c.hex===selected;})?' selected':'')+'>Свой (#hex)</option>';
+    }
+    var DIFF_ORDER = { beginner: 0, intermediate: 1, advanced: 2 };
+    function getSortedRiffs() {
+        var sortBy = (document.getElementById('sortBy') && document.getElementById('sortBy').value) || 'order';
+        var sortDir = (document.getElementById('sortDir') && document.getElementById('sortDir').value) || 'asc';
+        var list = riffsCache.slice();
+        if (sortBy === 'order') return list;
+        var mult = sortDir === 'asc' ? 1 : -1;
+        if (sortBy === 'artist') {
+            list.sort(function(a,b){ return mult * ((a.artist||'').localeCompare(b.artist||'')); });
+        } else if (sortBy === 'genre') {
+            list.sort(function(a,b){ return mult * ((a.genre||'').localeCompare(b.genre||'')); });
+        } else if (sortBy === 'difficulty') {
+            list.sort(function(a,b){ return mult * ((DIFF_ORDER[a.difficulty]!==undefined ? DIFF_ORDER[a.difficulty] : 1) - (DIFF_ORDER[b.difficulty]!==undefined ? DIFF_ORDER[b.difficulty] : 1)); });
+        } else if (sortBy === 'added') {
+            if (sortDir === 'desc') list.reverse();
+        }
+        return list;
+    }
+    function renderCollChecks(selectedIds) {
+        var box = document.getElementById('collChecks');
+        if (!box) return;
+        var set = {};
+        (selectedIds || []).forEach(function (id) { set[parseInt(id, 10)] = true; });
+        if (!collectionsFormCache.length) {
+            box.innerHTML = '<span style="color:rgba(255,255,255,0.45);font-size:13px;">Загрузка коллекций…</span>';
+            return;
+        }
+        box.innerHTML = '';
+        collectionsFormCache.forEach(function (c) {
+            var id = c.id;
+            var label = document.createElement('label');
+            label.className = 'coll-pick';
+            var cb = document.createElement('input');
+            cb.type = 'checkbox';
+            cb.value = id;
+            cb.checked = !!set[id];
+            cb.setAttribute('data-col-id', id);
+            var span = document.createElement('span');
+            span.textContent = (c.name || '') + ' (id ' + id + ')';
+            label.appendChild(cb);
+            label.appendChild(span);
+            box.appendChild(label);
+        });
+    }
+    function getSelectedCollectionIds() {
+        var ids = [];
+        document.querySelectorAll('#collChecks input[type=checkbox]:checked').forEach(function (cb) {
+            var n = parseInt(cb.value, 10);
+            if (!isNaN(n)) ids.push(n);
+        });
+        return ids;
+    }
+    function loadCollectionsMeta(done) {
+        fetch(colListUrl).then(function (r) { return r.json(); }).then(function (list) {
+            collectionsFormCache = Array.isArray(list) ? list : [];
+            if (done) done();
+        }).catch(function () {
+            collectionsFormCache = [];
+            if (done) done();
+        });
+    }
+    function loadRiffs() {
+        fetch(listUrl).then(function(r){return r.json();}).then(function(list){
+            riffsCache = list || [];
+            var sel = document.getElementById('riffSelect');
+            sel.innerHTML = '<option value="">— Новый рифф —</option>';
+            (riffsCache).forEach(function(r){ var o = document.createElement('option'); o.value = r.id; o.textContent = (r.song||'')+' — '+(r.artist||''); sel.appendChild(o); });
+            renderRiffList();
+            loadCollectionsMeta(function () {
+                var editId = document.getElementById('riffForm').dataset.editId;
+                if (editId) {
+                    var rr = riffsCache.find(function (x) { return String(x.id) === String(editId); });
+                    renderCollChecks(rr && rr.collectionIds ? rr.collectionIds : []);
+                } else {
+                    renderCollChecks([]);
+                }
+            });
+        }).catch(function(){});
+    }
+    var GripSvg = '<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="6" r="1.5"/><circle cx="15" cy="6" r="1.5"/><circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/><circle cx="9" cy="18" r="1.5"/><circle cx="15" cy="18" r="1.5"/></svg>';
+    var dragCard = null; var dragOrigIdx = null; var dragOffsetX = 0; var dragOffsetY = 0; var placeholderEl = null; var cardsContainer = null;
+    var FLIP_DURATION = 280;
+    function onDragMove(e) {
+        if (!dragCard) return;
+        dragCard.style.left = (e.clientX - dragOffsetX) + 'px';
+        dragCard.style.top = (e.clientY - dragOffsetY) + 'px';
+        var under = document.elementFromPoint(e.clientX, e.clientY);
+        var targetCard = under && under.closest ? under.closest('.riff-card') : null;
+        var ph = cardsContainer && cardsContainer.querySelector ? cardsContainer.querySelector('.riff-card-placeholder') : null;
+        if (!ph || !targetCard || targetCard === dragCard || targetCard === ph) return;
+        if (targetCard.parentNode !== cardsContainer) return;
+
+        var children = cardsContainer.children;
+        var oldRects = new Map();
+        for (var i = 0; i < children.length; i++) {
+            if (children[i] === dragCard) continue;
+            oldRects.set(children[i], children[i].getBoundingClientRect());
+        }
+        ph.parentNode.insertBefore(ph, targetCard);
+        void cardsContainer.offsetHeight;
+
+        var toAnimate = [];
+        for (var el of oldRects.keys()) {
+            var oldR = oldRects.get(el);
+            var newR = el.getBoundingClientRect();
+            var dx = oldR.left - newR.left;
+            var dy = oldR.top - newR.top;
+            if (dx === 0 && dy === 0) continue;
+            el.classList.add(el.classList.contains('riff-card-placeholder') ? 'riff-shift' : 'riff-card-shift');
+            el.style.transform = 'translate(' + dx + 'px,' + dy + 'px)';
+            toAnimate.push(el);
+        }
+        if (toAnimate.length) {
+            requestAnimationFrame(function() {
+                requestAnimationFrame(function() {
+                    for (var j = 0; j < toAnimate.length; j++) {
+                        toAnimate[j].style.transform = '';
+                    }
+                    setTimeout(function() {
+                        for (var k = 0; k < toAnimate.length; k++) {
+                            toAnimate[k].classList.remove('riff-card-shift');
+                            toAnimate[k].classList.remove('riff-shift');
+                        }
+                    }, FLIP_DURATION);
+                });
+            });
+        }
+    }
+    function onDragEnd() {
+        if (!dragCard || !cardsContainer) return;
+        var ph = cardsContainer.querySelector('.riff-card-placeholder');
+        var toIdx = ph ? Array.prototype.indexOf.call(cardsContainer.children, ph) : dragOrigIdx;
+        if (toIdx > dragOrigIdx) toIdx--;
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+        dragCard.style.position = '';
+        dragCard.style.left = '';
+        dragCard.style.top = '';
+        dragCard.style.width = '';
+        dragCard.classList.remove('riff-dragging');
+        if (ph) ph.remove();
+        if (toIdx !== dragOrigIdx && toIdx >= 0) {
+            var item = riffsCache.splice(dragOrigIdx, 1)[0];
+            riffsCache.splice(toIdx, 0, item);
+            fetch(reorderUrl, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({order: riffsCache.map(function(x){ return x.id; })}) }).then(function(r){ return r.json(); }).then(function(d){ if (d.success) { renderRiffList(); showReorderFeedback(); } });
+        } else {
+            renderRiffList();
+        }
+        dragCard = null; dragOrigIdx = null; placeholderEl = null;
+    }
+    function renderRiffList() {
+        var body = document.getElementById('riffListBody');
+        if (!body) return;
+        if (!riffsCache.length) {
+            body.innerHTML = '<div class="riff-list-empty">Риффов пока нет. Перейдите во вкладку «Редактировать» и создайте первый.</div>';
+            return;
+        }
+        var sorted = getSortedRiffs();
+        body.innerHTML = '<div class="riff-list-cards" id="riffCardsContainer"></div>';
+        cardsContainer = document.getElementById('riffCardsContainer');
+        sorted.forEach(function(r, i){
+            var origIdx = riffsCache.indexOf(r);
+            var card = document.createElement('div');
+            card.className = 'riff-card';
+            card.dataset.id = r.id;
+            card.dataset.origIdx = origIdx;
+            card.innerHTML =
+                '<div class="riff-move-cell">' +
+                '<span class="riff-grip" title="Перетащить" aria-label="Перетащить">' + GripSvg + '</span>' +
+                '<div class="riff-move-btns"><button type="button" class="move-up" title="Выше">▲</button><button type="button" class="move-down" title="Ниже">▼</button></div></div>' +
+                '<span class="riff-list-song">' + (r.song||'') + '</span>' +
+                '<span class="riff-list-artist">' + (r.artist||'') + '</span>' +
+                '<div class="riff-list-actions"><button type="button" class="btn btn-primary btn-small btn-edit">Редактировать</button><button type="button" class="btn btn-secondary btn-small btn-del">Удалить</button></div>';
+            var moveUp = card.querySelector('.move-up'); var moveDown = card.querySelector('.move-down');
+            moveUp.disabled = (origIdx === 0);
+            moveDown.disabled = (origIdx === riffsCache.length - 1);
+            moveUp.onclick = function(e){ e.preventDefault(); moveRiff(origIdx, -1); };
+            moveDown.onclick = function(e){ e.preventDefault(); moveRiff(origIdx, 1); };
+            card.querySelector('.btn-edit').onclick = function(){ switchToEdit(r.id); };
+            card.querySelector('.btn-del').onclick = function(){ deleteFromList(r.id, card); };
+            var grip = card.querySelector('.riff-grip');
+            grip.addEventListener('mousedown', function(e){
+                if ((document.getElementById('sortBy') && document.getElementById('sortBy').value) !== 'order') return;
+                e.preventDefault();
+                dragCard = card;
+                dragOrigIdx = origIdx;
+                var rect = card.getBoundingClientRect();
+                dragOffsetX = e.clientX - rect.left;
+                dragOffsetY = e.clientY - rect.top;
+                card.classList.add('riff-dragging');
+                card.style.position = 'fixed';
+                card.style.left = (e.clientX - dragOffsetX) + 'px';
+                card.style.top = (e.clientY - dragOffsetY) + 'px';
+                card.style.width = rect.width + 'px';
+                placeholderEl = document.createElement('div');
+                placeholderEl.className = 'riff-card-placeholder';
+                placeholderEl.style.height = rect.height + 'px';
+                cardsContainer.insertBefore(placeholderEl, card);
+                document.addEventListener('mousemove', onDragMove);
+                document.addEventListener('mouseup', onDragEnd);
+            });
+            cardsContainer.appendChild(card);
+        });
+    }
+    function moveRiff(idx, dir) {
+        var newIdx = idx + dir;
+        if (newIdx < 0 || newIdx >= riffsCache.length) return;
+        var tmp = riffsCache[idx];
+        riffsCache[idx] = riffsCache[newIdx];
+        riffsCache[newIdx] = tmp;
+        var order = riffsCache.map(function(r){ return r.id; });
+        fetch(reorderUrl, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({order: order}) })
+            .then(function(r){ return r.json(); })
+            .then(function(d){
+                if (d.success) {
+                    renderRiffList();
+                    showReorderFeedback();
+                }
+            });
+    }
+    function showReorderFeedback() {
+        var el = document.getElementById('reorderFeedback');
+        if (el) { el.classList.remove('show'); void el.offsetWidth; }
+        el = document.getElementById('reorderFeedback');
+        if (!el) {
+            el = document.createElement('div');
+            el.id = 'reorderFeedback';
+            el.className = 'reorder-feedback';
+            el.textContent = 'Порядок сохранён';
+            document.body.appendChild(el);
+        }
+        el.classList.add('show');
+        setTimeout(function(){ el.classList.remove('show'); }, 2000);
+    }
+    function switchToEdit(id) {
+        document.querySelectorAll('.admin-tab').forEach(function(t){ t.classList.toggle('active', t.dataset.tab==='edit'); });
+        document.querySelectorAll('.tab-pane').forEach(function(p){ p.classList.toggle('active', p.id==='tabEdit'); });
+        var sel = document.getElementById('riffSelect');
+        sel.value = (id != null && id !== '') ? id : '';
+        sel.dispatchEvent(new Event('change'));
+    }
+    function deleteFromList(id, row) {
+        if (!confirm('Удалить этот рифф?')) return;
+        fetch('/api/riffs/delete.php', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({id: parseInt(id,10)}) })
+            .then(function(r){ return r.json(); })
+            .then(function(d){
+                if (d.success) { loadRiffs(); }
+            });
+    }
+    function addSegmentRow(container, start, end, name, color) {
+        var n = (container.children.length + 1);
+        var defaultName = name || ('Shot ' + n);
+        var segColor = color || SEGMENT_COLORS[0].hex;
+        var isCustom = segColor && !SEGMENT_COLORS.some(function(c){ return c.hex===segColor; });
+        var div = document.createElement('div'); div.className = 'segment-row' + (isCustom ? ' color-custom' : '');
+        div.innerHTML = '<input type="number" step="0.001" class="start" placeholder="start" value="'+(start!=null?start:0)+'"><input type="number" step="0.001" class="end" placeholder="end" value="'+(end!=null?end:0)+'"><input type="text" class="name" placeholder="Shot '+n+'" value="'+(defaultName||'').replace(/"/g,'&quot;')+'"><select class="color-select">'+buildColorSelectOptions(segColor)+'</select><input type="text" class="color-hex" placeholder="#hex" value="'+(isCustom?segColor:'')+'" maxlength="7"><button type="button" class="btn btn-secondary btn-small rm-seg">−</button>';
+        container.appendChild(div);
+        if (typeof segmentEditorRenderStrip === 'function') segmentEditorRenderStrip();
+        div.querySelector('.rm-seg').onclick = function(){ div.remove(); if (segmentEditorSelectedIndex >= container.children.length) segmentEditorSelectedIndex = Math.max(0, container.children.length - 1); if (typeof segmentEditorRenderStrip === 'function') segmentEditorRenderStrip(); };
+        div.querySelector('.color-select').onchange = function(){
+            var v = this.value;
+            if (v==='custom') { div.classList.add('color-custom'); div.querySelector('.color-hex').value = div.querySelector('.color-hex').value||'#9355E5'; }
+            else { div.classList.remove('color-custom'); }
+        };
+    }
+    function loadRiff(id) {
+        fetch(listUrl).then(function(r){return r.json();}).then(function(list){
+            var riff = (list||[]).find(function(r){ return String(r.id)===String(id); });
+            if(!riff) return;
+            document.getElementById('song').value = riff.song||'';
+            document.getElementById('artist').value = riff.artist||'';
+            document.getElementById('duration').value = riff.duration!=null ? riff.duration : '';
+            document.getElementById('difficulty').value = riff.difficulty||'intermediate';
+            var g = (riff.genre||'rock').trim();
+            var ge = document.getElementById('genre');
+            if(g && !ge.querySelector('option[value="'+g.replace(/"/g,'&quot;')+'"]')) { var o=document.createElement('option'); o.value=g; o.textContent=g; ge.appendChild(o); }
+            ge.value = g||'rock';
+            document.getElementById('isFree').checked = !!riff.isFree;
+            document.getElementById('videoFile').value = riff.videoFile||'';
+            document.getElementById('videoFileRight').value = riff.videoFileRight||'';
+            document.getElementById('thumbnail').value = riff.thumbnail||'';
+            document.getElementById('lessonVideo').value = riff.lessonVideo||'';
+            var c = document.getElementById('segmentRows'); c.innerHTML = '';
+            (riff.segments||[]).forEach(function(s, i){ addSegmentRow(c, s.start, s.end, s.name || ('Shot ' + (i+1)), s.color); });
+            if(!riff.segments||riff.segments.length===0) addSegmentRow(c, 0, 0, 'Shot 1');
+            document.getElementById('riffForm').dataset.editId = riff.id;
+            segmentEditorSetVideo(riff.videoFile || riff.videoFileRight || '');
+            if (collectionsFormCache.length) {
+                renderCollChecks(riff.collectionIds || []);
+            } else {
+                loadCollectionsMeta(function () {
+                    renderCollChecks(riff.collectionIds || []);
+                });
+            }
+        }).catch(function(){});
+    }
+    function segmentEditorSetVideo(path) {
+        var video = document.getElementById('segmentEditorVideo');
+        var srcEl = document.getElementById('segmentEditorVideoSrc');
+        if (!video || !srcEl) return;
+        path = (path || '').trim();
+        if (!path) {
+            video.removeAttribute('src');
+            video.load();
+            srcEl.textContent = 'Укажите Video left (или right) и сохраните рифф — затем здесь появится видео для разметки.';
+            return;
+        }
+        var displayPath = path;
+        if (path.startsWith('http')) {
+            video.src = path;
+        } else {
+            // Перемотка (seek) работает только при отдаче через video.php (Accept-Ranges)
+            var fileParam = path.replace(/^\//, '');
+            video.src = '../video.php?file=' + encodeURIComponent(fileParam);
+        }
+        video.load();
+        srcEl.textContent = 'Видео: ' + displayPath;
+    }
+    function segmentEditorCurrentTime() {
+        var video = document.getElementById('segmentEditorVideo');
+        if (!video || isNaN(video.currentTime)) return 0;
+        return Math.max(0, video.currentTime);
+    }
+    var segmentEditorRangeDragging = false;
+    var segmentEditorSmoothTickId = null;
+    function segmentEditorUpdatePlayhead() {
+        var playhead = document.getElementById('segmentEditorPlayhead');
+        if (!playhead) return;
+        var stripDuration = segmentEditorGetStripDuration();
+        if (stripDuration <= 0) { playhead.style.left = '0%'; return; }
+        var t = segmentEditorCurrentTime();
+        var pct = Math.min(100, Math.max(0, (t / stripDuration) * 100));
+        playhead.style.left = pct.toFixed(4) + '%';
+    }
+    function segmentEditorUpdateTimeDisplay() {
+        var t = segmentEditorCurrentTime();
+        var el = document.getElementById('segmentEditorTime');
+        if (el) el.textContent = t.toFixed(2);
+        var range = document.getElementById('segmentEditorTimeline');
+        var stripDuration = segmentEditorGetStripDuration();
+        if (range && !isNaN(t) && !segmentEditorRangeDragging && stripDuration > 0) range.value = Math.min(t, stripDuration);
+        segmentEditorUpdatePlayhead();
+    }
+    function segmentEditorStartSmoothUpdates() {
+        if (segmentEditorSmoothTickId != null) return;
+        function tick() {
+            var video = document.getElementById('segmentEditorVideo');
+            if (!video || video.paused) { segmentEditorSmoothTickId = null; return; }
+            if (!segmentEditorRangeDragging) segmentEditorUpdateTimeDisplay();
+            segmentEditorSmoothTickId = requestAnimationFrame(tick);
+        }
+        segmentEditorSmoothTickId = requestAnimationFrame(tick);
+    }
+    function segmentEditorStopSmoothUpdates() {
+        if (segmentEditorSmoothTickId != null) { cancelAnimationFrame(segmentEditorSmoothTickId); segmentEditorSmoothTickId = null; }
+    }
+    function segmentEditorSyncTimelineRange() {
+        var video = document.getElementById('segmentEditorVideo');
+        var range = document.getElementById('segmentEditorTimeline');
+        if (!video || !range || !video.src) return;
+        var stripDuration = segmentEditorGetStripDuration();
+        if (stripDuration <= 0) return;
+        range.min = 0;
+        range.max = stripDuration;
+        range.step = '0.001';
+        range.value = Math.min(video.currentTime || 0, stripDuration);
+        segmentEditorRenderStrip();
+        segmentEditorUpdatePlayhead();
+    }
+    function segmentEditorGetDuration() {
+        var video = document.getElementById('segmentEditorVideo');
+        if (!video || !video.src) return 0;
+        var d = video.duration;
+        return (isNaN(d) || d <= 0) ? 0 : d;
+    }
+    /** Длительность для полосы сегментов: не меньше видео и не меньше конца последнего сегмента, чтобы хронометраж не «обрезался». */
+    function segmentEditorGetStripDuration() {
+        var duration = segmentEditorGetDuration();
+        var segs = segmentEditorGetSegmentsFromTable();
+        var maxEnd = 0;
+        segs.forEach(function(seg) {
+            var e = parseFloat(seg.end) || 0;
+            if (e > maxEnd) maxEnd = e;
+        });
+        return Math.max(duration, maxEnd, 1);
+    }
+    function segmentEditorGetSegmentsFromTable() {
+        var rows = document.querySelectorAll('#segmentRows .segment-row');
+        var out = [];
+        rows.forEach(function(row) {
+            var startIn = row.querySelector('.start');
+            var endIn = row.querySelector('.end');
+            var nameIn = row.querySelector('.name');
+            var colSel = row.querySelector('.color-select');
+            var colHex = row.querySelector('.color-hex');
+            var segColor = (colSel && colSel.value === 'custom' && colHex) ? (colHex.value || '').trim() : (colSel ? colSel.value : '');
+            if (!segColor || !/^#[0-9A-Fa-f]{6}$/.test(segColor)) segColor = SEGMENT_COLORS[0].hex;
+            out.push({
+                start: parseFloat(startIn && startIn.value) || 0,
+                end: parseFloat(endIn && endIn.value) || 0,
+                name: (nameIn && nameIn.value) || '',
+                color: segColor,
+                rowEl: row
+            });
+        });
+        return out;
+    }
+    var segmentEditorDrag = null;
+    var MIN_SEGMENT_GAP = 0.001;
+    function segmentEditorRenderStrip() {
+        var wrap = document.getElementById('segmentEditorSegsWrap');
+        var stripDuration = segmentEditorGetStripDuration();
+        if (!wrap) return;
+        wrap.innerHTML = '';
+        if (stripDuration <= 0) return;
+        var segs = segmentEditorGetSegmentsFromTable();
+        segs.forEach(function(seg, idx) {
+            var start = Math.max(0, seg.start);
+            var end = Math.max(start + 0.01, seg.end);
+            var left = (start / stripDuration) * 100;
+            var w = ((end - start) / stripDuration) * 100;
+            if (w < 0.5) w = 0.5;
+            var block = document.createElement('div');
+            block.className = 'segment-editor-seg' + (idx === segmentEditorSelectedIndex ? ' selected' : '') + (segmentEditorLoopActive && idx === segmentEditorSelectedIndex ? ' looped' : '');
+            block.dataset.segmentIndex = idx;
+            block.style.left = left + '%';
+            block.style.width = w + '%';
+            block.style.background = seg.color || '#9355E5';
+            block.innerHTML = '<span class="seg-handle seg-handle-left" data-side="left" title="Двигать начало"></span><span class="seg-handle seg-handle-right" data-side="right" title="Двигать конец"></span>';
+            wrap.appendChild(block);
+        });
+        var range = document.getElementById('segmentEditorTimeline');
+        if (range && stripDuration > 0) {
+            range.max = stripDuration;
+            var video = document.getElementById('segmentEditorVideo');
+            if (video && !segmentEditorRangeDragging) range.value = Math.min(video.currentTime || 0, stripDuration);
+        }
+        segmentEditorUpdatePlayhead();
+    }
+    /** Таймлайн и полоса сегментов одной ширины; время по X по полной ширине полосы. */
+    function segmentEditorTimeFromStripX(clientX) {
+        var wrap = document.getElementById('segmentEditorSegsWrap');
+        if (!wrap) return 0;
+        var r = wrap.getBoundingClientRect();
+        var stripDuration = segmentEditorGetStripDuration();
+        if (stripDuration <= 0 || r.width <= 0) return 0;
+        var x = (clientX - r.left) / r.width;
+        var t = Math.max(0, Math.min(1, x)) * stripDuration;
+        return parseFloat(t.toFixed(3));
+    }
+    function segmentEditorOnStripMouseDown(e) {
+        if (!e.target.closest('#segmentEditorStrip') && !e.target.closest('#segmentEditorPlus')) return;
+        if (e.target.closest('.segment-editor-plus')) {
+            e.preventDefault();
+            var stripDuration = segmentEditorGetStripDuration();
+            var videoDuration = segmentEditorGetDuration();
+            var container = document.getElementById('segmentRows');
+            if (!container) return;
+            var segs = segmentEditorGetSegmentsFromTable();
+            var lastEnd = segs.length ? Math.max(0, segs[segs.length - 1].end) : 0;
+            var start = segs.length ? lastEnd + MIN_SEGMENT_GAP : 0;
+            if (segs.length >= 1 && lastEnd <= 0) start = videoDuration > 0 ? Math.min(1, videoDuration * 0.25) : 1;
+            var end = Math.min(start + 1, Math.max(stripDuration, start + MIN_SEGMENT_GAP));
+            if (end <= start) end = start + 0.5;
+            var n = container.children.length + 1;
+            addSegmentRow(container, start, end, 'Shot ' + n, null);
+            segmentEditorSelectedIndex = segs.length;
+            segmentEditorRenderStrip();
+            segmentEditorUpdateLoopLabel();
+            return;
+        }
+        var handle = e.target.closest('.seg-handle');
+        if (handle) {
+            e.preventDefault();
+            var block = handle.closest('.segment-editor-seg');
+            var idx = parseInt(block.dataset.segmentIndex, 10);
+            var side = handle.dataset.side;
+            segmentEditorDrag = { index: idx, side: side };
+            document.addEventListener('mousemove', segmentEditorOnHandleMouseMove);
+            document.addEventListener('mouseup', segmentEditorOnHandleMouseUp);
+            return;
+        }
+        var block = e.target.closest('.segment-editor-seg');
+        if (block) {
+            e.preventDefault();
+            var video = document.getElementById('segmentEditorVideo');
+            segmentEditorSelectedIndex = parseInt(block.dataset.segmentIndex, 10);
+            segmentEditorRenderStrip();
+            segmentEditorUpdateLoopLabel();
+            if (video && video.src) {
+                var segs = segmentEditorGetSegmentsFromTable();
+                var start = segmentEditorSegmentStartForPlay(segs, segmentEditorSelectedIndex);
+                video.pause();
+                video.currentTime = start;
+                segmentEditorUpdateTimeDisplay();
+                if (segmentEditorLoopActive) {
+                    video.addEventListener('seeked', function onSeeked() {
+                        video.removeEventListener('seeked', onSeeked);
+                        video.play().catch(function(){});
+                    }, { once: true });
+                }
+            }
+            return;
+        }
+        var t = segmentEditorTimeFromStripX(e.clientX);
+        var video = document.getElementById('segmentEditorVideo');
+        if (video && video.src) { video.currentTime = t; segmentEditorUpdateTimeDisplay(); }
+    }
+    function segmentEditorOnHandleMouseMove(e) {
+        if (!segmentEditorDrag) return;
+        var t = segmentEditorTimeFromStripX(e.clientX);
+        var segs = segmentEditorGetSegmentsFromTable();
+        var rows = document.querySelectorAll('#segmentRows .segment-row');
+        var row = rows[segmentEditorDrag.index];
+        if (!row) return;
+        var startIn = row.querySelector('.start');
+        var endIn = row.querySelector('.end');
+        var stripDuration = segmentEditorGetStripDuration();
+        var idx = segmentEditorDrag.index;
+        if (segmentEditorDrag.side === 'left') {
+            var curEnd = parseFloat(endIn.value) || 0;
+            var prevEnd = idx > 0 ? (parseFloat(segs[idx - 1].end) || 0) : -MIN_SEGMENT_GAP;
+            var newStart = Math.max(prevEnd + MIN_SEGMENT_GAP, Math.min(t, curEnd - MIN_SEGMENT_GAP));
+            if (startIn) startIn.value = newStart.toFixed(3);
+        } else {
+            var curStart = parseFloat(startIn.value) || 0;
+            var maxEnd = idx < segs.length - 1 ? (parseFloat(segs[idx + 1].start) || stripDuration) - MIN_SEGMENT_GAP : stripDuration;
+            var newEnd = Math.max(curStart + MIN_SEGMENT_GAP, Math.min(t, maxEnd));
+            if (endIn) endIn.value = newEnd.toFixed(3);
+        }
+        segmentEditorRenderStrip();
+        segmentEditorUpdateTimeDisplay();
+    }
+    function segmentEditorOnHandleMouseUp() {
+        segmentEditorDrag = null;
+        document.removeEventListener('mousemove', segmentEditorOnHandleMouseMove);
+        document.removeEventListener('mouseup', segmentEditorOnHandleMouseUp);
+    }
+    /** В админке используем только сохранённые границы (без смещений), чтобы тайминг в сегментах совпадал с реальным видео. Смещения getSegmentStart/End — только на странице практики. */
+    function segmentEditorEffectiveStart(seg) { return Number(seg.start) || 0; }
+    function segmentEditorEffectiveEnd(seg) { return Number(seg.end) || 0; }
+    var segmentEditorSelectedIndex = 0;
+    var segmentEditorLoopActive = false;
+    var segmentEditorLastLoopSeekAt = 0;
+    var segmentEditorLoopIntervalId = null;
+    var segmentEditorOnEndedLoop = null;
+    var SEGMENT_LOOP_DEBOUNCE_MS = 500;
+    var SEGMENT_LOOP_SEEK_MARGIN = 0.04;
+    /** Начало сегмента для воспроизведения: если в таблице 0 у не-первого сегмента — берём конец предыдущего. */
+    function segmentEditorSegmentStartForPlay(segs, idx) {
+        if (!segs || idx < 0 || idx >= segs.length) return 0;
+        var seg = segs[idx];
+        var start = segmentEditorEffectiveStart(seg);
+        if (idx > 0 && start <= 0) start = segmentEditorEffectiveEnd(segs[idx - 1]);
+        return start;
+    }
+    /** Возвращает { start, end } для текущего выбранного сегмента или null. */
+    function segmentEditorGetLoopBounds() {
+        var segs = segmentEditorGetSegmentsFromTable();
+        var idx = segmentEditorSelectedIndex;
+        if (idx < 0 || idx >= segs.length) return null;
+        var seg = segs[idx];
+        return { start: segmentEditorSegmentStartForPlay(segs, idx), end: segmentEditorEffectiveEnd(seg) };
+    }
+    /** При лупе держим воспроизведение внутри сегмента. Один источник проверки (setInterval), без timeupdate — иначе двойной seek даёт «заедание». */
+    function segmentEditorEnforceLoop() {
+        if (!segmentEditorLoopActive) return;
+        var video = document.getElementById('segmentEditorVideo');
+        if (!video || !video.src) return;
+        if (Date.now() - segmentEditorLastLoopSeekAt < SEGMENT_LOOP_DEBOUNCE_MS) return;
+        var bounds = segmentEditorGetLoopBounds();
+        if (!bounds) return;
+        var t = video.currentTime;
+        if (t < bounds.start - 0.05) {
+            segmentEditorLastLoopSeekAt = Date.now();
+            video.currentTime = bounds.start;
+            return;
+        }
+        if (t >= bounds.end - SEGMENT_LOOP_SEEK_MARGIN) {
+            if (t >= bounds.start + 0.05) {
+                segmentEditorLastLoopSeekAt = Date.now();
+                video.currentTime = bounds.start;
+            }
+        }
+    }
+    function segmentEditorUpdateLoopLabel() {
+        var el = document.getElementById('segmentEditorLoopLabel');
+        if (!el) return;
+        if (!segmentEditorLoopActive) { el.textContent = ''; return; }
+        var segs = segmentEditorGetSegmentsFromTable();
+        var idx = segmentEditorSelectedIndex;
+        if (idx < 0 || idx >= segs.length) { el.textContent = ''; return; }
+        var name = (segs[idx].name || '').trim() || ('Сегмент ' + (idx + 1));
+        el.textContent = 'Зациклен: ' + name;
+    }
+    var sortByEl = document.getElementById('sortBy');
+    var sortDirEl = document.getElementById('sortDir');
+    if (sortByEl) sortByEl.addEventListener('change', function(){ renderRiffList(); });
+    if (sortDirEl) sortDirEl.addEventListener('change', function(){ renderRiffList(); });
+    document.getElementById('riffSelect').onchange = function(){
+        var id = this.value;
+        document.getElementById('riffForm').dataset.editId = id||'';
+        document.getElementById('deleteBtn').style.display = id ? '' : 'none';
+        if(id) loadRiff(id);
+        else {
+            document.getElementById('riffForm').reset();
+            document.getElementById('isFree').checked = false;
+            document.getElementById('lessonVideo').value = '';
+            document.getElementById('segmentRows').innerHTML = '';
+            addSegmentRow(document.getElementById('segmentRows'), 0, 0, 'Shot 1');
+            segmentEditorSetVideo('');
+            renderCollChecks([]);
+        }
+    };
+    document.getElementById('deleteBtn').onclick = function(){
+        var id = document.getElementById('riffForm').dataset.editId;
+        if(!id || !confirm('Удалить?')) return;
+        fetch('/api/riffs/delete.php', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({id: parseInt(id,10)}) })
+            .then(function(r){return r.json();}).then(function(d){
+                if(d.success) { document.getElementById('riffSelect').value=''; document.getElementById('riffSelect').dispatchEvent(new Event('change')); loadRiffs(); document.getElementById('msg').textContent='Удалён'; document.getElementById('msg').className='msg success'; }
+                else { document.getElementById('msg').textContent = d.error||'Ошибка'; document.getElementById('msg').className='msg error'; }
+            }).catch(function(){ document.getElementById('msg').textContent='Ошибка'; document.getElementById('msg').className='msg error'; });
+    };
+    function showMsg(t, err) { var m = document.getElementById('msg'); m.textContent = t; m.className = 'msg '+(err?'error':'success'); }
+    function uploadFile(file, path) {
+        if(!file||!file.size) return Promise.resolve(path);
+        var fd = new FormData(); fd.append('file', file); fd.append('path', path);
+        return fetch(uploadUrl, { method: 'POST', body: fd }).then(function(r){return r.json();}).then(function(d){ return d.success&&d.path ? d.path : Promise.reject(new Error(d.error||'Upload failed')); });
+    }
+    document.getElementById('riffForm').onsubmit = function(e){
+        e.preventDefault();
+        var editId = this.dataset.editId||'', song = document.getElementById('song').value.trim(), artist = document.getElementById('artist').value.trim();
+        if(!song||!artist){ showMsg('Укажите Song и Artist', true); return; }
+        var artistSlug = (''+artist).toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9\-]/g,'');
+        var songSlug = (''+song).toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9\-]/g,'');
+        var basePath = 'assets/video/'+artistSlug+'/'+songSlug+'/';
+        var vL = document.getElementById('videoFile').value.trim(), vR = document.getElementById('videoFileRight').value.trim(), th = document.getElementById('thumbnail').value.trim(), vLesson = document.getElementById('lessonVideo').value.trim();
+        var uL = document.getElementById('videoFileUpload').files[0], uR = document.getElementById('videoFileRightUpload').files[0], uT = document.getElementById('thumbnailUpload').files[0], uLesson = document.getElementById('lessonVideoUpload').files[0];
+        var segs = []; document.querySelectorAll('#segmentRows .segment-row').forEach(function(row, i){
+            var n = (row.querySelector('.name').value||'').trim();
+            var colSel = row.querySelector('.color-select');
+            var colHex = row.querySelector('.color-hex');
+            var segColor = (colSel && colSel.value==='custom' && colHex) ? (colHex.value||'').trim() : (colSel ? colSel.value : null);
+            if (!segColor || !/^#[0-9A-Fa-f]{6}$/.test(segColor)) segColor = SEGMENT_COLORS[0].hex;
+            segs.push({ start: parseFloat(row.querySelector('.start').value)||0, end: parseFloat(row.querySelector('.end').value)||0, name: n || ('Shot ' + (i+1)), color: segColor });
+        });
+        var submitBtn = document.getElementById('submitBtn'); submitBtn.disabled = true;
+        Promise.all([
+            uL ? uploadFile(uL, vL||basePath+(uL.name||'left.mp4')) : Promise.resolve(vL),
+            uR ? uploadFile(uR, vR||basePath+(uR.name||'right.mp4')) : Promise.resolve(vR),
+            uT ? uploadFile(uT, th||'assets/img/'+(uT.name||'riff-'+(editId||'new')+'.png')) : Promise.resolve(th),
+            uLesson ? uploadFile(uLesson, vLesson||basePath+(uLesson.name||'lesson.mp4')) : Promise.resolve(vLesson)
+        ]).then(function(r){
+            var riff = { song:song, artist:artist, duration: parseFloat(document.getElementById('duration').value)||0, difficulty: document.getElementById('difficulty').value||'intermediate', genre: document.getElementById('genre').value.trim()||'rock', isFree: document.getElementById('isFree').checked, videoFile: r[0]||basePath+'left.mp4', videoFileRight: r[1]||basePath+'right.mp4', thumbnail: r[2]||'assets/img/riff-1.png', lessonVideo: r[3]||vLesson||null, segments: segs, isFavorite: false, lastPracticed: null, collectionIds: getSelectedCollectionIds() };
+            if(editId) riff.id = parseInt(editId,10);
+            return fetch(saveUrl, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({riff:riff}) }).then(function(x){return x.json();});
+        }).then(function(d){
+            submitBtn.disabled = false;
+            if(d.success){
+                document.getElementById('msg').className = 'msg';
+                document.getElementById('msg').style.display = 'none';
+                var fb = document.getElementById('saveFeedback');
+                fb.classList.add('show');
+                fb.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                setTimeout(function(){ fb.classList.remove('show'); }, 4000);
+                document.getElementById('videoFileUpload').value=''; document.getElementById('videoFileRightUpload').value=''; document.getElementById('thumbnailUpload').value=''; document.getElementById('lessonVideoUpload').value='';
+                loadRiffs();
+            } else showMsg(d.error||'Ошибка', true);
+        }).catch(function(err){ submitBtn.disabled = false; showMsg(err.message||'Ошибка', true); });
+    };
+    document.getElementById('btnNewRiff').onclick = function(){ switchToEdit(null); };
+    document.querySelectorAll('.admin-tab').forEach(function(t){
+        t.addEventListener('click', function(e){ e.preventDefault();
+            var tab = this.dataset.tab;
+            document.querySelectorAll('.admin-tab').forEach(function(x){ x.classList.toggle('active', x.dataset.tab===tab); });
+            document.querySelectorAll('.tab-pane').forEach(function(p){ p.classList.toggle('active', (tab==='list'&&p.id==='tabList')||(tab==='edit'&&p.id==='tabEdit')); });
+        });
+    });
+    loadRiffs();
+    addSegmentRow(document.getElementById('segmentRows'), 0, 0, 'Shot 1');
+
+    (function initSegmentEditor() {
+        segmentEditorSetVideo('');
+        var video = document.getElementById('segmentEditorVideo');
+        var playBtn = document.getElementById('segmentEditorPlayPause');
+        if (video) {
+            video.addEventListener('timeupdate', segmentEditorUpdateTimeDisplay);
+            video.addEventListener('loadedmetadata', function() {
+                segmentEditorSyncTimelineRange();
+                segmentEditorUpdateTimeDisplay();
+            });
+            video.addEventListener('durationchange', segmentEditorSyncTimelineRange);
+        }
+        var timeline = document.getElementById('segmentEditorTimeline');
+        if (timeline && video) {
+            timeline.addEventListener('mousedown', function() { segmentEditorRangeDragging = true; });
+            timeline.addEventListener('input', function() {
+                var t = parseFloat(timeline.value);
+                if (!isNaN(t)) video.currentTime = Math.min(t, video.duration || t);
+                segmentEditorUpdateTimeDisplay();
+            });
+            document.addEventListener('mouseup', function onRangeMouseUp() {
+                segmentEditorRangeDragging = false;
+            });
+            timeline.addEventListener('mouseup', function() { segmentEditorRangeDragging = false; });
+        }
+        if (playBtn) {
+            playBtn.addEventListener('click', function() {
+                if (!video) return;
+                if (video.paused) {
+                    if (segmentEditorLoopActive) {
+                        var b = segmentEditorGetLoopBounds();
+                        if (b && (video.currentTime < b.start - 0.1 || video.currentTime > b.end + 0.1)) {
+                            segmentEditorLastLoopSeekAt = Date.now();
+                            video.currentTime = b.start;
+                            var didPlay = false;
+                            function startPlay() { if (didPlay) return; didPlay = true; playBtn.textContent = '■ Stop'; video.play().catch(function(){}); }
+                            video.addEventListener('seeked', startPlay, { once: true });
+                            setTimeout(startPlay, 600);
+                            return;
+                        }
+                    }
+                    playBtn.textContent = '■ Stop';
+                    video.play().catch(function(){});
+                } else {
+                    video.pause();
+                    playBtn.textContent = '▶ Play';
+                }
+            });
+        }
+        video && video.addEventListener('play', function(){ if (playBtn) playBtn.textContent = '■ Stop'; segmentEditorStartSmoothUpdates(); });
+        video && video.addEventListener('pause', function(){ if (playBtn) playBtn.textContent = '▶ Play'; segmentEditorStopSmoothUpdates(); });
+        /* Луп сегмента проверяется только в setInterval, не в timeupdate — иначе двойной seek даёт заедание */
+        var loopBtn = document.getElementById('segmentEditorLoop');
+        if (loopBtn && video) {
+            loopBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                segmentEditorLoopActive = !segmentEditorLoopActive;
+                loopBtn.classList.toggle('active', segmentEditorLoopActive);
+                segmentEditorRenderStrip();
+                segmentEditorUpdateLoopLabel();
+                if (segmentEditorLoopActive) {
+                    var segs = segmentEditorGetSegmentsFromTable();
+                    var idx = segmentEditorSelectedIndex;
+                    if (idx < 0 || idx >= segs.length) idx = 0;
+                    segmentEditorSelectedIndex = idx;
+                    if (segs.length > 0) {
+                        var startSec = segmentEditorSegmentStartForPlay(segs, idx);
+                        segmentEditorLastLoopSeekAt = Date.now();
+                        video.currentTime = startSec;
+                        var didPlay = false;
+                        function doPlay() { if (didPlay) return; didPlay = true; video.play().catch(function(){}); }
+                        video.addEventListener('seeked', doPlay, { once: true });
+                        setTimeout(doPlay, 800);
+                        if (segmentEditorLoopIntervalId != null) clearInterval(segmentEditorLoopIntervalId);
+                        segmentEditorLoopIntervalId = setInterval(segmentEditorEnforceLoop, 100);
+                        segmentEditorOnEndedLoop = function() {
+                            if (!segmentEditorLoopActive) return;
+                            var b = segmentEditorGetLoopBounds();
+                            if (b) {
+                                segmentEditorLastLoopSeekAt = Date.now();
+                                video.currentTime = b.start;
+                                video.play().catch(function(){});
+                            }
+                        };
+                        video.addEventListener('ended', segmentEditorOnEndedLoop);
+                    }
+                } else {
+                    if (segmentEditorLoopIntervalId != null) {
+                        clearInterval(segmentEditorLoopIntervalId);
+                        segmentEditorLoopIntervalId = null;
+                    }
+                    if (segmentEditorOnEndedLoop) {
+                        video.removeEventListener('ended', segmentEditorOnEndedLoop);
+                        segmentEditorOnEndedLoop = null;
+                    }
+                }
+            });
+        }
+        var overlayEl = document.getElementById('segmentEditorOverlay');
+        if (overlayEl) overlayEl.addEventListener('mousedown', segmentEditorOnStripMouseDown);
+        var segmentRowsEl = document.getElementById('segmentRows');
+        if (segmentRowsEl) {
+            segmentRowsEl.addEventListener('input', function() {
+                if (typeof segmentEditorRenderStrip === 'function') segmentEditorRenderStrip();
+            });
+            segmentRowsEl.addEventListener('change', function() {
+                if (typeof segmentEditorRenderStrip === 'function') segmentEditorRenderStrip();
+            });
+        }
+    })();
+})();
+    </script>
+</body>
+</html>

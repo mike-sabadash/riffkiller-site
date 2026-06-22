@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Riff Killer - Test Login</title>
+    <link rel="icon" type="image/svg+xml" href="assets/icons/favicon.svg">
+    <style>
+        body { background: #111629; color: #fff; font-family: Roboto, sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh;
+        min-height: 100dvh; margin: 0; text-align: center; padding: 20px; }
+        .box { max-width: 400px; padding: 40px; background: rgba(255,255,255,0.03); border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); }
+        .loader { width: 40px; height: 40px; border: 3px solid rgba(255,255,255,0.1); border-top-color: #9355E5; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 20px; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .err { color: #F44336; margin-top: 16px; }
+        a { color: #9355E5; }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <div class="loader" id="loader"></div>
+        <p id="msg">Logging in...</p>
+        <p class="err" id="err" style="display:none;"></p>
+    </div>
+    <script>
+        (function() {
+            const params = new URLSearchParams(location.search);
+            const token = params.get('token');
+            const msg = document.getElementById('msg');
+            const err = document.getElementById('err');
+            const loader = document.getElementById('loader');
+            if (!token) {
+                loader.style.display = 'none';
+                msg.textContent = 'No token provided.';
+                err.textContent = 'Use the link from the admin panel.';
+                err.style.display = 'block';
+                return;
+            }
+            fetch('/api/test-login.php?token=' + encodeURIComponent(token), { credentials: 'include' })
+                .then(r => r.json())
+                .then(data => {
+                    loader.style.display = 'none';
+                    if (data.success) {
+                        try {
+                            var session = {
+                                isAuthenticated: true,
+                                userData: data.user || { id: 'test', full_name: 'Test User', email: '', image_url: '', provider: 'test' },
+                                subscription: data.subscription ? { status: data.subscription.status, plan: data.subscription.plan || 'yearly', source: 'test', expiresAt: null } : { status: 'active', source: 'test' },
+                                token: null,
+                                timestamp: Date.now()
+                            };
+                            localStorage.setItem('riffKillerAuth', JSON.stringify(session));
+                        } catch (e) {}
+                        msg.textContent = 'Success! Redirecting...';
+                        window.location.href = '/profile.html';
+                    } else {
+                        msg.textContent = 'Login failed';
+                        err.textContent = data.error || 'Invalid or expired link.';
+                        err.style.display = 'block';
+                        setTimeout(() => { window.location.href = '/index.html'; }, 3000);
+                    }
+                })
+                .catch(e => {
+                    loader.style.display = 'none';
+                    msg.textContent = 'Network error';
+                    err.textContent = 'Could not connect. Try again.';
+                    err.style.display = 'block';
+                });
+        })();
+    </script>
+</body>
+</html>

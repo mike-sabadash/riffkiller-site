@@ -1,0 +1,505 @@
+/**
+ * Auth modal — Inter / system UI, без backdrop-filter на весь экран (тяжёлый для CPU/GPU).
+ */
+
+/* Страницы без variables.css / rk-header — тот же запас, что у моб. меню */
+:root {
+    --rk-mobile-browser-chrome-bottom: 52px;
+}
+
+.auth-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    /* Выше мобильного меню (10060/10061), чтобы логин/регистрация открывались поверх */
+    z-index: 10080;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: max(20px, env(safe-area-inset-top, 0px)) 24px
+        calc(max(24px, env(safe-area-inset-bottom, 0px)) + var(--rk-mobile-browser-chrome-bottom));
+    box-sizing: border-box;
+    /* Без blur на fullscreen — из‑за него подвисания; только затемнение */
+    background: rgba(0, 0, 0, 0.82);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+}
+
+.auth-modal {
+    color-scheme: dark;
+    font-family:
+        'Inter',
+        system-ui,
+        -apple-system,
+        BlinkMacSystemFont,
+        'Segoe UI',
+        sans-serif;
+    -webkit-font-smoothing: antialiased;
+    width: 100%;
+    max-width: 420px;
+    max-height: min(90vh, 720px);
+    max-height: min(720px, 88dvh);
+    max-height: min(720px, 82svh);
+    overflow-y: auto;
+    overflow-x: hidden;
+    border-radius: 16px;
+    padding: 28px 28px 26px;
+    box-sizing: border-box;
+    background: linear-gradient(180deg, #0a0a0a 0%, #0f0f12 48%, #0a0a0a 100%);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow:
+        0 0 0 1px rgba(255, 255, 255, 0.04),
+        0 24px 56px -12px rgba(0, 0, 0, 0.65);
+    /* Без transform-анимации — меньше слоёв и перерисовок */
+    contain: layout style;
+}
+
+.auth-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 12px;
+    padding-right: 2px;
+}
+
+/* Только системный стек + Inter если уже загружен на странице — без «декоративных» шрифтов */
+.auth-modal-title {
+    margin: 0;
+    font-family:
+        'Inter',
+        system-ui,
+        -apple-system,
+        BlinkMacSystemFont,
+        'Segoe UI',
+        sans-serif;
+    font-size: 1.125rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    color: #ffffff;
+    line-height: 1.35;
+}
+
+.auth-modal-close {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    margin: -6px -6px -6px 0;
+    padding: 0;
+    border: none;
+    border-radius: 10px;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.45);
+    cursor: pointer;
+    transition:
+        background 0.15s ease,
+        color 0.15s ease;
+}
+
+.auth-modal-close:hover {
+    background: rgba(255, 255, 255, 0.06);
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.auth-modal-close svg {
+    display: block;
+}
+
+.auth-modal-body {
+    padding-top: 0;
+}
+
+.auth-modal-subtitle {
+    margin: 0 0 22px;
+    font-size: 0.8125rem;
+    line-height: 1.55;
+    font-weight: 400;
+    color: rgba(255, 255, 255, 0.42);
+    max-width: 36em;
+}
+
+/* Визуально отделяем переключатель Log in / Sign up от полей */
+.auth-modal-segment-wrap {
+    margin-bottom: 22px;
+    padding-bottom: 22px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.auth-email-toggle {
+    display: flex;
+    width: 100%;
+    padding: 4px;
+    gap: 4px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-sizing: border-box;
+}
+
+.auth-toggle-btn {
+    flex: 1;
+    min-height: 40px;
+    padding: 8px 12px;
+    border: none;
+    border-radius: 10px;
+    background: transparent;
+    color: #a3a3a3;
+    font-family: inherit;
+    font-size: 0.875rem;
+    font-weight: 500;
+    line-height: 1.25rem;
+    cursor: pointer;
+    transition:
+        background 0.15s ease,
+        color 0.15s ease;
+}
+
+.auth-toggle-btn:hover {
+    color: #e5e5e5;
+}
+
+.auth-toggle-btn.active {
+    background: rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.auth-modal-fields {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-bottom: 6px;
+}
+
+/* Поля: единый тёмный вид; пароль и autofill не «белеют» */
+.auth-email-input {
+    width: 100%;
+    padding: 12px 16px;
+    border-radius: 12px;
+    border: 1px solid #262626;
+    background-color: #141414;
+    background-clip: padding-box;
+    color: #fafafa;
+    font-family: inherit;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    box-sizing: border-box;
+    -webkit-appearance: none;
+    appearance: none;
+    transition:
+        border-color 0.15s ease,
+        box-shadow 0.15s ease;
+}
+
+.auth-email-input::placeholder {
+    color: #737373;
+}
+
+.auth-email-input:focus {
+    outline: none;
+    border-color: rgba(147, 85, 229, 0.55);
+    box-shadow: 0 0 0 2px rgba(147, 85, 229, 0.18);
+}
+
+/* Chrome / Safari autofill — убираем жёлтое/белое поле */
+.auth-email-input:-webkit-autofill,
+.auth-email-input:-webkit-autofill:hover,
+.auth-email-input:-webkit-autofill:focus,
+.auth-email-input:-webkit-autofill:active {
+    -webkit-text-fill-color: #fafafa !important;
+    caret-color: #fafafa;
+    transition: background-color 9999s ease-out 0s;
+    box-shadow: 0 0 0 100px #141414 inset !important;
+    border: 1px solid #262626;
+}
+
+.auth-email-input:-webkit-autofill:focus {
+    box-shadow:
+        0 0 0 100px #141414 inset,
+        0 0 0 2px rgba(147, 85, 229, 0.25) !important;
+    border-color: rgba(147, 85, 229, 0.55);
+}
+
+.auth-email-input.auth-input-error {
+    border-color: rgba(232, 121, 149, 0.65);
+    box-shadow: 0 0 0 2px rgba(232, 121, 149, 0.12);
+}
+
+.auth-email-input.auth-input-error::placeholder {
+    color: rgba(252, 165, 165, 0.85);
+}
+
+.auth-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    min-height: 44px;
+    padding: 12px 20px;
+    margin-top: 2px;
+    border-radius: 12px;
+    font-family: inherit;
+    font-size: 0.875rem;
+    font-weight: 500;
+    line-height: 1.25rem;
+    cursor: pointer;
+    border: 1px solid transparent;
+    box-sizing: border-box;
+    transition:
+        background 0.18s ease,
+        border-color 0.18s ease,
+        box-shadow 0.18s ease;
+}
+
+.auth-btn-email {
+    background: #9355e5;
+    color: #ffffff;
+    border-color: #9355e5;
+    box-shadow: 0 8px 20px rgba(147, 85, 229, 0.28);
+}
+
+.auth-btn-email:hover {
+    background: #7c45c7;
+    border-color: #7c45c7;
+    box-shadow: 0 10px 24px rgba(147, 85, 229, 0.32);
+}
+
+.auth-email-message {
+    margin: 10px 0 0;
+    font-size: 0.8125rem;
+    line-height: 1.4;
+    color: rgba(252, 165, 165, 0.95);
+    min-height: 1.2em;
+}
+
+.auth-divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 24px 0 20px;
+    color: rgba(255, 255, 255, 0.35);
+    font-size: 0.6875rem;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: #262626;
+}
+
+.auth-social-row {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+}
+
+.auth-social-btn {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.05);
+    color: rgba(255, 255, 255, 0.88);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition:
+        background 0.15s ease,
+        border-color 0.15s ease;
+}
+
+.auth-social-btn svg {
+    width: 22px;
+    height: 22px;
+    display: block;
+    flex-shrink: 0;
+}
+
+.auth-social-btn:hover {
+    background: rgba(255, 255, 255, 0.09);
+    border-color: rgba(255, 255, 255, 0.16);
+}
+
+.auth-social-btn:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(147, 85, 229, 0.45);
+}
+
+.auth-social-btn-patreon:hover {
+    border-color: rgba(147, 85, 229, 0.4);
+    background: rgba(147, 85, 229, 0.1);
+    color: #e9d5ff;
+}
+
+.auth-promo-block {
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid #262626;
+}
+
+.auth-promo-toggle {
+    background: none;
+    border: none;
+    padding: 0;
+    font-family: inherit;
+    font-size: 0.875rem;
+    font-weight: 400;
+    color: rgba(255, 255, 255, 0.38);
+    cursor: pointer;
+    transition: color 0.15s ease;
+}
+
+.auth-promo-toggle:hover {
+    color: #a3a3a3;
+}
+
+.auth-promo-inputs {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 14px;
+}
+
+.auth-btn-outline {
+    background: transparent;
+    color: #e5e5e5;
+    border: 1px solid rgba(147, 85, 229, 0.45);
+    box-shadow: none;
+}
+
+.auth-btn-outline:hover {
+    background: rgba(147, 85, 229, 0.1);
+    border-color: rgba(147, 85, 229, 0.65);
+}
+
+.auth-btn-promo {
+    margin-top: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .auth-toggle-btn,
+    .auth-email-input,
+    .auth-btn,
+    .auth-social-btn,
+    .auth-modal-close,
+    .auth-promo-toggle {
+        transition: none;
+    }
+}
+
+/* --------------------------------------------------------------------------
+   Светлая тема: светлая карточка + фиолетовый акцент (не серая «тень» от glow)
+   -------------------------------------------------------------------------- */
+html[data-theme='light'] .auth-modal-backdrop {
+    background: rgba(245, 246, 250, 0.88);
+}
+
+html[data-theme='light'] .auth-modal {
+    color-scheme: light;
+    background: linear-gradient(180deg, #ffffff 0%, #f4f5f9 52%, #fafbfe 100%);
+    border-color: rgba(18, 18, 26, 0.1);
+    box-shadow:
+        0 0 0 1px rgba(147, 85, 229, 0.07),
+        0 28px 64px -16px rgba(55, 42, 95, 0.14);
+}
+
+html[data-theme='light'] .auth-modal-title {
+    color: #12121a;
+}
+
+html[data-theme='light'] .auth-modal-close {
+    color: rgba(18, 18, 26, 0.45);
+}
+
+html[data-theme='light'] .auth-modal-close:hover {
+    background: rgba(147, 85, 229, 0.08);
+    color: #12121a;
+}
+
+html[data-theme='light'] .auth-modal-subtitle {
+    color: rgba(18, 18, 26, 0.52);
+}
+
+html[data-theme='light'] .auth-modal-segment-wrap {
+    border-bottom-color: rgba(18, 18, 26, 0.08);
+}
+
+html[data-theme='light'] .auth-email-toggle {
+    background: rgba(18, 18, 26, 0.04);
+    border-color: rgba(18, 18, 26, 0.1);
+}
+
+html[data-theme='light'] .auth-toggle-btn {
+    color: rgba(18, 18, 26, 0.55);
+}
+
+html[data-theme='light'] .auth-toggle-btn:hover {
+    color: #12121a;
+}
+
+html[data-theme='light'] .auth-toggle-btn.active {
+    background: rgba(255, 255, 255, 0.95);
+    color: #12121a;
+    box-shadow: 0 1px 0 rgba(18, 18, 26, 0.06);
+}
+
+html[data-theme='light'] .auth-email-input {
+    border-color: rgba(18, 18, 26, 0.14);
+    background-color: #ffffff;
+    color: #12121a;
+}
+
+html[data-theme='light'] .auth-email-input::placeholder {
+    color: rgba(18, 18, 26, 0.42);
+}
+
+html[data-theme='light'] .auth-email-input:focus {
+    border-color: rgba(147, 85, 229, 0.55);
+    box-shadow: 0 0 0 2px rgba(147, 85, 229, 0.16);
+}
+
+html[data-theme='light'] .auth-email-input:-webkit-autofill,
+html[data-theme='light'] .auth-email-input:-webkit-autofill:hover,
+html[data-theme='light'] .auth-email-input:-webkit-autofill:focus,
+html[data-theme='light'] .auth-email-input:-webkit-autofill:active {
+    -webkit-text-fill-color: #12121a !important;
+    caret-color: #12121a;
+    box-shadow: 0 0 0 100px #ffffff inset !important;
+    border: 1px solid rgba(18, 18, 26, 0.14);
+}
+
+html[data-theme='light'] .auth-btn-email {
+    box-shadow: 0 8px 28px rgba(147, 85, 229, 0.35);
+}
+
+html[data-theme='light'] .auth-btn-email:hover {
+    box-shadow: 0 12px 32px rgba(124, 69, 199, 0.38);
+}
+
+html[data-theme='light'] .auth-btn-outline {
+    color: #2d1f4a;
+    border-color: rgba(147, 85, 229, 0.42);
+}
+
+html[data-theme='light'] .auth-btn-outline:hover {
+    background: rgba(147, 85, 229, 0.08);
+    border-color: rgba(147, 85, 229, 0.55);
+}
+
+html[data-theme='light'] .auth-promo-toggle {
+    color: rgba(18, 18, 26, 0.45);
+}
+
+html[data-theme='light'] .auth-promo-toggle:hover {
+    color: #12121a;
+}

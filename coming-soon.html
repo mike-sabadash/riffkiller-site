@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<!--
+  LANDING PAGE (Coming Soon)
+  - Visitors see this at coming-soon.html. Full app is at index.html.
+  - To make this the main page: rename index.html → app.html, coming-soon.html → index.html; then in new index.html change "Enter app" link to app.html.
+-->
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <title>Riff Killer - Coming Soon</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <link rel="icon" type="image/svg+xml" href="assets/icons/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&amp;display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-neutral-950 text-neutral-200 font-sans antialiased min-h-screen"
+  style="font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial">
+
+  <div id="comingSoonLanding" class="coming-soon-landing fixed inset-0 z-[9999] flex flex-col items-center justify-center px-6 pt-24 pb-20 bg-neutral-950 overflow-y-auto">
+    <div class="max-w-xl mx-auto w-full text-center flex flex-col items-center">
+      <!-- Logo -->
+      <img src="assets/logo.svg" alt="Riff Killer" class="h-6 sm:h-7 md:h-7 mb-16 opacity-95 animate-fade-in block mx-auto">
+      <!-- Hero -->
+      <h1 class="text-2xl sm:text-3xl md:text-4xl font-semibold text-white mb-5 animate-fade-in-delay-1">
+        Learn every riff.<br><span class="text-purple-400">We're almost ready.</span>
+      </h1>
+      <p class="text-neutral-400 text-base sm:text-lg mb-12 leading-relaxed animate-fade-in-delay-2">
+        Interactive guitar riff trainer with tabs, slow-mo, loop and practice tools for rock, blues, metal and more
+      </p>
+      <!-- Features -->
+      <div class="flex flex-wrap justify-center gap-5 sm:gap-6 mb-16 text-sm text-neutral-500 animate-fade-in-delay-3">
+        <span class="flex items-center gap-2">
+          <svg class="w-5 h-5 text-purple-500/70" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+          Riff library
+        </span>
+        <span class="flex items-center gap-2">
+          <svg class="w-5 h-5 text-purple-500/70" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+          Tabs &amp; video
+        </span>
+        <span class="flex items-center gap-2">
+          <svg class="w-5 h-5 text-purple-500/70" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          Practice tools
+        </span>
+      </div>
+      <!-- CTA -->
+      <div class="w-full max-w-sm space-y-6 animate-fade-in-delay-4">
+        <a href="https://www.patreon.com/cw/MikeSabadash?vanity=MikeSabadash" target="_blank" rel="noopener noreferrer"
+          class="inline-flex items-center justify-center gap-2.5 w-full sm:w-auto px-8 py-3 rounded-xl text-sm font-medium text-purple-400 border-2 border-purple-500/50 hover:border-purple-400 hover:text-purple-300 hover:bg-purple-500/5 transition-all duration-200 cursor-pointer">
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M4.5 3C3.11929 3 2 4.11929 2 5.5V18.5C2 19.8807 3.11929 21 4.5 21H7V3H4.5Z"/><circle cx="15" cy="9" r="5"/></svg>
+          Follow for updates
+        </a>
+        <div class="relative flex items-center gap-3 py-2">
+          <div class="flex-1 h-px bg-neutral-800"></div>
+          <span class="text-xs text-neutral-600 uppercase tracking-wider">or</span>
+          <div class="flex-1 h-px bg-neutral-800"></div>
+        </div>
+        <!-- FormSubmit.co: classic form POST (no fetch/CORS), redirect back with ?notified=1 -->
+        <form id="landingEmailForm" class="animate-fade-in-delay-5">
+          <div class="flex flex-col sm:flex-row gap-3" id="landingFormFields">
+            <input type="email" name="email" id="landingEmailInput" placeholder="your@email.com" required
+              class="flex-1 px-4 py-3 rounded-xl bg-neutral-900/80 border border-neutral-800 text-white placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-purple-500/40 focus:border-purple-500/50 transition-colors">
+            <button type="submit" id="landingEmailBtn" class="px-6 py-3 rounded-xl text-white text-sm font-medium bg-purple-600 hover:bg-purple-500 transition-colors duration-200 shrink-0 disabled:opacity-60 disabled:cursor-not-allowed">
+              Notify me
+            </button>
+          </div>
+          <p id="landingEmailMessage" class="mt-3 text-sm hidden"></p>
+        </form>
+      </div>
+    </div>
+    <div class="absolute bottom-4 left-0 right-0 text-center text-neutral-600 text-xs">
+      <a href="index.html" class="text-neutral-500 hover:text-neutral-400 transition-colors">Enter app</a>
+    </div>
+  </div>
+
+  <style>
+    .coming-soon-landing { background: linear-gradient(180deg, #0a0a0a 0%, #0f0f12 50%, #0a0a0a 100%); }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    .animate-fade-in { animation: fadeIn 0.6s ease-out forwards; }
+    .animate-fade-in-delay-1 { animation: fadeIn 0.6s ease-out 0.1s forwards; opacity: 0; }
+    .animate-fade-in-delay-2 { animation: fadeIn 0.6s ease-out 0.2s forwards; opacity: 0; }
+    .animate-fade-in-delay-3 { animation: fadeIn 0.6s ease-out 0.3s forwards; opacity: 0; }
+    .animate-fade-in-delay-4 { animation: fadeIn 0.6s ease-out 0.4s forwards; opacity: 0; }
+    .animate-fade-in-delay-5 { animation: fadeIn 0.6s ease-out 0.5s forwards; opacity: 0; }
+  </style>
+
+  <script>
+    (function() {
+      var form = document.getElementById('landingEmailForm');
+      var btn = document.getElementById('landingEmailBtn');
+      var msg = document.getElementById('landingEmailMessage');
+      var fields = document.getElementById('landingFormFields');
+      var input = document.getElementById('landingEmailInput');
+
+      if (form && btn && msg) {
+        form.addEventListener('submit', function(e) {
+          e.preventDefault();
+          var email = input ? input.value.trim() : '';
+          if (!email) return;
+
+          btn.textContent = 'Sending…';
+          btn.disabled = true;
+          msg.classList.add('hidden');
+          msg.classList.remove('text-purple-400', 'text-red-400');
+          msg.textContent = '';
+
+          fetch('api/landing-waitlist.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: email })
+          })
+          .then(function(r) { return r.json(); })
+          .then(function(data) {
+            if (data.success) {
+              msg.textContent = "You're on the list! We'll notify you when we launch.";
+              msg.classList.add('text-purple-400');
+              msg.classList.remove('hidden');
+              if (fields) fields.style.display = 'none';
+            } else {
+              throw new Error(data.message || 'Error');
+            }
+          })
+          .catch(function(err) {
+            msg.textContent = err.message || "Couldn't send. Follow us on Patreon for updates.";
+            msg.classList.add('text-red-400');
+            msg.classList.remove('hidden');
+            btn.disabled = false;
+            btn.textContent = 'Notify me';
+          });
+        });
+      }
+    })();
+  </script>
+</body>
+</html>

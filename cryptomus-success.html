@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Riff Killer - Payment Successful</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&family=Zen+Dots&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/reset.css">
+    <link rel="stylesheet" href="css/variables.css">
+    <link rel="icon" type="image/svg+xml" href="assets/icons/favicon.svg">
+    <style>
+        body { background-color: #111629; color: #fff; font-family: 'Roboto', sans-serif; min-height: 100vh;
+        min-height: 100dvh; display: flex; align-items: center; justify-content: center; margin: 0; padding: 20px; text-align: center; }
+        .success-box { max-width: 420px; padding: 40px; background: rgba(255,255,255,0.03); border-radius: 24px; border: 1px solid rgba(255,255,255,0.1); }
+        .success-box h1 { font-family: 'Zen Dots', cursive; font-size: 24px; font-weight: 400; margin-bottom: 12px; }
+        .success-box p { color: rgba(255,255,255,0.7); margin-bottom: 24px; }
+        .success-box a { display: inline-block; padding: 12px 24px; background: #9355E5; color: #fff; text-decoration: none; border-radius: 8px; font-weight: 500; transition: background 0.2s; }
+        .success-box a:hover { background: #7B3FC7; }
+        .success-box .loading { color: rgba(255,255,255,0.5); font-size: 14px; }
+    </style>
+</head>
+<body>
+    <div class="success-box">
+        <h1>Thank you!</h1>
+        <p id="message">Confirming your payment...</p>
+        <a href="profile.html?success=cryptomus" id="profileLink" style="display: none;">Go to profile</a>
+    </div>
+
+    <script src="js/cryptomus-config.js"></script>
+    <script src="js/patreon-config.js"></script>
+    <script src="js/auth-manager.js"></script>
+    <script>
+        (function() {
+            var params = new URLSearchParams(window.location.search);
+            var orderId = params.get('order_id');
+            var messageEl = document.getElementById('message');
+            var profileLink = document.getElementById('profileLink');
+
+            function done() {
+                messageEl.textContent = 'Payment confirmed. Redirecting to your profile...';
+                profileLink.style.display = 'inline-block';
+                setTimeout(function() { window.location.href = 'profile.html?success=cryptomus'; }, 2500);
+            }
+
+            if (!orderId) {
+                if (window.authManager) {
+                    window.authManager.updateSubscription('cryptomus', { status: 'active', plan: 'monthly' });
+                }
+                done();
+                return;
+            }
+
+            var statusUrl = (window.CRYPTOMUS_CONFIG && window.CRYPTOMUS_CONFIG.statusUrl) || '/cryptomus-status.php';
+            fetch(statusUrl + '?order_id=' + encodeURIComponent(orderId))
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    if (data.success && data.subscription && window.authManager) {
+                        window.authManager.updateSubscription('cryptomus', data.subscription);
+                    } else if (window.authManager) {
+                        window.authManager.updateSubscription('cryptomus', { status: 'active', plan: 'monthly' });
+                    }
+                    done();
+                })
+                .catch(function() {
+                    messageEl.textContent = 'Payment received. If access does not update, refresh the profile page.';
+                    profileLink.style.display = 'inline-block';
+                    if (window.authManager) {
+                        window.authManager.updateSubscription('cryptomus', { status: 'active', plan: 'monthly' });
+                    }
+                });
+        })();
+    </script>
+</body>
+</html>

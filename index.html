@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<!--
+  LANDING PAGE (Coming Soon)
+  - Посетители видят эту страницу. Полное приложение — index.html.
+  - Чтобы сделать заглушку главной: переименуйте index.html → app.html и index-landing.html → index.html
+  - Пути (assets/, css/, js/) относительные — работают так же.
+-->
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <script src="js/rk-theme-init.js"></script>
+  <meta name="theme-color" content="#0a0a0a" id="rk-theme-color">
+  <title>Riff Killer - Coming Soon</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <link rel="icon" type="image/svg+xml" href="assets/icons/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <!-- Inter = как на landing.html (variable opsz), шапка совпадает визуально -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="css/variables.css">
+  <link rel="stylesheet" href="css/rk-header.css">
+  <link rel="stylesheet" href="css/rk-theme-light.css">
+  <style>body > header.topbar { z-index: 10050 !important; }</style>
+</head>
+
+<body class="bg-neutral-950 text-neutral-200 font-sans antialiased min-h-screen"
+  style="font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial"
+  data-rk-header="app" data-logo-href="index.html" data-nav-active="riffs">
+
+  <div id="site-header-mount"></div>
+  <script src="js/site-header.js"></script>
+
+  <div id="comingSoonLanding" class="coming-soon-landing fixed inset-0 z-[9999] flex flex-col items-center justify-center px-6 pt-24 pb-20 bg-neutral-950 overflow-y-auto">
+    <div class="max-w-xl mx-auto w-full text-center flex flex-col items-center">
+      <!-- Logo: тёмная тема — белый wordmark; светлая — logo-main.svg (см. rk-theme-light.css) -->
+      <img src="assets/logo.svg" alt="" width="127" height="16" class="coming-soon-logo--dark h-6 sm:h-7 md:h-7 mb-16 opacity-95 animate-fade-in block mx-auto w-auto max-w-[min(127px,70vw)] object-contain object-center" style="filter: brightness(0.95);">
+      <img src="assets/logo-main.svg" alt="Riff Killer" width="137" height="18" class="coming-soon-logo--light h-6 sm:h-7 md:h-7 mb-16 opacity-95 animate-fade-in block mx-auto w-auto max-h-7 object-contain object-center">
+      <!-- Hero -->
+      <h1 class="text-2xl sm:text-3xl md:text-4xl font-semibold text-white mb-5 animate-fade-in-delay-1">
+        Learn every riff.<br><span class="text-purple-400">We're almost ready.</span>
+      </h1>
+      <p class="text-neutral-400 text-base sm:text-lg mb-12 leading-relaxed animate-fade-in-delay-2">
+        Interactive guitar riff trainer with tabs, slow-mo, loop and practice tools for rock, blues, metal and more
+      </p>
+      <!-- Features -->
+      <div class="flex flex-wrap justify-center gap-5 sm:gap-6 mb-16 text-sm text-neutral-500 animate-fade-in-delay-3">
+        <span class="flex items-center gap-2">
+          <svg class="w-5 h-5 text-purple-500/70" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
+          Riff library
+        </span>
+        <span class="flex items-center gap-2">
+          <svg class="w-5 h-5 text-purple-500/70" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/><path d="M8 7h8M8 11h8M8 15h4"/></svg>
+          Tabs &amp; video
+        </span>
+        <span class="flex items-center gap-2">
+          <svg class="w-5 h-5 text-purple-500/70" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+          Practice tools
+        </span>
+      </div>
+      <!-- CTA -->
+      <div class="w-full max-w-sm space-y-6 animate-fade-in-delay-4">
+        <a href="https://www.patreon.com/cw/MikeSabadash?vanity=MikeSabadash" target="_blank" rel="noopener noreferrer"
+          class="inline-flex items-center justify-center gap-2.5 w-full sm:w-auto px-8 py-3 rounded-xl text-sm font-medium text-purple-400 border-2 border-purple-500/50 hover:border-purple-400 hover:text-purple-300 hover:bg-purple-500/5 transition-all duration-200 cursor-pointer">
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M4.5 3C3.11929 3 2 4.11929 2 5.5V18.5C2 19.8807 3.11929 21 4.5 21H7V3H4.5Z"/><circle cx="15" cy="9" r="5"/></svg>
+          Follow on Patreon
+        </a>
+        <div class="relative flex items-center gap-3 py-2">
+          <div class="flex-1 h-px bg-neutral-800"></div>
+          <span class="text-xs text-neutral-600 uppercase tracking-wider">or</span>
+          <div class="flex-1 h-px bg-neutral-800"></div>
+        </div>
+        <form id="landingEmailForm" class="animate-fade-in-delay-5">
+          <div class="flex flex-col sm:flex-row gap-3" id="landingFormFields">
+            <input type="email" name="email" id="landingEmailInput" placeholder="your@email.com" required
+              class="flex-1 px-4 py-3 rounded-xl bg-neutral-900/80 border border-neutral-800 text-white placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-purple-500/40 focus:border-purple-500/50 transition-colors">
+            <button type="submit" id="landingEmailBtn" class="px-6 py-3 rounded-xl text-white text-sm font-medium bg-purple-600 hover:bg-purple-500 transition-colors duration-200 shrink-0 disabled:opacity-60 disabled:cursor-not-allowed">
+              Notify me
+            </button>
+          </div>
+          <p id="landingEmailMessage" class="mt-3 text-sm hidden"></p>
+        </form>
+        <div id="landingPromoBlock" class="mt-8 pt-8 border-t border-neutral-800 animate-fade-in-delay-5">
+          <p class="text-neutral-500 text-sm mb-3">Have a promo code?</p>
+          <div class="flex flex-col sm:flex-row gap-3">
+            <input type="text" id="landingPromoInput" placeholder="Enter promo code" autocomplete="off"
+              class="flex-1 px-4 py-3 rounded-xl bg-neutral-900/80 border border-neutral-800 text-white placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-purple-500/40 focus:border-purple-500/50 transition-colors">
+            <button type="button" id="landingPromoBtn" class="px-6 py-3 rounded-xl text-white text-sm font-medium bg-purple-600 hover:bg-purple-500 transition-colors duration-200 shrink-0 disabled:opacity-60 disabled:cursor-not-allowed">
+              Apply
+            </button>
+          </div>
+          <p id="landingPromoMessage" class="mt-3 text-sm hidden"></p>
+        </div>
+      </div>
+    </div>
+    <div class="absolute bottom-4 left-0 right-0 text-center text-neutral-600 text-xs">
+      <a href="index.html" class="text-neutral-500 hover:text-neutral-400 transition-colors">Enter app</a>
+    </div>
+  </div>
+
+  <style>
+    .coming-soon-landing { background: linear-gradient(180deg, #0a0a0a 0%, #0f0f12 50%, #0a0a0a 100%); }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    .animate-fade-in { animation: fadeIn 0.6s ease-out forwards; }
+    .animate-fade-in-delay-1 { animation: fadeIn 0.6s ease-out 0.1s forwards; opacity: 0; }
+    .animate-fade-in-delay-2 { animation: fadeIn 0.6s ease-out 0.2s forwards; opacity: 0; }
+    .animate-fade-in-delay-3 { animation: fadeIn 0.6s ease-out 0.3s forwards; opacity: 0; }
+    .animate-fade-in-delay-4 { animation: fadeIn 0.6s ease-out 0.4s forwards; opacity: 0; }
+    .animate-fade-in-delay-5 { animation: fadeIn 0.6s ease-out 0.5s forwards; opacity: 0; }
+  </style>
+
+  <script src="js/patreon-config.js"></script>
+  <script src="js/auth-manager.js"></script>
+  <script src="js/site-header-behaviors.js"></script>
+  <script src="js/rk-theme.js"></script>
+
+  <script>
+    (function() {
+      // Если пользователь уже в сессии и с активной подпиской (в т.ч. промо) — сразу в приложение
+      fetch('api/me.php', { method: 'GET', credentials: 'include' })
+        .then(function(r) { return r.status === 200 ? r.json() : Promise.reject(); })
+        .then(function(data) {
+          if (!data.success || !data.authenticated || !data.user || !data.user.id) return;
+          return fetch('api/subscription/get.php?user_id=' + encodeURIComponent(data.user.id), { method: 'GET', credentials: 'include' })
+            .then(function(r) { return r.json(); })
+            .then(function(sub) {
+              if (!sub.success || !sub.subscription) return;
+              var s = sub.subscription;
+              if (s.status === 'active') {
+                window.location.replace('app.html');
+                return;
+              }
+              if (s.expiresAt != null && s.expiresAt > (Date.now() / 1000)) {
+                window.location.replace('app.html');
+              }
+            });
+        })
+        .catch(function() {});
+
+      var form = document.getElementById('landingEmailForm');
+      var btn = document.getElementById('landingEmailBtn');
+      var msg = document.getElementById('landingEmailMessage');
+      var fields = document.getElementById('landingFormFields');
+      var input = document.getElementById('landingEmailInput');
+
+      if (form && btn && msg) {
+        form.addEventListener('submit', function(e) {
+          e.preventDefault();
+          var email = input ? input.value.trim() : '';
+          if (!email) return;
+
+          btn.textContent = 'Sending…';
+          btn.disabled = true;
+          msg.classList.add('hidden');
+          msg.classList.remove('text-purple-400', 'text-red-400');
+          msg.textContent = '';
+
+          fetch('api/landing-waitlist.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: email })
+          })
+          .then(function(r) { return r.json(); })
+          .then(function(data) {
+            if (data.success) {
+              msg.textContent = "You're on the list! We'll notify you when we launch.";
+              msg.classList.add('text-purple-400');
+              msg.classList.remove('hidden');
+              if (fields) fields.style.display = 'none';
+            } else {
+              throw new Error(data.message || 'Error');
+            }
+          })
+          .catch(function(err) {
+            msg.textContent = err.message || "Couldn't send. Follow us on Patreon for updates.";
+            msg.classList.add('text-red-400');
+            msg.classList.remove('hidden');
+            btn.disabled = false;
+            btn.textContent = 'Notify me';
+          });
+        });
+      }
+
+      var promoInput = document.getElementById('landingPromoInput');
+      var promoBtn = document.getElementById('landingPromoBtn');
+      var promoMsg = document.getElementById('landingPromoMessage');
+      if (promoInput && promoBtn && promoMsg) {
+        var params = new URLSearchParams(window.location.search);
+        var codeFromUrl = params.get('new') || params.get('promo') || '';
+        if (codeFromUrl) promoInput.value = codeFromUrl.trim();
+
+        promoBtn.addEventListener('click', function() {
+          var code = promoInput.value.trim();
+          if (!code) {
+            promoMsg.textContent = 'Enter your promo code.';
+            promoMsg.className = 'mt-3 text-sm text-red-400';
+            promoMsg.classList.remove('hidden');
+            return;
+          }
+          promoBtn.disabled = true;
+          promoMsg.classList.add('hidden');
+          promoMsg.classList.remove('text-purple-400', 'text-red-400');
+          promoMsg.textContent = '';
+
+          fetch('api/apply-promo.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ code: code })
+          })
+          .then(function(r) {
+            return r.json().then(function(data) { return { status: r.status, data: data }; });
+          })
+          .then(function(res) {
+            if (res.data.success) {
+              promoMsg.textContent = res.data.message || 'Promo applied. You have premium access!';
+              promoMsg.className = 'mt-3 text-sm text-purple-400';
+              promoMsg.classList.remove('hidden');
+            } else if (res.status === 401) {
+              fetch('api/validate-promo.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ code: code })
+              })
+              .then(function(r) { return r.json(); })
+              .then(function(v) {
+                if (v.success) {
+                  var appUrl = 'app.html?promo=' + encodeURIComponent(code);
+                  promoMsg.innerHTML = 'Code is valid. <a href="' + appUrl + '" class="text-purple-400 hover:text-purple-300 underline">Enter app</a> to sign in and activate it.';
+                  promoMsg.className = 'mt-3 text-sm text-neutral-500';
+                } else {
+                  promoMsg.textContent = v.error || 'Invalid or expired promo code.';
+                  promoMsg.className = 'mt-3 text-sm text-red-400';
+                }
+                promoMsg.classList.remove('hidden');
+              })
+              .catch(function() {
+                promoMsg.textContent = 'Invalid or expired promo code.';
+                promoMsg.className = 'mt-3 text-sm text-red-400';
+                promoMsg.classList.remove('hidden');
+              });
+              return;
+            } else {
+              promoMsg.textContent = res.data.error || 'Invalid or expired promo code.';
+              promoMsg.className = 'mt-3 text-sm text-red-400';
+              promoMsg.classList.remove('hidden');
+            }
+          })
+          .catch(function() {
+            promoMsg.textContent = 'Something went wrong. Try again later.';
+            promoMsg.className = 'mt-3 text-sm text-red-400';
+            promoMsg.classList.remove('hidden');
+          })
+          .then(function() { promoBtn.disabled = false; });
+        });
+      }
+    })();
+  </script>
+</body>
+</html>

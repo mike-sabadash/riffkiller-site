@@ -1,0 +1,1281 @@
+/* ==========================================================================
+   Components - Стили компонентов проекта
+   ========================================================================== */
+
+/* Inter подключается в <head> страниц приложения + переменная --font-header-ui в variables.css */
+
+/* === HEADER — единая шапка (разметка: js/site-header.js) === */
+@import url('rk-header.css');
+@import url('rk-site-footer.css');
+
+/* === COLLECTIONS SECTION === */
+
+.collections-section {
+    margin-bottom: var(--spacing-2xl);
+}
+
+/* Заголовок коллекций */
+.collections-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    padding-bottom: 0;
+}
+
+.collections-title-wrapper {
+    min-width: 120px;
+    margin-right: 40px;
+}
+
+/* Контейнер фильтров */
+.filters-container {
+    display: flex;
+    gap: 30px;
+    align-items: center;
+    flex: 1;
+    justify-content: flex-start;
+}
+
+/* Группа фильтра */
+.filter-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    white-space: nowrap;
+}
+
+.filter-label {
+    font-family: var(--font-family-primary);
+    font-weight: var(--font-weight-regular);
+    font-size: var(--font-size-sm);
+    color: var(--color-text-tertiary);
+    white-space: nowrap;
+    margin-bottom: 0;
+}
+
+/* Кастомный селект */
+.custom-select {
+    position: relative;
+    width: 116px;
+    height: var(--height-select);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    background-color: transparent;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+}
+
+.select-input {
+    width: 100%;
+    height: 100%;
+    padding: 0 35px 0 15px;
+    font-family: var(--font-family-primary);
+    font-weight: var(--font-weight-regular);
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    background-color: transparent;
+    line-height: var(--height-select);
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+}
+
+.select-arrow {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+}
+
+/* Навигационные стрелки коллекций */
+.collections-nav {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: var(--width-nav-arrows);
+    height: var(--height-nav-arrows);
+    flex-shrink: 0;
+}
+
+.nav-arrow {
+    width: var(--size-arrow-button);
+    height: var(--size-arrow-button);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-full);
+    transition: all var(--transition-fast);
+    flex-shrink: 0;
+    cursor: pointer;
+    border: none;
+    background: transparent;
+}
+
+.nav-arrow:hover:not([disabled]) {
+    background-color: var(--color-hover);
+}
+
+.nav-arrow:active:not([disabled]) {
+    background-color: var(--color-active);
+}
+
+.nav-arrow[disabled] {
+    opacity: 0.5 !important;
+    cursor: not-allowed !important;
+}
+
+.nav-arrow svg {
+    width: var(--size-arrow-icon);
+    height: var(--size-arrow-icon);
+    stroke: var(--color-text-primary);
+}
+
+/* Обертка для карточек коллекций */
+.collections-grid-wrapper {
+    position: relative;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    width: 100%;
+}
+
+.collections-grid-wrapper::-webkit-scrollbar {
+    display: none;
+}
+
+/* Сетка карточек коллекций - ИСПРАВЛЕНО: убрали width: max-content */
+.collections-grid {
+    display: flex;
+    gap: var(--spacing-lg);
+    padding-bottom: 10px;
+    /* Убрано: width: max-content */
+    min-width: min-content; /* Вместо max-content */
+}
+
+/* Карточка коллекции */
+.collection-card {
+    width: var(--width-collection-card);
+    height: var(--height-collection-card);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    position: relative;
+    flex-shrink: 0;
+    cursor: pointer;
+    transition: transform var(--transition-base);
+}
+
+.collection-card:hover {
+    transform: translateY(-4px);
+}
+
+/* Изображение коллекции */
+.collection-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 0;
+}
+
+/* Градиент поверх изображения (z-index выше img — иначе полоса «обрезана») */
+.collection-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 80px;
+    z-index: 1;
+    pointer-events: none;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.8), transparent);
+}
+
+/* Контент карточки */
+.collection-content {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    right: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    z-index: 2;
+}
+
+/* Информация о видео */
+.collection-video-info {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.video-count {
+    font-family: var(--font-family-primary);
+    font-weight: var(--font-weight-regular);
+    font-size: var(--font-size-sm);
+    color: var(--color-text-primary);
+}
+
+.camera-icon {
+    width: 12px;
+    height: 12px;
+    stroke: var(--color-text-primary);
+    stroke-width: 1;
+    fill: none;
+}
+
+/* Название коллекции */
+.collection-name {
+    font-family: var(--font-family-primary);
+    font-weight: var(--font-weight-regular);
+    font-size: var(--font-size-sm);
+    color: var(--color-text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex: 1;
+    margin: 0 var(--spacing-md);
+    text-align: center;
+}
+
+/* Кнопка избранного */
+.favorite-btn {
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background: none;
+    cursor: pointer;
+    padding: 0;
+    flex-shrink: 0;
+    transition: opacity var(--transition-fast);
+}
+
+.favorite-btn:hover {
+    opacity: 0.8;
+}
+
+.favorite-icon {
+    width: 100%;
+    height: 100%;
+    stroke: var(--color-text-primary);
+    stroke-width: 1;
+    fill: none;
+}
+
+.favorite-btn.active .favorite-icon {
+    fill: var(--color-text-primary);
+}
+
+/* === RIFFS SECTION === */
+
+.riffs-section {
+    margin-top: 0px;
+    padding-top: 0px;
+}
+
+/* Заголовок риффов */
+.riffs-header {
+    margin-bottom: 30px;
+}
+
+.riffs-title {
+    font-family: var(--font-family-primary);
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-regular);
+    color: var(--color-text-primary);
+    margin-bottom: 0;
+}
+
+/* Сетка карточек риффов - ИСПРАВЛЕНО: добавлен minmax для адаптивности */
+.riffs-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 20px;
+    justify-content: start;
+}
+
+/* Карточка риффа */
+.riff-card {
+    width: 100%;
+    height: var(--height-riff-card);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    position: relative;
+    cursor: pointer;
+    transition: all var(--transition-base);
+    aspect-ratio: 214 / 180;
+}
+
+/* Рамка free: conic + два блика на линии (как earned на профиле), без glow */
+.riff-card-free {
+    position: relative;
+    border: 1px solid transparent;
+    box-sizing: border-box;
+}
+
+.riff-card-free .riff-image {
+    z-index: 0;
+}
+
+.riff-card-free .riff-overlay {
+    z-index: 1;
+}
+
+.riff-card-free .riff-difficulty {
+    z-index: 3;
+}
+
+.riff-card-free::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 2px;
+    pointer-events: none;
+    z-index: 2;
+    box-sizing: border-box;
+    --rk-conic-from: 38deg;
+    transition: --rk-conic-from 0.55s cubic-bezier(0.4, 0, 0.2, 1);
+    background: conic-gradient(
+        from var(--rk-conic-from) at 50% 48%,
+        rgba(21, 110, 55, 0.72) 0deg,
+        rgba(210, 255, 228, 0.98) 7deg,
+        rgba(210, 255, 228, 0.98) 13deg,
+        rgba(21, 110, 55, 0.72) 20deg,
+        rgba(21, 110, 55, 0.72) 210deg,
+        rgba(225, 255, 238, 0.98) 218deg,
+        rgba(225, 255, 238, 0.98) 226deg,
+        rgba(21, 110, 55, 0.72) 234deg,
+        rgba(21, 110, 55, 0.72) 360deg
+    );
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask-composite: exclude;
+}
+
+.riff-card-free:hover::after {
+    --rk-conic-from: 66deg;
+}
+
+.riff-card-free .riff-favorite-btn,
+.riff-card-free .riff-free-tag {
+    z-index: 3;
+}
+
+/* FREE-бейдж (только на free-карточке) — см. riffs-hub для галереи; здесь базовый таб */
+.riff-card-free .riff-free-tag {
+    position: absolute;
+    left: 50%;
+    right: auto;
+    top: auto;
+    transform: translateX(-50%);
+    bottom: 0;
+    margin: 0;
+    min-width: 4.75rem;
+    padding: 7px 20px 9px;
+    text-align: center;
+    box-sizing: border-box;
+    border: none;
+    border-radius: 0;
+    background: linear-gradient(
+        180deg,
+        rgba(28, 118, 62, 0.98) 0%,
+        rgb(21, 110, 55) 45%,
+        rgb(17, 92, 48) 100%
+    );
+    color: rgba(225, 255, 238, 0.96);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    line-height: 1;
+    text-shadow: 0 1px 0 rgba(0, 0, 0, 0.22);
+    box-shadow:
+        inset 0 1px 0 rgba(210, 255, 228, 0.2),
+        0 0 0 1px rgba(21, 110, 55, 0.85);
+    z-index: 3;
+    clip-path: polygon(
+        0% 100%,
+        0% 38%,
+        2.5% 20%,
+        7% 9%,
+        14% 3%,
+        24% 0%,
+        76% 0%,
+        86% 3%,
+        93% 9%,
+        97.5% 20%,
+        100% 38%,
+        100% 100%
+    );
+    -webkit-clip-path: polygon(
+        0% 100%,
+        0% 38%,
+        2.5% 20%,
+        7% 9%,
+        14% 3%,
+        24% 0%,
+        76% 0%,
+        86% 3%,
+        93% 9%,
+        97.5% 20%,
+        100% 38%,
+        100% 100%
+    );
+    font-family: var(--font-family-primary);
+}
+
+.riff-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+}
+
+/* Изображение риффа */
+.riff-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+/* Градиент поверх изображения */
+.riff-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 80px;
+    background: linear-gradient(to top, 
+        rgba(0, 0, 0, 0.9) 0%,
+        rgba(0, 0, 0, 0.7) 50%,
+        transparent 100%);
+}
+
+/* Контент карточки риффа */
+.riff-content {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-end;
+    z-index: 1;
+    min-height: 80px;
+    box-sizing: border-box;
+}
+
+/* Кнопка избранного риффа */
+.riff-favorite-btn {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    border-radius: 50%;
+    cursor: pointer;
+    padding: 0;
+    z-index: 2;
+    transition: all var(--transition-fast);
+}
+
+.riff-favorite-btn:hover {
+    background: rgba(0, 0, 0, 0.7);
+    transform: scale(1.1);
+}
+
+.riff-favorite-btn.active {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.riff-favorite-btn .favorite-icon {
+    width: 14px;
+    height: 14px;
+    stroke: var(--color-text-primary);
+    stroke-width: 1.5;
+    fill: none;
+    transition: all var(--transition-fast);
+}
+
+.riff-favorite-btn.active .favorite-icon {
+    fill: var(--color-accent-gold);
+    stroke: var(--color-accent-gold);
+}
+
+/* Информация о риффе */
+.riff-info {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-end;
+    text-align: left;
+    gap: 4px;
+}
+
+.riff-song {
+    font-family: var(--font-family-primary);
+    font-weight: var(--font-weight-medium);
+    font-size: 14px;
+    color: var(--color-text-primary);
+    line-height: 1.2;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 100%;
+}
+
+.riff-artist {
+    font-family: var(--font-family-primary);
+    font-weight: var(--font-weight-regular);
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.8);
+    line-height: 1.2;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 100%;
+}
+
+/* === АДАПТИВНОСТЬ КОМПОНЕНТОВ === */
+
+/* Десктоп и планшеты - обычное расположение */
+@media (min-width: 901px) {
+    .collections-header {
+        flex-wrap: nowrap;
+    }
+    
+    .filter-group {
+        flex-direction: row;
+        align-items: center;
+    }
+}
+
+/* Мобильные устройства (до 900px) */
+@media (max-width: 900px) {
+    .collections-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding-bottom: 0;
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+    
+    .collections-title-wrapper {
+        min-width: auto;
+        margin-right: 0;
+        display: flex;
+        align-items: center;
+        width: 100%;
+    }
+    
+    .collections-title {
+        text-align: left;
+        flex: 1;
+    }
+    
+    /* СТРЕЛКИ СКРОЛЛА КАРТОЧЕК - СПРАВА КАК В ДЕСКТОПЕ */
+    .collections-nav {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        width: var(--width-nav-arrows);
+        height: var(--height-nav-arrows);
+        flex-shrink: 0;
+        margin-left: auto; /* Выравниваем вправо */
+    }
+    
+    .filters-container {
+        width: 100%;
+        display: flex;
+        gap: 20px;
+        justify-content: flex-start;
+        margin-top: 0;
+    }
+    
+    /* УБИРАЕМ ЗАГОЛОВКИ У ФИЛЬТРОВ НА МОБИЛЬНЫХ */
+    .filter-group {
+        flex-direction: row;
+        align-items: center;
+        gap: 0;
+    }
+    
+    .filter-label {
+        display: none !important; /* Скрываем заголовки фильтров */
+    }
+    
+    /* СОХРАНЯЕМ СТИЛИ СЕЛЕКТОВ КАК НА ДЕСКТОПЕ */
+    .custom-select {
+        width: 116px; /* Такая же ширина как на десктопе */
+        height: var(--height-select); /* Такая же высота */
+    }
+    
+    .select-input {
+        font-size: var(--font-size-sm); /* Такой же размер шрифта */
+        font-weight: var(--font-weight-regular); /* Такой же вес шрифта */
+        color: var(--color-text-secondary); /* Такой же цвет текста */
+        padding: 0 35px 0 15px; /* Такой же паддинг */
+    }
+    
+    .select-arrow {
+        right: 12px; /* Такая же позиция */
+        width: 16px; /* Такие же размеры */
+        height: 16px;
+    }
+}
+
+/* Планшеты (640-900px) */
+@media (max-width: 900px) and (min-width: 641px) {
+    .filters-container {
+        gap: 30px; /* Такие же отступы как на десктопе */
+    }
+}
+
+/* Маленькие мобильные (до 640px) */
+@media (max-width: 640px) {
+    .collections-header {
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+    
+    .collections-title {
+        font-size: var(--font-size-lg);
+    }
+    
+    .filters-container {
+        gap: 20px;
+        justify-content: flex-start;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+    }
+    
+    .filters-container::-webkit-scrollbar {
+        display: none;
+    }
+    
+    .filter-group {
+        flex-shrink: 0;
+    }
+    
+    .custom-select {
+        width: 116px; /* Сохраняем ширину */
+    }
+    
+    /* СТРЕЛКИ СОХРАНЯЮТ СВОЙ РАЗМЕР */
+    .nav-arrow {
+        width: var(--size-arrow-button);
+        height: var(--size-arrow-button);
+    }
+    
+    .nav-arrow svg {
+        width: var(--size-arrow-icon);
+        height: var(--size-arrow-icon);
+    }
+}
+
+/* Очень маленькие мобильные (до 480px) */
+@media (max-width: 480px) {
+    .collections-header {
+        gap: 12px;
+        margin-bottom: 15px;
+    }
+    
+    .collections-title {
+        font-size: 16px;
+    }
+    
+    .filters-container {
+        gap: 15px;
+    }
+    
+    .custom-select {
+        width: 110px; /* Немного уменьшаем на очень маленьких экранах */
+    }
+    
+    .select-input {
+        font-size: 13px;
+        padding: 0 30px 0 12px;
+    }
+    
+    .select-arrow {
+        right: 10px;
+        width: 14px;
+        height: 14px;
+    }
+}
+
+/* Супер маленькие мобильные (до 360px) */
+@media (max-width: 360px) {
+    .collections-header {
+        gap: 10px;
+    }
+    
+    .filters-container {
+        gap: 10px;
+    }
+    
+    .custom-select {
+        width: 100px;
+    }
+    
+    .select-input {
+        font-size: 12px;
+        padding: 0 28px 0 10px;
+    }
+}
+
+/* Адаптивность для риффов */
+
+/* Большие экраны (от 1440px) - 5 в ряд */
+@media (min-width: 1440px) {
+    .riffs-grid {
+        grid-template-columns: repeat(5, 1fr);
+    }
+}
+
+/* Десктоп (1200-1439px) - 4 в ряд */
+@media (max-width: 1439px) and (min-width: 1200px) {
+    .riffs-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+/* Большие планшеты и маленькие десктопы (900-1199px) - 3 в ряд */
+@media (max-width: 1199px) and (min-width: 900px) {
+    .riffs-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+/* Планшеты (768-899px) - 3 в ряд */
+@media (max-width: 899px) and (min-width: 768px) {
+    .riffs-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+    }
+}
+
+/* Маленькие планшеты (640-767px) - 2 в ряд */
+@media (max-width: 767px) and (min-width: 640px) {
+    .riffs-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
+    }
+}
+
+/* Мобильные (480-639px) - 2 в ряд */
+@media (max-width: 639px) and (min-width: 480px) {
+    .riffs-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+    }
+    
+    .riffs-section {
+        margin-top: 0px;
+        padding-top: 0px;
+    }
+    
+    .riffs-header {
+        margin-bottom: 25px;
+    }
+    
+    .riff-content {
+        padding: 12px;
+    }
+    
+    .riff-favorite-btn {
+        top: 12px;
+        right: 12px;
+        width: 20px;
+        height: 20px;
+    }
+    
+    .riff-favorite-btn .favorite-icon {
+        width: 12px;
+        height: 12px;
+    }
+    
+    .riff-song {
+        font-size: 13px;
+    }
+    
+    .riff-artist {
+        font-size: 11px;
+    }
+}
+
+/* Маленькие мобильные (до 479px) - 2 в ряд */
+@media (max-width: 479px) {
+    .riffs-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+    }
+    
+    .riffs-section {
+        margin-top: 0px;
+        padding-top: 0px;
+    }
+    
+    .riffs-header {
+        margin-bottom: 20px;
+    }
+    
+    .riff-content {
+        padding: 10px;
+    }
+    
+    .riff-favorite-btn {
+        top: 10px;
+        right: 10px;
+        width: 18px;
+        height: 18px;
+    }
+    
+    .riff-favorite-btn .favorite-icon {
+        width: 10px;
+        height: 10px;
+    }
+    
+    .riff-song {
+        font-size: 12px;
+    }
+    
+    .riff-artist {
+        font-size: 10px;
+    }
+}
+
+/* Очень маленькие мобильные (до 360px) - 1 в ряд */
+@media (max-width: 360px) {
+    .riffs-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+    
+    .riff-card {
+        max-width: 280px;
+        margin: 0 auto;
+    }
+}
+
+/* Футер: css/rk-site-footer.css (импорт выше) */
+
+/* === ОБНОВЛЕННЫЕ СТИЛИ ДЛЯ КАРТОЧЕК РИФФОВ === */
+
+.riff-card {
+    width: 100%;
+    height: var(--height-riff-card);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    position: relative;
+    cursor: pointer;
+    transition: all var(--transition-base);
+    aspect-ratio: 214 / 180;
+}
+
+.riff-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+}
+
+/* Изображение риффа */
+.riff-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+/* Градиент поверх изображения */
+.riff-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 80px;
+    background: linear-gradient(to top, 
+        rgba(0, 0, 0, 0.9) 0%,
+        rgba(0, 0, 0, 0.7) 50%,
+        transparent 100%);
+}
+
+/* Контент карточки риффа (информация внизу) */
+.riff-content {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-end;
+    z-index: 1;
+    min-height: 80px;
+    box-sizing: border-box;
+}
+
+/* Кнопка избранного риффа (правый верхний угол) */
+.riff-favorite-btn {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    border-radius: 50%;
+    cursor: pointer;
+    padding: 0;
+    z-index: 2;
+    transition: all var(--transition-fast);
+}
+
+.riff-favorite-btn:hover {
+    background: rgba(0, 0, 0, 0.7);
+    transform: scale(1.1);
+}
+
+.riff-favorite-btn.active {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.riff-favorite-btn .favorite-icon {
+    width: 14px;
+    height: 14px;
+    stroke: var(--color-text-primary);
+    stroke-width: 1.5;
+    fill: none;
+    transition: all var(--transition-fast);
+}
+
+.riff-favorite-btn.active .favorite-icon {
+    fill: var(--color-accent-gold);
+    stroke: var(--color-accent-gold);
+}
+
+/* Бейдж сложности (левый верхний угол) */
+.riff-difficulty {
+    position: absolute;
+    top: 16px;
+    left: 16px;
+    padding: 6px 12px; /* Увеличили отступы */
+    border-radius: 12px; /* Сильнее скруглили */
+    font-size: 12px; /* Увеличили шрифт */
+    font-weight: var(--font-weight-regular); /* Менее жирный */
+    color: white;
+    z-index: 2;
+    /* Убрали обводку и блюр, сделали однотонный фон */
+    border: none;
+    font-family: var(--font-family-primary);
+}
+
+.riff-difficulty.beginner {
+    background: #4CAF50; /* Сплошной зеленый */
+}
+
+.riff-difficulty.intermediate {
+    background: #FF9800; /* Сплошной оранжевый */
+}
+
+.riff-difficulty.advanced {
+    background: #F44336; /* Сплошной красный */
+}
+
+/* Адаптивность для бейджей */
+@media (max-width: 480px) {
+    .riff-difficulty {
+        top: 12px;
+        left: 12px;
+        font-size: 11px;
+        padding: 5px 10px;
+        border-radius: 10px;
+    }
+}
+
+@media (max-width: 479px) {
+    .riff-difficulty {
+        top: 10px;
+        left: 10px;
+        font-size: 10px;
+        padding: 4px 8px;
+        border-radius: 8px;
+    }
+}
+
+/* Информация о риффе */
+.riff-info {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-end;
+    text-align: left;
+    gap: 4px;
+}
+
+.riff-song {
+    font-family: var(--font-family-primary);
+    font-weight: var(--font-weight-medium);
+    font-size: 14px;
+    color: var(--color-text-primary);
+    line-height: 1.2;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 100%;
+}
+
+.riff-artist {
+    font-family: var(--font-family-primary);
+    font-weight: var(--font-weight-regular);
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.8);
+    line-height: 1.2;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 100%;
+}
+
+/* Убираем старые стили для riff-last-practiced */
+.riff-last-practiced {
+    display: none;
+}
+
+/* === АДАПТИВНОСТЬ ДЛЯ НОВОЙ СТРУКТУРЫ === */
+
+@media (max-width: 480px) {
+    .riff-content {
+        padding: 12px;
+    }
+    
+    .riff-favorite-btn {
+        top: 12px;
+        right: 12px;
+        width: 20px;
+        height: 20px;
+    }
+    
+    .riff-favorite-btn .favorite-icon {
+        width: 12px;
+        height: 12px;
+    }
+    
+    .riff-difficulty {
+        top: 12px;
+        left: 12px;
+        font-size: 9px;
+        padding: 3px 6px;
+    }
+    
+    .riff-song {
+        font-size: 13px;
+    }
+    
+    .riff-artist {
+        font-size: 11px;
+    }
+}
+
+@media (max-width: 479px) {
+    .riff-content {
+        padding: 10px;
+    }
+    
+    .riff-favorite-btn {
+        top: 10px;
+        right: 10px;
+        width: 18px;
+        height: 18px;
+    }
+    
+    .riff-favorite-btn .favorite-icon {
+        width: 10px;
+        height: 10px;
+    }
+    
+    .riff-difficulty {
+        top: 10px;
+        left: 10px;
+        font-size: 8px;
+        padding: 2px 4px;
+    }
+    
+    .riff-song {
+        font-size: 12px;
+    }
+    
+    .riff-artist {
+        font-size: 10px;
+    }
+}
+
+/* === COLLECTION PAGE STYLES === */
+
+.collection-header-section {
+    margin-bottom: var(--spacing-2xl);
+}
+
+.collection-banner {
+    width: 100%;
+    height: 200px;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    position: relative;
+    margin-bottom: var(--spacing-xl);
+}
+
+.collection-banner-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.collection-banner-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 80px;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.8), transparent);
+}
+
+.collection-title {
+    font-family: var(--font-family-primary);
+    font-weight: var(--font-weight-regular);
+    font-size: 36px;
+    color: var(--color-text-primary);
+    text-align: center;
+    margin-bottom: 0;
+}
+
+/* Адаптивность для страницы коллекции */
+@media (max-width: 768px) {
+    .collection-title {
+        font-size: 28px;
+    }
+    
+    .collection-banner {
+        height: 150px;
+    }
+}
+
+@media (max-width: 480px) {
+    .collection-title {
+        font-size: 24px;
+    }
+    
+    .collection-banner {
+        height: 120px;
+    }
+}
+
+/* Прелоадер для изображений риффов */
+.riff-image-container {
+    position: relative;
+    width: 100%;
+    height: 180px;
+    overflow: hidden;
+    border-radius: 12px;
+}
+
+.riff-image-preloader {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1;
+}
+
+.riff-preloader-spinner {
+    width: 30px;
+    height: 30px;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    border-top-color: #6B3DA6;
+    animation: spin 1s linear infinite;
+}
+
+/* === ПРЕЛОАДЕР ДЛЯ ИЗОБРАЖЕНИЙ РИФФОВ === */
+.riff-image-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    border-radius: var(--radius-lg);
+}
+
+.riff-image-preloader {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(17, 22, 41, 0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1;
+    border-radius: var(--radius-lg);
+    transition: opacity 0.3s ease;
+}
+
+.riff-preloader-spinner {
+    width: 30px;
+    height: 30px;
+    border: 3px solid rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    border-top-color: var(--color-button-bg);
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}

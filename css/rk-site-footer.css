@@ -1,0 +1,108 @@
+/**
+ * Единый футер для app / practice / landing (и др. тёмных страниц).
+ * Разметка: <footer class="footer">…</footer> как в app.html
+ */
+.footer {
+    margin-top: auto;
+    flex-shrink: 0;
+    padding: 36px 0;
+    padding-bottom: calc(44px + env(safe-area-inset-bottom, 0px));
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    width: 100%;
+    box-sizing: border-box;
+    /* Без заливки — линия и ряд на общем фоне страницы */
+    background: transparent;
+}
+
+.page-container:not(.rk-footer-static) > .footer {
+    margin-top: auto;
+}
+
+/* Если страница не flex-колонка — сохраняем отступ как раньше */
+.page-container.rk-footer-static > .footer {
+    margin-top: var(--spacing-3xl, 80px);
+}
+
+.footer-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: var(--spacing-lg, 20px);
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 0 28px;
+    box-sizing: border-box;
+}
+
+.footer-copyright {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.footer-text {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-weight: 400;
+    font-size: 0.8125rem;
+    line-height: 1.45;
+    color: rgba(160, 165, 182, 0.85);
+    margin: 0;
+}
+
+.footer-link {
+    color: rgba(196, 181, 252, 0.95);
+    text-decoration: none;
+    margin-left: 0.35em;
+}
+
+.footer-link:hover {
+    color: #e9d5ff;
+}
+
+.footer-social {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-lg, 20px);
+}
+
+.footer .social-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.03);
+    transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+    color: rgba(160, 165, 182, 0.9);
+}
+
+.footer .social-link:hover {
+    background: rgba(147, 85, 229, 0.15);
+    border-color: rgba(147, 85, 229, 0.35);
+    color: rgba(244, 247, 255, 0.95);
+    transform: translateY(-2px);
+}
+
+.footer .social-icon {
+    width: 24px;
+    height: 24px;
+    stroke: currentColor;
+    stroke-width: 1.5;
+    fill: none;
+}
+
+@media (max-width: 900px) {
+    .footer-container {
+        padding: 0 20px;
+        justify-content: center;
+        text-align: center;
+        flex-direction: column;
+    }
+
+    .footer-copyright {
+        align-items: center;
+    }
+}

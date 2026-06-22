@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Riff Killer — Коллекции (админка)</title>
+    <link rel="stylesheet" href="../css/reset.css">
+    <link rel="stylesheet" href="../css/variables.css">
+    <link rel="icon" type="image/svg+xml" href="../assets/icons/favicon.svg">
+    <style>
+        html, body { background: #111629 !important; color: #fff; font-family: Roboto, sans-serif; min-height: 100vh; margin: 0; padding: 24px; padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px) + 52px); }
+        .admin-wrap { max-width: 720px; margin: 0 auto; }
+        h1 { font-size: 24px; margin-bottom: 8px; }
+        .back { display: inline-block; margin-bottom: 20px; color: rgba(255,255,255,0.55); text-decoration: none; font-size: 14px; }
+        .back:hover { color: #fff; }
+        .hint { font-size: 13px; color: rgba(255,255,255,0.5); margin-bottom: 24px; line-height: 1.55; }
+        .form-section { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.12); border-radius: 12px; padding: 20px; margin-bottom: 20px; }
+        .form-section h2 { font-size: 16px; font-weight: 500; margin: 0 0 16px; color: rgba(255,255,255,0.85); }
+        .form-row { margin-bottom: 14px; }
+        .form-row label { display: block; font-size: 13px; color: rgba(255,255,255,0.55); margin-bottom: 6px; }
+        .form-row input[type="text"] { width: 100%; max-width: 480px; padding: 10px 12px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; color: #fff; font-size: 14px; }
+        .form-row input[type="file"] { font-size: 13px; color: rgba(255,255,255,0.6); margin-top: 6px; }
+        .form-row input[type="checkbox"] { margin-right: 8px; vertical-align: middle; }
+        .btn { padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; border: none; font-family: inherit; }
+        .btn-primary { background: #9355E5; color: #fff; }
+        .btn-primary:hover { background: #7B3FC7; }
+        .btn-danger { background: rgba(244,67,54,0.25); color: #F44336; border: 1px solid rgba(244,67,54,0.5); }
+        .btn-danger:hover { background: rgba(244,67,54,0.4); }
+        .btn-small { padding: 6px 12px; font-size: 12px; }
+        .msg { margin-top: 12px; padding: 12px 16px; border-radius: 8px; font-size: 14px; display: none; }
+        .msg.show { display: block; }
+        .msg.success { background: rgba(76,175,80,0.2); color: #81C784; border: 1px solid rgba(76,175,80,0.4); }
+        .msg.error { background: rgba(244,67,54,0.15); color: #E57373; border: 1px solid rgba(244,67,54,0.35); }
+        .admin-tabs { display: flex; gap: 4px; margin-bottom: 24px; border-bottom: 1px solid rgba(255,255,255,0.12); flex-wrap: wrap; }
+        .admin-tabs a { padding: 10px 16px; color: rgba(255,255,255,0.5); text-decoration: none; font-size: 14px; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+        .admin-tabs a:hover { color: #fff; }
+        .admin-tabs a.active { color: #fff; border-bottom-color: #9355E5; }
+        .tab-pane { display: none; }
+        .tab-pane.active { display: block; }
+        .col-list { display: flex; flex-direction: column; gap: 8px; }
+        .col-card { display: flex; align-items: center; gap: 14px; padding: 14px 16px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; flex-wrap: wrap; }
+        .col-card-thumb { width: 88px; height: 52px; object-fit: cover; border-radius: 8px; flex-shrink: 0; background: #000; }
+        .col-card-meta { flex: 1; min-width: 160px; }
+        .col-card-name { font-weight: 600; font-size: 15px; }
+        .col-card-sub { font-size: 12px; color: rgba(255,255,255,0.45); margin-top: 4px; }
+        .col-card-actions { display: flex; gap: 8px; flex-shrink: 0; }
+        .empty { text-align: center; padding: 40px; color: rgba(255,255,255,0.45); }
+        select#colSelect { width: 100%; max-width: 480px; padding: 10px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.06); color: #fff; font-size: 14px; }
+    </style>
+</head>
+<body>
+    <div class="admin-wrap">
+        <a href="index.php?section=collections" class="back">← К оболочке админки</a>
+        <h1>Коллекции</h1>
+        <p class="hint">
+            Здесь только <strong>название и обложка</strong> подборки (<code>data/collections.json</code>).
+            Какие риффы входят в коллекцию, задаётся в <strong>админке «Риффы»</strong> — у каждого риффа отмечаются коллекции (список короткий, хоть сотни риффов в базе).
+            Сайт отдаёт готовый список с полем <code>riffs</code> через <code>/api/collections/list.php</code> (собирается из <code>collectionIds</code> в <code>riffs.json</code>).
+        </p>
+
+        <nav class="admin-tabs">
+            <a href="#" class="admin-tab active" data-tab="list">Список</a>
+            <a href="#" class="admin-tab" data-tab="edit">Создать / редактировать</a>
+        </nav>
+
+        <div class="tab-pane active" id="tabList">
+            <div class="form-section">
+                <h2>Все коллекции <button type="button" class="btn btn-primary btn-small" id="btnNewCol" style="margin-left:12px;">+ Новая</button></h2>
+                <div id="colListBody"></div>
+            </div>
+        </div>
+
+        <div class="tab-pane" id="tabEdit">
+            <div class="form-section">
+                <h2>Коллекция</h2>
+                <div class="form-row">
+                    <label>Выберите коллекцию или «Новая»</label>
+                    <select id="colSelect">
+                        <option value="">— Новая коллекция —</option>
+                    </select>
+                </div>
+            </div>
+            <form id="colForm">
+                <div class="form-section">
+                    <h2>Основное</h2>
+                    <div class="form-row">
+                        <label>Название</label>
+                        <input type="text" id="colName" required placeholder="Classic Rock">
+                    </div>
+                    <div class="form-row">
+                        <label>URL обложки (assets/…)</label>
+                        <input type="text" id="colImageUrl" placeholder="assets/img/collections-1.png">
+                        <input type="file" id="colImageUpload" accept="image/*">
+                    </div>
+                    <div class="form-row">
+                        <label><input type="checkbox" id="colIsFavorite"> По умолчанию в избранном (флаг в JSON)</label>
+                    </div>
+                </div>
+                <div class="form-section">
+                    <button type="submit" class="btn btn-primary" id="colSubmit">Сохранить</button>
+                    <button type="button" class="btn btn-danger" id="colDelete" style="margin-left:10px;display:none;">Удалить</button>
+                    <div id="colMsg" class="msg"></div>
+                </div>
+            </form>
+        </div>
+    </div>
+    <script>
+(function () {
+    var listUrl = '/api/collections/list.php';
+    var saveUrl = '/api/collections/save.php';
+    var deleteUrl = '/api/collections/delete.php';
+    var uploadUrl = '/api/upload.php';
+
+    var collectionsCache = [];
+
+    function showMsg(el, text, ok) {
+        if (!el) return;
+        el.textContent = text || '';
+        el.className = 'msg show ' + (ok ? 'success' : 'error');
+        clearTimeout(el._t);
+        el._t = setTimeout(function () { el.className = 'msg'; }, 5000);
+    }
+
+    function switchTab(name) {
+        document.querySelectorAll('.admin-tab').forEach(function (t) {
+            t.classList.toggle('active', t.dataset.tab === name);
+        });
+        document.querySelectorAll('.tab-pane').forEach(function (p) {
+            p.classList.toggle('active', p.id === (name === 'list' ? 'tabList' : 'tabEdit'));
+        });
+    }
+
+    document.querySelectorAll('.admin-tab').forEach(function (a) {
+        a.addEventListener('click', function (e) {
+            e.preventDefault();
+            switchTab(this.dataset.tab);
+        });
+    });
+
+    function fillColSelect() {
+        var sel = document.getElementById('colSelect');
+        var cur = sel.value;
+        sel.innerHTML = '<option value="">— Новая коллекция —</option>';
+        collectionsCache.forEach(function (c) {
+            var o = document.createElement('option');
+            o.value = c.id;
+            o.textContent = (c.name || '') + ' (id ' + c.id + ', ' + (c.videoCount || 0) + ' риффов)';
+            sel.appendChild(o);
+        });
+        if (cur) sel.value = cur;
+    }
+
+    function renderColList() {
+        var body = document.getElementById('colListBody');
+        if (!body) return;
+        if (!collectionsCache.length) {
+            body.innerHTML = '<div class="empty">Коллекций пока нет.</div>';
+            return;
+        }
+        body.innerHTML = '<div class="col-list"></div>';
+        var list = body.querySelector('.col-list');
+        collectionsCache.forEach(function (c) {
+            var card = document.createElement('div');
+            card.className = 'col-card';
+            var img = c.imageUrl || '';
+            card.innerHTML =
+                '<img class="col-card-thumb" alt="" src="' + img.replace(/"/g, '') + '">' +
+                '<div class="col-card-meta">' +
+                '<div class="col-card-name"></div>' +
+                '<div class="col-card-sub"></div></div>' +
+                '<div class="col-card-actions">' +
+                '<button type="button" class="btn btn-primary btn-small btn-edit">Редактировать</button>' +
+                '<button type="button" class="btn btn-danger btn-small btn-del">Удалить</button></div>';
+            card.querySelector('.col-card-name').textContent = c.name || '(без названия)';
+            var rc = c.videoCount != null ? c.videoCount : ((c.riffs && c.riffs.length) || 0);
+            card.querySelector('.col-card-sub').textContent = 'id ' + c.id + ' · ' + rc + ' риффов (из админки риффов)';
+            var thumb = card.querySelector('.col-card-thumb');
+            thumb.onerror = function () { this.src = 'https://via.placeholder.com/176x104/2a2d42/ffffff?text=Cover'; };
+            card.querySelector('.btn-edit').onclick = function () {
+                switchTab('edit');
+                document.getElementById('colSelect').value = String(c.id);
+                document.getElementById('colSelect').dispatchEvent(new Event('change'));
+            };
+            card.querySelector('.btn-del').onclick = function () {
+                if (!confirm('Удалить коллекцию «' + (c.name || '') + '»? Ссылки на неё уберутся у всех риффов.')) return;
+                fetch(deleteUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: c.id })
+                })
+                    .then(function (r) { return r.json(); })
+                    .then(function (d) {
+                        if (d.success) loadCollections();
+                    });
+            };
+            list.appendChild(card);
+        });
+    }
+
+    function loadCollections() {
+        fetch(listUrl)
+            .then(function (r) { return r.json(); })
+            .then(function (list) {
+                collectionsCache = Array.isArray(list) ? list : [];
+                fillColSelect();
+                renderColList();
+            })
+            .catch(function () {
+                collectionsCache = [];
+                fillColSelect();
+                renderColList();
+            });
+    }
+
+    function loadFormFromCollection(c) {
+        document.getElementById('colName').value = c.name || '';
+        document.getElementById('colImageUrl').value = c.imageUrl || '';
+        document.getElementById('colIsFavorite').checked = !!c.isFavorite;
+        document.getElementById('colDelete').style.display = '';
+    }
+
+    function resetFormNew() {
+        document.getElementById('colName').value = '';
+        document.getElementById('colImageUrl').value = '';
+        document.getElementById('colIsFavorite').checked = false;
+        document.getElementById('colDelete').style.display = 'none';
+    }
+
+    document.getElementById('colSelect').addEventListener('change', function () {
+        var id = this.value;
+        if (!id) {
+            resetFormNew();
+            return;
+        }
+        var c = collectionsCache.find(function (x) { return String(x.id) === String(id); });
+        if (c) loadFormFromCollection(c);
+    });
+
+    document.getElementById('btnNewCol').addEventListener('click', function () {
+        switchTab('edit');
+        document.getElementById('colSelect').value = '';
+        document.getElementById('colSelect').dispatchEvent(new Event('change'));
+    });
+
+    document.getElementById('colImageUpload').addEventListener('change', function () {
+        var f = this.files && this.files[0];
+        if (!f) return;
+        var name = (document.getElementById('colName').value || 'collection').toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9\-]/g, '').slice(0, 40) || 'collection';
+        var ext = (f.name.split('.').pop() || 'png').toLowerCase();
+        if (ext.length > 5) ext = 'png';
+        var path = 'assets/img/collection-' + name + '-' + Date.now() + '.' + ext;
+        var fd = new FormData();
+        fd.append('file', f);
+        fd.append('path', path);
+        fetch(uploadUrl, { method: 'POST', body: fd })
+            .then(function (r) { return r.json(); })
+            .then(function (d) {
+                if (d.success && d.path) {
+                    document.getElementById('colImageUrl').value = d.path;
+                    showMsg(document.getElementById('colMsg'), 'Файл загружен: ' + d.path, true);
+                } else {
+                    showMsg(document.getElementById('colMsg'), d.error || 'Ошибка загрузки', false);
+                }
+            })
+            .catch(function () {
+                showMsg(document.getElementById('colMsg'), 'Сеть / сервер', false);
+            });
+        this.value = '';
+    });
+
+    document.getElementById('colForm').addEventListener('submit', function (e) {
+        e.preventDefault();
+        var sel = document.getElementById('colSelect').value;
+        var payload = {
+            name: document.getElementById('colName').value.trim(),
+            imageUrl: document.getElementById('colImageUrl').value.trim(),
+            isFavorite: document.getElementById('colIsFavorite').checked
+        };
+        if (sel) payload.id = parseInt(sel, 10);
+        fetch(saveUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ collection: payload })
+        })
+            .then(function (r) { return r.json(); })
+            .then(function (d) {
+                if (d.success) {
+                    showMsg(document.getElementById('colMsg'), 'Сохранено (id ' + d.collection.id + ')', true);
+                    loadCollections();
+                    if (d.collection && d.collection.id) {
+                        document.getElementById('colSelect').value = String(d.collection.id);
+                        document.getElementById('colDelete').style.display = '';
+                    }
+                } else {
+                    showMsg(document.getElementById('colMsg'), d.error || 'Ошибка', false);
+                }
+            })
+            .catch(function () {
+                showMsg(document.getElementById('colMsg'), 'Ошибка сети', false);
+            });
+    });
+
+    document.getElementById('colDelete').addEventListener('click', function () {
+        var sel = document.getElementById('colSelect').value;
+        if (!sel) return;
+        if (!confirm('Удалить эту коллекцию?')) return;
+        fetch(deleteUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: parseInt(sel, 10) })
+        })
+            .then(function (r) { return r.json(); })
+            .then(function (d) {
+                if (d.success) {
+                    showMsg(document.getElementById('colMsg'), 'Удалено', true);
+                    document.getElementById('colSelect').value = '';
+                    resetFormNew();
+                    loadCollections();
+                }
+            });
+    });
+
+    loadCollections();
+})();
+    </script>
+</body>
+</html>

@@ -1,0 +1,5 @@
+# Riffkiller — единые UI-блоки
+
+- **Auth modal**: только `js/auth-manager.js` + `css/auth-modal.css`. Новые страницы: см. `docs/AUTH_MODAL.md`. Не вставлять разметку модалки вручную.
+- **Шапка**: только `js/site-header.js` + `css/rk-header.css`; для приложения `data-rk-header="app"`. Не копировать HTML шапки в страницы.
+- **Профиль = лендинг**: на `profile.html` — `body.profile-page`, после инлайна подключать `css/profile-landing-sync.css`. Новые блоки профиля — стекло/отступы как на `landing.html` (см. комментарии в `profile-landing-sync.css`).

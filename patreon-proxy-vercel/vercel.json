@@ -1,0 +1,10 @@
+{
+  "functions": {
+    "api/exchange.js": {
+      "maxDuration": 30
+    },
+    "api/identity.js": {
+      "maxDuration": 30
+    }
+  }
+}
