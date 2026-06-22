@@ -14,3 +14,15 @@
 # OS
 .DS_Store
 Thumbs.db
+
+# Large binary assets (transfer via scp/rsync)
+assets/video/
+
+# Backups
+backups/
+
+# Uploads
+uploads/
+
+# Archives
+*.zip
