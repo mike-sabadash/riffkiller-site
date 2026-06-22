@@ -1,0 +1,11 @@
+{
+  "name": "riffkiller-site",
+  "version": "1.0.0",
+  "main": "server.cjs",
+  "scripts": {
+    "start": "node server.cjs"
+  },
+  "dependencies": {
+    "express": "^4.21.0"
+  }
+}
