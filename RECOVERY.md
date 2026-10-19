@@ -32,7 +32,7 @@ npm run start:php
 
 ## Production: preflight before approval
 
-Production was not modified. Direct SSH from the execution environment was unavailable. On 19 October, the eight video paths in the live catalog and the checked `video.php` fallback returned HTTP 404, while `/api/me.php` and the catalog API responded normally.
+Production was not modified. Direct SSH from the execution environment was unavailable; an isolated GitHub Actions preflight has now verified access through the existing server connection on port 2222 and read-only access to the private RiffKiller repository. The only source difference in `practice.html` is its final newline, recorded explicitly in the recovery plan. On 19 October, the eight video paths in the live catalog and the checked `video.php` fallback returned HTTP 404, while `/api/me.php` and the catalog API responded normally.
 
 Use a separate checkout of this PR. Upload the existing **riffkiller-riff-dna-full.zip** archive without extracting it wholesale: it also contains old account/runtime files which must not replace server state. Confirm the actual document root first:
 
