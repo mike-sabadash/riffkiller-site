@@ -6,24 +6,24 @@
     <meta name="theme-color" content="#0a0a0a" id="rk-theme-color">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Riff Killer - Practice Mode</title>
-    
+
     <!-- Шрифты -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <!-- Inter = тот же variable-шрифт, что на landing.html (opsz) -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&family=Roboto:wght@400;500;600&family=Zen+Dots&display=swap" rel="stylesheet">
-    
+
     <!-- CSS файлы -->
     <link rel="stylesheet" href="css/reset.css">
     <link rel="stylesheet" href="css/variables.css">
     <link rel="stylesheet" href="css/base.css">
     <link rel="stylesheet" href="css/components.css">
     <link rel="stylesheet" href="css/rk-header.css">
-    <link rel="stylesheet" href="css/practice.css?v=13">
-    <link rel="stylesheet" href="css/riff-dna.css?v=1">
+    <link rel="stylesheet" href="css/practice.css?v=14">
+    <link rel="stylesheet" href="css/riff-dna.css?v=2">
     <link rel="stylesheet" href="css/riffs-hub.css">
     <link rel="stylesheet" href="css/rk-theme-light.css">
-    
+
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="assets/icons/favicon.svg">
 </head>
@@ -49,7 +49,7 @@
                 </div>
             </div>
         </div>
-        
+
         <!-- Боковая панель с автором и соцсетями -->
         <div class="sidebar-left">
             <div class="author-signature">
@@ -61,10 +61,10 @@
                 </a>
             </div>
         </div>
-        
+
         <!-- Основной контент -->
         <main class="main-content practice-content">
-            
+
             <!-- Хлебные крошки -->
             <div class="practice-header">
                 <div class="breadcrumbs">
@@ -72,7 +72,7 @@
                     <a href="index.html" class="breadcrumb-arrow">
                         <img src="assets/icons/Arrow-thin-left.svg" alt="Back" class="arrow-icon">
                     </a>
-                    
+
                     <!-- Заголовок -->
                     <h1 class="practice-title" id="practiceTitle">
                         <a href="index.html" class="breadcrumb-link">Riffs</a>
@@ -95,65 +95,53 @@
                 </div>
             </section>
 
-            <nav class="dna-stage-nav" id="dnaStageNav" aria-label="Riff DNA learning stages">
-                <button type="button" class="dna-stage active" data-dna-stage="scan"><span>01</span>Scan</button>
-                <button type="button" class="dna-stage" data-dna-stage="split"><span>02</span>Split</button>
-                <button type="button" class="dna-stage" data-dna-stage="isolate"><span>03</span>Isolate</button>
-                <button type="button" class="dna-stage" data-dna-stage="decode"><span>04</span>Decode</button>
-                <button type="button" class="dna-stage" data-dna-stage="mutate"><span>05</span>Mutate</button>
-            </nav>
-            
+            <div class="practice-workspace">
+            <section class="practice-player" aria-label="Practice player">
             <!-- Контролы над видео -->
             <div class="video-top-controls">
-                <div class="hand-controls">
+                <div class="hand-controls" role="group" aria-label="Camera view">
                     <button class="mode-btn active" data-mode="left">Left hand</button>
                     <button class="mode-btn" data-mode="right">Right hand</button>
                     <button class="mode-btn" data-mode="split">Split</button>
                 </div>
-                
-<button class="tab-toggle-btn" id="toggleTabs">
-    <img src="assets/icons/eye-16.svg" alt="Show Tabs" class="tab-icon">
-    <span class="tab-text">Show Tabs</span>
-</button>
-            </div>
-            
-            <!-- Видеоплеер -->
-        <div class="video-player-container">
-    <div class="video-wrapper left-mode" id="videoWrapper">
-        <!-- Thumbnail + loading overlay (hidden when video ready); videos created in JS with preload="auto" -->
-        <div class="video-loading-placeholder" id="videoLoadingPlaceholder" aria-hidden="true" style="display: none;">
-            <div class="video-loading-spinner"></div>
-            <p class="video-loading-text">Загрузка видео...</p>
-            <div class="video-loading-progress-wrap">
-                <div class="video-loading-progress-bar" id="videoLoadingProgress"></div>
-            </div>
-        </div>
-        <div class="video-error-state" id="videoErrorState" style="display: none;" aria-hidden="true">
-            <p class="video-error-text">Video failed to load.</p>
-            <button type="button" class="video-retry-btn" id="videoRetryBtn">Retry</button>
-        </div>
-        <!-- Video elements are appended here by JS (preload="auto") -->
-        <!-- Оверлей с кнопкой play -->
-        <div class="video-overlay" id="videoOverlay">
-            <button class="play-btn" id="playButton">
-                <img src="assets/icons/play-xl.svg" alt="Play" class="play-xl-icon">
-            </button>
-        </div>
-        
+
         <!-- Кнопка Lesson Mode (если у риффа есть lessonVideo) -->
         <button class="lesson-mode-btn" id="lessonModeBtn" type="button" style="display: none;" title="Lesson mode — режим разбора">
             <span class="lesson-mode-icon">📖</span>
             <span class="lesson-mode-label">Lesson</span>
         </button>
 
-        <!-- Practice tools поверх плеера (справа вверху) -->
-        <div class="practice-tools-overlay">
-            <div class="practice-modes" role="group" aria-label="Practice mode">
-                <button type="button" class="practice-mode-btn active" id="modeNormalBtn" aria-pressed="true">Normal</button>
-                <button type="button" class="practice-mode-btn" id="modeSpeedBtn" aria-pressed="false" title="Speed Trainer — guided speeds on the current segment">Speed Trainer</button>
+
+<button class="tab-toggle-btn" id="toggleTabs">
+    <img src="assets/icons/eye-16.svg" alt="Show Tabs" class="tab-icon">
+    <span class="tab-text">Show Tabs</span>
+</button>
+            </div>
+
+            <!-- Видеоплеер -->
+        <div class="video-player-container">
+    <div class="video-wrapper left-mode" id="videoWrapper">
+        <!-- Thumbnail + loading overlay (hidden when video ready); videos created in JS with preload="auto" -->
+        <div class="video-loading-placeholder" id="videoLoadingPlaceholder" aria-hidden="true" style="display: none;">
+            <div class="video-loading-spinner"></div>
+            <p class="video-loading-text" id="videoLoadingText" role="status">Preparing both cameras…</p>
+            <p class="video-loading-detail" id="videoLoadingDetail"></p>
+            <div class="video-loading-progress-wrap" id="videoLoadMeter" role="progressbar" aria-label="Recording download" aria-valuemin="0" aria-valuemax="100">
+                <div class="video-loading-progress-bar" id="videoLoadingProgress"></div>
             </div>
         </div>
-        
+        <div class="video-error-state" id="videoErrorState" style="display: none;" aria-hidden="true">
+            <p class="video-error-text" role="alert">Could not prepare both recordings. Check your connection and retry.</p>
+            <button type="button" class="video-retry-btn" id="videoRetryBtn">Retry</button>
+        </div>
+        <!-- Video elements are appended here by JS (preload="auto") -->
+        <!-- Оверлей с кнопкой play -->
+        <div class="video-overlay" id="videoOverlay">
+            <button class="play-btn" id="playButton" aria-label="Play" title="Play">
+                <img src="assets/icons/play-xl.svg" alt="Play" class="play-xl-icon">
+            </button>
+        </div>
+
         <!-- Таймлайн риффа с нумерацией -->
         <div class="riff-timeline" id="riffTimeline">
             <div class="timeline-container">
@@ -164,29 +152,38 @@
             </div>
         </div>
     </div>
-    
+
+    <p class="practice-media-status" id="practiceMediaStatus" role="status">Preparing recordings…</p>
     <!-- Элементы управления видео под плеером -->
     <div class="video-controls-below">
         <div class="controls-below-container">
             <!-- Кнопки управления -->
             <div class="control-buttons">
-                <button class="control-btn" id="rewindBack">
+                <button class="control-btn" id="rewindBack" aria-label="Back 2 seconds" title="Back 2 seconds">
                     <img src="assets/icons/left.svg" alt="Rewind Back" class="control-icon">
                 </button>
-                
-                <button class="control-btn play-control" id="playControl">
+
+                <button class="control-btn play-control" id="playControl" aria-label="Play" title="Play">
                     <img src="assets/icons/play-16.svg" alt="Play" class="play-icon">
                     <img src="assets/icons/stop-16.svg" alt="Stop" class="stop-icon" style="display: none;">
                 </button>
-                
-                <button class="control-btn" id="rewindForward">
+
+                <button class="control-btn" id="rewindForward" aria-label="Forward 2 seconds" title="Forward 2 seconds">
                     <img src="assets/icons/right.svg" alt="Rewind Forward" class="control-icon">
                 </button>
-                <button class="control-btn" id="loopButton">
+                <button class="control-btn" id="loopButton" aria-pressed="false" aria-label="Loop current selection" title="Loop current selection">
                     <img src="assets/icons/loop.svg" alt="Loop" class="control-icon">
                 </button>
             </div>
-                    
+
+        <!-- Practice mode alongside playback speed -->
+        <div class="practice-speed-mode">
+            <div class="practice-modes" role="group" aria-label="Practice mode">
+                <button type="button" class="practice-mode-btn active" id="modeNormalBtn" aria-pressed="true">Normal</button>
+                <button type="button" class="practice-mode-btn" id="modeSpeedBtn" aria-pressed="false" title="Speed Trainer — guided speeds on the current segment">Speed Trainer</button>
+            </div>
+        </div>
+
             <!-- Контролы скорости -->
             <div class="speed-controls">
                 <button class="speed-btn active" data-speed="1">×1</button>
@@ -196,7 +193,7 @@
         </div>
     </div>
 </div>
-                            
+
             <!-- Кнопки управления сегментами -->
             <div class="segment-controls-container">
                 <div class="segment-controls" id="segmentControls">
@@ -204,8 +201,19 @@
                 </div>
             </div>
 
+            </section>
             <!-- Riff DNA interactive analysis. Filled by js/riff-dna.js. -->
-            <section class="dna-lab" id="dnaLab" aria-live="polite">
+            <section class="dna-lab" id="dnaLab" aria-label="Riff DNA learning stages">
+            <nav class="dna-stage-nav" id="dnaStageNav" aria-label="Riff DNA learning stages" role="tablist">
+                <button type="button" class="dna-stage active" data-dna-stage="scan" id="dna-tab-scan" role="tab" aria-controls="dnaStagePanel" aria-selected="true" tabindex="0"><span>01</span>Scan</button>
+                <button type="button" class="dna-stage" data-dna-stage="split" id="dna-tab-split" role="tab" aria-controls="dnaStagePanel" aria-selected="false" tabindex="-1"><span>02</span>Split</button>
+                <button type="button" class="dna-stage" data-dna-stage="isolate" id="dna-tab-isolate" role="tab" aria-controls="dnaStagePanel" aria-selected="false" tabindex="-1"><span>03</span>Isolate</button>
+                <button type="button" class="dna-stage" data-dna-stage="decode" id="dna-tab-decode" role="tab" aria-controls="dnaStagePanel" aria-selected="false" tabindex="-1"><span>04</span>Decode</button>
+                <button type="button" class="dna-stage" data-dna-stage="mutate" id="dna-tab-mutate" role="tab" aria-controls="dnaStagePanel" aria-selected="false" tabindex="-1"><span>05</span>Mutate</button>
+            </nav>
+
+
+                <div id="dnaStagePanel" role="tabpanel" tabindex="0" aria-labelledby="dna-tab-scan">
                 <div class="dna-lab-head">
                     <div>
                         <span class="dna-kicker" id="dnaStageKicker">01 / SCAN</span>
@@ -214,14 +222,17 @@
                     <div class="dna-structure" id="dnaStructure" aria-label="Riff structure"></div>
                 </div>
                 <div class="dna-stage-content" id="dnaStageContent"></div>
+                </div>
             </section>
-            
+
+            </div>
+
             <!-- Recently Practiced -->
             <section class="recently-practiced">
                 <div class="riffs-header">
                     <h2 class="riffs-title">Recently practiced</h2>
                 </div>
-                
+
                 <div class="rk-riff-gallery">
                 <div class="riffs-grid" id="recentRiffsGrid">
                     <!-- Карточки будут добавлены через JavaScript -->
@@ -241,16 +252,16 @@
                     <button type="button" class="onboarding-btn primary speed-trainer-intro-submit" id="speedTrainerIntroBtn">Got it — let's go</button>
                 </div>
             </div>
-            
+
         </main>
-        
+
         <!-- Футер -->
         <footer class="footer">
             <div class="footer-container">
                 <div class="footer-copyright">
                     <p class="footer-text">© 2024 Riff Killer. All rights reserved. <a href="billing.html" class="footer-link">Pricing</a></p>
                 </div>
-                
+
                 <div class="footer-social">
                     <a href="https://www.instagram.com/mikesabad" class="social-link" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
                         <svg class="social-icon" width="24" height="24" viewBox="0 0 24 24" fill="none">
@@ -279,9 +290,9 @@
                 </div>
             </div>
         </footer>
-        
+
     </div>
-    
+
     <!-- JavaScript -->
 
 <!-- Patreon: config before auth -->
@@ -298,9 +309,11 @@
 })();
 </script>
 <!-- Специфичный для страницы -->
+<script src="js/practice-media.js?v=1"></script>
 <script src="js/practice-transport.js?v=1"></script>
 <script src="js/riff-gallery-card.js"></script>
-<script src="js/riff-dna.js?v=1"></script>
-<script src="js/practice.js?v=6"></script>
+<script src="js/riff-dna.js?v=2"></script>
+<script src="js/practice.js?v=7"></script>
 </body>
 </html>
+

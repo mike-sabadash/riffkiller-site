@@ -1953,3 +1953,48 @@
 .tab-toggle-btn.active .tab-icon {
     opacity: 0.8 !important;
 }
+
+/* Practice workspace: viewing, transport, and learning each have a stable home. */
+.practice-page .practice-header { margin-bottom: 20px; }
+.practice-workspace { display: grid; grid-template-columns: minmax(0, 1fr); gap: 24px; align-items: start; }
+.practice-player { min-width: 0; }
+.practice-workspace .video-top-controls,
+.practice-workspace .video-wrapper,
+.practice-workspace .video-controls-below,
+.practice-workspace .segment-controls-container { width: 100%; max-width: 100%; }
+.practice-workspace .video-top-controls { gap: 8px; flex-wrap: wrap; }
+.practice-workspace .hand-controls { gap: 4px; margin-right: auto; }
+.practice-workspace .lesson-mode-btn { position: static; min-height: 40px; padding: 8px 12px; }
+.practice-workspace .controls-below-container { display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; }
+.practice-workspace .control-buttons { flex: 0 0 auto; gap: 6px; }
+.practice-workspace .control-btn { width: 40px; height: 40px; min-width: 40px; min-height: 40px; padding: 10px; border-radius: 10px; }
+.practice-workspace .speed-controls { margin: 0; gap: 4px; }
+.practice-workspace .speed-btn { height: 40px; min-width: 48px; padding: 8px; font-size: 13px; }
+.practice-workspace .practice-modes { padding: 3px; }
+.practice-workspace .practice-mode-btn { min-height: 34px; padding: 6px 10px; }
+.practice-workspace .video-controls-below { margin-top: 8px; }
+.practice-media-status { min-height: 18px; margin: 10px 0 0; color: rgba(230,234,248,.58); font-size: 11px; line-height: 1.5; }
+.video-loading-detail { max-width: 420px; color: rgba(230,234,248,.65); font-size: 12px; text-align: center; line-height: 1.5; }
+.practice-workspace .segment-controls-container { margin-top: 20px; }
+.practice-workspace .segment-controls { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; }
+.practice-workspace .segment-btn { width: 100%; min-width: 0; height: auto; min-height: 44px; padding: 10px 12px; gap: 8px; white-space: normal; text-align: left; background: rgba(255,255,255,.045); border: 1px solid rgba(255,255,255,.1); color: rgba(244,247,255,.8); font-size: 12px; }
+.practice-workspace .segment-btn.all-riff { grid-column: 1 / -1; }
+.practice-workspace .segment-btn .segment-name { flex: 1; min-width: 0; }
+.practice-workspace .segment-btn .dna-segment-meta { display: none; }
+.practice-workspace .segment-btn:hover { border-color: var(--segment-color, #9355e5); }
+.practice-workspace .segment-btn.active { background: rgba(147,85,229,.22) !important; border-color: #9355e5; color: #fff !important; }
+.practice-workspace .segment-btn.active .segment-icon { filter: none !important; }
+.practice-workspace button:focus-visible { outline: 2px solid #cfff55; outline-offset: 3px; }
+@media (min-width: 1160px) {
+    .practice-workspace { grid-template-columns: minmax(0, 1.65fr) minmax(340px, 1fr); }
+}
+@media (max-width: 560px) {
+    .practice-workspace .controls-below-container { gap: 10px 8px; }
+    .practice-workspace .practice-speed-mode { order: 3; flex-basis: 100%; }
+    .practice-workspace .practice-modes { display: flex; }
+    .practice-workspace .practice-mode-btn { flex: 1; min-height: 38px; }
+    .practice-workspace .control-btn { width: 36px; min-width: 36px; padding: 8px; }
+    .practice-workspace .speed-btn { min-width: 40px; }
+    .practice-workspace .mode-btn { padding: 8px 10px; }
+    .practice-workspace .tab-toggle-btn { padding: 8px 10px; }
+}

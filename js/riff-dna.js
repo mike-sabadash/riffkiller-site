@@ -165,8 +165,13 @@
         if (kicker) kicker.textContent = meta.kicker;
         if (title) title.textContent = meta.title;
         document.querySelectorAll('.dna-stage').forEach(function (button) {
-            button.classList.toggle('active', button.dataset.dnaStage === stage);
+            var selected = button.dataset.dnaStage === stage;
+            button.classList.toggle('active', selected);
+            button.setAttribute('aria-selected', String(selected));
+            button.tabIndex = selected ? 0 : -1;
         });
+        var panel = document.getElementById('dnaStagePanel');
+        if (panel) panel.setAttribute('aria-labelledby', 'dna-tab-' + stage);
         if (!content) return;
         if (stage === 'scan') content.innerHTML = renderScan(dna);
         if (stage === 'split') content.innerHTML = renderSplit();
@@ -217,6 +222,18 @@
         decorateSegmentControls();
         document.querySelectorAll('.dna-stage').forEach(function (button) {
             button.onclick = function () { renderStage(button.dataset.dnaStage); };
+            button.onkeydown = function (event) {
+                var stages = Object.keys(STAGES);
+                var index = stages.indexOf(button.dataset.dnaStage);
+                if (event.key === 'ArrowRight') index = (index + 1) % stages.length;
+                else if (event.key === 'ArrowLeft') index = (index + stages.length - 1) % stages.length;
+                else if (event.key === 'Home') index = 0;
+                else if (event.key === 'End') index = stages.length - 1;
+                else return;
+                event.preventDefault();
+                renderStage(stages[index]);
+                document.getElementById('dna-tab-' + stages[index]).focus();
+            };
         });
         var requested = new URLSearchParams(location.search).get('stage');
         renderStage(STAGES[requested] ? requested : 'scan');
@@ -232,3 +249,4 @@
 
     global.RiffDNA = { init: init, renderStage: renderStage, segmentChanged: segmentChanged, decorateSegmentControls: decorateSegmentControls };
 })(window);
+

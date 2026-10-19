@@ -30,6 +30,10 @@
     }
 
     function bind() {
+        if (!window.RK_FEATURES || !window.RK_FEATURES.lightTheme) {
+            document.documentElement.setAttribute('data-theme', 'dark');
+            return; // Preserve the user's stored preference while the feature is disabled.
+        }
         document.querySelectorAll('.rk-theme-toggle').forEach(function (btn) {
             btn.addEventListener('click', function () {
                 applyTheme(currentTheme() === 'dark' ? 'light' : 'dark');
@@ -44,3 +48,4 @@
         bind();
     }
 })();
+

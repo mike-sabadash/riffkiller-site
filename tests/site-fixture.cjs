@@ -17,7 +17,10 @@ async function startSite() {
     else {
         if(fs.existsSync(path.join(root,'assets')))fs.cpSync(path.join(root,'assets'),path.join(dir,'assets'),{recursive:true});
         for (const name of videos) {
-            const dest=path.join(dir,name);fs.mkdirSync(path.dirname(dest),{recursive:true});
+            const dest=path.join(dir,name);
+            // Keep any available original recordings; synthesize only absent CI media.
+            if (fs.existsSync(dest)) continue;
+            fs.mkdirSync(path.dirname(dest),{recursive:true});
             execFileSync('ffmpeg',['-hide_banner','-loglevel','error','-y','-f','lavfi','-i','testsrc2=size=192x108:rate=30','-t','18.57','-c:v','libx264','-pix_fmt','yuv420p','-movflags','+faststart',dest]);
         }
     }
@@ -38,3 +41,4 @@ return false;
     server.kill();throw new Error('PHP test server did not start: '+log);
 }
 module.exports={startSite};
+
