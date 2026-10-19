@@ -49,6 +49,7 @@ if (!$user) {
     exit();
 }
 
+session_regenerate_id(true);
 $_SESSION['user_id'] = $user['id'];
 echo json_encode([
     'success' => true,
@@ -60,3 +61,4 @@ echo json_encode([
         'provider' => $user['provider'] ?? 'email',
     ],
 ]);
+

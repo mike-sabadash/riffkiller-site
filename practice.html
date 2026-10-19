@@ -20,6 +20,7 @@
     <link rel="stylesheet" href="css/components.css">
     <link rel="stylesheet" href="css/rk-header.css">
     <link rel="stylesheet" href="css/practice.css?v=13">
+    <link rel="stylesheet" href="css/riff-dna.css?v=1">
     <link rel="stylesheet" href="css/riffs-hub.css">
     <link rel="stylesheet" href="css/rk-theme-light.css">
     
@@ -80,6 +81,27 @@
                     </h1>
                 </div>
             </div>
+
+            <!-- Riff DNA: learning path + compact identity card -->
+            <section class="dna-overview" id="dnaOverview" aria-labelledby="dnaMethodTitle">
+                <div class="dna-overview-copy">
+                    <span class="dna-kicker">Powered by the Riff DNA method</span>
+                    <h2 id="dnaMethodTitle">Don’t just learn the riff. Decode it.</h2>
+                    <p id="dnaOverviewText">See the whole organism, split it into molecules, isolate the atoms and uncover the pattern that makes it recognizable.</p>
+                </div>
+                <div class="dna-identity" aria-label="Riff DNA summary">
+                    <span class="dna-identity-label">DNA CODE</span>
+                    <strong id="dnaCompactFormula">Loading…</strong>
+                </div>
+            </section>
+
+            <nav class="dna-stage-nav" id="dnaStageNav" aria-label="Riff DNA learning stages">
+                <button type="button" class="dna-stage active" data-dna-stage="scan"><span>01</span>Scan</button>
+                <button type="button" class="dna-stage" data-dna-stage="split"><span>02</span>Split</button>
+                <button type="button" class="dna-stage" data-dna-stage="isolate"><span>03</span>Isolate</button>
+                <button type="button" class="dna-stage" data-dna-stage="decode"><span>04</span>Decode</button>
+                <button type="button" class="dna-stage" data-dna-stage="mutate"><span>05</span>Mutate</button>
+            </nav>
             
             <!-- Контролы над видео -->
             <div class="video-top-controls">
@@ -181,6 +203,18 @@
                     <!-- Кнопки сегментов будут добавлены через JavaScript -->
                 </div>
             </div>
+
+            <!-- Riff DNA interactive analysis. Filled by js/riff-dna.js. -->
+            <section class="dna-lab" id="dnaLab" aria-live="polite">
+                <div class="dna-lab-head">
+                    <div>
+                        <span class="dna-kicker" id="dnaStageKicker">01 / SCAN</span>
+                        <h2 id="dnaStageTitle">Hear the organism</h2>
+                    </div>
+                    <div class="dna-structure" id="dnaStructure" aria-label="Riff structure"></div>
+                </div>
+                <div class="dna-stage-content" id="dnaStageContent"></div>
+            </section>
             
             <!-- Recently Practiced -->
             <section class="recently-practiced">
@@ -264,8 +298,9 @@
 })();
 </script>
 <!-- Специфичный для страницы -->
-<script src="js/segment-offsets.js"></script>
+<script src="js/practice-transport.js?v=1"></script>
 <script src="js/riff-gallery-card.js"></script>
-<script src="js/practice.js?v=5"></script>
+<script src="js/riff-dna.js?v=1"></script>
+<script src="js/practice.js?v=6"></script>
 </body>
 </html>

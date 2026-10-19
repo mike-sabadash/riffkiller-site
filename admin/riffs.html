@@ -26,7 +26,8 @@
         .segment-header .seg-start, .segment-header .seg-end { width: 80px; }
         .segment-header .seg-name { flex: 1; min-width: 120px; }
         .segment-header .seg-color { width: 140px; }
-        .segment-row { display: flex; gap: 10px; align-items: center; margin-bottom: 8px; }
+        .segment-row { flex-wrap: wrap; display: flex; gap: 10px; align-items: center; margin-bottom: 8px; }
+        .segment-row .tab-image { flex-basis: 100%; width: 100%; padding: 7px; color: #fff; background: #1a2034; border: 1px solid #50546a; border-radius: 6px; }
         .segment-row input.start, .segment-row input.end { width: 80px; }
         .segment-row input.name { flex: 1; min-width: 120px; }
         .segment-row select.color-select { width: 100px; padding: 6px 8px; background: rgba(255,255,255,0.06); border: 1px solid var(--color-border-light); border-radius: 6px; color: #fff; font-size: 13px; }
@@ -119,6 +120,22 @@
         .seg-move-btn { padding: 4px 8px; font-size: 11px; line-height: 1; cursor: pointer; background: rgba(255,255,255,0.06); border: 1px solid var(--color-border-light); border-radius: 6px; color: #fff; }
         .seg-move-btn:hover { background: rgba(255,255,255,0.12); }
         .seg-move-btn:disabled { opacity: 0.2; cursor: not-allowed; }
+        .segment-row { flex-wrap: wrap; }
+        .segment-row input.molecule { width: 70px; }
+        .segment-row input.molecule-name { width: 150px; }
+        .segment-row input.relation { width: 130px; }
+        .segment-row input.function { width: min(360px, 100%); flex: 1 1 260px; }
+        .dna-admin-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+        .dna-admin-grid .wide { grid-column:1/-1; }
+        .dna-admin-grid input, .dna-admin-grid textarea { width:100%; max-width:none !important; padding:10px 12px; background:rgba(255,255,255,.06); border:1px solid var(--color-border-light); border-radius:8px; color:#fff; font:13px/1.5 Roboto,sans-serif; }
+        .dna-admin-grid textarea { min-height:84px; resize:vertical; }
+        @media(max-width:720px){.dna-admin-grid{grid-template-columns:1fr}.dna-admin-grid .wide{grid-column:auto}}
+        @media (max-width: 640px) {
+            html, body { padding: 12px; }
+            .segment-header { display: none; }
+            .segment-row { padding: 10px 0; border-bottom: 1px solid #50546a; }
+            .segment-row input.name { min-width: 100px; }
+        }
     </style>
 </head>
 <body>
@@ -162,7 +179,7 @@
                 <h2>Основное</h2>
                 <div class="form-row"><label>Song</label><input type="text" id="song" required placeholder="Black Dog"></div>
                 <div class="form-row"><label>Artist</label><input type="text" id="artist" required placeholder="Led Zeppelin"></div>
-                <div class="form-row"><label>Duration (сек)</label><input type="number" id="duration" step="0.1" min="0" required placeholder="16.5"></div>
+                <div class="form-row"><label>Duration (сек)</label><input type="number" id="duration" step="any" min="0" required placeholder="16.5"></div>
                 <div class="form-row"><label>Difficulty</label><select id="difficulty"><option value="beginner">beginner</option><option value="intermediate" selected>intermediate</option><option value="advanced">advanced</option></select></div>
                 <div class="form-row"><label>Genre</label><select id="genre"><option value="rock" selected>rock</option><option value="metal">metal</option><option value="blues">blues</option><option value="country">country</option><option value="punk">punk</option><option value="funk">funk</option><option value="jazz">jazz</option><option value="pop">pop</option><option value="other">other</option></select></div>
                 <div class="form-row"><label><input type="checkbox" id="isFree" name="isFree"> Бесплатный рифф (без подписки)</label></div>
@@ -178,6 +195,21 @@
                 <div class="form-row"><label>Video left</label><input type="text" id="videoFile" placeholder="assets/video/.../left.mp4"><input type="file" id="videoFileUpload" accept="video/mp4,.mp4" style="margin-top:6px"></div>
                 <div class="form-row"><label>Video right</label><input type="text" id="videoFileRight" placeholder="assets/video/.../right.mp4"><input type="file" id="videoFileRightUpload" accept="video/mp4,.mp4" style="margin-top:6px"></div>
                 <div class="form-row"><label>Thumbnail</label><input type="text" id="thumbnail" placeholder="assets/img/riff-1.png"><input type="file" id="thumbnailUpload" accept="image/*" style="margin-top:6px"></div>
+            </div>
+            <div class="form-section">
+                <h2>Riff DNA</h2>
+                <p class="coll-pick-hint">Методический слой. Остальные риффы продолжат работать без этих полей.</p>
+                <div class="dna-admin-grid">
+                    <label class="wide">Overview<textarea id="dnaOverviewInput" placeholder="What the listener should notice before touching the controls"></textarea></label>
+                    <label class="wide">DNA formula<input type="text" id="dnaFormulaInput" placeholder="PULSE + SHAPE + TOUCH"></label>
+                    <label>Structure<input type="text" id="dnaStructureInput" placeholder="A, B, A, B"></label>
+                    <label>Law<textarea id="dnaLawInput" placeholder="Why the pattern works"></textarea></label>
+                    <label class="wide">Insight<textarea id="dnaInsightInput" placeholder="The hidden relationship or aha moment"></textarea></label>
+                    <div class="wide"><label>Atoms</label><div id="dnaAtomsEditor"></div><button type="button" class="btn btn-secondary btn-small" id="dnaAddAtom">+ Atom</button></div>
+                    <label>Mutation title<input type="text" id="dnaMutationTitleInput" placeholder="Build a related riff"></label>
+                    <label>Mutation description<textarea id="dnaMutationDescriptionInput" placeholder="What must remain and what can change"></textarea></label>
+                    <label>Mutation steps<textarea id="dnaMutationStepsInput" placeholder="One step per line"></textarea></label>
+                </div>
             </div>
             <div class="form-section">
                 <h2>Сегменты</h2>
@@ -199,6 +231,8 @@
                             <div class="segment-editor-time" id="segmentEditorTime">0.00</div>
                             <div class="segment-editor-controls">
                                 <button type="button" class="btn btn-primary btn-small" id="segmentEditorPlayPause">▶ Play</button>
+                                <button type="button" class="btn btn-secondary btn-small" id="segmentSetStart">Начало здесь</button>
+                                <button type="button" class="btn btn-secondary btn-small" id="segmentSetEnd">Конец здесь</button>
                                 <button type="button" class="btn btn-secondary btn-small" id="segmentEditorLoop" title="Зациклить выбранный сегмент">Зациклить</button>
                                 <span id="segmentEditorLoopLabel" class="segment-editor-loop-label" aria-live="polite"></span>
                             </div>
@@ -223,7 +257,8 @@
         </form>
         </div>
     </div>
-    <script src="../js/segment-offsets.js"></script>
+
+    <script src="../js/admin-dna.js?v=1"></script>
     <script>
 (function() {
     var listUrl = '/api/riffs/list.php';
@@ -232,6 +267,8 @@
     var uploadUrl = '/api/upload.php';
     var colListUrl = '/api/collections/list.php';
     var riffsCache = [];
+    var nextSegmentEditorId = 0;
+    var editingRiff = null;
     var collectionsFormCache = [];
     var SEGMENT_COLORS = [
         { name: 'По умолчанию', hex: '#9355E5' },
@@ -311,11 +348,12 @@
         });
     }
     function loadRiffs() {
-        fetch(listUrl).then(function(r){return r.json();}).then(function(list){
+        return fetch(listUrl).then(function(r){return r.json();}).then(function(list){
             riffsCache = list || [];
             var sel = document.getElementById('riffSelect');
             sel.innerHTML = '<option value="">— Новый рифф —</option>';
             (riffsCache).forEach(function(r){ var o = document.createElement('option'); o.value = r.id; o.textContent = (r.song||'')+' — '+(r.artist||''); sel.appendChild(o); });
+            sel.value = document.getElementById('riffForm').dataset.editId || '';
             renderRiffList();
             loadCollectionsMeta(function () {
                 var editId = document.getElementById('riffForm').dataset.editId;
@@ -515,7 +553,7 @@
             }
         }
     }
-    function addSegmentRow(container, start, end, name, color) {
+    function addSegmentRow(container, start, end, name, color, original) {
         var n = (container.children.length + 1);
         var defaultName = name || ('Shot ' + n);
         var segColor = color || SEGMENT_COLORS[0].hex;
@@ -524,6 +562,22 @@
         var sv = segmentEditorNormalizeValue(start);
         var ev = segmentEditorNormalizeValue(end);
         div.innerHTML = '<input type="number" step="0.001" class="start" placeholder="start" value="'+sv+'"><input type="number" step="0.001" class="end" placeholder="end" value="'+ev+'"><input type="text" class="name" placeholder="Shot '+n+'" value="'+(defaultName||'').replace(/"/g,'&quot;')+'"><select class="color-select">'+buildColorSelectOptions(segColor)+'</select><input type="text" class="color-hex" placeholder="#hex" value="'+(isCustom?segColor:'')+'" maxlength="7"><button type="button" class="btn btn-secondary btn-small seg-move-btn seg-move-up" title="Вверх">▲</button><button type="button" class="btn btn-secondary btn-small seg-move-btn seg-move-down" title="Вниз">▼</button><button type="button" class="btn btn-secondary btn-small rm-seg">−</button>';
+        div._segmentData = Object.assign({}, original || {});
+        div.dataset.editorId = String(++nextSegmentEditorId);
+        [['molecule','Molecule: A'], ['molecule-name','Molecule name'], ['relation','Relation: Repeat'], ['function','Function']].forEach(function(field) {
+            var input = document.createElement('input');
+            input.type = 'text'; input.className = field[0]; input.placeholder = field[1];
+            input.setAttribute('aria-label', field[1]);
+            input.value = div._segmentData[field[0] === 'molecule-name' ? 'moleculeName' : field[0]] || '';
+            div.appendChild(input);
+        });
+        var tabInput = document.createElement('input');
+        tabInput.type = 'text';
+        tabInput.className = 'tab-image';
+        tabInput.placeholder = 'Tabs image: assets/tabs/artist/song/1.png';
+        tabInput.setAttribute('aria-label', 'Картинка табов этого сегмента');
+        tabInput.value = div._segmentData.tabImage || '';
+        div.appendChild(tabInput);
         container.appendChild(div);
         var segsCount = container.children.length;
         if (segsCount > 1) {
@@ -583,7 +637,8 @@
     function loadRiff(id) {
         fetch(listUrl).then(function(r){return r.json();}).then(function(list){
             var riff = (list||[]).find(function(r){ return String(r.id)===String(id); });
-            if(!riff) return;
+            if(!riff || String(document.getElementById('riffSelect').value) !== String(id)) return;
+            editingRiff = riff;
             document.getElementById('song').value = riff.song||'';
             document.getElementById('artist').value = riff.artist||'';
             document.getElementById('duration').value = riff.duration!=null ? riff.duration : '';
@@ -598,9 +653,10 @@
             document.getElementById('thumbnail').value = riff.thumbnail||'';
             document.getElementById('lessonVideo').value = riff.lessonVideo||'';
             var c = document.getElementById('segmentRows'); c.innerHTML = '';
-            (riff.segments||[]).forEach(function(s, i){ addSegmentRow(c, segmentEditorNormalizeValue(s.start), segmentEditorNormalizeValue(s.end), s.name || ('Shot ' + (i+1)), s.color); });
+            (riff.segments||[]).forEach(function(s, i){ addSegmentRow(c, segmentEditorNormalizeValue(s.start), segmentEditorNormalizeValue(s.end), s.name || ('Shot ' + (i+1)), s.color, Object.assign({}, s, { tabImage: s.tabImage || (riff.videoFile || '').replace('/video/', '/tabs/').replace(/[^/]+$/, (i + 1) + '.png') })); });
             if(!riff.segments||riff.segments.length===0) addSegmentRow(c, 0, 0, 'Shot 1');
             segmentEditorUpdateMoveBtns();
+            RiffDNAEditor.load(riff);
             document.getElementById('riffForm').dataset.editId = riff.id;
             segmentEditorSetVideo(riff.videoFile || riff.videoFileRight || '');
             if (collectionsFormCache.length) {
@@ -864,7 +920,7 @@
     var segmentEditorLoopIntervalId = null;
     var segmentEditorOnEndedLoop = null;
     var SEGMENT_LOOP_DEBOUNCE_MS = 500;
-    var SEGMENT_LOOP_SEEK_MARGIN = 0.04;
+    var SEGMENT_LOOP_SEEK_MARGIN = 0;
     /** Начало сегмента для воспроизведения: если в таблице 0 у не-первого сегмента — берём конец предыдущего. */
     function segmentEditorSegmentStartForPlay(segs, idx) {
         if (!segs || idx < 0 || idx >= segs.length) return 0;
@@ -885,8 +941,7 @@
     function segmentEditorEnforceLoop() {
         if (!segmentEditorLoopActive) return;
         var video = document.getElementById('segmentEditorVideo');
-        if (!video || !video.src) return;
-        if (Date.now() - segmentEditorLastLoopSeekAt < SEGMENT_LOOP_DEBOUNCE_MS) return;
+        if (!video || !video.src || video.paused || video.seeking) return;
         var bounds = segmentEditorGetLoopBounds();
         if (!bounds) return;
         var t = video.currentTime;
@@ -922,7 +977,9 @@
         document.getElementById('deleteBtn').style.display = id ? '' : 'none';
         if(id) loadRiff(id);
         else {
+            editingRiff = null;
             document.getElementById('riffForm').reset();
+            RiffDNAEditor.load({});
             document.getElementById('isFree').checked = false;
             document.getElementById('lessonVideo').value = '';
             document.getElementById('segmentRows').innerHTML = '';
@@ -962,8 +1019,20 @@
             var colHex = row.querySelector('.color-hex');
             var segColor = (colSel && colSel.value==='custom' && colHex) ? (colHex.value||'').trim() : (colSel ? colSel.value : null);
             if (!segColor || !/^#[0-9A-Fa-f]{6}$/.test(segColor)) segColor = SEGMENT_COLORS[0].hex;
-            segs.push({ start: segmentEditorNormalizeValue(row.querySelector('.start').value), end: segmentEditorNormalizeValue(row.querySelector('.end').value), name: n || ('Shot ' + (i+1)), color: segColor });
+            segs.push(Object.assign({}, row._segmentData || {}, { tabImage: row.querySelector('.tab-image').value.trim(),
+                molecule: row.querySelector('.molecule').value.trim(), moleculeName: row.querySelector('.molecule-name').value.trim(),
+                relation: row.querySelector('.relation').value.trim(), function: row.querySelector('.function').value.trim(),
+                displayName: (row._segmentData || {}).name === n ? ((row._segmentData || {}).displayName || n) : n, start: segmentEditorNormalizeValue(row.querySelector('.start').value), end: segmentEditorNormalizeValue(row.querySelector('.end').value), name: n || ('Shot ' + (i+1)), color: segColor }));
         });
+        var dna;
+        try { dna = RiffDNAEditor.read(editingRiff && editingRiff.dna); }
+        catch (err) { showMsg(err.message, true); return; }
+        var error = segs.findIndex(function(seg, i) {
+            return !Number.isFinite(seg.start) || !Number.isFinite(seg.end) || seg.start < 0 || seg.end <= seg.start ||
+                (i > 0 && seg.start < segs[i - 1].end) ||
+                (segmentEditorGetDuration() > 0 && seg.end > segmentEditorGetDuration() + 0.05);
+        });
+        if (error >= 0) { showMsg('Проверьте сегмент ' + (error + 1) + ': начало, конец, пересечения и длительность видео.', true); return; }
         var submitBtn = document.getElementById('submitBtn'); submitBtn.disabled = true;
         Promise.all([
             uL ? uploadFile(uL, vL||basePath+(uL.name||'left.mp4')) : Promise.resolve(vL),
@@ -971,9 +1040,9 @@
             uT ? uploadFile(uT, th||'assets/img/'+(uT.name||'riff-'+(editId||'new')+'.png')) : Promise.resolve(th),
             uLesson ? uploadFile(uLesson, vLesson||basePath+(uLesson.name||'lesson.mp4')) : Promise.resolve(vLesson)
         ]).then(function(r){
-            var riff = { song:song, artist:artist, duration: parseFloat(document.getElementById('duration').value)||0, difficulty: document.getElementById('difficulty').value||'intermediate', genre: document.getElementById('genre').value.trim()||'rock', isFree: document.getElementById('isFree').checked, videoFile: r[0]||basePath+'left.mp4', videoFileRight: r[1]||basePath+'right.mp4', thumbnail: r[2]||'assets/img/riff-1.png', lessonVideo: r[3]||vLesson||null, segments: segs, isFavorite: false, lastPracticed: null, collectionIds: getSelectedCollectionIds() };
+            var riff = Object.assign({}, editingRiff || {}, { song:song, artist:artist, duration: segmentEditorGetDuration() || parseFloat(document.getElementById('duration').value)||0, difficulty: document.getElementById('difficulty').value||'intermediate', genre: document.getElementById('genre').value.trim()||'rock', isFree: document.getElementById('isFree').checked, videoFile: r[0]||basePath+'left.mp4', videoFileRight: r[1]||basePath+'right.mp4', thumbnail: r[2]||'assets/img/riff-1.png', lessonVideo: r[3]||vLesson||null, segments: segs, dna: dna, collectionIds: getSelectedCollectionIds() });
             if(editId) riff.id = parseInt(editId,10);
-            return fetch(saveUrl, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({riff:riff}) }).then(function(x){return x.json();});
+            return fetch(saveUrl, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({riff:riff, expectedRiff:editingRiff}) }).then(function(x){return x.json();});
         }).then(function(d){
             submitBtn.disabled = false;
             if(d.success){
@@ -984,9 +1053,14 @@
                 fb.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 setTimeout(function(){ fb.classList.remove('show'); }, 4000);
                 document.getElementById('videoFileUpload').value=''; document.getElementById('videoFileRightUpload').value=''; document.getElementById('thumbnailUpload').value=''; document.getElementById('lessonVideoUpload').value='';
-                var keepEditId = document.getElementById('riffForm').dataset.editId;
-                loadRiffs();
-                if (keepEditId) { document.getElementById('riffSelect').value = keepEditId; document.getElementById('riffSelect').dispatchEvent(new Event('change')); }
+                var keepEditId = String(d.riff.id);
+                editingRiff = d.riff;
+                document.getElementById('riffForm').dataset.editId = keepEditId;
+                document.getElementById('deleteBtn').style.display = '';
+                loadRiffs().then(function() {
+                    document.getElementById('riffSelect').value = keepEditId;
+                    loadRiff(keepEditId);
+                });
             } else showMsg(d.error||'Ошибка', true);
         }).catch(function(err){ submitBtn.disabled = false; showMsg(err.message||'Ошибка', true); });
     };
@@ -1077,7 +1151,7 @@
                         video.addEventListener('seeked', doPlay, { once: true });
                         setTimeout(doPlay, 800);
                         if (segmentEditorLoopIntervalId != null) clearInterval(segmentEditorLoopIntervalId);
-                        segmentEditorLoopIntervalId = setInterval(segmentEditorEnforceLoop, 100);
+                        segmentEditorLoopIntervalId = setInterval(segmentEditorEnforceLoop, 16);
                         segmentEditorOnEndedLoop = function() {
                             if (!segmentEditorLoopActive) return;
                             var b = segmentEditorGetLoopBounds();
@@ -1101,6 +1175,15 @@
                 }
             });
         }
+        ['segmentSetStart', 'segmentSetEnd'].forEach(function(id) {
+            document.getElementById(id).addEventListener('click', function() {
+                var row = document.querySelectorAll('#segmentRows .segment-row')[segmentEditorSelectedIndex];
+                if (!row || !video || !video.src) return;
+                row.querySelector(id === 'segmentSetStart' ? '.start' : '.end').value = segmentEditorCurrentTime().toFixed(3);
+                segmentEditorValidateRows();
+                segmentEditorRenderStrip();
+            });
+        });
         var overlayEl = document.getElementById('segmentEditorOverlay');
         if (overlayEl) overlayEl.addEventListener('mousedown', segmentEditorOnStripMouseDown);
         var segmentRowsEl = document.getElementById('segmentRows');
@@ -1119,3 +1202,4 @@
     </script>
 </body>
 </html>
+

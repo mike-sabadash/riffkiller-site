@@ -1,261 +1,192 @@
 <!DOCTYPE html>
-<!--
-  LANDING PAGE (Coming Soon)
-  - Посетители видят эту страницу. Полное приложение — index.html.
-  - Чтобы сделать заглушку главной: переименуйте index.html → app.html и index-landing.html → index.html
-  - Пути (assets/, css/, js/) относительные — работают так же.
--->
-<html lang="en">
-
+<html lang="ru">
 <head>
-  <meta charset="utf-8">
-  <script src="js/rk-theme-init.js"></script>
-  <meta name="theme-color" content="#0a0a0a" id="rk-theme-color">
-  <title>Riff Killer - Coming Soon</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <link rel="icon" type="image/svg+xml" href="assets/icons/favicon.svg">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <!-- Inter = как на landing.html (variable opsz), шапка совпадает визуально -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="css/variables.css">
-  <link rel="stylesheet" href="css/rk-header.css">
-  <link rel="stylesheet" href="css/rk-theme-light.css">
-  <style>body > header.topbar { z-index: 10050 !important; }</style>
+    <meta charset="UTF-8">
+    <script src="js/rk-theme-init.js"></script>
+    <meta name="theme-color" content="#0a0a0a" id="rk-theme-color">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Riff Killer — Riffs & collections</title>
+
+    <!-- Шрифты -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <!-- Inter (opsz) + Space Grotesk fallback для TT Travels — как profile / landing -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&family=Space+Grotesk:wght@500;600;700&family=Roboto:wght@400;500&family=Zen+Dots&display=swap" rel="stylesheet">
+
+    <!-- CSS файлы -->
+    <link rel="stylesheet" href="css/reset.css">
+    <link rel="stylesheet" href="css/variables.css">
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/components.css">
+    <!-- rk-header подтягивается через @import в components.css -->
+    <link rel="stylesheet" href="css/riffs-hub.css?v=2">
+    <link rel="stylesheet" href="css/rk-theme-light.css">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="assets/icons/favicon.svg">
 </head>
+<body class="index-page riffs-hub" data-rk-header="app" data-logo-href="index.html" data-nav-active="riffs">
+    <div id="site-header-mount"></div>
+    <script src="js/site-header.js"></script>
+    <div class="page-container">
+        <!-- Основной контент -->
+        <main class="main-content">
+            <header class="riffs-hero">
+                <p class="riffs-hero-eyebrow">Library</p>
+                <h1 class="riffs-hero-title">Riffs &amp; collections</h1>
+                <p class="riffs-hero-lead">Browse by collection or dive into the most practiced riffs. Use filters to match your level and genre.</p>
+            </header>
 
-<body class="bg-neutral-950 text-neutral-200 font-sans antialiased min-h-screen"
-  style="font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial"
-  data-rk-header="app" data-logo-href="index.html" data-nav-active="riffs">
+            <!-- Блок коллекций -->
+            <section class="collections-section">
+                <div class="riffs-panel">
+                <!-- Заголовок и фильтры -->
+                <div class="collections-header">
+                    <div class="collections-title-wrapper">
+                        <h2 class="collections-title">Collections</h2>
+                    </div>
 
-  <div id="site-header-mount"></div>
-  <script src="js/site-header.js"></script>
+                    <div class="filters-container">
+                        <!-- Фильтр по сложности -->
+                        <div class="filter-group">
+                            <label class="filter-label">Difficulty</label>
+                            <div class="custom-select">
+                                <select class="select-input" id="difficultyFilter">
+                                    <option value="all">All Levels</option>
+                                    <option value="beginner">Beginner</option>
+                                    <option value="intermediate">Intermediate</option>
+                                    <option value="advanced">Advanced</option>
+                                </select>
+                                <div class="select-arrow">
+                                    <svg width="8" height="6" viewBox="0 0 8 6" fill="none">
+                                        <path d="M1 1.5L4 4.5L7 1.5" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
 
-  <div id="comingSoonLanding" class="coming-soon-landing fixed inset-0 z-[9999] flex flex-col items-center justify-center px-6 pt-24 pb-20 bg-neutral-950 overflow-y-auto">
-    <div class="max-w-xl mx-auto w-full text-center flex flex-col items-center">
-      <!-- Logo: тёмная тема — белый wordmark; светлая — logo-main.svg (см. rk-theme-light.css) -->
-      <img src="assets/logo.svg" alt="" width="127" height="16" class="coming-soon-logo--dark h-6 sm:h-7 md:h-7 mb-16 opacity-95 animate-fade-in block mx-auto w-auto max-w-[min(127px,70vw)] object-contain object-center" style="filter: brightness(0.95);">
-      <img src="assets/logo-main.svg" alt="Riff Killer" width="137" height="18" class="coming-soon-logo--light h-6 sm:h-7 md:h-7 mb-16 opacity-95 animate-fade-in block mx-auto w-auto max-h-7 object-contain object-center">
-      <!-- Hero -->
-      <h1 class="text-2xl sm:text-3xl md:text-4xl font-semibold text-white mb-5 animate-fade-in-delay-1">
-        Learn every riff.<br><span class="text-purple-400">We're almost ready.</span>
-      </h1>
-      <p class="text-neutral-400 text-base sm:text-lg mb-12 leading-relaxed animate-fade-in-delay-2">
-        Interactive guitar riff trainer with tabs, slow-mo, loop and practice tools for rock, blues, metal and more
-      </p>
-      <!-- Features -->
-      <div class="flex flex-wrap justify-center gap-5 sm:gap-6 mb-16 text-sm text-neutral-500 animate-fade-in-delay-3">
-        <span class="flex items-center gap-2">
-          <svg class="w-5 h-5 text-purple-500/70" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
-          Riff library
-        </span>
-        <span class="flex items-center gap-2">
-          <svg class="w-5 h-5 text-purple-500/70" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/><path d="M8 7h8M8 11h8M8 15h4"/></svg>
-          Tabs &amp; video
-        </span>
-        <span class="flex items-center gap-2">
-          <svg class="w-5 h-5 text-purple-500/70" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
-          Practice tools
-        </span>
-      </div>
-      <!-- CTA -->
-      <div class="w-full max-w-sm space-y-6 animate-fade-in-delay-4">
-        <a href="https://www.patreon.com/cw/MikeSabadash?vanity=MikeSabadash" target="_blank" rel="noopener noreferrer"
-          class="inline-flex items-center justify-center gap-2.5 w-full sm:w-auto px-8 py-3 rounded-xl text-sm font-medium text-purple-400 border-2 border-purple-500/50 hover:border-purple-400 hover:text-purple-300 hover:bg-purple-500/5 transition-all duration-200 cursor-pointer">
-          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M4.5 3C3.11929 3 2 4.11929 2 5.5V18.5C2 19.8807 3.11929 21 4.5 21H7V3H4.5Z"/><circle cx="15" cy="9" r="5"/></svg>
-          Follow on Patreon
-        </a>
-        <div class="relative flex items-center gap-3 py-2">
-          <div class="flex-1 h-px bg-neutral-800"></div>
-          <span class="text-xs text-neutral-600 uppercase tracking-wider">or</span>
-          <div class="flex-1 h-px bg-neutral-800"></div>
-        </div>
-        <form id="landingEmailForm" class="animate-fade-in-delay-5">
-          <div class="flex flex-col sm:flex-row gap-3" id="landingFormFields">
-            <input type="email" name="email" id="landingEmailInput" placeholder="your@email.com" required
-              class="flex-1 px-4 py-3 rounded-xl bg-neutral-900/80 border border-neutral-800 text-white placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-purple-500/40 focus:border-purple-500/50 transition-colors">
-            <button type="submit" id="landingEmailBtn" class="px-6 py-3 rounded-xl text-white text-sm font-medium bg-purple-600 hover:bg-purple-500 transition-colors duration-200 shrink-0 disabled:opacity-60 disabled:cursor-not-allowed">
-              Notify me
-            </button>
-          </div>
-          <p id="landingEmailMessage" class="mt-3 text-sm hidden"></p>
-        </form>
-        <div id="landingPromoBlock" class="mt-8 pt-8 border-t border-neutral-800 animate-fade-in-delay-5">
-          <p class="text-neutral-500 text-sm mb-3">Have a promo code?</p>
-          <div class="flex flex-col sm:flex-row gap-3">
-            <input type="text" id="landingPromoInput" placeholder="Enter promo code" autocomplete="off"
-              class="flex-1 px-4 py-3 rounded-xl bg-neutral-900/80 border border-neutral-800 text-white placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-purple-500/40 focus:border-purple-500/50 transition-colors">
-            <button type="button" id="landingPromoBtn" class="px-6 py-3 rounded-xl text-white text-sm font-medium bg-purple-600 hover:bg-purple-500 transition-colors duration-200 shrink-0 disabled:opacity-60 disabled:cursor-not-allowed">
-              Apply
-            </button>
-          </div>
-          <p id="landingPromoMessage" class="mt-3 text-sm hidden"></p>
-        </div>
-      </div>
+                        <!-- Фильтр по жанру -->
+                        <div class="filter-group">
+                            <label class="filter-label">Genre</label>
+                            <div class="custom-select">
+                                <select class="select-input" id="genreFilter">
+                                    <option value="all">All Genres</option>
+                                    <option value="rock">Rock</option>
+                                    <option value="blues">Blues</option>
+                                    <option value="metal">Metal</option>
+                                    <option value="funk">Funk</option>
+                                </select>
+                                <div class="select-arrow">
+                                    <svg width="8" height="6" viewBox="0 0 8 6" fill="none">
+                                        <path d="M1 1.5L4 4.5L7 1.5" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Стрелки навигации -->
+                    <div class="collections-nav">
+                        <button class="nav-arrow nav-arrow-prev" aria-label="Previous collections">
+                            <svg width="26.7" height="26.7" viewBox="0 0 27 27" fill="none">
+                                <circle cx="13.35" cy="13.35" r="12.85" stroke="white" stroke-width="1"/>
+                                <path d="M15.5 9L10.5 13.5L15.5 18" stroke="white" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </button>
+                        <button class="nav-arrow nav-arrow-next" aria-label="Next collections">
+                            <svg width="26.7" height="26.7" viewBox="0 0 27 27" fill="none">
+                                <circle cx="13.35" cy="13.35" r="12.85" stroke="white" stroke-width="1"/>
+                                <path d="M11.5 9L16.5 13.5L11.5 18" stroke="white" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Карточки коллекций -->
+                <div class="collections-grid-wrapper">
+                    <div class="collections-grid" id="collectionsGrid">
+                        <!-- Карточки будут добавлены через JavaScript -->
+                    </div>
+                </div>
+                </div>
+            </section>
+
+            <!-- Блок Most Killed Riffs -->
+            <section class="riffs-section">
+                <div class="riffs-section-head">
+                    <h2 class="riffs-title">Most killed riffs</h2>
+                    <p class="riffs-section-desc">A curated slice of the library — change difficulty or genre above to refresh the grid.</p>
+                </div>
+
+                <!-- Карточки риффов -->
+                <div class="riffs-grid" id="riffsGrid">
+                    <!-- Карточки будут добавлены через JavaScript -->
+                </div>
+            </section>
+
+        </main>
+
+        <!-- Футер -->
+        <footer class="footer">
+            <div class="footer-container">
+                <!-- Копирайт и автор -->
+                <div class="footer-copyright">
+                    <p class="footer-text">© 2024 Riff Killer. All rights reserved. <a href="billing.html" class="footer-link">Pricing</a></p>
+                </div>
+
+                <!-- Социальные сети -->
+                <div class="footer-social">
+                    <a href="https://www.instagram.com/mikesabad" class="social-link" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+                        <svg class="social-icon" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                            <path d="M12 16C14.2091 16 16 14.2091 16 12C16 9.79086 14.2091 8 12 8C9.79086 8 8 9.79086 8 12C8 14.2091 9.79086 16 12 16Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M3 16V8C3 5.23858 5.23858 3 8 3H16C18.7614 3 21 5.23858 21 8V16C21 18.7614 18.7614 21 16 21H8C5.23858 21 3 18.7614 3 16Z" stroke="currentColor" stroke-width="1.5"/>
+                            <path d="M17.5 6.51L17.51 6.49889" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </a>
+                    <a href="https://www.youtube.com/@Mikesabadash" class="social-link" target="_blank" rel="noopener noreferrer" aria-label="YouTube">
+                        <svg class="social-icon" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                            <path d="M22.54 6.42C22.4213 5.94541 22.1793 5.51057 21.8387 5.15941C21.4981 4.80824 21.0708 4.55318 20.6 4.42C18.88 4 12 4 12 4C12 4 5.12 4 3.4 4.46C2.92925 4.59318 2.50193 4.84824 2.1613 5.19941C1.82068 5.55057 1.57875 5.98541 1.46 6.46C1.14521 8.20556 0.991236 9.97631 1 11.75C0.991236 13.5237 1.14521 15.2944 1.46 17.04C1.59096 17.5158 1.83831 17.9507 2.17814 18.3011C2.51798 18.6515 2.93884 18.9058 3.4 19.04C5.12 19.5 12 19.5 12 19.5C12 19.5 18.88 19.5 20.6 19.04C21.0708 18.9068 21.4981 18.6518 21.8387 18.3006C22.1793 17.9494 22.4213 17.5146 22.54 17.04C22.8528 15.2944 23.0068 13.5237 22.995 11.75C23.0068 9.97631 22.8528 8.20556 22.54 6.42Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M9.75 15.02L15.5 11.75L9.75 8.48001V15.02Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </a>
+                    <a href="https://www.facebook.com/profile.php?id=100079596300383" class="social-link" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
+                        <svg class="social-icon" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                            <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </a>
+                    <a href="https://patreon.com" class="social-link" target="_blank" rel="noopener noreferrer" aria-label="Patreon">
+                        <svg class="social-icon" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                            <path d="M4.5 3C3.11929 3 2 4.11929 2 5.5V18.5C2 19.8807 3.11929 21 4.5 21H7V3H4.5Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            <circle cx="15" cy="9" r="5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+        </footer>
+
     </div>
-    <div class="absolute bottom-4 left-0 right-0 text-center text-neutral-600 text-xs">
-      <a href="index.html" class="text-neutral-500 hover:text-neutral-400 transition-colors">Enter app</a>
-    </div>
-  </div>
 
-  <style>
-    .coming-soon-landing { background: linear-gradient(180deg, #0a0a0a 0%, #0f0f12 50%, #0a0a0a 100%); }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-    .animate-fade-in { animation: fadeIn 0.6s ease-out forwards; }
-    .animate-fade-in-delay-1 { animation: fadeIn 0.6s ease-out 0.1s forwards; opacity: 0; }
-    .animate-fade-in-delay-2 { animation: fadeIn 0.6s ease-out 0.2s forwards; opacity: 0; }
-    .animate-fade-in-delay-3 { animation: fadeIn 0.6s ease-out 0.3s forwards; opacity: 0; }
-    .animate-fade-in-delay-4 { animation: fadeIn 0.6s ease-out 0.4s forwards; opacity: 0; }
-    .animate-fade-in-delay-5 { animation: fadeIn 0.6s ease-out 0.5s forwards; opacity: 0; }
-  </style>
-
-  <script src="js/patreon-config.js"></script>
-  <script src="js/auth-manager.js"></script>
-  <script src="js/site-header-behaviors.js"></script>
-  <script src="js/rk-theme.js"></script>
-
-  <script>
-    (function() {
-      // Если пользователь уже в сессии и с активной подпиской (в т.ч. промо) — сразу в приложение
-      fetch('api/me.php', { method: 'GET', credentials: 'include' })
-        .then(function(r) { return r.status === 200 ? r.json() : Promise.reject(); })
-        .then(function(data) {
-          if (!data.success || !data.authenticated || !data.user || !data.user.id) return;
-          return fetch('api/subscription/get.php?user_id=' + encodeURIComponent(data.user.id), { method: 'GET', credentials: 'include' })
-            .then(function(r) { return r.json(); })
-            .then(function(sub) {
-              if (!sub.success || !sub.subscription) return;
-              var s = sub.subscription;
-              if (s.status === 'active') {
-                window.location.replace('app.html');
-                return;
-              }
-              if (s.expiresAt != null && s.expiresAt > (Date.now() / 1000)) {
-                window.location.replace('app.html');
-              }
-            });
-        })
-        .catch(function() {});
-
-      var form = document.getElementById('landingEmailForm');
-      var btn = document.getElementById('landingEmailBtn');
-      var msg = document.getElementById('landingEmailMessage');
-      var fields = document.getElementById('landingFormFields');
-      var input = document.getElementById('landingEmailInput');
-
-      if (form && btn && msg) {
-        form.addEventListener('submit', function(e) {
-          e.preventDefault();
-          var email = input ? input.value.trim() : '';
-          if (!email) return;
-
-          btn.textContent = 'Sending…';
-          btn.disabled = true;
-          msg.classList.add('hidden');
-          msg.classList.remove('text-purple-400', 'text-red-400');
-          msg.textContent = '';
-
-          fetch('api/landing-waitlist.php', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email: email })
-          })
-          .then(function(r) { return r.json(); })
-          .then(function(data) {
-            if (data.success) {
-              msg.textContent = "You're on the list! We'll notify you when we launch.";
-              msg.classList.add('text-purple-400');
-              msg.classList.remove('hidden');
-              if (fields) fields.style.display = 'none';
-            } else {
-              throw new Error(data.message || 'Error');
+    <!-- JavaScript (Patreon: config must load before auth) -->
+    <script src="js/patreon-config.js"></script>
+    <script src="js/auth-manager.js"></script>
+    <script src="js/rk-theme.js"></script>
+    <script src="js/site-header-behaviors.js"></script>
+    <script>
+        (function() {
+            try { sessionStorage.setItem('appEntry', 'app.html'); } catch (e) {}
+            var params = new URLSearchParams(window.location.search);
+            if (params.get('patreon_debug') === '1' && typeof PATREON_CONFIG !== 'undefined') {
+                var uri = PATREON_CONFIG.redirectUri || 'https://riffkiller.fun/patreon-callback.html';
+                var banner = document.createElement('div');
+                banner.style.cssText = 'position:fixed;bottom:0;left:0;right:0;background:#1a1f33;color:#fff;padding:12px 20px;font-family:monospace;font-size:12px;z-index:9999;border-top:2px solid #9355E5;';
+                banner.textContent = 'Patreon debug: redirect_uri in auth request = ' + uri + ' (remove ?patreon_debug=1 to hide)';
+                document.body.appendChild(banner);
             }
-          })
-          .catch(function(err) {
-            msg.textContent = err.message || "Couldn't send. Follow us on Patreon for updates.";
-            msg.classList.add('text-red-400');
-            msg.classList.remove('hidden');
-            btn.disabled = false;
-            btn.textContent = 'Notify me';
-          });
-        });
-      }
+        })();
+    </script>
 
-      var promoInput = document.getElementById('landingPromoInput');
-      var promoBtn = document.getElementById('landingPromoBtn');
-      var promoMsg = document.getElementById('landingPromoMessage');
-      if (promoInput && promoBtn && promoMsg) {
-        var params = new URLSearchParams(window.location.search);
-        var codeFromUrl = params.get('new') || params.get('promo') || '';
-        if (codeFromUrl) promoInput.value = codeFromUrl.trim();
-
-        promoBtn.addEventListener('click', function() {
-          var code = promoInput.value.trim();
-          if (!code) {
-            promoMsg.textContent = 'Enter your promo code.';
-            promoMsg.className = 'mt-3 text-sm text-red-400';
-            promoMsg.classList.remove('hidden');
-            return;
-          }
-          promoBtn.disabled = true;
-          promoMsg.classList.add('hidden');
-          promoMsg.classList.remove('text-purple-400', 'text-red-400');
-          promoMsg.textContent = '';
-
-          fetch('api/apply-promo.php', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            credentials: 'include',
-            body: JSON.stringify({ code: code })
-          })
-          .then(function(r) {
-            return r.json().then(function(data) { return { status: r.status, data: data }; });
-          })
-          .then(function(res) {
-            if (res.data.success) {
-              promoMsg.textContent = res.data.message || 'Promo applied. You have premium access!';
-              promoMsg.className = 'mt-3 text-sm text-purple-400';
-              promoMsg.classList.remove('hidden');
-            } else if (res.status === 401) {
-              fetch('api/validate-promo.php', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ code: code })
-              })
-              .then(function(r) { return r.json(); })
-              .then(function(v) {
-                if (v.success) {
-                  var appUrl = 'app.html?promo=' + encodeURIComponent(code);
-                  promoMsg.innerHTML = 'Code is valid. <a href="' + appUrl + '" class="text-purple-400 hover:text-purple-300 underline">Enter app</a> to sign in and activate it.';
-                  promoMsg.className = 'mt-3 text-sm text-neutral-500';
-                } else {
-                  promoMsg.textContent = v.error || 'Invalid or expired promo code.';
-                  promoMsg.className = 'mt-3 text-sm text-red-400';
-                }
-                promoMsg.classList.remove('hidden');
-              })
-              .catch(function() {
-                promoMsg.textContent = 'Invalid or expired promo code.';
-                promoMsg.className = 'mt-3 text-sm text-red-400';
-                promoMsg.classList.remove('hidden');
-              });
-              return;
-            } else {
-              promoMsg.textContent = res.data.error || 'Invalid or expired promo code.';
-              promoMsg.className = 'mt-3 text-sm text-red-400';
-              promoMsg.classList.remove('hidden');
-            }
-          })
-          .catch(function() {
-            promoMsg.textContent = 'Something went wrong. Try again later.';
-            promoMsg.className = 'mt-3 text-sm text-red-400';
-            promoMsg.classList.remove('hidden');
-          })
-          .then(function() { promoBtn.disabled = false; });
-        });
-      }
-    })();
-  </script>
+<!-- Специфичный для страницы -->
+<script src="js/riff-gallery-card.js"></script>
+<script src="js/main.js?v=4"></script>
 </body>
 </html>

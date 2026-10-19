@@ -68,17 +68,21 @@ class AuthManager {
         this.subscription = null;
         this.token = null;
         this.listeners = [];
+        this.sessionRevision = 0;
         this._loadSessionFromStorage();
-        this.loadSession();
+        this.ready = this.loadSession();
     }
 
     loadSession() {
         const self = this;
-        fetch(getApiBase() + '/api/me.php', { method: 'GET', credentials: 'include' })
+        const revision = this.sessionRevision;
+        return fetch(getApiBase() + '/api/me.php', { method: 'GET', credentials: 'include' })
             .then(function (r) { return r.json().then(function (data) { return { ok: r.ok, data: data }; }); })
             .then(function (result) {
+                if (revision !== self.sessionRevision) return;
                 if (result.ok && result.data.success && result.data.authenticated && result.data.user) {
                     const u = result.data.user;
+                    if (!self.userData || String(self.userData.id) !== String(u.id)) self.subscription = null;
                     self.isAuthenticated = true;
                     self.userData = {
                         id: u.id,
@@ -91,16 +95,15 @@ class AuthManager {
                     self.saveSession();
                     self.notifyListeners();
                     self.updateAllAuthButtons();
-                    if (u.id) self.fetchSubscriptionFromServer(u.id);
-                    return;
+                    return self.fetchSubscriptionFromServer(u.id);
                 }
-                if (result.data && result.data.authenticated === false) {
-                    try { localStorage.removeItem('riffKillerAuth'); } catch (e) {}
+                if (result.data && result.data.authenticated === false && !self.token &&
+                    !(self.userData && self.userData.source === 'stripe')) {
+                    self.clearSessionOnly();
                 }
-                self._loadSessionFromStorage();
             })
             .catch(function () {
-                self._loadSessionFromStorage();
+                if (revision === self.sessionRevision) self._loadSessionFromStorage();
             });
     }
 
@@ -119,9 +122,7 @@ class AuthManager {
                 if (this.token && !SKIP_VALIDATION_ON_LOAD && !isStripeOnly) {
                     this.validateToken();
                 }
-                if (this.userData && this.userData.id) {
-                    this.fetchSubscriptionFromServer(this.userData.id);
-                }
+
             }
             this.notifyListeners();
             this.updateAllAuthButtons();
@@ -137,6 +138,13 @@ class AuthManager {
         return fetch(url)
             .then(r => r.json())
             .then(data => {
+                if (!this.userData || String(this.userData.id) !== String(userId)) return;
+                if (data.success && data.subscription === null && !this.token) {
+                    this.subscription = null;
+                    this.saveSession();
+                    this.notifyListeners();
+                    this.updateAllAuthButtons();
+                }
                 if (data.success && data.subscription && data.subscription.status) {
                     const sub = data.subscription;
                     this.subscription = normalizeSubscription({
@@ -169,6 +177,7 @@ class AuthManager {
     }
 
     clearSessionOnly() {
+        ++this.sessionRevision;
         this.isAuthenticated = false;
         this.userData = null;
         this.subscription = null;
@@ -179,16 +188,12 @@ class AuthManager {
     }
 
     logout() {
-        const self = this;
-        fetch(getApiBase() + '/api/logout.php', { method: 'POST', credentials: 'include' })
-            .then(function () { self.clearSessionOnly(); })
-            .catch(function () { self.clearSessionOnly(); });
-        var path = window.location.pathname || '';
-        var isCallback = path.indexOf('patreon-callback') !== -1;
-        if (isCallback) return;
-        if (!path.includes('index.html')) {
-            window.location.href = 'index.html';
-        }
+        const finish = () => {
+            this.clearSessionOnly();
+            if (!window.location.pathname.includes('patreon-callback')) window.location.href = 'index.html';
+        };
+        return fetch(getApiBase() + '/api/logout.php', { method: 'POST', credentials: 'include' })
+            .then(finish, finish);
     }
 
     addListener(callback) {
@@ -263,7 +268,7 @@ class AuthManager {
 
     loginWithPassword(email, password) {
         const self = this;
-        fetch(getApiBase() + '/api/auth/email-login.php', {
+        return fetch(getApiBase() + '/api/auth/email-login.php', {
             method: 'POST',
             credentials: 'include',
             headers: { 'Content-Type': 'application/json' },
@@ -272,6 +277,8 @@ class AuthManager {
             .then(function (r) { return r.json(); })
             .then(function (data) {
                 if (data.success && data.user) {
+                    ++self.sessionRevision;
+                    self.subscription = null;
                     self.isAuthenticated = true;
                     self.userData = { id: data.user.id, full_name: data.user.full_name || 'User', image_url: data.user.image_url || '', email: data.user.email || '', provider: 'email' };
                     self.token = null;
@@ -280,7 +287,8 @@ class AuthManager {
                     self.updateAllAuthButtons();
                     var back = document.getElementById('riffKillerAuthModalBackdrop');
                     if (back && back.parentNode) back.parentNode.removeChild(back);
-                    return;
+                    document.body.style.overflow = '';
+                    return self.fetchSubscriptionFromServer(data.user.id);
                 }
                 if (self._authModalEmailMessage) {
                     self._authModalEmailMessage.textContent = data.error || 'Invalid email or password.';
@@ -297,7 +305,7 @@ class AuthManager {
 
     registerWithPassword(email, password, name) {
         const self = this;
-        fetch(getApiBase() + '/api/auth/email-register.php', {
+        return fetch(getApiBase() + '/api/auth/email-register.php', {
             method: 'POST',
             credentials: 'include',
             headers: { 'Content-Type': 'application/json' },
@@ -306,6 +314,8 @@ class AuthManager {
             .then(function (r) { return r.json(); })
             .then(function (data) {
                 if (data.success && data.user) {
+                    ++self.sessionRevision;
+                    self.subscription = null;
                     self.isAuthenticated = true;
                     self.userData = { id: data.user.id, full_name: data.user.full_name || name || 'User', image_url: data.user.image_url || '', email: data.user.email || '', provider: 'email' };
                     self.token = null;
@@ -314,7 +324,8 @@ class AuthManager {
                     self.updateAllAuthButtons();
                     var back = document.getElementById('riffKillerAuthModalBackdrop');
                     if (back && back.parentNode) back.parentNode.removeChild(back);
-                    return;
+                    document.body.style.overflow = '';
+                    return self.fetchSubscriptionFromServer(data.user.id);
                 }
                 if (self._authModalEmailMessage) {
                     self._authModalEmailMessage.textContent = data.error || 'Registration failed.';
@@ -740,3 +751,4 @@ document.addEventListener('DOMContentLoaded', () => {
     authManager.addProfileStyles();
     authManager.updateAuthButtons();
 });
+

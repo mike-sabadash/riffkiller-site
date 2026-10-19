@@ -11,21 +11,72 @@ const riffsDatabase = [
         videoFile: "assets/video/led-zeppelin/black-dog/black-dog-left.mp4",
         videoFileRight: "assets/video/led-zeppelin/black-dog/black-dog-right.mp4",
         thumbnail: "assets/img/riff-1.png",
-        duration: 16.5,
+        duration: 17.136,
         difficulty: "intermediate",
         genre: "rock",
         isFree: true,
         segments: [
-            { start: 0, end: 1.17, name: "Shot 1" },
-            { start: 1.2, end: 3.12, name: "Shot 2" },
-            { start: 3.18, end: 5.17, name: "Shot 3" },
-            { start: 6, end: 7.18, name: "Shot 4" },
-            { start: 7.21, end: 9.09, name: "Shot 5" },
-            { start: 9.12, end: 10.3, name: "Shot 6" },
-            { start: 10.3, end: 13.15, name: "Shot 7" },
-            { start: 11.18, end: 15.07, name: "Shot 8" },
-            { start: 15.17, end: 17, name: "Shot 9" }
-        ],
+    {
+        "start": 0,
+        "end": 1.6,
+        "name": "Shot 1",
+        "color": "#9355E5"
+    },
+    {
+        "start": 1.7,
+        "end": 3.44,
+        "name": "Shot 2",
+        "color": "#9355E5"
+    },
+    {
+        "start": 3.64,
+        "end": 5.56,
+        "name": "Shot 3",
+        "color": "#9355E5"
+    },
+    {
+        "start": 5.992,
+        "end": 7.42,
+        "name": "Shot 4",
+        "color": "#9355E5"
+    },
+    {
+        "start": 7.588,
+        "end": 9.1,
+        "name": "Shot 5",
+        "color": "#9355E5"
+    },
+    {
+        "start": 9.212,
+        "end": 10.836,
+        "name": "Shot 6",
+        "color": "#9355E5"
+    },
+    {
+        "start": 11.06,
+        "end": 11.816,
+        "name": "Shot 7",
+        "color": "#9355E5"
+    },
+    {
+        "start": 11.817,
+        "end": 13.44,
+        "name": "Shot 8",
+        "color": "#9355E5"
+    },
+    {
+        "start": 13.441,
+        "end": 15.316,
+        "name": "Shot 9",
+        "color": "#9355E5"
+    },
+    {
+        "start": 15.456,
+        "end": 17.136,
+        "name": "Shot 10",
+        "color": "#9355E5"
+    }
+],
         isFavorite: true,
         lastPracticed: null
     }
@@ -33,6 +84,7 @@ const riffsDatabase = [
 
 let currentRiff = null;
 let leftVideo = null;
+let practiceTransport = null;
 let rightVideo = null;
 let isPlaying = false;
 let currentMode = 'left';
@@ -51,12 +103,6 @@ let lessonVideoEl = null;
 let lastSegmentTapTime = 0;
 const SEGMENT_TAP_DEBOUNCE_MS = 220;
 let pendingSegmentIndex = null;
-/** Таймер частой проверки конца сегмента в лупе — чтобы не обрезать фразу раньше end */
-let _segmentLoopPollId = null;
-/** После перемотки на начало сегмента не считать «конец» 0.5 с — иначе из-за задержки currentTime луп срабатывает сразу и обрывает первую ноту */
-var _lastSegmentLoopSeekAt = 0;
-const SEGMENT_LOOP_DEBOUNCE_MS = 500;
-
 // Riff Killer 2.0: per-riff progress + practice modes
 const RK_PROGRESS_KEY = 'riffKillerProgressV1';
 let practiceMode = 'normal'; // normal | speed
@@ -170,8 +216,7 @@ function updatePracticeProgressUI() {
 
 function setPlaybackSpeedUI(speed) {
     playbackSpeed = speed;
-    if (leftVideo) leftVideo.playbackRate = speed;
-    if (rightVideo) rightVideo.playbackRate = speed;
+    if (practiceTransport) practiceTransport.setRate(speed);
     document.querySelectorAll('.speed-btn').forEach(function(b) {
         const s = parseFloat(b.dataset.speed);
         b.classList.toggle('active', !isNaN(s) && Math.abs(s - speed) < 0.001);
@@ -255,25 +300,17 @@ function getTimelineDuration() {
 function waitForVideosReady() {
     return new Promise((resolve, reject) => {
         if (!leftVideo || !rightVideo) return reject(new Error('No videos'));
-        const timeout = setTimeout(() => reject(new Error('Video load timeout')), 30000);
-        const check = () => {
-            if (leftVideo.readyState >= 1 && rightVideo.readyState >= 1) {
-                clearTimeout(timeout);
-                resolve(true);
-            } else {
-                setTimeout(check, 150);
-            }
-        };
-        if (leftVideo.readyState >= 1 && rightVideo.readyState >= 1) {
+        const videos = [leftVideo, rightVideo];
+        const cleanup = () => {
             clearTimeout(timeout);
-            resolve(true);
-        } else {
-            leftVideo.addEventListener('loadedmetadata', check, { once: true });
-            rightVideo.addEventListener('loadedmetadata', check, { once: true });
-            leftVideo.addEventListener('error', () => { clearTimeout(timeout); reject(new Error('Video error')); }, { once: true });
-            rightVideo.addEventListener('error', () => { clearTimeout(timeout); reject(new Error('Video error')); }, { once: true });
-            setTimeout(check, 200);
-        }
+            videos.forEach(v => v.removeEventListener('loadedmetadata', check));
+        };
+        const check = () => {
+            if (videos.every(v => v.readyState >= 1)) { cleanup(); resolve(true); }
+        };
+        const timeout = setTimeout(() => { cleanup(); reject(new Error('Video load timeout')); }, 30000);
+        videos.forEach(v => v.addEventListener('loadedmetadata', check));
+        check();
     });
 }
 
@@ -479,11 +516,12 @@ function initPracticePage() {
         if (found && isFullRiff(found)) {
             currentRiff = found;
         } else {
-            currentRiff = riffs.find(isFullRiff) || null;
+            currentRiff = null;
         }
         if (!currentRiff) {
             var el = document.querySelector('.breadcrumb-current');
             if (el) el.textContent = 'Riff not found';
+            showVideoErrorState();
             return;
         }
         if (currentRiff.segments && currentRiff.segments.length) {
@@ -506,6 +544,7 @@ function initPracticePage() {
                 videosFullyLoaded = true;
                 initTimeline();
                 initSegmentControls();
+                if (window.RiffDNA) window.RiffDNA.init(currentRiff);
                 enableControls(true);
                 hideVideoLoadingPlaceholder();
                 setVideoMode(currentMode);
@@ -535,6 +574,7 @@ function initPracticePage() {
                         videosFullyLoaded = true;
                         initTimeline();
                         initSegmentControls();
+                        if (window.RiffDNA) window.RiffDNA.init(currentRiff);
                         enableControls(true);
                         hideVideoLoadingPlaceholder();
                         setVideoMode(currentMode);
@@ -552,14 +592,16 @@ function initPracticePage() {
         var hasPremiumAccess = window.patreonAuth &&
             typeof window.patreonAuth.hasActiveSubscription === 'function' &&
             window.patreonAuth.hasActiveSubscription();
-        if (currentRiff.id === 1) {
+        if (currentRiff.isFree) {
             showNotification('🔥 Free Riff: Try it out! Subscribe ($9/month) to unlock all riffs with tabs and slow-mo.');
         } else if (!hasPremiumAccess) {
             showPatreonUpgradeModal();
         }
     }
 
-    fetch('/api/riffs/list.php').then(function(r) { return r.json(); }).then(function(list) {
+    Promise.resolve(window.authManager && window.authManager.ready).then(function() {
+        return fetch('/api/riffs/list.php').then(function(r) { if (!r.ok) throw new Error('Riff list unavailable'); return r.json(); });
+    }).then(function(list) {
         var riffs = (Array.isArray(list) && list.length > 0) ? list : fallbackRiffs;
         runWithRiffs(riffs);
     }).catch(function() { runWithRiffs(fallbackRiffs); });
@@ -662,6 +704,7 @@ function initVideoPlayers() {
     const videoWrapper = document.getElementById('videoWrapper');
     if (!videoWrapper) return;
     
+    if (practiceTransport) practiceTransport.destroy();
     // Удаляем старые видео, если есть
     const oldVideos = videoWrapper.querySelectorAll('.video-element');
     oldVideos.forEach(v => v.remove());
@@ -744,9 +787,17 @@ function initVideoPlayers() {
     leftVideo.addEventListener('canplay', clearWrapperCover);
     rightVideo.addEventListener('canplay', clearWrapperCover);
     
-    leftVideo.addEventListener('timeupdate', updateVideoProgress);
-    leftVideo.addEventListener('ended', handleVideoEnd);
-    rightVideo.addEventListener('ended', handleVideoEnd);
+    practiceTransport = new PracticeTransport(leftVideo, rightVideo, {
+        onTick: updateVideoProgress,
+        onEnded: handleVideoEnd,
+        onState: function(playing) {
+            isPlaying = playing;
+            updatePlayButtonState();
+            updateSegmentButtons();
+        },
+        onError: function() { showNotification('Playback could not start. Please press Play again.'); }
+    });
+    practiceTransport.setRate(playbackSpeed);
 
     const onVideoError = () => {
         if (typeof showVideoErrorState === 'function') showVideoErrorState();
@@ -772,20 +823,6 @@ function setVideoMode(mode) {
         videoWrapper.className = 'video-wrapper ' + mode + '-mode';
     }
 
-    // При смене режима автоматически выключаем табы
-    if (tabsVisible) {
-        tabsVisible = false;
-        const toggleBtn = document.getElementById('toggleTabs');
-        if (toggleBtn) {
-            toggleBtn.classList.remove('active');
-        }
-        if (tabsOverlay) {
-            tabsOverlay.classList.add('hidden');
-        }
-    }
-    
-    const currentTime = leftVideo.currentTime;
-    
     switch(mode) {
         case 'left':
             leftVideo.style.opacity = '1';
@@ -794,7 +831,6 @@ function setVideoMode(mode) {
             rightVideo.style.opacity = '0';
             rightVideo.style.pointerEvents = 'none';
             rightVideo.muted = true;
-            rightVideo.currentTime = currentTime;
             break;
             
         case 'right':
@@ -804,7 +840,6 @@ function setVideoMode(mode) {
             rightVideo.style.opacity = '1';
             rightVideo.style.pointerEvents = 'auto';
             rightVideo.muted = false;
-            leftVideo.currentTime = rightVideo.currentTime;
             break;
             
         case 'split':
@@ -814,14 +849,9 @@ function setVideoMode(mode) {
             rightVideo.style.opacity = '1';
             rightVideo.style.pointerEvents = 'auto';
             rightVideo.muted = false;
-            rightVideo.currentTime = currentTime;
             break;
     }
     
-    if (isPlaying) {
-        leftVideo.play().catch(() => {});
-        rightVideo.play().catch(() => {});
-    }
 }
 
 // Сообщение при попытке использовать управление в lesson mode
@@ -831,8 +861,8 @@ const LESSON_MODE_MSG = 'В режиме Lesson mode управление риф
 function togglePlayback() {
     if (lessonModeActive && lessonVideoEl) {
         if (lessonVideoEl.paused) {
-            lessonVideoEl.play().catch(() => {});
-            isPlaying = true;
+            lessonVideoEl.play().then(() => { isPlaying = true; updatePlayButtonState(); })
+                .catch(() => { isPlaying = false; updatePlayButtonState(); });
         } else {
             lessonVideoEl.pause();
             isPlaying = false;
@@ -840,19 +870,10 @@ function togglePlayback() {
         updatePlayButtonState();
         return;
     }
-    if (!leftVideo || !rightVideo) return;
-    
-    if (isPlaying) {
-        leftVideo.pause();
-        rightVideo.pause();
-        isPlaying = false;
-    } else {
-        leftVideo.play().catch(() => {});
-        rightVideo.play().catch(() => {});
-        isPlaying = true;
-    }
-    
-    updatePlayButtonState();
+    if (!practiceTransport || !videosFullyLoaded) return;
+    if (practiceTransport.intendedPlaying) practiceTransport.pause();
+    else practiceTransport.play();
+
 }
 
 // Обновление кнопки play
@@ -884,85 +905,20 @@ function updatePlayButtonState() {
 // Перемотка
 function rewindVideo(seconds) {
     if (lessonModeActive) { showNotification(LESSON_MODE_MSG); return; }
-    if (!leftVideo || !rightVideo) return;
-    
-    const currentTime = currentMode === 'right' ? rightVideo.currentTime : leftVideo.currentTime;
-    const newTime = Math.max(0, Math.min(currentTime + seconds, currentRiff.duration));
-    
-    leftVideo.currentTime = newTime;
-    rightVideo.currentTime = newTime;
-    
+    if (!practiceTransport) return;
+    practiceTransport.seek(practiceTransport.time + seconds);
     updateCurrentSegmentFromTime();
 }
 
-// Обновление прогресса видео
+// Left camera is the clock in every display mode; tabs follow it in All Riff too.
 function updateVideoProgress() {
-    if (!leftVideo || !rightVideo || !currentRiff) return;
-    
-    const currentTime = currentMode === 'right' ? rightVideo.currentTime : leftVideo.currentTime;
-    
-    // Обновляем прогресс на таймлайне
-    updateTimelineProgress(currentTime);
-    
-    // Не переопределяем currentSegment во время перехода по клику (seek ещё не применился)
-    if (!window._jumpToSegmentInProgress && !loopAllRiff && !loopActive) {
-        for (let i = 0; i < currentRiff.segments.length; i++) {
-            const seg = currentRiff.segments[i];
-            const start = getSegmentStartRaw(seg);
-            const end = getSegmentEndRaw(seg);
-            if (currentTime >= start && currentTime < end) {
-                if (i !== currentSegment) {
-                    currentSegment = i;
-                    updateSegmentButtons();
-                }
-                break;
-            }
-        }
+    if (!leftVideo || !rightVideo || !currentRiff || lessonModeActive) return;
+    const time = leftVideo.currentTime;
+    updateTimelineProgress(time);
+    if (!window._jumpToSegmentInProgress && !(loopActive && !loopAllRiff)) {
+        updateCurrentSegmentFromTime();
     }
-    
-    if (loopActive && !loopAllRiff && currentSegment >= 0) {
-        const segment = currentRiff.segments[currentSegment];
-        if (segment) {
-            const start = getSegmentStartRaw(segment);
-            const end = getSegmentEndRaw(segment);
-            if (currentTime >= end && (Date.now() - _lastSegmentLoopSeekAt) > SEGMENT_LOOP_DEBOUNCE_MS) {
-                if (_segmentLoopPollId) { clearInterval(_segmentLoopPollId); _segmentLoopPollId = null; }
-                _lastSegmentLoopSeekAt = Date.now();
-                console.log('[RiffKiller] LOOP timeupdate: segmentIndex=' + currentSegment + ' videoTime=' + currentTime.toFixed(3) + ' effectiveEnd=' + end.toFixed(3));
-                speedTrainerOnLoop(currentSegment);
-                leftVideo.currentTime = start;
-                rightVideo.currentTime = start;
-            } else if (currentTime >= end - 0.12) {
-                if (!_segmentLoopPollId) {
-                    _segmentLoopPollId = setInterval(function() {
-                        if (!leftVideo || !rightVideo || !currentRiff || currentSegment < 0) {
-                            if (_segmentLoopPollId) { clearInterval(_segmentLoopPollId); _segmentLoopPollId = null; }
-                            return;
-                        }
-                        var seg = currentRiff.segments[currentSegment];
-                        if (!seg) { if (_segmentLoopPollId) { clearInterval(_segmentLoopPollId); _segmentLoopPollId = null; } return; }
-                        var t = currentMode === 'right' ? rightVideo.currentTime : leftVideo.currentTime;
-                        var e = getSegmentEndRaw(seg);
-                        if (t >= e && (Date.now() - _lastSegmentLoopSeekAt) > SEGMENT_LOOP_DEBOUNCE_MS) {
-                            if (_segmentLoopPollId) { clearInterval(_segmentLoopPollId); _segmentLoopPollId = null; }
-                            _lastSegmentLoopSeekAt = Date.now();
-                            console.log('[RiffKiller] LOOP poll: segmentIndex=' + currentSegment + ' videoTime=' + t.toFixed(3) + ' effectiveEnd=' + e.toFixed(3));
-                            speedTrainerOnLoop(currentSegment);
-                            var segStart = getSegmentStartRaw(seg);
-                            leftVideo.currentTime = segStart;
-                            rightVideo.currentTime = segStart;
-                        }
-                    }, 25);
-                }
-            } else {
-                if (_segmentLoopPollId) { clearInterval(_segmentLoopPollId); _segmentLoopPollId = null; }
-            }
-        } else {
-            if (_segmentLoopPollId) { clearInterval(_segmentLoopPollId); _segmentLoopPollId = null; }
-        }
-    } else {
-        if (_segmentLoopPollId) { clearInterval(_segmentLoopPollId); _segmentLoopPollId = null; }
-    }
+    checkSegmentBoundary();
 }
 
 // Обновление прогресса на таймлайне
@@ -1011,41 +967,11 @@ function updateTimelineProgress(currentTime) {
 // Переход к сегменту — логика как в рабочем бэкапе (currentTime + fallback с #t=)
 function jumpToSegment(index) {
     if (lessonModeActive) { showNotification(LESSON_MODE_MSG); return; }
-    if (!currentRiff) return;
-
-    if (index < 0 || index >= currentRiff.segments.length) return;
-
-    if (!videosFullyLoaded || !leftVideo || !rightVideo) {
+    if (!currentRiff || index < 0 || index >= currentRiff.segments.length) return;
+    if (!videosFullyLoaded || !practiceTransport) {
         pendingSegmentIndex = index;
-        currentSegment = index;
-        updateSegmentButtons();
         return;
     }
-
-    const segment = currentRiff.segments[index];
-    const targetTime = getSegmentStartRaw(segment);
-    if (isNaN(targetTime) || targetTime < 0) return;
-
-    if (window._jumpToSegmentInProgress && window._fallbackTimer) {
-        clearTimeout(window._fallbackTimer);
-        window._fallbackTimer = null;
-    }
-    window._jumpToSegmentInProgress = true;
-
-    const wasPlaying = isPlaying;
-    if (wasPlaying) {
-        leftVideo.pause();
-        rightVideo.pause();
-    }
-
-    try {
-        leftVideo.currentTime = targetTime;
-        rightVideo.currentTime = targetTime;
-    } catch (e) {
-        window._jumpToSegmentInProgress = false;
-        return;
-    }
-
     loopAllRiff = false;
     currentSegment = index;
     if (practiceMode === 'speed') {
@@ -1054,65 +980,31 @@ function jumpToSegment(index) {
         _speedTrainerState.loopsAtSpeed = 0;
         setPlaybackSpeedUI(SPEED_TRAINER_SPEEDS[0]);
     }
-    updateTimelineProgress(targetTime);
+    window._jumpToSegmentInProgress = true;
+    practiceTransport.seek(getSegmentStartRaw(currentRiff.segments[index]));
+    window._jumpToSegmentInProgress = false;
     updateSegmentButtons();
-    updatePracticeProgressUI();
+}
 
-    var safePlay = function(videoElement) {
-        if (!videoElement || videoElement.readyState === 0) return Promise.resolve();
-        return videoElement.play().catch(function(err) {
-            if (err.name !== 'AbortError') console.error(err);
-        });
-    };
-
-    if (wasPlaying) {
-        setTimeout(function() {
-            safePlay(leftVideo);
-            safePlay(rightVideo);
-            isPlaying = true;
-            updatePlayButtonState();
-        }, 50);
-    } else {
-        updatePlayButtonState();
-    }
-
-    if (window._fallbackTimer) clearTimeout(window._fallbackTimer);
-    window._fallbackTimer = setTimeout(function() {
-        if (!window._jumpToSegmentInProgress) return;
-
-        var appliedTime = leftVideo.currentTime;
-        if (targetTime > 0 && Math.abs(appliedTime - targetTime) > 0.1) {
-            var leftPath = currentRiff.videoFile;
-            var rightPath = currentRiff.videoFileRight || currentRiff.videoFile;
-            leftVideo.src = buildVideoSrc(leftPath, targetTime);
-            rightVideo.src = buildVideoSrc(rightPath, targetTime);
-            leftVideo.load();
-            rightVideo.load();
-            if (wasPlaying) {
-                leftVideo.addEventListener('loadedmetadata', function onL() {
-                    leftVideo.removeEventListener('loadedmetadata', onL);
-                    safePlay(leftVideo);
-                    isPlaying = true;
-                    updatePlayButtonState();
-                }, { once: true });
-                rightVideo.addEventListener('loadedmetadata', function onR() {
-                    rightVideo.removeEventListener('loadedmetadata', onR);
-                    safePlay(rightVideo);
-                    isPlaying = true;
-                    updatePlayButtonState();
-                }, { once: true });
-            }
-        }
-        window._jumpToSegmentInProgress = false;
-        window._fallbackTimer = null;
-    }, 150);
+// Shared action for segment buttons, Molecules and Atoms (never toggles a playing atom off).
+function playPracticeSegment(index, options) {
+    options = options || {};
+    if (lessonModeActive) { showNotification(LESSON_MODE_MSG); return; }
+    if (options.view) setVideoMode(options.view);
+    if (options.speed) { setPracticeMode('normal'); setPlaybackSpeedUI(options.speed); }
+    jumpToSegment(index);
+    loopActive = true;
+    loopAllRiff = false;
+    var button = document.getElementById('loopButton');
+    if (button) button.classList.add('active');
+    if (practiceTransport && videosFullyLoaded) practiceTransport.play();
 }
 
 // Обновление текущего сегмента
 function updateCurrentSegmentFromTime() {
     if (!currentRiff || !leftVideo || window._jumpToSegmentInProgress) return;
     
-    const currentTime = currentMode === 'right' ? rightVideo.currentTime : leftVideo.currentTime;
+    const currentTime = leftVideo.currentTime;
     
     for (let i = 0; i < currentRiff.segments.length; i++) {
         const seg = currentRiff.segments[i];
@@ -1130,23 +1022,13 @@ function updateCurrentSegmentFromTime() {
 
 // Проверка границ сегмента для лупа
 function checkSegmentBoundary() {
-    if (!currentRiff || !leftVideo || !isPlaying || !loopActive || loopAllRiff) return;
-    
-    const currentTime = currentMode === 'right' ? rightVideo.currentTime : leftVideo.currentTime;
-    
-    if (currentSegment >= 0) {
-        const segment = currentRiff.segments[currentSegment];
-        if (segment) {
-            const start = getSegmentStartRaw(segment);
-            const end = getSegmentEndRaw(segment);
-            if (currentTime >= end && (Date.now() - _lastSegmentLoopSeekAt) > SEGMENT_LOOP_DEBOUNCE_MS) {
-                _lastSegmentLoopSeekAt = Date.now();
-                speedTrainerOnLoop(currentSegment);
-                leftVideo.currentTime = start;
-                rightVideo.currentTime = start;
-                updateTimelineProgress(start);
-            }
-        }
+    if (!currentRiff || !practiceTransport || !practiceTransport.intendedPlaying ||
+        practiceTransport.pending || practiceTransport.buffering ||
+        leftVideo.seeking || rightVideo.seeking || !loopActive || loopAllRiff || currentSegment < 0) return;
+    const segment = currentRiff.segments[currentSegment];
+    if (segment && leftVideo.currentTime >= getSegmentEndRaw(segment)) {
+        speedTrainerOnLoop(currentSegment);
+        practiceTransport.seek(getSegmentStartRaw(segment));
     }
 }
 
@@ -1158,7 +1040,6 @@ function toggleLoop() {
         setPracticeMode('normal');
         showNotification('Speed Trainer off — loop turned off.');
     }
-    if (!loopActive && _segmentLoopPollId) { clearInterval(_segmentLoopPollId); _segmentLoopPollId = null; }
     const loopBtn = document.getElementById('loopButton');
     if (loopBtn) {
         loopBtn.classList.toggle('active', loopActive);
@@ -1167,35 +1048,13 @@ function toggleLoop() {
 
 // Обработка окончания видео
 function handleVideoEnd() {
+    if (!practiceTransport || lessonModeActive) return;
     if (loopActive) {
-        if (loopAllRiff) {
-            leftVideo.currentTime = 0;
-            rightVideo.currentTime = 0;
-            currentSegment = 0;
-            updateSegmentButtons();
-            if (isPlaying) {
-                leftVideo.play().catch(() => {});
-                rightVideo.play().catch(() => {});
-            }
-        } else if (currentSegment >= 0) {
-            const segment = currentRiff.segments[currentSegment];
-            if (segment) {
-                const start = getSegmentStartRaw(segment);
-                speedTrainerOnLoop(currentSegment);
-                leftVideo.currentTime = start;
-                rightVideo.currentTime = start;
-                if (isPlaying) {
-                    leftVideo.play().catch(() => {});
-                    rightVideo.play().catch(() => {});
-                }
-            }
-        }
-    } else {
-        leftVideo.pause();
-        rightVideo.pause();
-        isPlaying = false;
-        updatePlayButtonState();
-    }
+        const segment = currentRiff.segments[currentSegment];
+        if (!loopAllRiff && segment) speedTrainerOnLoop(currentSegment);
+        practiceTransport.seek(loopAllRiff || !segment ? 0 : getSegmentStartRaw(segment));
+        practiceTransport.play();
+    } else practiceTransport.pause();
 }
 
 // Обновление кнопок сегментов - ИСПРАВЛЕННАЯ ВЕРСИЯ
@@ -1248,6 +1107,7 @@ function updateSegmentButtons() {
 
     updatePracticeProgressUI();
     updateSpeedTrainerTimelineLabel();
+    if (window.RiffDNA) window.RiffDNA.segmentChanged(currentSegment);
 }
 
 // Инициализация таймлайна
@@ -1359,8 +1219,7 @@ function initSegmentControls() {
             setPracticeMode('normal');
         }
         if (leftVideo && rightVideo) {
-            leftVideo.currentTime = 0;
-            rightVideo.currentTime = 0;
+            practiceTransport.seek(0);
         }
         if (!isPlaying) togglePlayback();
         updateSegmentButtons();
@@ -1408,10 +1267,7 @@ function initSegmentControls() {
             jumpToSegment(idx);
             // Сразу запускаем воспроизведение сегмента и включаем луп
             if (!isPlaying && leftVideo && rightVideo) {
-                leftVideo.play().catch(function() {});
-                rightVideo.play().catch(function() {});
-                isPlaying = true;
-                updatePlayButtonState();
+                practiceTransport.play();
             }
             loopActive = true;
             var loopBtn = document.getElementById('loopButton');
@@ -1513,8 +1369,9 @@ function initLessonMode() {
         
         if (lessonModeActive) {
             wrapper.classList.add('lesson-mode');
-            if (leftVideo) { leftVideo.style.display = 'none'; leftVideo.pause(); }
-            if (rightVideo) { rightVideo.style.display = 'none'; rightVideo.pause(); }
+            if (practiceTransport) practiceTransport.pause();
+            if (leftVideo) leftVideo.style.display = 'none';
+            if (rightVideo) rightVideo.style.display = 'none';
             if (lessonVideoEl) {
                 lessonVideoEl.style.display = 'block';
                 lessonVideoEl.style.opacity = '1';
@@ -1571,11 +1428,15 @@ function initTabsToggle() {
                 return;
             }
             toggleBtn.classList.add('active');
+            var label = toggleBtn.querySelector('.tab-text');
+            if (label) label.textContent = 'Hide Tabs';
             if (tabsOverlay) {
                 tabsOverlay.classList.remove('hidden');
             }
         } else {
             toggleBtn.classList.remove('active');
+            var label = toggleBtn.querySelector('.tab-text');
+            if (label) label.textContent = 'Show Tabs';
             if (tabsOverlay) {
                 tabsOverlay.classList.add('hidden');
             }
@@ -1612,6 +1473,8 @@ function ensureTabsOverlay() {
 function getTabsImagePathForSegment(index) {
     if (!currentRiff || !currentRiff.videoFile) return null;
     
+    const segment = currentRiff.segments[index];
+    if (segment && segment.tabImage) return segment.tabImage;
     const videoPath = currentRiff.videoFile; // например: assets/video/led-zeppelin/black-dog/black-dog-left.mp4
     const parts = videoPath.split('/');
     if (parts.length < 4) return null;
@@ -1646,6 +1509,7 @@ function updateTabsForCurrentSegment() {
     const path = getTabsImagePathForSegment(currentSegment || 0);
     if (!path) return false;
     
+    if (tabsImage.getAttribute('src') === path) return true;
     // Сбрасываем предыдущие обработчики
     tabsImage.onload = null;
     tabsImage.onerror = null;
@@ -1755,3 +1619,4 @@ function createRecentlyPracticedCard(riffData) {
         }
     });
 }
+

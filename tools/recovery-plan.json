@@ -1,0 +1,103 @@
+{
+  "upstreamCommit": "3e7e7308bd48a26aaf11288569b1b76b46dbbc46",
+  "files": {
+    "index.html": {
+      "before": "521d8d204edb2f42a7857d41b30f95e333d284b45d2ba4208d55fb4670d6515e",
+      "after": "97c74cdce8974a286a281d4781f1f086a7ecf1b8794eae3030b0aeeb9296389f"
+    },
+    "coming-soon.html": {
+      "before": "2667db02a4fc0d9ceaa6b117dde0d29a015f2a244c6a4b271669347095473257",
+      "after": "aa472559923abce6f78befa61f5c9a8f0b8170dcc791e26bec742b608248304e"
+    },
+    "practice.html": {
+      "before": "08c428d2f8637d660e4ae92b50844c8c034ca8259782d8d878042243762634d8",
+      "after": "3b366ddd389c69973e595487db8427f0251b7c65527aec65f6dede9c8814fcf9"
+    },
+    "admin/riffs.html": {
+      "before": "9bf7116b2791751976737df20121affabc408421a65a17e36e6d8a86db972ffd",
+      "after": "19aaeb4c70a58c140558579766f8f316e4020d1d2b844049887bcb173a9fb983"
+    },
+    "api/riffs/save.php": {
+      "before": "7e88eae3eaee405092b7b2061e6be6fc4f82d49d1a540628b35b86ba6145e23c",
+      "after": "195c427ecce6b402180cdf321339a7928b53b408d1bf5687916f00513b806441"
+    },
+    "api/auth/email-login.php": {
+      "before": "982cdd47b731242ff1bf0bf75ff670b6814201d1f8411b29ec2f0d6ef230e6b1",
+      "after": "45e61c4d433d5f570e1f69493b0f71203f81a9f55328146c5e698b6cc37cad28"
+    },
+    "api/auth/email-register.php": {
+      "before": "5100098b9fdf8087b2c523db4b55c65cd31db0b4df321f37b4368029490f0a17",
+      "after": "aa8af020c16fd30a005178f009d84f42465793f731c41e2bfccb4186edb3de6e"
+    },
+    "config/riff-validation.php": {
+      "before": null,
+      "after": "9651d9585dcc166e4eb535b32ca5ee88b65155314b18b51096bdee3f425a7494"
+    },
+    "css/riff-dna.css": {
+      "before": null,
+      "after": "f7ad497b22026cc75b201b46b2bf5a8ba16aa68687be6d628355163620e6b554"
+    },
+    "js/admin-dna.js": {
+      "before": null,
+      "after": "c68ec3c98148a70f2aa84debfdd8649ff5617fe5c41805b32d3aa260ab9d4afd"
+    },
+    "js/auth-manager.js": {
+      "before": "7a6493c071a63114dfe523dbbf63725ac845648b3a9713126c27e278c7c689f1",
+      "after": "0946e19adea94f73f6a648285a0f6c0f5c5594bf087a7ec59e7ecfd7d01057e9"
+    },
+    "js/practice.js": {
+      "before": "3927ebf90af8743fac3d1498d985f81e588480d44e764ac4fe5be3ba67846491",
+      "after": "5cd712ec1fcb222d4cdbc65023f35cfdc025fb380cb4d7013de9a00dad6ff99a"
+    },
+    "js/practice-transport.js": {
+      "before": null,
+      "after": "46088618c4512525e7ec7bd863affc569305db23a92573f7a8ba17718ed64052"
+    },
+    "js/riff-dna.js": {
+      "before": null,
+      "after": "861cf1d38cbab8210873cdad63cf63d181784b768299214245a272afa0e5f490"
+    }
+  },
+  "media": {
+    "assets/video/acdc/hells-bells-left.mp4": {
+      "sha256": "c32c325cf5811da46b8d51655c14bd91d72069b65e05df21ad7864ec7488a252",
+      "size": 20539400
+    },
+    "assets/video/acdc/hells-bells-right.mp4": {
+      "sha256": "5adde4408fdb999f03de25eccc0fd7020686e94f58ac7fd035e8ede79c125712",
+      "size": 21672600
+    },
+    "assets/video/led-zeppelin/black-dog/black-dog-left.mp4": {
+      "sha256": "a03280cac959cb7bd9f478878a2863886ca7ee921bcdfa284e1ebb4a3acaf2cd",
+      "size": 13266568
+    },
+    "assets/video/led-zeppelin/black-dog/black-dog-right.mp4": {
+      "sha256": "049203df197a5190f103e9e32d12646a23b1c97df1e6624c3ceb395e67dc9d88",
+      "size": 10852432
+    },
+    "assets/video/led-zeppelin/whole-lotta-love/black-dog-left.mp4": {
+      "sha256": "37bec9edc0e734e5ffedff7d5136e32d974db6e161c226d049ffd1c0144dd01b",
+      "size": 3586048
+    },
+    "assets/video/led-zeppelin/whole-lotta-love/black-dog-right.mp4": {
+      "sha256": "e679d74c53f5d2279cf4dd5bc2fc1107e979f4d49dbc4d0133c6ab452294b016",
+      "size": 3574079
+    },
+    "assets/video/nirvana/smells-like-teen-spirit/black-dog-left.mp4": {
+      "sha256": "37bec9edc0e734e5ffedff7d5136e32d974db6e161c226d049ffd1c0144dd01b",
+      "size": 3586048
+    },
+    "assets/video/nirvana/smells-like-teen-spirit/black-dog-right.mp4": {
+      "sha256": "e679d74c53f5d2279cf4dd5bc2fc1107e979f4d49dbc4d0133c6ab452294b016",
+      "size": 3574079
+    },
+    "assets/video/rolling-stones/satisfaction/black-dog-left.mp4": {
+      "sha256": "37bec9edc0e734e5ffedff7d5136e32d974db6e161c226d049ffd1c0144dd01b",
+      "size": 3586048
+    },
+    "assets/video/rolling-stones/satisfaction/black-dog-right.mp4": {
+      "sha256": "e679d74c53f5d2279cf4dd5bc2fc1107e979f4d49dbc4d0133c6ab452294b016",
+      "size": 3574079
+    }
+  }
+}
