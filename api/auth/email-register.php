@@ -43,5 +43,7 @@ if (!$user) {
     echo json_encode(['success' => false, 'error' => 'Registration failed']);
     exit();
 }
+session_regenerate_id(true);
 $_SESSION['user_id'] = $user['id'];
 echo json_encode(['success' => true, 'user' => ['id' => $user['id'], 'email' => $user['email'], 'full_name' => $user['name'] ?: 'User', 'image_url' => $user['picture'] ?? '', 'provider' => 'email']]);
+

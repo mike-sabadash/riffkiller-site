@@ -2,74 +2,134 @@
     {
         "song": "Black Dog",
         "artist": "Led Zeppelin",
-        "duration": 16.5,
+        "duration": 17.136,
         "difficulty": "intermediate",
         "genre": "rock",
         "isFree": true,
-        "videoFile": "assets\/video\/led-zeppelin\/black-dog\/black-dog-left.mp4",
-        "videoFileRight": "assets\/video\/led-zeppelin\/black-dog\/black-dog-right.mp4",
-        "thumbnail": "assets\/img\/riff-1.png",
+        "videoFile": "assets/video/led-zeppelin/black-dog/black-dog-left.mp4",
+        "videoFileRight": "assets/video/led-zeppelin/black-dog/black-dog-right.mp4",
+        "thumbnail": "assets/img/riff-1.png",
         "lessonVideo": null,
         "segments": [
             {
                 "start": 0,
                 "end": 1.6,
                 "name": "Shot 1",
-                "color": "#9355E5"
+                "color": "#9355E5",
+                "displayName": "Statement · Pass 1",
+                "molecule": "A",
+                "moleculeName": "The statement",
+                "relation": "Core cell",
+                "function": "Introduces the displaced rhythmic shape",
+                "tabImage": "assets/tabs/led-zeppelin/black-dog/1.png"
             },
             {
                 "start": 1.7,
                 "end": 3.44,
                 "name": "Shot 2",
-                "color": "#9355E5"
+                "color": "#9355E5",
+                "displayName": "Answer · Pass 1",
+                "molecule": "B",
+                "moleculeName": "The answer",
+                "relation": "Resolution",
+                "function": "Answers the statement and returns the phrase home",
+                "tabImage": "assets/tabs/led-zeppelin/black-dog/2.png"
             },
             {
                 "start": 3.64,
                 "end": 5.56,
                 "name": "Shot 3",
-                "color": "#9355E5"
+                "color": "#9355E5",
+                "displayName": "Statement · Pass 2",
+                "molecule": "A",
+                "moleculeName": "The statement",
+                "relation": "Repeat",
+                "function": "Repeats the core cell for recognition",
+                "tabImage": "assets/tabs/led-zeppelin/black-dog/3.png"
             },
             {
                 "start": 5.992,
                 "end": 7.42,
                 "name": "Shot 4",
-                "color": "#9355E5"
+                "color": "#9355E5",
+                "displayName": "Answer · Pass 2",
+                "molecule": "B",
+                "moleculeName": "The answer",
+                "relation": "Repeat",
+                "function": "Restores the answer after the repeated statement",
+                "tabImage": "assets/tabs/led-zeppelin/black-dog/4.png"
             },
             {
                 "start": 7.588,
                 "end": 9.1,
                 "name": "Shot 5",
-                "color": "#9355E5"
+                "color": "#9355E5",
+                "displayName": "Statement · Pass 3",
+                "molecule": "A",
+                "moleculeName": "The statement",
+                "relation": "Repeat",
+                "function": "Reinforces the asymmetrical pulse",
+                "tabImage": "assets/tabs/led-zeppelin/black-dog/5.png"
             },
             {
                 "start": 9.212,
                 "end": 10.836,
                 "name": "Shot 6",
-                "color": "#9355E5"
+                "color": "#9355E5",
+                "displayName": "Answer · Pass 3",
+                "molecule": "B",
+                "moleculeName": "The answer",
+                "relation": "Repeat",
+                "function": "Balances the displaced statement",
+                "tabImage": "assets/tabs/led-zeppelin/black-dog/6.png"
             },
             {
                 "start": 11.06,
                 "end": 11.816,
                 "name": "Shot 7",
-                "color": "#9355E5"
+                "color": "#9355E5",
+                "displayName": "Statement · Detail",
+                "molecule": "A",
+                "moleculeName": "The statement",
+                "relation": "Close study",
+                "function": "Short isolation of the core attack",
+                "tabImage": "assets/tabs/led-zeppelin/black-dog/7.png"
             },
             {
                 "start": 11.817,
                 "end": 13.44,
                 "name": "Shot 8",
-                "color": "#9355E5"
+                "color": "#9355E5",
+                "displayName": "Answer · Detail",
+                "molecule": "B",
+                "moleculeName": "The answer",
+                "relation": "Close study",
+                "function": "Short isolation of the resolving motion",
+                "tabImage": "assets/tabs/led-zeppelin/black-dog/8.png"
             },
             {
                 "start": 13.441,
                 "end": 15.316,
                 "name": "Shot 9",
-                "color": "#9355E5"
+                "color": "#9355E5",
+                "displayName": "Statement · Final pass",
+                "molecule": "A",
+                "moleculeName": "The statement",
+                "relation": "Full-speed check",
+                "function": "Tests the statement at performance speed",
+                "tabImage": "assets/tabs/led-zeppelin/black-dog/9.png"
             },
             {
                 "start": 15.456,
                 "end": 17.136,
                 "name": "Shot 10",
-                "color": "#9355E5"
+                "color": "#9355E5",
+                "displayName": "Answer · Final pass",
+                "molecule": "B",
+                "moleculeName": "The answer",
+                "relation": "Full-speed check",
+                "function": "Completes the organism at performance speed",
+                "tabImage": "assets/tabs/led-zeppelin/black-dog/10.png"
             }
         ],
         "isFavorite": false,
@@ -78,18 +138,76 @@
             1,
             2
         ],
-        "id": 1
+        "id": 1,
+        "dna": {
+            "overview": "Black Dog feels like one long, unpredictable phrase. Under the surface it is a two-molecule organism: a displaced statement and a resolving answer, repeated until the landing feels inevitable.",
+            "formula": "5/8 STATEMENT + 4/4 ANSWER + QUARTER-TONE ATTITUDE",
+            "structure": [
+                "A",
+                "B",
+                "A",
+                "B",
+                "A",
+                "B"
+            ],
+            "law": "The hook does not come from a large collection of notes. Molecule A compresses the pulse, molecule B restores the ground, and their alternation keeps moving the listener between instability and return.",
+            "insight": "The supplied notation exposes the fingerprint: the statement is grouped in 5/8 before the answer returns to 4/4. The phrase sounds free, but its asymmetry is organized.",
+            "atoms": [
+                {
+                    "type": "Pulse",
+                    "label": "The 5/8 compression",
+                    "tip": "Count the short statement as its own cell. Do not force it into four beats.",
+                    "segmentIndex": 0,
+                    "view": "right",
+                    "speed": 0.5
+                },
+                {
+                    "type": "Shape",
+                    "label": "7–5–6–7 contour",
+                    "tip": "Watch the left hand as the compact contour leaves and returns to the seventh fret.",
+                    "segmentIndex": 0,
+                    "view": "left",
+                    "speed": 0.5
+                },
+                {
+                    "type": "Touch",
+                    "label": "Quarter-tone bend",
+                    "tip": "This is attitude, not a full semitone target. Compare the fretting hand with the tab marking.",
+                    "segmentIndex": 1,
+                    "view": "split",
+                    "speed": 0.5
+                },
+                {
+                    "type": "Return",
+                    "label": "Answer lands in 4/4",
+                    "tip": "Hear how the answer makes the preceding asymmetry feel intentional.",
+                    "segmentIndex": 1,
+                    "view": "right",
+                    "speed": 0.75
+                }
+            ],
+            "mutation": {
+                "title": "Build a Black Dog relative — without copying the riff",
+                "description": "Preserve the asymmetrical relationship, not the original notes. This turns analysis into vocabulary.",
+                "steps": [
+                    "Create a short five-eighths statement from a different three- or four-note contour.",
+                    "Answer it in four-four and land clearly on a new root note.",
+                    "Add one expressive atom — a quarter-tone bend, rake or slide — but keep the rhythmic law intact.",
+                    "Play A → B three times, then change only the final answer. That change becomes your hook."
+                ]
+            }
+        }
     },
     {
         "song": "Satisfaction",
         "artist": "Rolling Stones",
-        "duration": 16,
+        "duration": 17.033,
         "difficulty": "beginner",
         "genre": "rock",
         "isFree": false,
-        "videoFile": "assets\/video\/rolling-stones\/satisfaction\/black-dog-left.mp4",
-        "videoFileRight": "assets\/video\/rolling-stones\/satisfaction\/black-dog-right.mp4",
-        "thumbnail": "assets\/img\/riff-6.png",
+        "videoFile": "assets/video/rolling-stones/satisfaction/black-dog-left.mp4",
+        "videoFileRight": "assets/video/rolling-stones/satisfaction/black-dog-right.mp4",
+        "thumbnail": "assets/img/riff-6.png",
         "segments": [
             {
                 "start": 0,
@@ -127,13 +245,13 @@
     {
         "song": "Whole lotta love",
         "artist": "Led Zeppelin",
-        "duration": 16,
+        "duration": 17.033,
         "difficulty": "intermediate",
         "genre": "rock",
         "isFree": false,
-        "videoFile": "assets\/video\/led-zeppelin\/whole-lotta-love\/left.mp4",
-        "videoFileRight": "assets\/video\/led-zeppelin\/whole-lotta-love\/right.mp4",
-        "thumbnail": "assets\/img\/ledzeppelin1.png",
+        "videoFile": "assets/video/led-zeppelin/whole-lotta-love/black-dog-left.mp4",
+        "videoFileRight": "assets/video/led-zeppelin/whole-lotta-love/black-dog-right.mp4",
+        "thumbnail": "assets/img/ledzeppelin1.png",
         "lessonVideo": null,
         "segments": [
             {
@@ -196,14 +314,14 @@
     {
         "song": "Smells like teen spirit",
         "artist": "Nirvana",
-        "duration": 16,
+        "duration": 17.033,
         "difficulty": "intermediate",
         "genre": "rock",
         "isFree": true,
-        "videoFile": "assets\/video\/nirvana\/smells-like-teen-spirit\/black-dog-left.mp4",
-        "videoFileRight": "assets\/video\/nirvana\/smells-like-teen-spirit\/black-dog-right.mp4",
-        "thumbnail": "assets\/img\/nirvana1.png",
-        "lessonVideo": "assets\/video\/nirvana\/smells-like-teen-spirit\/black-dog-left.mp4",
+        "videoFile": "assets/video/nirvana/smells-like-teen-spirit/black-dog-left.mp4",
+        "videoFileRight": "assets/video/nirvana/smells-like-teen-spirit/black-dog-right.mp4",
+        "thumbnail": "assets/img/nirvana1.png",
+        "lessonVideo": "assets/video/nirvana/smells-like-teen-spirit/black-dog-left.mp4",
         "segments": [
             {
                 "start": 0,
@@ -242,5 +360,29 @@
             2
         ],
         "id": 7
+    },
+    {
+        "song": "Hells Bells",
+        "artist": "AC/DC",
+        "duration": 18.553,
+        "difficulty": "intermediate",
+        "genre": "rock",
+        "isFree": false,
+        "videoFile": "assets/video/acdc/hells-bells-left.mp4",
+        "videoFileRight": "assets/video/acdc/hells-bells-right.mp4",
+        "thumbnail": "assets/img/riff-1.png",
+        "lessonVideo": null,
+        "segments": [
+            {
+                "start": 0,
+                "end": 18.552,
+                "name": "Full riff · timing review needed",
+                "color": "#9355E5"
+            }
+        ],
+        "isFavorite": false,
+        "lastPracticed": null,
+        "collectionIds": [],
+        "id": 8
     }
 ]

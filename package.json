@@ -3,10 +3,17 @@
   "version": "1.0.0",
   "main": "server.cjs",
   "scripts": {
-    "start": "node server.cjs"
+    "start": "node server.cjs",
+    "test": "node --test tests/*.test.cjs",
+    "test:e2e": "node --test tests/browser.e2e.cjs",
+    "test:recovery": "python3 tests/recovery.test.py",
+    "start:php": "php -S 127.0.0.1:3000 -t . dev-router.php"
   },
   "dependencies": {
     "express": "^4.21.0",
     "multer": "^2.2.0"
+  },
+  "devDependencies": {
+    "playwright": "1.62.1"
   }
 }

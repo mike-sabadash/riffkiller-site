@@ -28,3 +28,7 @@ uploads/
 
 # Archives
 *.zip
+
+# Python checks
+__pycache__/
+*.pyc
