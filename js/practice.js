@@ -106,6 +106,7 @@ let pendingSegmentIndex = null;
 // Riff Killer 2.0: per-riff progress + practice modes
 const RK_PROGRESS_KEY = 'riffKillerProgressV1';
 let practiceMode = 'normal'; // normal | speed
+let normalPracticeSettings = null;
 let _speedTrainerState = { active: false, segIndex: -1, speedIdx: 0, loopsAtSpeed: 0 };
 const SPEED_TRAINER_SPEEDS = [0.5, 0.75, 1];
 /** Сколько полных повторов сегмента на каждой скорости перед переходом к следующей */
@@ -219,13 +220,22 @@ function setPlaybackSpeedUI(speed) {
     if (practiceTransport) practiceTransport.setRate(speed);
     document.querySelectorAll('.speed-btn').forEach(function(b) {
         const s = parseFloat(b.dataset.speed);
-        b.classList.toggle('active', !isNaN(s) && Math.abs(s - speed) < 0.001);
+        const active = !isNaN(s) && Math.abs(s - speed) < 0.001;
+        b.classList.toggle('active', active);
+        b.setAttribute('aria-pressed', String(active));
     });
     updateSpeedTrainerTimelineLabel();
 }
 
 function setPracticeMode(mode) {
-    practiceMode = (mode === 'speed') ? 'speed' : 'normal';
+    const nextMode = mode === 'speed' ? 'speed' : 'normal';
+    if (nextMode === practiceMode) return;
+    if (nextMode === 'speed') {
+        normalPracticeSettings = { speed: playbackSpeed, loop: loopActive, all: loopAllRiff };
+        // The ladder operates on the current segment, including after All Riff.
+        loopAllRiff = false;
+    }
+    practiceMode = nextMode;
     const n = document.getElementById('modeNormalBtn');
     const s = document.getElementById('modeSpeedBtn');
     if (n) {
@@ -245,7 +255,19 @@ function setPracticeMode(mode) {
         if (loopBtn) loopBtn.classList.add('active');
     } else {
         _speedTrainerState = { active: false, segIndex: -1, speedIdx: 0, loopsAtSpeed: 0 };
+        if (normalPracticeSettings) {
+            setPlaybackSpeedUI(normalPracticeSettings.speed);
+            loopActive = normalPracticeSettings.loop;
+            loopAllRiff = normalPracticeSettings.all;
+            normalPracticeSettings = null;
+        }
     }
+    const loopButton = document.getElementById('loopButton');
+    if (loopButton) {
+        loopButton.classList.toggle('active', loopActive);
+        loopButton.setAttribute('aria-pressed', String(loopActive));
+    }
+    updateSegmentButtons();
     syncRiffTimelineSpeedTrainerClass();
     updateSpeedTrainerTimelineLabel();
 }
@@ -296,81 +318,73 @@ function getTimelineDuration() {
     return currentRiff ? currentRiff.duration : 0;
 }
 
-// Ожидание загрузки метаданных обоих видео (достаточно для сегментов и таймлайна)
+// Readiness means both fully downloaded recordings can decode, not metadata alone.
+let practiceMediaLoader = null;
+let mediaPreparation = null;
 function waitForVideosReady() {
     return new Promise((resolve, reject) => {
-        if (!leftVideo || !rightVideo) return reject(new Error('No videos'));
         const videos = [leftVideo, rightVideo];
         const cleanup = () => {
             clearTimeout(timeout);
-            videos.forEach(v => v.removeEventListener('loadedmetadata', check));
+            videos.forEach(v => { v.removeEventListener('canplay', check); v.removeEventListener('error', fail); });
         };
         const check = () => {
-            if (videos.every(v => v.readyState >= 1)) { cleanup(); resolve(true); }
+            if (videos.every(v => v.readyState >= 3)) { cleanup(); resolve(true); }
         };
-        const timeout = setTimeout(() => { cleanup(); reject(new Error('Video load timeout')); }, 30000);
-        videos.forEach(v => v.addEventListener('loadedmetadata', check));
+        const fail = () => { cleanup(); reject(new Error('Recording could not be decoded')); };
+        const timeout = setTimeout(fail, 30000);
+        videos.forEach(v => { v.addEventListener('canplay', check); v.addEventListener('error', fail); });
         check();
     });
 }
-
 function showVideoLoadingPlaceholder() {
+    enableControls(false);
     const wrapper = document.getElementById('videoWrapper');
     const placeholder = document.getElementById('videoLoadingPlaceholder');
-    const progressBar = document.getElementById('videoLoadingProgress');
-    const errorEl = document.getElementById('videoErrorState');
-    const overlay = document.getElementById('videoOverlay');
-    if (placeholder) placeholder.style.display = 'flex';
-    if (progressBar) progressBar.style.width = '0%';
-    if (errorEl) errorEl.style.display = 'none';
-    if (overlay) overlay.classList.add('hidden');
-    if (wrapper) {
-        wrapper.classList.add('video-loading');
-        if (currentRiff && currentRiff.thumbnail) {
-            wrapper.style.backgroundImage = 'url(' + currentRiff.thumbnail + ')';
-            wrapper.style.backgroundSize = 'cover';
-            wrapper.style.backgroundPosition = 'center';
-        } else {
-            wrapper.style.backgroundImage = '';
-            wrapper.style.background = '#1a1f33';
-        }
-    }
-    startVideoLoadProgress();
+    if (placeholder) { placeholder.style.display = 'flex'; placeholder.setAttribute('aria-hidden', 'false'); }
+    document.getElementById('videoLoadingProgress').style.width = '0%';
+    document.getElementById('videoLoadingText').textContent = 'Preparing both cameras…';
+    document.getElementById('videoLoadingDetail').textContent = 'Downloading the full riff for smooth loops and seeking.';
+    document.getElementById('videoErrorState').style.display = 'none';
+    document.getElementById('videoOverlay').classList.add('hidden');
+    if (wrapper) { wrapper.classList.add('video-loading'); wrapper.setAttribute('aria-busy', 'true'); }
 }
-
-function startVideoLoadProgress() {
-    var progressBar = document.getElementById('videoLoadingProgress');
-    if (!progressBar || (!leftVideo && !rightVideo)) return;
-    function updateBar() {
-        var v = leftVideo || rightVideo;
-        if (!v) return;
-        if (v.readyState >= 3) { progressBar.style.width = '100%'; return; }
-        var buffered = v.buffered;
-        if (buffered && buffered.length > 0 && v.duration > 0) {
-            var end = buffered.end(buffered.length - 1);
-            var pct = Math.min(100, Math.round((end / v.duration) * 100));
-            progressBar.style.width = pct + '%';
-        }
-    }
-    [leftVideo, rightVideo].forEach(function(v) {
-        if (v) v.addEventListener('progress', updateBar);
-    });
-    var iv = setInterval(updateBar, 300);
-    setTimeout(function() {
-        clearInterval(iv);
-        [leftVideo, rightVideo].forEach(function(v) {
-            if (v) v.removeEventListener('progress', updateBar);
-        });
-    }, 32000);
+function updateMediaLoadProgress(state) {
+    const percent = state.total ? Math.min(100, Math.floor(state.loaded / state.total * 100)) : null;
+    const mb = bytes => (bytes / 1048576).toFixed(1) + ' MB';
+    const complete = state.items.every(item => item.done);
+    const text = complete ? 'Preparing playback…' : 'Downloading both cameras' + (percent === null ? '…' : ' · ' + percent + '%');
+    document.getElementById('videoLoadingText').textContent = text;
+    document.getElementById('videoLoadingProgress').style.width = (percent === null ? 0 : percent) + '%';
+    document.getElementById('videoLoadingDetail').textContent = state.items.map(item =>
+        item.label + ': ' + (item.done ? 'downloaded' : mb(item.loaded) + (item.total ? ' / ' + mb(item.total) : ''))
+    ).join(' · ');
+    const progress = document.getElementById('videoLoadMeter');
+    if (percent === null) progress.removeAttribute('aria-valuenow');
+    else progress.setAttribute('aria-valuenow', String(percent));
+}
+async function preparePracticeMedia() {
+    if (practiceMediaLoader) practiceMediaLoader.destroy();
+    practiceMediaLoader = new PracticeMediaLoader({onProgress: updateMediaLoadProgress});
+    const right = currentRiff.videoFileRight || currentRiff.videoFile;
+    const paths = [currentRiff.videoFile, right];
+    const urls = await practiceMediaLoader.load(paths.map((path, i) => ({
+        label: i ? 'Right hand' : 'Left hand',
+        sources: [buildVideoSrcDirect(path), buildVideoSrc(path)]
+    })));
+    [leftVideo, rightVideo].forEach((video, i) => { video.src = urls[i]; video.load(); });
+    await waitForVideosReady();
+    document.getElementById('practiceMediaStatus').textContent = 'Both cameras ready · full riff downloaded';
 }
 
 function hideVideoLoadingPlaceholder() {
     const placeholder = document.getElementById('videoLoadingPlaceholder');
     const wrapper = document.getElementById('videoWrapper');
     const overlay = document.getElementById('videoOverlay');
-    if (placeholder) placeholder.style.display = 'none';
+    if (placeholder) { placeholder.style.display = 'none'; placeholder.setAttribute('aria-hidden', 'true'); }
     if (wrapper) {
         wrapper.classList.remove('video-loading');
+        wrapper.setAttribute('aria-busy', 'false');
         wrapper.style.backgroundImage = '';
         wrapper.style.background = '';
     }
@@ -381,17 +395,21 @@ function showVideoErrorState() {
     const placeholder = document.getElementById('videoLoadingPlaceholder');
     const errorEl = document.getElementById('videoErrorState');
     if (placeholder) placeholder.style.display = 'none';
-    if (errorEl) errorEl.style.display = 'flex';
+    if (errorEl) { errorEl.style.display = 'flex'; errorEl.setAttribute('aria-hidden', 'false'); }
+    document.getElementById('videoWrapper')?.setAttribute('aria-busy', 'false');
+    const status = document.getElementById('practiceMediaStatus');
+    if (status) status.textContent = 'Download interrupted · Retry to prepare both cameras';
 }
 
 function hideVideoErrorState() {
     const errorEl = document.getElementById('videoErrorState');
-    if (errorEl) errorEl.style.display = 'none';
+    if (errorEl) { errorEl.style.display = 'none'; errorEl.setAttribute('aria-hidden', 'true'); }
 }
 
 // Controls are always clickable; this flag gates actual video-seeking logic
 function enableControls(enable) {
     videosFullyLoaded = enable;
+    document.querySelectorAll('#playButton, .control-btn, .speed-btn, .practice-mode-btn').forEach(button => { button.disabled = !enable; });
 }
 
 
@@ -539,7 +557,7 @@ function initPracticePage() {
         initLessonMode();
         initTabsToggle();
         loadRecentlyPracticedRiffs();
-        waitForVideosReady()
+        mediaPreparation
             .then(function() {
                 videosFullyLoaded = true;
                 initTimeline();
@@ -563,13 +581,9 @@ function initPracticePage() {
             hideVideoErrorState();
             showVideoLoadingPlaceholder();
             if (leftVideo && rightVideo && currentRiff) {
-                leftVideo.dataset.fallbackTried = '';
-                rightVideo.dataset.fallbackTried = '';
-                leftVideo.src = buildVideoSrcDirect(currentRiff.videoFile);
-                rightVideo.src = buildVideoSrcDirect(currentRiff.videoFileRight || currentRiff.videoFile);
-                leftVideo.load();
-                rightVideo.load();
-                waitForVideosReady()
+                if (practiceTransport) practiceTransport.pause();
+                videosFullyLoaded = false;
+                preparePracticeMedia()
                     .then(function() {
                         videosFullyLoaded = true;
                         initTimeline();
@@ -592,9 +606,7 @@ function initPracticePage() {
         var hasPremiumAccess = window.patreonAuth &&
             typeof window.patreonAuth.hasActiveSubscription === 'function' &&
             window.patreonAuth.hasActiveSubscription();
-        if (currentRiff.isFree) {
-            showNotification('🔥 Free Riff: Try it out! Subscribe ($9/month) to unlock all riffs with tabs and slow-mo.');
-        } else if (!hasPremiumAccess) {
+        if (!currentRiff.isFree && !hasPremiumAccess) {
             showPatreonUpgradeModal();
         }
     }
@@ -730,7 +742,7 @@ function initVideoPlayers() {
         lessonVideoEl = document.createElement('video');
         lessonVideoEl.className = 'video-element lesson-video';
         lessonVideoEl.setAttribute('playsinline', '');
-        lessonVideoEl.setAttribute('preload', 'auto');
+        lessonVideoEl.setAttribute('preload', 'none');
         lessonVideoEl.muted = false;
         lessonVideoEl.style.display = 'none';
         lessonVideoEl.addEventListener('ended', function() {
@@ -741,52 +753,11 @@ function initVideoPlayers() {
         lessonVideoEl = null;
     }
     
-    if (currentRiff) {
-        // Прямой путь к файлу — видео грузятся без video.php (если файлы есть в assets/video/...)
-        leftVideo.src = buildVideoSrcDirect(currentRiff.videoFile);
-        rightVideo.src = buildVideoSrcDirect(currentRiff.videoFileRight || currentRiff.videoFile);
-        if (lessonVideoEl && currentRiff.lessonVideo) {
-            lessonVideoEl.src = buildVideoSrcDirect(currentRiff.lessonVideo);
-            lessonVideoEl.load();
-        }
-    }
+    // Begin after the loading UI is attached; both recordings remain in local blobs.
+    mediaPreparation = Promise.resolve().then(preparePracticeMedia);
+    if (lessonVideoEl) lessonVideoEl.src = buildVideoSrcDirect(currentRiff.lessonVideo);
+    isInitialized = true;
 
-    function tryVideoPhpOnce(videoEl, path, label) {
-        if (!path || videoEl.dataset.fallbackTried === '1') return;
-        videoEl.dataset.fallbackTried = '1';
-        videoEl.src = buildVideoSrc(path);
-        videoEl.load();
-    }
-
-    leftVideo.addEventListener('error', function onLeftError() {
-        if (currentRiff && currentRiff.videoFile) tryVideoPhpOnce(leftVideo, currentRiff.videoFile, 'left');
-    });
-    rightVideo.addEventListener('error', function onRightError() {
-        if (currentRiff) tryVideoPhpOnce(rightVideo, currentRiff.videoFileRight || currentRiff.videoFile, 'right');
-    });
-
-    // Принудительно начинаем загрузку
-    leftVideo.load();
-    rightVideo.load();
-
-    // Сразу убираем обложку с контейнера, чтобы не мелькала при воспроизведении
-    var clearWrapperCover = function() {
-        var w = document.getElementById('videoWrapper');
-        if (w) {
-            w.classList.remove('video-loading');
-            w.style.backgroundImage = '';
-            w.style.background = '';
-        }
-    };
-    leftVideo.addEventListener('loadedmetadata', function() {
-        clearWrapperCover();
-        isInitialized = true;
-        setVideoMode(currentMode);
-    });
-    rightVideo.addEventListener('loadedmetadata', clearWrapperCover);
-    leftVideo.addEventListener('canplay', clearWrapperCover);
-    rightVideo.addEventListener('canplay', clearWrapperCover);
-    
     practiceTransport = new PracticeTransport(leftVideo, rightVideo, {
         onTick: updateVideoProgress,
         onEnded: handleVideoEnd,
@@ -799,11 +770,7 @@ function initVideoPlayers() {
     });
     practiceTransport.setRate(playbackSpeed);
 
-    const onVideoError = () => {
-        if (typeof showVideoErrorState === 'function') showVideoErrorState();
-    };
-    leftVideo.addEventListener('error', onVideoError);
-    rightVideo.addEventListener('error', onVideoError);
+
 }
 
 // Установка режима видео
@@ -820,7 +787,7 @@ function setVideoMode(mode) {
     
     const videoWrapper = document.getElementById('videoWrapper');
     if (videoWrapper) {
-        videoWrapper.className = 'video-wrapper ' + mode + '-mode';
+        ['left', 'right', 'split'].forEach(view => videoWrapper.classList.toggle(view + '-mode', view === mode));
     }
 
     switch(mode) {
@@ -883,6 +850,8 @@ function updatePlayButtonState() {
     const wrapper = document.getElementById('videoWrapper');
     
     if (playControl) {
+        playControl.setAttribute('aria-label', isPlaying ? 'Pause' : 'Play');
+        playControl.setAttribute('title', isPlaying ? 'Pause' : 'Play');
         const playIcon = playControl.querySelector('.play-icon');
         const stopIcon = playControl.querySelector('.stop-icon');
         
@@ -1035,14 +1004,16 @@ function checkSegmentBoundary() {
 // Переключение лупа
 function toggleLoop() {
     if (lessonModeActive) { showNotification(LESSON_MODE_MSG); return; }
-    loopActive = !loopActive;
-    if (!loopActive && practiceMode === 'speed') {
+    const nextLoop = !loopActive;
+    if (practiceMode === 'speed') {
         setPracticeMode('normal');
         showNotification('Speed Trainer off — loop turned off.');
     }
+    loopActive = nextLoop;
     const loopBtn = document.getElementById('loopButton');
     if (loopBtn) {
         loopBtn.classList.toggle('active', loopActive);
+        loopBtn.setAttribute('aria-pressed', String(loopActive));
     }
 }
 
@@ -1214,10 +1185,8 @@ function initSegmentControls() {
         if (playIcon) playIcon.style.display = 'none';
         if (stopIcon) stopIcon.style.display = 'block';
         
+        if (practiceMode === 'speed') setPracticeMode('normal');
         loopAllRiff = true;
-        if (practiceMode === 'speed') {
-            setPracticeMode('normal');
-        }
         if (leftVideo && rightVideo) {
             practiceTransport.seek(0);
         }
@@ -1288,11 +1257,11 @@ function initSpeedControls() {
             this.classList.add('active');
             
             const speed = parseFloat(this.dataset.speed);
-            setPlaybackSpeedUI(speed);
             if (practiceMode === 'speed') {
                 _speedTrainerState.active = false;
                 setPracticeMode('normal');
             }
+            setPlaybackSpeedUI(speed);
         });
     });
 }
@@ -1620,3 +1589,6 @@ function createRecentlyPracticedCard(riffData) {
     });
 }
 
+
+
+window.addEventListener('pagehide', event => { if (!event.persisted && practiceMediaLoader) practiceMediaLoader.destroy(); });

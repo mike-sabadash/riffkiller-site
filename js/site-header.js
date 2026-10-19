@@ -33,6 +33,12 @@
         themeIcons +
         '<span class="rk-theme-toggle-label">Тема</span></button>';
 
+    // TEMPORARY_LIGHT_THEME: restore via RK_FEATURES.lightTheme in rk-theme-init.js.
+    if (!window.RK_FEATURES || !window.RK_FEATURES.lightTheme) {
+        themeToggleHeader = '';
+        themeToggleMobile = '';
+    }
+
     var open =
         '<header class="' +
         headerClass +
@@ -134,3 +140,4 @@
         parent.insertBefore(frag.firstChild, next);
     }
 })();
+

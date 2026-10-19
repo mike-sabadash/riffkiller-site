@@ -32,11 +32,11 @@ test('home opens the library; normal sign-up and login survive reload without a 
     await page.fill('#authModalNameInput','Browser Practice');await page.fill('#authModalEmailInput','browser-test@example.com');await page.fill('#authModalPasswordInput','browser-test-password');
     await page.click('#authModalEmailBtn');await page.waitForFunction(()=>window.authManager.isAuthenticated);
     const id=await page.evaluate(()=>window.authManager.userData.id);
-    await page.reload();await page.evaluate(()=>window.authManager.ready);
+    await page.reload({waitUntil:'domcontentloaded'});await page.evaluate(()=>window.authManager.ready);
     assert.equal(await page.evaluate(()=>window.authManager.userData.id),id);
     fs.mkdirSync(path.join(site.dir,'data/subscriptions'),{recursive:true});
     fs.writeFileSync(path.join(site.dir,'data/subscriptions',id+'.json'),JSON.stringify({status:'active',source:'patreon',plan:'monthly',expires:Math.floor(Date.now()/1000)+3600}));
-    await page.reload();await page.evaluate(()=>window.authManager.ready);
+    await page.reload({waitUntil:'domcontentloaded'});await page.evaluate(()=>window.authManager.ready);
     assert.equal(await page.evaluate(()=>window.authManager.hasActiveSubscription()),true);
     await page.evaluate(()=>window.authManager.logout());await page.waitForURL('**/index.html');
     await page.getByText('Log in',{exact:true}).first().click();await page.fill('#authModalEmailInput','browser-test@example.com');await page.fill('#authModalPasswordInput','browser-test-password');await page.click('#authModalEmailBtn');
@@ -92,7 +92,7 @@ test('editor captures boundaries, edits Atoms, saves and reopens without losing 
     await page.waitForTimeout(200);
     var secondSave = page.waitForResponse(r=>r.url().endsWith('/api/riffs/save.php'));
     await page.click('#submitBtn');assert.equal((await secondSave).status(),200);
-    await page.reload();await page.click('.admin-tab[data-tab="edit"]');await page.selectOption('#riffSelect','1');await page.waitForFunction(()=>document.querySelectorAll('#segmentRows .segment-row').length===10);
+    await page.reload({waitUntil:'domcontentloaded'});await page.click('.admin-tab[data-tab="edit"]');await page.selectOption('#riffSelect','1');await page.waitForFunction(()=>document.querySelectorAll('#segmentRows .segment-row').length===10);
     assert.equal(await page.locator('#segmentRows .name').first().inputValue(),'Edited in browser');
     assert.equal(await page.locator('#segmentRows .molecule').first().inputValue(),'A');
     assert.equal(await page.locator('#dnaAtomsEditor [data-field="label"]').first().inputValue(),'Edited Atom');
@@ -111,4 +111,83 @@ test('mobile practice has all stages and usable segment controls without horizon
     await page.locator('.segment-btn').nth(2).click();await page.waitForFunction(()=>!leftVideo.paused);
     await page.evaluate(()=>scrollTo(0,0));await page.waitForTimeout(100);
     if(process.env.QA_SCREENSHOTS)await page.screenshot({path:path.join(process.env.QA_SCREENSHOTS,'practice-mobile.png'),fullPage:true});
+});
+
+
+test('Normal restores speed and loop settings; manual speed and loop controls leave the ladder cleanly',async t=>{
+    const page=await pageFor(t);await page.addInitScript(()=>localStorage.setItem('rkSpeedTrainerIntroSeen','1'));await practice(page);
+    await page.locator('[data-speed="0.75"]').click();
+    const before=await page.evaluate(()=>({speed:playbackSpeed,loop:loopActive,all:loopAllRiff}));
+    await page.click('#modeSpeedBtn');
+    assert.deepEqual(await page.evaluate(()=>({speed:playbackSpeed,loop:loopActive})),{speed:.5,loop:true});
+    await page.click('#modeNormalBtn');
+    assert.deepEqual(await page.evaluate(()=>({speed:playbackSpeed,loop:loopActive,all:loopAllRiff})),before);
+    await page.click('#modeSpeedBtn');await page.locator('[data-speed="1"]').click();
+    assert.deepEqual(await page.evaluate(()=>({mode:practiceMode,speed:playbackSpeed,loop:loopActive})),{mode:'normal',speed:1,loop:before.loop});
+    await page.click('#modeSpeedBtn');await page.click('#loopButton');
+    assert.equal(await page.evaluate(()=>practiceMode),'normal');assert.equal(await page.evaluate(()=>loopActive),false);
+    await page.locator('.segment-btn.all-riff').click();await page.click('#modeSpeedBtn');
+    assert.equal(await page.evaluate(()=>loopAllRiff),false);
+    await page.click('#modeNormalBtn');assert.equal(await page.evaluate(()=>loopAllRiff),true);
+    assert.equal(await page.evaluate(()=>leftVideo.paused),false);
+    assert.equal(await page.evaluate(()=>leftVideo.playbackRate===rightVideo.playbackRate),true);
+});
+test('both recordings download before Play; loops, seeks and angle changes work offline',async t=>{
+    const page=await pageFor(t);
+    let release;
+    const gate=new Promise(resolve=>release=resolve);t.after(()=>release());
+    await page.route('**/*black-dog-right.mp4',async route=>{const response=await route.fetch();await gate;await route.fulfill({response});});
+    await page.goto(site.base+'/practice.html?riff=1',{waitUntil:'domcontentloaded'});
+    await page.waitForSelector('#videoLoadingPlaceholder',{state:'visible'});
+    assert.equal(await page.locator('#playControl').isDisabled(),true);
+    assert.equal(await page.evaluate(()=>videosFullyLoaded),false);
+    assert.doesNotMatch(await page.locator('#videoLoadingText').innerText(),/100%/);
+    release();await page.waitForFunction(()=>videosFullyLoaded);
+    assert.match(await page.locator('#practiceMediaStatus').innerText(),/full riff downloaded/);
+    assert.equal(await page.evaluate(()=>[leftVideo,rightVideo].every(v=>v.src.startsWith('blob:'))),true);
+    await page.context().setOffline(true);
+    await page.locator('.segment-btn').nth(3).click();await page.waitForFunction(()=>!leftVideo.paused);
+    await page.locator('[data-mode="right"]').click();await page.locator('[data-mode="split"]').click();
+    await page.evaluate(()=>practiceTransport.seek(4.1));
+    await page.waitForFunction(()=>!leftVideo.seeking && !rightVideo.seeking);
+    const samples=await page.evaluate(async()=>{const out=[];for(let i=0;i<32;i++){out.push(leftVideo.currentTime);await new Promise(r=>setTimeout(r,100));}return out;});
+    assert.ok(samples.some((time,i)=>i && time<samples[i-1]),'A complete loop plays offline');
+    assert.equal(await page.evaluate(()=>practiceTransport.buffering),false);
+    assert.ok(await page.evaluate(()=>Math.abs(leftVideo.currentTime-rightVideo.currentTime)<.1));
+});
+test('interrupted downloads expose Retry and a fresh attempt enables both cameras',async t=>{
+    const page=await pageFor(t);
+    const fail=route=>route.fulfill({status:503,body:'unavailable'});
+    await page.route(/black-dog.*\.mp4|video\.php/,fail);
+    await page.goto(site.base+'/practice.html?riff=1',{waitUntil:'domcontentloaded'});
+    await page.waitForSelector('#videoErrorState',{state:'visible'});
+    assert.equal(await page.locator('#playControl').isDisabled(),true);
+    await page.unroute(/black-dog.*\.mp4|video\.php/,fail);
+    await page.click('#videoRetryBtn');await page.waitForFunction(()=>videosFullyLoaded);
+    assert.equal(await page.locator('#playControl').isEnabled(),true);
+    await page.click('#playControl');await page.waitForFunction(()=>!leftVideo.paused && !rightVideo.paused);
+});
+test('DNA tabs stay beside their content at desktop, tablet and mobile sizes; theme is reversibly hidden',async t=>{
+    const page=await pageFor(t);await page.addInitScript(()=>localStorage.setItem('rk-theme','light'));await practice(page);
+    assert.equal(await page.locator('.rk-theme-toggle').count(),0);
+    assert.equal(await page.locator('html').getAttribute('data-theme'),'dark');
+    assert.equal(await page.evaluate(()=>localStorage.getItem('rk-theme')),'light');
+    for(const width of [1440,768,390]) {
+        await page.setViewportSize({width,height:1000});
+        for(const stage of ['scan','split','isolate','decode','mutate']) {
+            const tab=page.locator('[data-dna-stage="'+stage+'"]');await tab.click();
+            assert.equal(await tab.getAttribute('aria-selected'),'true');
+            assert.equal(await page.locator('#dnaStagePanel').getAttribute('aria-labelledby'),'dna-tab-'+stage);
+            const geometry=await page.evaluate(()=>{
+                const nav=document.getElementById('dnaStageNav').getBoundingClientRect();
+                const panel=document.getElementById('dnaStagePanel').getBoundingClientRect();
+                return {gap:panel.top-nav.bottom,overflow:document.documentElement.scrollWidth-innerWidth};
+            });
+            assert.ok(geometry.gap>=0 && geometry.gap<45,JSON.stringify(geometry));
+            assert.ok(geometry.overflow<=1,JSON.stringify(geometry));
+        }
+        await page.locator('#dna-tab-scan').click();await page.locator('#dna-tab-scan').press('ArrowRight');
+        assert.equal(await page.locator('#dna-tab-split').getAttribute('aria-selected'),'true');
+        if(process.env.QA_SCREENSHOTS){await page.waitForTimeout(250);await page.screenshot({path:path.join(process.env.QA_SCREENSHOTS,'workspace-'+width+'.png'),fullPage:true});}
+    }
 });
