@@ -49,6 +49,7 @@ wrong-password recovery, Google configuration errors and Patreon return to app.
 The existing player/editor tests remain part of CI.
 
 Deployment installs only Google login/callback/helper, provider-store code,
-auth-manager.js and patreon-callback.html. It validates previous and new hashes,
+auth-manager.js and patreon-callback.html, plus versioned auth-script references
+in the existing HTML entry pages. No player behavior changes. It validates previous and new hashes,
 backs up replaced code, keeps `.env`, the repaired loader, users, subscriptions,
 catalog and player/media files intact, and checks public endpoints.
