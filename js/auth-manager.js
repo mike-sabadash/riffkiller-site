@@ -223,7 +223,7 @@ class AuthManager {
             response_type: 'code',
             client_id: typeof PATREON_CONFIG !== 'undefined' ? PATREON_CONFIG.clientId : '',
             redirect_uri: redirectUri,
-            scope: typeof PATREON_CONFIG !== 'undefined' ? PATREON_CONFIG.scope : 'identity identity[email] identity.memberships campaigns',
+            scope: typeof PATREON_CONFIG !== 'undefined' ? PATREON_CONFIG.scope : 'identity identity[email] identity.memberships',
             state: this.generateState(options)
         });
         return `https://www.patreon.com/oauth2/authorize?${params.toString()}`;
@@ -553,8 +553,9 @@ class AuthManager {
         try {
             const response = await fetch('/patreon-validate.php', {
                 method: 'POST',
+                credentials: 'include',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ token: this.token.access_token, user_id: this.userData && this.userData.id ? this.userData.id : null })
+                body: JSON.stringify({ token: this.token.access_token })
             });
             let data = {};
             try {

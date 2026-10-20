@@ -2,16 +2,13 @@
 // Simple PHP video range handler to make MP4 files seekable.
 // Usage: video.php?file=relative/path/to/video.mp4
 
-// Get requested file relative to this script (or document root on some hosts)
+// Only video files under assets/video/ are served (never .env, data/ or source code).
 $file = isset($_GET['file']) ? (string) $_GET['file'] : '';
-if ($file === '' || strpos($file, '..') !== false) {
+if ($file === '' || strpos($file, '..') !== false || !preg_match('#^assets/video/.+\.(mp4|webm|mov)$#i', $file)) {
     http_response_code(404);
     exit;
 }
 $path = __DIR__ . '/' . $file;
-if (!is_file($path) && !empty($_SERVER['DOCUMENT_ROOT'])) {
-    $path = rtrim($_SERVER['DOCUMENT_ROOT'], '/') . '/' . $file;
-}
 if (!is_file($path)) {
     http_response_code(404);
     exit;

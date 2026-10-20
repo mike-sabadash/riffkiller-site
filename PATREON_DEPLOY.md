@@ -42,20 +42,17 @@ Or open in browser: `https://riffkiller.fun/patreon-exchange.php?test=1`
 | Cause | What to check |
 |-------|----------------|
 | Redirect URI mismatch | Patreon app Redirect URIs must include exactly `https://riffkiller.fun/patreon-callback.html`. |
-| Wrong client secret | Copy Client Secret from Patreon app into `patreon-exchange.php`. |
+| Wrong client secret | Set `PATREON_CLIENT_SECRET` in the server `.env` (see `docs/PATREON_SETUP.md`). |
 | Code already used / expired | Auth codes are one-time and short-lived; user must try “Login with Patreon” again. |
 | Script not found | Confirm `patreon-exchange.php` is in site root and URL is `https://riffkiller.fun/patreon-exchange.php`. |
-| PHP/CURL errors | Check `patreon-exchange.log` and the PHP error log. |
+| PHP/CURL errors | Check `data/logs/patreon.log` and the PHP error log. |
 
 ## Error 1009 (HTTP 403) – Access Denied: Country or region banned
 
-**Cause:** Patreon (or Cloudflare) blocks requests from your production server's IP by region. Error 1009 is Cloudflare. Localhost works because your dev machine IP is not blocked.
-
-**Fix:** Use the proxy so the token request runs from an allowed region (e.g. Vercel in US):
-
-1. Deploy the Patreon proxy from `patreon-proxy-vercel` – see `patreon-proxy-vercel/README.md`.
-2. Set **PATREON_PROXY_URL** on your server to the proxy URL (e.g. `https://your-project.vercel.app/api/exchange`): env var or `define('PATREON_PROXY_URL', '...');` in `patreon-exchange.php`.
-3. PHP will then forward code + redirect_uri to the proxy; the proxy calls Patreon from Vercel and returns the same JSON.
+Cloudflare blocks the server's region. The production server is now outside the blocked
+region and calls Patreon directly; the old Vercel proxy was removed. If 1009 appears again,
+check from the server: `curl -s -o /dev/null -w '%{http_code}' https://www.patreon.com/api/oauth2/v2/identity`
+(401 = reachable, 403 = blocked).
 
 ## Callback redirect to index.html – audit
 

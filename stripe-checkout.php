@@ -27,7 +27,7 @@ try {
 // success_url / cancel_url default to https://riffkiller.fun/...
 // ==========================================================================
 
-$logFile = __DIR__ . '/stripe-checkout.log';
+$logFile = __DIR__ . '/data/logs/stripe-checkout.log';
 function checkoutLog($msg, $context = []) {
     global $logFile;
     @file_put_contents($logFile, date('c') . ' ' . $msg . ' ' . json_encode($context) . "\n", FILE_APPEND | LOCK_EX);
@@ -92,10 +92,6 @@ if ($stripeSecretKey === '' || strpos($stripeSecretKey, 'sk_') !== 0) {
             $stripeSecretKey = trim($m[1], "\"' \t\r\n");
         }
     }
-}
-$isLocalhost = (isset($_SERVER['HTTP_HOST']) && preg_match('#^(localhost|127\.0\.0\.1)(:\d+)?$#', $_SERVER['HTTP_HOST']));
-if ($stripeSecretKey === '' && $isLocalhost) {
-    $stripeSecretKey = 'sk_test_51T4o0EE03IBQosTILuq8ia4zaT935XdDeuA3ZYIiYQ88O9WpuHneUGlJA0SYY1ogUZwpq7voy6iuQpBdZIXQol7X000zRW05ib';
 }
 
 if (strpos($stripeSecretKey, 'sk_') !== 0) {

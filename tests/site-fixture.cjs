@@ -9,10 +9,12 @@ async function startSite(options = {}) {
     for (const name of ['api','admin','config','js','css']) fs.cpSync(path.join(root,name),path.join(dir,name),{recursive:true});
     for (const name of fs.readdirSync(root).filter(n=>/\.(html|php)$/.test(n))) fs.copyFileSync(path.join(root,name),path.join(dir,name));
     fs.mkdirSync(path.join(dir,'data'));fs.mkdirSync(path.join(dir,'sessions'));
+    let env='ADMIN_PASSWORD=fixture-admin\n'+(options.env||'');
     if (options.google) {
-        fs.writeFileSync(path.join(dir,'.env'),'GOOGLE_CLIENT_ID=fixture.apps.googleusercontent.com\nGOOGLE_CLIENT_SECRET=fixture-secret\n');
+        env+='GOOGLE_CLIENT_ID=fixture.apps.googleusercontent.com\nGOOGLE_CLIENT_SECRET=fixture-secret\n';
         fs.copyFileSync(path.join(__dirname,'google-provider.fixture.php'),path.join(dir,'google-provider.fixture.php'));
     }
+    fs.writeFileSync(path.join(dir,'.env'),env);
     for (const name of ['riffs.json','collections.json']) fs.copyFileSync(path.join(root,'data',name),path.join(dir,'data',name));
     const riffs=JSON.parse(fs.readFileSync(path.join(dir,'data/riffs.json')));
     const videos=[...new Set(riffs.flatMap(r=>[r.videoFile,r.videoFileRight,r.lessonVideo]).filter(Boolean))];
@@ -38,8 +40,10 @@ return false;
     const server=spawn(process.env.PHP_BIN||'php',['-d','session.save_path='+path.join(dir,'sessions'),...(options.google?['-d','auto_prepend_file='+path.join(dir,'google-provider.fixture.php')]:[]),'-S','127.0.0.1:'+port,'-t',dir,path.join(dir,'router.php')],{stdio:['ignore','ignore','pipe']});
     server.stderr.on('data',data=>{log+=data});server.on('error',error=>{log+=error.message});
     const base='http://127.0.0.1:'+port;
+    // Signs in to /admin/ and returns the session cookie the admin editors use.
+    const adminCookie=async()=>{const r=await fetch(base+'/admin/index.php',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:'action=login&password=fixture-admin',redirect:'manual'});return r.headers.getSetCookie().at(-1).split(';')[0];};
     for(let i=0;i<100;i++) {
-        try {if((await fetch(base+'/api/me.php')).ok)return {base,dir,realMedia,log:()=>log,stop:()=>{server.kill();fs.rmSync(dir,{recursive:true,force:true});}};}catch{}
+        try {if((await fetch(base+'/api/me.php')).ok)return {base,dir,realMedia,adminCookie,log:()=>log,stop:()=>{server.kill();fs.rmSync(dir,{recursive:true,force:true});}};}catch{}
         await new Promise(r=>setTimeout(r,50));
     }
     server.kill();throw new Error('PHP test server did not start: '+log);
