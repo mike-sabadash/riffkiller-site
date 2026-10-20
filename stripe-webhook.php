@@ -12,7 +12,7 @@ require_once __DIR__ . '/config/payments-log.php';
 // Verifies signature with STRIPE_WEBHOOK_SECRET; updates unified store via save_subscription().
 // ==========================================================================
 
-$logFile = __DIR__ . '/stripe-webhook.log';
+$logFile = __DIR__ . '/data/logs/stripe-webhook.log';
 function webhookLog($msg, $context = []) {
     global $logFile;
     @file_put_contents($logFile, date('c') . ' ' . $msg . ' ' . json_encode($context) . "\n", FILE_APPEND | LOCK_EX);

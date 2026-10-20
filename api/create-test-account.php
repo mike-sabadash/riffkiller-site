@@ -1,7 +1,7 @@
 <?php
 /**
- * Create test account - only from localhost or with ADMIN_SECRET key.
- * GET ?admin_key=xxx or from localhost
+ * Create test account - only with ADMIN_SECRET key or an admin session.
+ * GET ?admin_key=xxx
  * Returns one-time login URL.
  */
 error_reporting(0);
@@ -28,11 +28,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit();
 }
 
-$allowed = false;
-$host = $_SERVER['HTTP_HOST'] ?? '';
-if (preg_match('/^(localhost|127\.0\.0\.1)(:\d+)?$/', $host)) {
-    $allowed = true;
-}
+// Host header is client-controlled, so only ADMIN_SECRET or a signed-in admin may create accounts.
+$allowed = isset($_SESSION['admin_promo_logged']) && $_SESSION['admin_promo_logged'] === true;
 $adminKey = getenv('ADMIN_SECRET') ?: (isset($_ENV['ADMIN_SECRET']) ? $_ENV['ADMIN_SECRET'] : '');
 if ($adminKey === '' && defined('ADMIN_SECRET')) $adminKey = ADMIN_SECRET;
 if ($adminKey !== '' && isset($_GET['admin_key']) && hash_equals($adminKey, trim((string)$_GET['admin_key']))) {

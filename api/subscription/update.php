@@ -2,7 +2,7 @@
 /**
  * Unified subscription update - called by webhooks or internal services.
  * POST body: user_id, status, plan, source, expires
- * Optional header X-Api-Key = SUBSCRIPTION_UPDATE_SECRET for server-to-server.
+ * Required header X-Api-Key = SUBSCRIPTION_UPDATE_SECRET (server-to-server only).
  */
 error_reporting(0);
 ini_set('display_errors', 0);
@@ -19,14 +19,13 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit();
 }
 
-$secret = getenv('SUBSCRIPTION_UPDATE_SECRET');
+// Fail closed: without SUBSCRIPTION_UPDATE_SECRET nobody can grant subscriptions here.
+$secret = (string)(getenv('SUBSCRIPTION_UPDATE_SECRET') ?: ($_ENV['SUBSCRIPTION_UPDATE_SECRET'] ?? ''));
 $key = isset($_SERVER['HTTP_X_API_KEY']) ? $_SERVER['HTTP_X_API_KEY'] : '';
-if ($secret !== '' && $secret !== false) {
-    if (!hash_equals((string) $secret, (string) $key)) {
-        http_response_code(403);
-        echo json_encode(['success' => false, 'error' => 'Forbidden']);
-        exit();
-    }
+if ($secret === '' || !hash_equals($secret, (string) $key)) {
+    http_response_code(403);
+    echo json_encode(['success' => false, 'error' => 'Forbidden']);
+    exit();
 }
 
 $input = json_decode(file_get_contents('php://input'), true) ?: [];

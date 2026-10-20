@@ -107,7 +107,7 @@ test('All Riff updates tabs; Speed Trainer advances only on completed loops',asy
     assert.equal(await page.evaluate(()=>rightVideo.playbackRate),.75);
 });
 test('editor captures boundaries, edits Atoms, saves and reopens without losing metadata',async t=>{
-    const page=await pageFor(t);await page.goto(site.base+'/admin/riffs.html',{waitUntil:'domcontentloaded'});await page.click('.admin-tab[data-tab="edit"]');await page.selectOption('#riffSelect','1');
+    const page=await pageFor(t);const [name,value]=(await site.adminCookie()).split('=');await page.context().addCookies([{name,value,url:site.base}]);await page.goto(site.base+'/admin/riffs.html',{waitUntil:'domcontentloaded'});await page.click('.admin-tab[data-tab="edit"]');await page.selectOption('#riffSelect','1');
     await page.waitForFunction(()=>document.querySelectorAll('#segmentRows .segment-row').length===10);
     assert.equal(await page.locator('#dnaAtomsEditor > div').count(),4);
     await page.waitForFunction(()=>document.getElementById('segmentEditorVideo').readyState>=2);

@@ -21,7 +21,7 @@ const PATREON_CONFIG = {
     redirectUri: getPatreonRedirectUri(),
     apiBase: 'https://www.patreon.com',
     responseType: 'code',
-    scope: 'identity identity[email] identity.memberships campaigns',
+    scope: 'identity identity[email] identity.memberships',
     campaignUrl: typeof PATREON_CAMPAIGN_URL !== 'undefined' ? PATREON_CAMPAIGN_URL : 'https://www.patreon.com/cw/MikeSabadash?vanity=MikeSabadash'
 };
 

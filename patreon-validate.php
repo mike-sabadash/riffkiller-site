@@ -3,24 +3,16 @@ error_reporting(0);
 ini_set('display_errors', 0);
 if (ob_get_level()) ob_clean();
 
-require_once __DIR__ . '/config/load-env.php';
-
 // ==========================================================================
-// Patreon Token Validation - РЕАЛЬНАЯ ПРОВЕРКА
-// Optional: use identity proxy when PATREON_PROXY_URL is set (avoids Cloudflare block)
+// Patreon Token Validation - refreshes premium for the signed-in user only.
+// The token must belong to the Patreon account linked to the session user.
 // ==========================================================================
-
-$logFile = __DIR__ . '/patreon-validate.log';
-
-function validateLog($msg, $context = []) {
-    global $logFile;
-    @file_put_contents($logFile, date('c') . ' ' . $msg . ' ' . json_encode($context) . "\n", FILE_APPEND | LOCK_EX);
-}
 
 header('Content-Type: application/json; charset=utf-8');
 header('Access-Control-Allow-Origin: https://riffkiller.fun');
 header('Access-Control-Allow-Methods: POST, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type');
+header('Cache-Control: no-store');
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
@@ -34,108 +26,42 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit();
 }
 
-$input = json_decode(file_get_contents('php://input'), true);
-$accessToken = $input['token'] ?? '';
-$userId = isset($input['user_id']) ? trim((string) $input['user_id']) : '';
+require_once __DIR__ . '/config/patreon.php';
+require_once __DIR__ . '/config/session-start.php';
+require_once __DIR__ . '/config/user-store.php';
+require_once __DIR__ . '/config/subscription-store.php';
 
-if (!$accessToken) {
+$input = json_decode((string)file_get_contents('php://input'), true) ?: [];
+$accessToken = isset($input['token']) && is_string($input['token']) ? $input['token'] : '';
+if ($accessToken === '') {
     http_response_code(400);
     echo json_encode(['error' => 'No token provided']);
     exit();
 }
 
-require_once __DIR__ . '/config/subscription-store.php';
-
-$tokenPrefix = substr($accessToken, 0, 12) . '...';
-
-// Optional: validate via proxy (same region as exchange, avoids Cloudflare block)
-$proxyBase = getenv('PATREON_PROXY_URL') ?: (defined('PATREON_PROXY_URL') ? PATREON_PROXY_URL : '');
-$proxyBase = rtrim($proxyBase, '/');
-$identityUrl = null;
-if ($proxyBase !== '') {
-    $identityUrl = preg_replace('#/api/exchange$#', '/api/identity', $proxyBase);
-    if ($identityUrl === $proxyBase) {
-        $identityUrl = $proxyBase . '/api/identity';
-    }
+$identity = patreon_fetch_identity($accessToken);
+if ($identity === null) {
+    echo json_encode(['valid' => false, 'error' => 'Token invalid']);
+    exit();
 }
+$profile = patreon_identity_profile($identity);
+$subscription = patreon_identity_subscription($identity);
 
-$subscriptionStatus = 'inactive';
-$valid = false;
-
-if ($identityUrl !== null && $identityUrl !== '') {
-    // Validate via proxy (GET with Bearer)
-    $ch = curl_init($identityUrl);
-    curl_setopt($ch, CURLOPT_HTTPHEADER, [
-        'Authorization: Bearer ' . $accessToken,
-        'User-Agent: Riff Killer App'
-    ]);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_TIMEOUT, 30);
-    $response = curl_exec($ch);
-    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    $curlError = curl_error($ch);
-    curl_close($ch);
-    validateLog('identity_proxy', ['url' => $identityUrl, 'http' => $httpCode, 'curl_error' => $curlError ?: null, 'token_prefix' => $tokenPrefix]);
-    if (!$curlError && $httpCode === 200) {
-        $userData = json_decode($response, true);
-        if (isset($userData['included']) && is_array($userData['included'])) {
-            foreach ($userData['included'] as $included) {
-                if (($included['type'] ?? '') === 'member') {
-                    $status = $included['attributes']['patron_status'] ?? 'inactive';
-                    $subscriptionStatus = $status === 'active_patron' ? 'active' : 'inactive';
-                    break;
-                }
-            }
-        }
-        $valid = true;
-    } else {
-        echo json_encode(['valid' => false, 'error' => 'Token invalid', 'debug' => ['source' => 'proxy', 'httpCode' => $httpCode, 'curlError' => $curlError]]);
-        exit();
+$sessionUser = isset($_SESSION['user_id']) ? user_find_by_id($_SESSION['user_id']) : null;
+$patreonUser = $profile['id'] !== '' ? user_find_by_provider('patreon', $profile['id']) : null;
+$linked = $sessionUser && $patreonUser && $patreonUser['id'] === $sessionUser['id'];
+if ($linked) {
+    $current = get_subscription($sessionUser['id']);
+    $otherSourceActive = $current && ($current['source'] ?? '') !== 'patreon' && subscription_is_effectively_active($current);
+    if (!$otherSourceActive) {
+        save_subscription($sessionUser['id'], ['status' => $subscription['status'], 'source' => 'patreon', 'expires' => $subscription['expires']]);
     }
-} else {
-    // Direct request to Patreon
-    $ch = curl_init('https://www.patreon.com/api/oauth2/v2/identity?include=memberships&fields[user]=full_name');
-    curl_setopt($ch, CURLOPT_HTTPHEADER, [
-        'Authorization: Bearer ' . $accessToken,
-        'User-Agent: Riff Killer App'
-    ]);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
-    curl_setopt($ch, CURLOPT_TIMEOUT, 30);
-
-    $response = curl_exec($ch);
-    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    $curlError = curl_error($ch);
-    curl_close($ch);
-
-    validateLog('identity_direct', ['http' => $httpCode, 'curl_error' => $curlError ?: null, 'token_prefix' => $tokenPrefix]);
-
-    if ($curlError || $httpCode !== 200) {
-        echo json_encode(['valid' => false, 'error' => 'Token invalid', 'debug' => ['httpCode' => $httpCode, 'curlError' => $curlError]]);
-        exit();
-    }
-
-    $userData = json_decode($response, true);
-    if (isset($userData['included']) && is_array($userData['included'])) {
-        foreach ($userData['included'] as $included) {
-            if (($included['type'] ?? '') === 'member') {
-                $attrs = $included['attributes'] ?? [];
-                $status = $attrs['patron_status'] ?? 'inactive';
-                $subscriptionStatus = $status === 'active_patron' ? 'active' : 'inactive';
-                break;
-            }
-        }
-    }
-    $valid = true;
-}
-
-if ($valid && $userId !== '' && $subscriptionStatus) {
-    save_subscription($userId, ['status' => $subscriptionStatus, 'source' => 'patreon']);
 }
 
 echo json_encode([
-    'valid' => $valid,
+    'valid' => true,
     'subscription' => [
-        'status' => $subscriptionStatus
-    ]
+        'status' => $subscription['status'],
+        'expiresAt' => $subscription['expires'] ? $subscription['expires'] * 1000 : null,
+    ],
 ]);

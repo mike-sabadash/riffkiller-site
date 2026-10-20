@@ -7,7 +7,6 @@ error_reporting(0);
 ini_set('display_errors', 0);
 
 header('Content-Type: application/json; charset=utf-8');
-header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: POST, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type');
 
@@ -16,6 +15,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit();
 }
 
+require_once dirname(__DIR__, 1) . '/config/admin-auth.php';
+require_admin_api();
+
 if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !isset($_FILES['file']) || $_FILES['file']['error'] !== UPLOAD_ERR_OK) {
     http_response_code(400);
     echo json_encode(['success' => false, 'error' => 'No file or upload error']);
@@ -23,13 +25,14 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !isset($_FILES['file']) || $_FILES[
 }
 
 $path = isset($_POST['path']) ? trim((string) $_POST['path']) : '';
-if ($path === '' || strpos($path, '..') !== false || preg_match('#^[^a-zA-Z0-9/_\.\-]#', $path)) {
+// Media only, inside assets/: never scripts, HTML or SVG anywhere under the web root.
+if ($path === '' || strpos($path, '..') !== false || !preg_match('#^assets/[a-zA-Z0-9/_.\-]+\.(mp4|webm|mov|png|jpe?g|webp|gif)$#i', $path)) {
     http_response_code(400);
     echo json_encode(['success' => false, 'error' => 'Invalid path']);
     exit();
 }
 
-$root = isset($_SERVER['DOCUMENT_ROOT']) ? rtrim($_SERVER['DOCUMENT_ROOT'], '/') : dirname(__DIR__);
+$root = dirname(__DIR__);
 $fullPath = $root . '/' . $path;
 $dir = dirname($fullPath);
 

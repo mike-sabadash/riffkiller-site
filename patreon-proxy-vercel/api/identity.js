@@ -7,6 +7,18 @@
  */
 
 const PATREON_IDENTITY_URL = 'https://www.patreon.com/api/oauth2/v2/identity?include=memberships&fields[user]=full_name,email,image_url';
+// riffkiller.fun asks for campaign/tier relationships to verify the membership; only these params are forwarded.
+const FORWARDED_PARAMS = ['include', 'fields[user]', 'fields[member]'];
+
+function identityUrl(requestUrl) {
+  const incoming = new URL(requestUrl).searchParams;
+  const forwarded = new URLSearchParams();
+  for (const name of FORWARDED_PARAMS) {
+    if (incoming.has(name)) forwarded.set(name, incoming.get(name));
+  }
+  const query = forwarded.toString();
+  return query ? 'https://www.patreon.com/api/oauth2/v2/identity?' + query : PATREON_IDENTITY_URL;
+}
 
 function corsHeaders() {
   return {
@@ -53,7 +65,7 @@ export default {
       );
     }
 
-    const identityRes = await fetch(PATREON_IDENTITY_URL, {
+    const identityRes = await fetch(identityUrl(request.url), {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${token}`,

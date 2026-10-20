@@ -6,3 +6,13 @@
         Header set Content-Type video/mp4
     </FilesMatch>
 </IfModule>
+
+# Server-side state, source and tooling are never served directly.
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteRule ^(data|config|tests|tools|backups|node_modules|sessions)(/|$) - [R=404,L]
+    RewriteRule (^|/)\. - [R=404,L]
+</IfModule>
+<FilesMatch "\.(log|save|zip|md|cjs|py|json\.bak)$">
+    Require all denied
+</FilesMatch>
