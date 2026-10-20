@@ -35,12 +35,19 @@ retired_files() {
   (cd "$root" && find . -maxdepth 1 -type f -name '*.log' -printf '%P\n')
 }
 
+# Earlier rollbacks left the document root at 0700 (unreadable for nginx); put it back.
+repair_root_mode() {
+  if [ "$(stat -c %a "$1")" = 700 ]; then chmod 755 "$1"; note "Repaired document root mode 700 -> 755"; fi
+}
+
 restore() {
   local root="$1" backup="$2"
   if [ -f "$backup/new-files" ]; then
     while IFS= read -r f; do [ -n "$f" ] && rm -f "$root/$f"; done < "$backup/new-files"
   fi
-  cp -a "$backup/files/." "$root/"
+  # tar keeps existing directories' modes; `cp -a files/. root/` copied the backup
+  # directory's 0700 onto the document root and took the whole site down.
+  tar -C "$backup/files" -cf - . | tar -C "$root" -xpf - --no-overwrite-dir
   note "Rolled back from $backup"
 }
 
@@ -85,6 +92,7 @@ fi
 if [ "$mode" = rollback ]; then
   backup="${2:?backup dir required}"
   restore "$(cat "$backup/root")" "$backup"
+  repair_root_mode "$(cat "$backup/root")"
   exit 0
 fi
 
@@ -122,6 +130,7 @@ note ".env set: ${env_set[*]:-none}; missing: ${env_missing[*]:-none}"
 
 [ "$mode" = preflight ] && exit 0
 [ "$mode" = apply ] || fail "Unknown mode $mode"
+repair_root_mode "$root"
 
 backup="$backup_base/$(date -u +%Y%m%dT%H%M%SZ)-${sha:0:7}"
 install -d -m 700 "$backup/files"
