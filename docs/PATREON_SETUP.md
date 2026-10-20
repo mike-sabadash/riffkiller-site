@@ -8,8 +8,8 @@ Premium на сайте даётся только при **активном пл
 Доступ действует до `next_charge_date` + 3 дня. Его обновляют повторный вход, проверка токена
 и webhook. Если отписаться, доступ сохраняется до конца оплаченного периода.
 
-Сервер не может обращаться к Patreon напрямую: Cloudflare отвечает error 1009, регион заблокирован.
-Поэтому все запросы к Patreon идут через Vercel-прокси `patreon-proxy-vercel/`.
+Сервер обращается к Patreon API напрямую. Старый Vercel-прокси удалён: он был нужен,
+пока сервер стоял в регионе, который Patreon блокировал (error 1009).
 
 ## 1. Paid plan на Patreon
 
@@ -21,6 +21,7 @@ Premium на сайте даётся только при **активном пл
 ## 2. OAuth client: новый секрет
 
 Старый `client_secret` попал в git, поэтому его нужно считать скомпрометированным.
+Новый секрет вписывается только в `.env` на сервере.
 
 1. https://www.patreon.com/portal/registration/register-clients → клиент RiffKiller.
 2. Если есть кнопка перевыпуска секрета, перевыпусти. Если нет — создай новый client
@@ -32,8 +33,7 @@ Premium на сайте даётся только при **активном пл
 
 ## 3. Campaign ID и tier IDs
 
-Patreon блокирует запросы из региона сервера. Выполни команды на своём компьютере
-(при необходимости через VPN):
+Выполни на сервере или на своём компьютере:
 
 ```bash
 TOKEN='<Creator Access Token>'
@@ -53,15 +53,7 @@ curl -s "https://www.patreon.com/api/oauth2/v2/campaigns/<CAMPAIGN_ID>?include=t
    `members:pledge:create`, `members:pledge:update`, `members:pledge:delete`.
 4. Secret → `PATREON_WEBHOOK_SECRET`. Запросы без верной подписи отклоняются с кодом 401.
 
-## 5. Vercel-прокси (до выкладки сайта)
-
-1. Vercel → проект прокси → Settings → Environment Variables: новые
-   `PATREON_CLIENT_ID` и `PATREON_CLIENT_SECRET`.
-2. Задеплой `patreon-proxy-vercel/` из этой версии: `cd patreon-proxy-vercel && vercel --prod`.
-   Новый `/api/identity` передаёт в Patreon запрос с кампанией и tiers.
-   С этой правкой старая версия сайта тоже работает, поэтому прокси выкладывается **первым**.
-
-## 6. `.env` на сервере
+## 5. `.env` на сервере
 
 ```
 PATREON_CLIENT_ID=<новый>
@@ -69,12 +61,13 @@ PATREON_CLIENT_SECRET=<новый>
 PATREON_CAMPAIGN_ID=<из шага 3>
 # PATREON_TIER_IDS=<id1,id2>
 PATREON_WEBHOOK_SECRET=<из шага 4>
+# строку PATREON_PROXY_URL, если она есть, удалить
 ADMIN_PASSWORD=<пароль админки /admin/>
 ```
 
 `.env` принадлежит `root:www-data` с правами `0640`. В git его не коммитить.
 
-## 7. Вход через Google
+## 6. Вход через Google
 
 Код уже готов: state, PKCE, принимается только подтверждённый email.
 Не хватает только ключей на сервере.
@@ -95,13 +88,13 @@ ADMIN_PASSWORD=<пароль админки /admin/>
    уже входил через Patreon или по email, Google привязывается к тому же аккаунту,
    подписка сохраняется.
 
-## 8. Очистка сервера после выкладки
+## 7. Очистка сервера после выкладки
 
 Удаление файлов из git не удаляет их с сервера. После выкладки:
 
 ```bash
 cd <document root>
-rm -f test.php env-check.php patreon-secrets.php *.log *.save patreon-proxy-vercel.zip
+rm -rf test.php env-check.php patreon-secrets.php *.log *.save patreon-proxy-vercel.zip patreon-proxy-vercel
 ```
 
 Подключи `deploy/nginx-riffkiller-security.conf` в `server {}` сайта перед PHP location,
@@ -113,3 +106,6 @@ for p in .env data/users.json config/load-env.php test.php patreon-validate.log 
   printf '%s %s\n' "$(curl -s -o /dev/null -w '%{http_code}' "https://riffkiller.fun/$p")" "$p"
 done
 ```
+
+Vercel-проект `patreon-proxy-vercel` после выкладки больше не используется: его можно удалить
+в кабинете Vercel, а вместе с ним и старый секрет из его настроек.

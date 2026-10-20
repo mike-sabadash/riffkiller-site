@@ -22,7 +22,6 @@ To start from scratch: copy `cp .env.example .env` and fill in the variables bel
 | `STRIPE_WEBHOOK_SECRET` | Yes (for webhooks) | Signing secret from Stripe Dashboard → Webhooks → your endpoint → “Signing secret”. |
 | `CRYPTOMUS_MERCHANT_ID` | Yes (for Cryptomus) | From [Cryptomus](https://cryptomus.com) dashboard. |
 | `CRYPTOMUS_API_KEY` | Yes (for Cryptomus) | API key from Cryptomus. Used for webhook signature verification. |
-| `PATREON_PROXY_URL` | Optional | If using Vercel proxy for Patreon (e.g. `https://your-project.vercel.app/api/exchange`). |
 | `SUBSCRIPTION_UPDATE_SECRET` | Optional | If set, `api/subscription/update.php` requires header `X-Api-Key` with this value for POST requests. |
 
 - PHP loads `.env` via `config/load-env.php` (included by checkout, webhooks, session, and API scripts).

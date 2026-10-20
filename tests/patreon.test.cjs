@@ -13,27 +13,27 @@ function member(campaign,{status='active_patron',cents=500,tiers=['t-paid'],user
 function identity(id,email,verified,members) {
     return {data:{type:'user',id,attributes:{full_name:'Patron '+id,email,is_email_verified:verified,image_url:''}},included:members};
 }
-// Access tokens of the fake Patreon proxy are the fixture names below.
+// Access tokens of the fake Patreon API are the fixture names below.
 const identities={
     'our-paid':identity('p-paid','paid@example.com',true,[member('c-other',{status:'former_patron'}),member(CAMPAIGN,{user:'p-paid'})]),
     'other-campaign':identity('p-other','other@example.com',true,[member('c-other',{user:'p-other'})]),
     'our-free':identity('p-free','free@example.com',true,[member(CAMPAIGN,{cents:0,tiers:['t-free'],user:'p-free'})]),
     'unverified':identity('p-unverified','victim@example.com',false,[]),
 };
-let site,proxy,identityQueries=[];
+let site,patreon,identityQueries=[];
 before(async()=>{
-    proxy=http.createServer((req,res)=>{
-        const url=new URL(req.url,'http://proxy');let body='';req.on('data',c=>body+=c);req.on('end',()=>{
+    patreon=http.createServer((req,res)=>{
+        const url=new URL(req.url,'http://patreon');let body='';req.on('data',c=>body+=c);req.on('end',()=>{
             res.setHeader('Content-Type','application/json');
-            if(url.pathname==='/api/exchange'){const {code}=JSON.parse(body);return res.end(JSON.stringify({success:true,token:{access_token:code},subscription:{status:'active'}}));}
-            if(url.pathname==='/api/identity'){identityQueries.push(url.searchParams);const doc=identities[(req.headers.authorization||'').slice(7)];res.statusCode=doc?200:401;return res.end(JSON.stringify(doc||{errors:[{}]}));}
+            if(url.pathname==='/api/oauth2/token'){const form=new URLSearchParams(body);assert.equal(form.get('client_secret'),'fixture-secret');return res.end(JSON.stringify({access_token:form.get('code')}));}
+            if(url.pathname==='/api/oauth2/v2/identity'){identityQueries.push(url.searchParams);const doc=identities[(req.headers.authorization||'').slice(7)];res.statusCode=doc?200:401;return res.end(JSON.stringify(doc||{errors:[{}]}));}
             res.statusCode=404;res.end('{}');
         });
     });
-    await new Promise(r=>proxy.listen(0,'127.0.0.1',r));
-    site=await startSite({env:`PATREON_CAMPAIGN_ID=${CAMPAIGN}\nPATREON_WEBHOOK_SECRET=hook-secret\nPATREON_PROXY_URL=http://127.0.0.1:${proxy.address().port}/api/exchange\n`});
+    await new Promise(r=>patreon.listen(0,'127.0.0.1',r));
+    site=await startSite({env:`PATREON_CAMPAIGN_ID=${CAMPAIGN}\nPATREON_WEBHOOK_SECRET=hook-secret\nPATREON_CLIENT_ID=fixture-client\nPATREON_CLIENT_SECRET=fixture-secret\nPATREON_API_BASE=http://127.0.0.1:${patreon.address().port}\n`});
 });
-after(()=>{site?.stop();proxy?.close()});
+after(()=>{site?.stop();patreon?.close()});
 
 const cookieOf=r=>r.headers.getSetCookie().at(-1)?.split(';')[0]||'';
 async function exchange(code) {

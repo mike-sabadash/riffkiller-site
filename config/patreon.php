@@ -15,10 +15,7 @@ if (!function_exists('patreon_env')) {
     }
 }
 
-// Default proxy: the production server is blocked by Patreon's Cloudflare (error 1009).
-const PATREON_DEFAULT_PROXY_URL = 'https://patreon-proxy-vercel.vercel.app/api/exchange';
-
-/** Fields the membership decision needs; the identity proxy forwards this query unchanged. */
+/** Fields the membership decision needs. */
 function patreon_identity_query() {
     return http_build_query([
         'include' => 'memberships,memberships.campaign,memberships.currently_entitled_tiers',
@@ -27,9 +24,9 @@ function patreon_identity_query() {
     ]);
 }
 
-function patreon_proxy_url() {
-    $url = patreon_env('PATREON_PROXY_URL', PATREON_DEFAULT_PROXY_URL);
-    return strtolower($url) === 'off' ? '' : rtrim($url, '/');
+/** Patreon API origin; overridable only so tests can point at a local fake. */
+function patreon_api_base() {
+    return rtrim(patreon_env('PATREON_API_BASE', 'https://www.patreon.com'), '/');
 }
 
 function patreon_log($event, $context = []) {
@@ -58,25 +55,12 @@ function patreon_http($url, $options = []) {
     return ['status' => $status, 'error' => $error, 'json' => is_array($json) ? $json : null];
 }
 
-/** Exchange an OAuth code for an access token (through the proxy when configured). */
+/** Exchange an OAuth code for an access token. */
 function patreon_exchange_code($code, $redirectUri) {
-    $proxy = patreon_proxy_url();
-    if ($proxy !== '') {
-        $res = patreon_http($proxy, [
-            'headers' => ['Content-Type: application/json'],
-            'post' => json_encode(['code' => $code, 'redirect_uri' => $redirectUri]),
-        ]);
-        $token = $res['json']['token']['access_token'] ?? null;
-        if ($res['status'] === 200 && !empty($res['json']['success']) && is_string($token) && $token !== '') {
-            return ['access_token' => $token, 'refresh_token' => $res['json']['token']['refresh_token'] ?? null, 'expires_in' => $res['json']['token']['expires_in'] ?? 3600];
-        }
-        patreon_log('proxy_exchange_fail', ['http' => $res['status'], 'error' => $res['json']['error'] ?? $res['error']]);
-        return ['error' => $res['json']['error'] ?? 'Patreon proxy exchange failed'];
-    }
     $clientId = patreon_env('PATREON_CLIENT_ID');
     $clientSecret = patreon_env('PATREON_CLIENT_SECRET');
     if ($clientId === '' || $clientSecret === '') return ['error' => 'Patreon OAuth not configured (set PATREON_CLIENT_ID and PATREON_CLIENT_SECRET in .env)'];
-    $res = patreon_http('https://www.patreon.com/api/oauth2/token', [
+    $res = patreon_http(patreon_api_base() . '/api/oauth2/token', [
         'post' => http_build_query([
             'code' => $code, 'grant_type' => 'authorization_code',
             'client_id' => $clientId, 'client_secret' => $clientSecret, 'redirect_uri' => $redirectUri,
@@ -92,11 +76,9 @@ function patreon_exchange_code($code, $redirectUri) {
 
 /** Fetch identity + memberships for an access token. Returns the decoded JSON:API document or null. */
 function patreon_fetch_identity($accessToken) {
-    $proxy = patreon_proxy_url();
-    $base = $proxy !== '' ? preg_replace('#/api/exchange$#', '', $proxy) . '/api/identity' : 'https://www.patreon.com/api/oauth2/v2/identity';
-    $res = patreon_http($base . '?' . patreon_identity_query(), ['headers' => ['Authorization: Bearer ' . $accessToken]]);
+    $res = patreon_http(patreon_api_base() . '/api/oauth2/v2/identity?' . patreon_identity_query(), ['headers' => ['Authorization: Bearer ' . $accessToken]]);
     if ($res['status'] !== 200 || !is_array($res['json']) || empty($res['json']['data']['id'])) {
-        patreon_log('identity_fail', ['http' => $res['status'], 'via_proxy' => $proxy !== '', 'error' => $res['error'] ?: null]);
+        patreon_log('identity_fail', ['http' => $res['status'], 'error' => $res['error'] ?: null]);
         return null;
     }
     return $res['json'];
