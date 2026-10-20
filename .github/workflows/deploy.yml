@@ -1,0 +1,97 @@
+name: Deploy RiffKiller
+
+# main → install on production (backup first, rollback if the public checks fail).
+# deploy/preflight → read-only report of what a deploy would change and which .env keys are set.
+on:
+  push:
+    branches: [main, deploy/preflight]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: riffkiller-production
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: sudo apt-get update -qq && sudo apt-get install -y php-cli ffmpeg
+      - run: npm ci
+      - run: npm test
+      - run: find . -name '*.php' -not -path './node_modules/*' -print0 | xargs -0 -n1 php -l
+      - run: bash -n scripts/deploy-remote.sh
+
+  deploy:
+    needs: check
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://riffkiller.fun
+    env:
+      MODE: ${{ github.ref == 'refs/heads/main' && 'apply' || 'preflight' }}
+      DEPLOY_HOST: ${{ secrets.CLAUDE_DEPLOY_HOST }}
+      DEPLOY_USER: ${{ secrets.CLAUDE_DEPLOY_USER }}
+      DEPLOY_PORT: ${{ secrets.CLAUDE_DEPLOY_PORT || '22' }}
+      RIFFKILLER_ROOT: ${{ vars.RIFFKILLER_ROOT }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure SSH
+        env:
+          SSH_KEY: ${{ secrets.CLAUDE_DEPLOY_SSH_KEY }}
+          KNOWN_HOSTS: ${{ secrets.CLAUDE_DEPLOY_KNOWN_HOSTS }}
+        run: |
+          test -n "$SSH_KEY" && test -n "$DEPLOY_HOST" && test -n "$DEPLOY_USER" || {
+            echo "::error::Add CLAUDE_DEPLOY_SSH_KEY, CLAUDE_DEPLOY_KNOWN_HOSTS, CLAUDE_DEPLOY_HOST, CLAUDE_DEPLOY_USER to this repository's secrets"; exit 1; }
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/deploy_key
+          printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/deploy_key ~/.ssh/known_hosts
+          printf 'Host prod\n  HostName %s\n  User %s\n  Port %s\n  IdentityFile ~/.ssh/deploy_key\n  IdentitiesOnly yes\n  StrictHostKeyChecking yes\n' \
+            "$DEPLOY_HOST" "$DEPLOY_USER" "$DEPLOY_PORT" > ~/.ssh/config
+
+      - name: Upload release
+        run: |
+          git archive --format=tar.gz -o release.tgz HEAD
+          dir="/tmp/riffkiller-release-$GITHUB_SHA"
+          ssh prod "install -d -m 700 '$dir' && echo \"::notice::SSH ok: \$(hostname), user \$(id -un)\""
+          scp -q release.tgz scripts/deploy-remote.sh "prod:$dir/"
+          echo "REMOTE_DIR=$dir" >> "$GITHUB_ENV"
+
+      - name: ${{ env.MODE == 'apply' && 'Install on production' || 'Preflight (read-only)' }}
+        run: |
+          set -o pipefail
+          ssh prod "RIFFKILLER_ROOT='$RIFFKILLER_ROOT' bash '$REMOTE_DIR/deploy-remote.sh' $MODE '$REMOTE_DIR/release.tgz' $GITHUB_SHA" 2>&1 | tee remote.log
+          echo "::notice::Remote output: $(wc -l < remote.log) lines"
+          grep -o 'BACKUP_DIR=.*' remote.log >> "$GITHUB_ENV" || true
+
+      - name: Verify public site
+        if: env.MODE == 'apply'
+        id: verify
+        run: |
+          base=https://riffkiller.fun
+          code() { curl -s -o /dev/null -w '%{http_code}' --max-time 20 "$base/$1"; }
+          curl -fsS --retry 5 --retry-delay 3 --max-time 20 "$base/api/me.php" | grep -q '"success":true'
+          curl -fsS --max-time 20 "$base/api/riffs/list.php" | grep -q '"song"'
+          for p in "video.php?file=.env" "video.php?file=data/users.json" test.php env-check.php patreon-secrets.php; do
+            c="$(code "$p")"; test "$c" != 200 || { echo "::error::$p returned 200"; exit 1; }
+          done
+          for p in .env data/users.json data/subscriptions patreon-validate.log; do
+            c="$(code "$p")"
+            if [ "$c" = 200 ]; then echo "::warning::$p is publicly readable (HTTP 200): add deploy/nginx-riffkiller-security.conf to nginx"; fi
+          done
+
+      - name: Roll back
+        if: failure() && env.MODE == 'apply' && env.BACKUP_DIR != ''
+        run: ssh prod "bash '$REMOTE_DIR/deploy-remote.sh' rollback '$BACKUP_DIR'"
+
+      - name: Clean up upload
+        if: always() && env.REMOTE_DIR != ''
+        run: ssh prod "rm -rf '$REMOTE_DIR'" || true
