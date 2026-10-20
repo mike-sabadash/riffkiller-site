@@ -61,13 +61,15 @@ jobs:
         run: |
           git archive --format=tar.gz -o release.tgz HEAD
           dir="/tmp/riffkiller-release-$GITHUB_SHA"
-          ssh prod "install -d -m 700 '$dir'"
+          ssh prod "install -d -m 700 '$dir' && echo \"::notice::SSH ok: \$(hostname), user \$(id -un)\""
           scp -q release.tgz scripts/deploy-remote.sh "prod:$dir/"
           echo "REMOTE_DIR=$dir" >> "$GITHUB_ENV"
 
       - name: ${{ env.MODE == 'apply' && 'Install on production' || 'Preflight (read-only)' }}
         run: |
-          ssh prod "RIFFKILLER_ROOT='$RIFFKILLER_ROOT' bash '$REMOTE_DIR/deploy-remote.sh' $MODE '$REMOTE_DIR/release.tgz' $GITHUB_SHA" | tee remote.log
+          set -o pipefail
+          ssh prod "RIFFKILLER_ROOT='$RIFFKILLER_ROOT' bash '$REMOTE_DIR/deploy-remote.sh' $MODE '$REMOTE_DIR/release.tgz' $GITHUB_SHA" 2>&1 | tee remote.log
+          echo "::notice::Remote output: $(wc -l < remote.log) lines"
           grep -o 'BACKUP_DIR=.*' remote.log >> "$GITHUB_ENV" || true
 
       - name: Verify public site
