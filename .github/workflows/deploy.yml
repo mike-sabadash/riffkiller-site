@@ -77,16 +77,24 @@ jobs:
         id: verify
         run: |
           base=https://riffkiller.fun
-          code() { curl -s -o /dev/null -w '%{http_code}' --max-time 20 "$base/$1"; }
-          curl -fsS --retry 5 --retry-delay 3 --max-time 20 "$base/api/me.php" | grep -q '"success":true'
-          curl -fsS --max-time 20 "$base/api/riffs/list.php" | grep -q '"song"'
+          ok=1
+          # Bodies go to variables: `curl | grep -q` fails under pipefail when grep exits first.
+          code() { curl -s -o /dev/null -w '%{http_code}' --max-time 20 "$base/$1" || echo "curl-error"; }
+          me="$(curl -sS --retry 5 --retry-delay 3 --max-time 20 "$base/api/me.php" || true)"
+          case "$me" in *'"success":true'*) echo "::notice::api/me.php OK" ;; *) echo "::error::api/me.php unexpected: ${me:0:200}"; ok=0 ;; esac
+          list="$(curl -sS --max-time 20 "$base/api/riffs/list.php" || true)"
+          case "$list" in *'"song"'*) echo "::notice::api/riffs/list.php OK" ;; *) echo "::error::api/riffs/list.php unexpected: ${list:0:200}"; ok=0 ;; esac
           for p in "video.php?file=.env" "video.php?file=data/users.json" test.php env-check.php patreon-secrets.php; do
-            c="$(code "$p")"; test "$c" != 200 || { echo "::error::$p returned 200"; exit 1; }
-          done
-          for p in .env data/users.json data/subscriptions patreon-validate.log; do
             c="$(code "$p")"
-            if [ "$c" = 200 ]; then echo "::warning::$p is publicly readable (HTTP 200): add deploy/nginx-riffkiller-security.conf to nginx"; fi
+            if [ "$c" = 200 ]; then echo "::error::$p returned 200"; ok=0; fi
           done
+          exposed=""
+          for p in .env data/users.json data/subscriptions/ patreon-validate.log; do
+            c="$(code "$p")"
+            if [ "$c" = 200 ]; then exposed="$exposed $p"; fi
+          done
+          if [ -n "$exposed" ]; then echo "::warning::Publicly readable:$exposed — add deploy/nginx-riffkiller-security.conf to nginx"; fi
+          test "$ok" = 1
 
       - name: Roll back
         if: failure() && env.MODE == 'apply' && env.BACKUP_DIR != ''
