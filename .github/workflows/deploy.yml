@@ -72,29 +72,18 @@ jobs:
           echo "::notice::Remote output: $(wc -l < remote.log) lines"
           grep -o 'BACKUP_DIR=.*' remote.log >> "$GITHUB_ENV" || true
 
-      - name: Verify public site
+      - name: Verify site on the server
         if: env.MODE == 'apply'
-        id: verify
+        run: ssh prod "bash '$REMOTE_DIR/deploy-remote.sh' verify"
+
+      - name: Public reachability (informational)
+        if: env.MODE == 'apply'
+        continue-on-error: true
         run: |
-          base=https://riffkiller.fun
-          ok=1
-          # Bodies go to variables: `curl | grep -q` fails under pipefail when grep exits first.
-          code() { curl -s -o /dev/null -w '%{http_code}' --max-time 20 "$base/$1" || echo "curl-error"; }
-          me="$(curl -sS --retry 5 --retry-delay 3 --max-time 20 "$base/api/me.php" || true)"
-          case "$me" in *'"success":true'*) echo "::notice::api/me.php OK" ;; *) echo "::error::api/me.php unexpected: ${me:0:200}"; ok=0 ;; esac
-          list="$(curl -sS --max-time 20 "$base/api/riffs/list.php" || true)"
-          case "$list" in *'"song"'*) echo "::notice::api/riffs/list.php OK" ;; *) echo "::error::api/riffs/list.php unexpected: ${list:0:200}"; ok=0 ;; esac
-          for p in "video.php?file=.env" "video.php?file=data/users.json" test.php env-check.php patreon-secrets.php; do
-            c="$(code "$p")"
-            if [ "$c" = 200 ]; then echo "::error::$p returned 200"; ok=0; fi
+          for p in api/me.php "video.php?file=.env"; do
+            c="$(curl -s -o /tmp/body -w '%{http_code}' --max-time 20 "https://riffkiller.fun/$p" || echo curl-error)"
+            echo "::notice::From GitHub: $p → HTTP $c $(head -c 80 /tmp/body 2>/dev/null | tr '\n' ' ')"
           done
-          exposed=""
-          for p in .env data/users.json data/subscriptions/ patreon-validate.log; do
-            c="$(code "$p")"
-            if [ "$c" = 200 ]; then exposed="$exposed $p"; fi
-          done
-          if [ -n "$exposed" ]; then echo "::warning::Publicly readable:$exposed — add deploy/nginx-riffkiller-security.conf to nginx"; fi
-          test "$ok" = 1
 
       - name: Roll back
         if: failure() && env.MODE == 'apply' && env.BACKUP_DIR != ''

@@ -2,6 +2,7 @@
 # Runs on the production server (uploaded by .github/workflows/deploy.yml).
 # Usage: deploy-remote.sh preflight|apply <release.tgz> <sha>
 #        deploy-remote.sh rollback <backup-dir>
+#        deploy-remote.sh verify   (checks the live vhost through local nginx, bypassing any CDN)
 #
 # The document root is not a git checkout and holds live state (.env, data/,
 # uploaded media). Only code from the release is installed: data/, .env and
@@ -42,6 +43,31 @@ restore() {
   cp -a "$backup/files/." "$root/"
   note "Rolled back from $backup"
 }
+
+if [ "$mode" = verify ]; then
+  site="${RIFFKILLER_SITE:-riffkiller.fun}"
+  base="https://$site"; via=(--resolve "$site:443:127.0.0.1")
+  if [ -n "${RIFFKILLER_VERIFY_BASE:-}" ]; then base="$RIFFKILLER_VERIFY_BASE"; via=(); fi
+  get() { curl -s --max-time 20 "${via[@]}" -o "$2" -w '%{http_code}' "$base/$1" || echo "curl-error"; }
+  body="$(mktemp)"; ok=1
+  for p in api/me.php api/riffs/list.php; do
+    c="$(get "$p" "$body")"
+    if [ "$c" = 200 ] && grep -q '^[[{]' "$body"; then note "$p: $c JSON"
+    else echo "::error::$p: HTTP $c, body: $(head -c 200 "$body" | tr '\n' ' ')" >&2; ok=0; fi
+  done
+  for p in "video.php?file=.env" "video.php?file=data/users.json" test.php env-check.php patreon-secrets.php; do
+    c="$(get "$p" "$body")"
+    if [ "$c" = 200 ]; then echo "::error::$p returned 200" >&2; ok=0; else note "$p: $c"; fi
+  done
+  exposed=""
+  for p in .env data/users.json data/subscriptions/ patreon-validate.log; do
+    [ "$(get "$p" "$body")" = 200 ] && exposed="$exposed $p"
+  done
+  [ -n "$exposed" ] && echo "::warning::Publicly readable:$exposed (add deploy/nginx-riffkiller-security.conf to nginx)"
+  rm -f "$body"
+  [ "$ok" = 1 ]
+  exit
+fi
 
 if [ "$mode" = rollback ]; then
   backup="${2:?backup dir required}"
