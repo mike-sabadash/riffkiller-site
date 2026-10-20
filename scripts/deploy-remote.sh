@@ -18,7 +18,7 @@ fail() { echo "::error::$*" >&2; exit 1; }
 find_root() {
   if [ -n "${RIFFKILLER_ROOT:-}" ]; then echo "$RIFFKILLER_ROOT"; return; fi
   local found
-  found="$(find /var/www /srv /home /opt /root -maxdepth 5 -name practice.html -not -path '*/backup*' -not -path '*/node_modules/*' -not -path '*/riffkiller-release-*' 2>/dev/null | xargs -r -n1 dirname | sort -u)"
+  found="$(find /var/www /srv -maxdepth 3 -name practice.html -not -path '*backup*' -not -path '*release*' 2>/dev/null | xargs -r -n1 dirname | sort -u)"
   [ "$(printf '%s\n' "$found" | grep -c .)" = 1 ] || fail "Document root not unique: $(echo ${found:-none}). Set RIFFKILLER_ROOT."
   echo "$found"
 }
@@ -69,6 +69,8 @@ done < <(cd "$stage" && find . -type f -printf '%P\n' | sort)
 mapfile -t retired < <(retired_files "$root")
 
 note "Root: $root (owner $(stat -c %U:%G "$root")), running as $(id -un), release $sha"
+note "nginx roots: $(grep -rhoE '^\s*root\s+[^;]+' /etc/nginx/sites-enabled /etc/nginx/conf.d 2>/dev/null | grep -i riff | sed 's/^ *//' | sort -u | tr '\n' ' ')"
+note "nginx deny rules for data/config: $(grep -rlE 'data\|config|/data/|riffkiller-security' /etc/nginx/sites-enabled /etc/nginx/snippets 2>/dev/null | tr '\n' ' ' || true)"
 note "Changed ${#changed[@]}: ${changed[*]:-none}"
 note "Added ${#added[@]}: ${added[*]:-none}"
 note "Retired ${#retired[@]}: ${retired[*]:-none}"
