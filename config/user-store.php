@@ -51,6 +51,7 @@ function user_find_by_provider($provider, $providerId) {
     if ($provider === '' || $providerId === '') return null;
     $users = user_store_load();
     foreach ($users as $u) {
+        if (isset($u['identities'][$provider]) && (string)$u['identities'][$provider] === $providerId) return $u;
         if (isset($u['provider'], $u['provider_id']) && $u['provider'] === $provider && (string)$u['provider_id'] === $providerId)
             return $u;
     }
@@ -70,6 +71,7 @@ function user_create($data) {
         'created_at' => date('c'),
         'updated_at' => date('c'),
     ];
+    if ($user['provider_id'] !== '') $user['identities'] = [$user['provider'] => $user['provider_id']];
     if (isset($data['password']) && (string)$data['password'] !== '') {
         $user['password_hash'] = password_hash((string)$data['password'], PASSWORD_DEFAULT);
     }
@@ -82,6 +84,11 @@ function user_update($id, $data) {
     $users = user_store_load();
     foreach ($users as $i => $u) {
         if (isset($u['id']) && (string)$u['id'] === (string)$id) {
+            // Preserve linked identities when switching between Patreon and Google.
+            $identities = isset($u['identities']) && is_array($u['identities']) ? $u['identities'] : [];
+            if (!empty($u['provider']) && !empty($u['provider_id'])) $identities[$u['provider']] = $u['provider_id'];
+            if (!empty($data['provider']) && !empty($data['provider_id'])) $identities[$data['provider']] = (string)$data['provider_id'];
+            if ($identities) $users[$i]['identities'] = $identities;
             if (isset($data['email'])) $users[$i]['email'] = trim((string)$data['email']);
             if (isset($data['name'])) $users[$i]['name'] = trim((string)$data['name']);
             if (isset($data['picture'])) $users[$i]['picture'] = trim((string)$data['picture']);

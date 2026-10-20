@@ -75,6 +75,10 @@ foreach ($lines as $line) {
     }
 }
 
-function riffkiller_loaded_env() {
-    return true;
+// A conditional declaration is evaluated here, after the file was loaded.
+// An unconditional declaration exists before the top guard runs in PHP.
+if (!function_exists('riffkiller_loaded_env')) {
+    function riffkiller_loaded_env() {
+        return true;
+    }
 }

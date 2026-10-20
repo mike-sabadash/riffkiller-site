@@ -43,6 +43,36 @@ test('home opens the library; normal sign-up and login survive reload without a 
     await page.waitForFunction(()=>window.authManager.isAuthenticated && window.authManager.hasActiveSubscription());
     if(process.env.QA_SCREENSHOTS)await page.screenshot({path:path.join(process.env.QA_SCREENSHOTS,'library-desktop.png'),fullPage:true});
 });
+test('email submits with Enter, blocks duplicate requests and recovers after a wrong password',async t=>{
+    const page=await pageFor(t);await page.goto(site.base+'/',{waitUntil:'domcontentloaded'});
+    await page.getByText('Sign up',{exact:true}).first().click();
+    await page.fill('#authModalNameInput','Email UX');await page.fill('#authModalEmailInput','email-ux@example.com');await page.fill('#authModalPasswordInput','email-ux-password');
+    let requests=0;
+    await page.route('**/api/auth/email-register.php',async route=>{requests++;await new Promise(r=>setTimeout(r,350));await route.continue()});
+    await page.press('#authModalPasswordInput','Enter');
+    await page.waitForFunction(()=>document.querySelector('#authModalEmailBtn').disabled);
+    assert.equal(await page.locator('#authTabSignup').isDisabled(),true);
+    await page.press('#authModalPasswordInput','Enter');await page.waitForFunction(()=>authManager.isAuthenticated);
+    assert.equal(requests,1);const id=await page.evaluate(()=>authManager.userData.id);
+    await page.evaluate(()=>authManager.logout());await page.waitForURL('**/index.html');
+    await page.getByText('Log in',{exact:true}).first().click();await page.fill('#authModalEmailInput','email-ux@example.com');await page.fill('#authModalPasswordInput','wrong');await page.press('#authModalPasswordInput','Enter');
+    await page.waitForSelector('#authModalEmailMessage',{state:'visible'});assert.equal(await page.locator('#authModalEmailBtn').isEnabled(),true);assert.equal(await page.evaluate(()=>authManager.isAuthenticated),false);
+    await page.fill('#authModalPasswordInput','email-ux-password');await page.press('#authModalPasswordInput','Enter');await page.waitForFunction(()=>authManager.isAuthenticated);
+    await page.reload({waitUntil:'domcontentloaded'});await page.evaluate(()=>authManager.ready);assert.equal(await page.evaluate(()=>authManager.userData.id),id);
+});
+test('Google configuration failure returns to an actionable login dialog',async t=>{
+    const page=await pageFor(t);await page.goto(site.base+'/',{waitUntil:'domcontentloaded'});await page.getByText('Log in',{exact:true}).first().click();
+    await page.click('#authModalGoogle');await page.waitForURL('**/app.html');
+    await page.waitForSelector('#authModalEmailMessage',{state:'visible'});assert.match(await page.locator('#authModalEmailMessage').innerText(),/Use email or Patreon/);
+    assert.equal(await page.locator('#authModalEmailInput').isVisible(),true);assert.equal(await page.locator('#authModalPatreon').isVisible(),true);
+});
+test('successful Patreon callback returns to the application',async t=>{
+    const page=await pageFor(t);await page.addInitScript(()=>localStorage.setItem('patreonState','fixture-state'));
+    await page.route('**/patreon-exchange.php',route=>route.fulfill({json:{success:true,token:'fixture-token',user:{id:'fixture-patreon',full_name:'Fixture'},subscription:{status:'active',source:'patreon'}}}));
+    await page.route('**/patreon-validate.php',route=>route.fulfill({json:{success:true,user:{id:'fixture-patreon',full_name:'Fixture'},subscription:{status:'active',source:'patreon'}}}));
+    await page.goto(site.base+'/patreon-callback.html?code=fixture&state=fixture-state',{waitUntil:'domcontentloaded'});await page.waitForURL('**/app.html');
+    assert.equal(await page.locator('#comingSoonLanding').count(),0);
+});
 test('segment loops, angle changes, tabs, slow motion, drift correction and pause stay synchronized',async t=>{
     const page=await pageFor(t);await practice(page);
     await page.locator('.segment-btn').nth(3).click();
