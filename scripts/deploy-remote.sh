@@ -13,13 +13,13 @@ mode="${1:?mode required}"
 backup_base="${RIFFKILLER_BACKUP_DIR:-/var/backups/riffkiller}"
 [ "$(id -u)" = 0 ] || backup_base="${RIFFKILLER_BACKUP_DIR:-$HOME/riffkiller-backups}"
 note() { echo "::notice::$*"; }
-fail() { echo "::error::$*"; exit 1; }
+fail() { echo "::error::$*" >&2; exit 1; }
 
 find_root() {
   if [ -n "${RIFFKILLER_ROOT:-}" ]; then echo "$RIFFKILLER_ROOT"; return; fi
   local found
-  found="$(find /var/www /srv -maxdepth 4 -name practice.html -path '*/practice.html' -not -path '*/backup*' 2>/dev/null | xargs -r -n1 dirname | sort -u)"
-  [ "$(printf '%s\n' "$found" | grep -c .)" = 1 ] || fail "Document root not unique: ${found:-none}. Set RIFFKILLER_ROOT."
+  found="$(find /var/www /srv /home /opt /root -maxdepth 5 -name practice.html -not -path '*/backup*' -not -path '*/node_modules/*' -not -path '*/riffkiller-release-*' 2>/dev/null | xargs -r -n1 dirname | sort -u)"
+  [ "$(printf '%s\n' "$found" | grep -c .)" = 1 ] || fail "Document root not unique: $(echo ${found:-none}). Set RIFFKILLER_ROOT."
   echo "$found"
 }
 
