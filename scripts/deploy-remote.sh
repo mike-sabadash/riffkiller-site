@@ -60,6 +60,8 @@ changed=(); added=()
 while IFS= read -r f; do
   case "$f" in
     data/*|.env*|assets/video/*|.github/*|.claude/*|tests/*|tools/*|docs/*|deploy/*|scripts/*|*.md|.cursorrules|.gitignore) continue ;;
+    # Server-managed loader (repaired in place) and local-only development/test helpers.
+    config/load-env.php|package.json|package-lock.json|server.cjs|dev-router.php|test-login.html|api/test-login.php|api/create-test-account.php|*.log) continue ;;
   esac
   if [ ! -e "$root/$f" ]; then added+=("$f")
   elif [[ "$f" == assets/* ]]; then continue
@@ -69,15 +71,15 @@ done < <(cd "$stage" && find . -type f -printf '%P\n' | sort)
 mapfile -t retired < <(retired_files "$root")
 
 note "Root: $root (owner $(stat -c %U:%G "$root")), running as $(id -un), release $sha"
-note "nginx roots: $(grep -rhoE '^\s*root\s+[^;]+' /etc/nginx/sites-enabled /etc/nginx/conf.d 2>/dev/null | grep -i riff | sed 's/^ *//' | sort -u | tr '\n' ' ')"
-note "nginx deny rules for data/config: $(grep -rlE 'data\|config|/data/|riffkiller-security' /etc/nginx/sites-enabled /etc/nginx/snippets 2>/dev/null | tr '\n' ' ' || true)"
+note "Web server: $(ps -eo comm= | grep -E '^(nginx|apache2|httpd|caddy|php-fpm)' | sort -u | tr '\n' ' ')config: $(grep -rlI 'riffkiller' /etc/nginx /etc/apache2 /etc/caddy 2>/dev/null | tr '\n' ' ')"
 note "Changed ${#changed[@]}: ${changed[*]:-none}"
 note "Added ${#added[@]}: ${added[*]:-none}"
 note "Retired ${#retired[@]}: ${retired[*]:-none}"
+env_set=(); env_missing=()
 for key in PATREON_CLIENT_ID PATREON_CLIENT_SECRET PATREON_CAMPAIGN_ID PATREON_TIER_IDS PATREON_WEBHOOK_SECRET PATREON_PROXY_URL GOOGLE_CLIENT_ID GOOGLE_CLIENT_SECRET ADMIN_PASSWORD SITE_URL; do
-  if grep -Eq "^\s*${key}\s*=\s*\S" "$root/.env" 2>/dev/null; then state=set; else state=missing; fi
-  note ".env $key: $state"
+  if grep -Eq "^\s*${key}\s*=\s*\S" "$root/.env" 2>/dev/null; then env_set+=("$key"); else env_missing+=("$key"); fi
 done
+note ".env set: ${env_set[*]:-none}; missing: ${env_missing[*]:-none}"
 
 [ "$mode" = preflight ] && exit 0
 [ "$mode" = apply ] || fail "Unknown mode $mode"
