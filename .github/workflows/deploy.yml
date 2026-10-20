@@ -77,7 +77,7 @@ jobs:
         run: ssh prod "bash '$REMOTE_DIR/deploy-remote.sh' verify"
 
       - name: Public reachability (informational)
-        if: env.MODE == 'apply'
+        if: always() && env.MODE == 'apply' && env.REMOTE_DIR != ''
         continue-on-error: true
         run: |
           for p in api/me.php "video.php?file=.env"; do

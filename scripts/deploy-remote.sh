@@ -46,22 +46,35 @@ restore() {
 
 if [ "$mode" = verify ]; then
   site="${RIFFKILLER_SITE:-riffkiller.fun}"
-  base="https://$site"; via=(--resolve "$site:443:127.0.0.1")
-  if [ -n "${RIFFKILLER_VERIFY_BASE:-}" ]; then base="$RIFFKILLER_VERIFY_BASE"; via=(); fi
-  get() { curl -s --max-time 20 "${via[@]}" -o "$2" -w '%{http_code}' "$base/$1" || echo "curl-error"; }
-  body="$(mktemp)"; ok=1
-  for p in api/me.php api/riffs/list.php; do
-    c="$(get "$p" "$body")"
-    if [ "$c" = 200 ] && grep -q '^[[{]' "$body"; then note "$p: $c JSON"
-    else echo "::error::$p: HTTP $c, body: $(head -c 200 "$body" | tr '\n' ' ')" >&2; ok=0; fi
+  conf="/etc/nginx/sites-available/$site"
+  [ -f "$conf" ] && note "nginx $site: $(grep -nE '^\s*(listen|server_name|root|fastcgi_pass)\b' "$conf" | sed 's/  */ /g' | tr '\n' '|' | head -c 900)"
+  body="$(mktemp)"
+  # Candidate ways to reach the vhost: plain DNS, then every local address on 443 and 80.
+  transports=("https://$site|")
+  if [ -n "${RIFFKILLER_VERIFY_BASE:-}" ]; then transports=("$RIFFKILLER_VERIFY_BASE|"); fi
+  for ip in 127.0.0.1 $(hostname -I 2>/dev/null) $(grep -hoE 'listen\s+[0-9.]+' "$conf" 2>/dev/null | awk '{print $2}'); do
+    host="$ip"; [[ "$ip" == *:* ]] && host="[$ip]"
+    transports+=("https://$site|--resolve $site:443:$host" "http://$host|-H Host:$site")
   done
+  fetch() { local url="${1%%|*}" extra="${1#*|}"; curl -s --max-time 15 $extra -o "$3" -w '%{http_code}' "$url/$2" || true; }
+  chosen=""; tried=""
+  for t in "${transports[@]}"; do
+    c="$(fetch "$t" api/me.php "$body")"
+    extra="${t#*|}"; tried="$tried ${t%%|*}${extra:+ ($extra)}=$c"
+    if [ "$c" = 200 ] && grep -q '^[[{]' "$body"; then chosen="$t"; break; fi
+  done
+  note "Transports tried:$tried"
+  [ -n "$chosen" ] || { echo "::error::api/me.php returned no JSON over any transport; last body: $(head -c 200 "$body" | tr '\n' ' ')" >&2; rm -f "$body"; exit 1; }
+  ok=1
+  c="$(fetch "$chosen" api/riffs/list.php "$body")"
+  if [ "$c" = 200 ] && grep -q '"song"' "$body"; then note "api/riffs/list.php: 200 JSON"; else echo "::error::api/riffs/list.php: HTTP $c" >&2; ok=0; fi
   for p in "video.php?file=.env" "video.php?file=data/users.json" test.php env-check.php patreon-secrets.php; do
-    c="$(get "$p" "$body")"
+    c="$(fetch "$chosen" "$p" "$body")"
     if [ "$c" = 200 ]; then echo "::error::$p returned 200" >&2; ok=0; else note "$p: $c"; fi
   done
   exposed=""
   for p in .env data/users.json data/subscriptions/ patreon-validate.log; do
-    [ "$(get "$p" "$body")" = 200 ] && exposed="$exposed $p"
+    [ "$(fetch "$chosen" "$p" "$body")" = 200 ] && exposed="$exposed $p"
   done
   [ -n "$exposed" ] && echo "::warning::Publicly readable:$exposed (add deploy/nginx-riffkiller-security.conf to nginx)"
   rm -f "$body"
