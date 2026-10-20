@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl -sS -X PUT https://api.github.com/repos/mike-sabadash/*/pulls/*/merge *)"
+    ]
+  },
+  "autoMode": {
+    "allow": [
+      "$defaults",
+      "Merging pull requests in mike-sabadash/* repositories via the GitHub REST API after checks pass. The repository owner has authorized Claude to merge its own PRs and trigger the resulting production deploy through GitHub Actions."
+    ]
+  }
+}
