@@ -267,77 +267,58 @@ class AuthManager {
     }
 
     loginWithPassword(email, password) {
-        const self = this;
-        return fetch(getApiBase() + '/api/auth/email-login.php', {
-            method: 'POST',
-            credentials: 'include',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email: String(email).trim(), password: String(password) })
-        })
-            .then(function (r) { return r.json(); })
-            .then(function (data) {
-                if (data.success && data.user) {
-                    ++self.sessionRevision;
-                    self.subscription = null;
-                    self.isAuthenticated = true;
-                    self.userData = { id: data.user.id, full_name: data.user.full_name || 'User', image_url: data.user.image_url || '', email: data.user.email || '', provider: 'email' };
-                    self.token = null;
-                    self.saveSession();
-                    self.notifyListeners();
-                    self.updateAllAuthButtons();
-                    var back = document.getElementById('riffKillerAuthModalBackdrop');
-                    if (back && back.parentNode) back.parentNode.removeChild(back);
-                    document.body.style.overflow = '';
-                    return self.fetchSubscriptionFromServer(data.user.id);
-                }
-                if (self._authModalEmailMessage) {
-                    self._authModalEmailMessage.textContent = data.error || 'Invalid email or password.';
-                    self._authModalEmailMessage.style.display = 'block';
-                }
-            })
-            .catch(function () {
-                if (self._authModalEmailMessage) {
-                    self._authModalEmailMessage.textContent = 'Network error. Try again.';
-                    self._authModalEmailMessage.style.display = 'block';
-                }
-            });
+        return this.submitPassword('email-login.php', { email: String(email).trim(), password: String(password) });
     }
 
     registerWithPassword(email, password, name) {
-        const self = this;
-        return fetch(getApiBase() + '/api/auth/email-register.php', {
-            method: 'POST',
-            credentials: 'include',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email: String(email).trim(), password: String(password), name: String(name || '').trim() })
-        })
-            .then(function (r) { return r.json(); })
-            .then(function (data) {
-                if (data.success && data.user) {
-                    ++self.sessionRevision;
-                    self.subscription = null;
-                    self.isAuthenticated = true;
-                    self.userData = { id: data.user.id, full_name: data.user.full_name || name || 'User', image_url: data.user.image_url || '', email: data.user.email || '', provider: 'email' };
-                    self.token = null;
-                    self.saveSession();
-                    self.notifyListeners();
-                    self.updateAllAuthButtons();
-                    var back = document.getElementById('riffKillerAuthModalBackdrop');
-                    if (back && back.parentNode) back.parentNode.removeChild(back);
-                    document.body.style.overflow = '';
-                    return self.fetchSubscriptionFromServer(data.user.id);
-                }
-                if (self._authModalEmailMessage) {
-                    self._authModalEmailMessage.textContent = data.error || 'Registration failed.';
-                    self._authModalEmailMessage.style.display = 'block';
-                }
-            })
-            .catch(function () {
-                if (self._authModalEmailMessage) {
-                    self._authModalEmailMessage.textContent = 'Network error. Try again.';
-                    self._authModalEmailMessage.style.display = 'block';
-                }
+        return this.submitPassword('email-register.php', { email: String(email).trim(), password: String(password), name: String(name || '').trim() });
+    }
+
+    async submitPassword(endpoint, payload) {
+        if (this.passwordRequestPending) return false;
+        this.passwordRequestPending = true;
+        const button = document.getElementById('authModalEmailBtn');
+        const tabs = Array.from(document.querySelectorAll('.auth-toggle-btn'));
+        const label = button && button.textContent;
+        if (button) { button.disabled = true; button.textContent = 'Please wait…'; }
+        tabs.forEach(tab => { tab.disabled = true; });
+        try {
+            const response = await fetch(getApiBase() + '/api/auth/' + endpoint, {
+                method: 'POST', credentials: 'include',
+                headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
             });
+            const data = await response.json();
+            if (!response.ok || !data.success || !data.user) {
+                if (this._authModalEmailMessage) {
+                    this._authModalEmailMessage.textContent = data.error || 'Sign in failed. Please try again.';
+                    this._authModalEmailMessage.style.display = 'block';
+                }
+                return false;
+            }
+            ++this.sessionRevision;
+            this.subscription = null;
+            this.isAuthenticated = true;
+            this.userData = { id: data.user.id, full_name: data.user.full_name || 'User', image_url: data.user.image_url || '', email: data.user.email || '', provider: 'email' };
+            this.token = null;
+            this.saveSession();
+            this.notifyListeners();
+            this.updateAllAuthButtons();
+            const backdrop = document.getElementById('riffKillerAuthModalBackdrop');
+            if (backdrop) backdrop.remove();
+            document.body.style.overflow = '';
+            await this.fetchSubscriptionFromServer(data.user.id);
+            return true;
+        } catch (error) {
+            if (this._authModalEmailMessage) {
+                this._authModalEmailMessage.textContent = 'Could not connect. Check your connection and try again.';
+                this._authModalEmailMessage.style.display = 'block';
+            }
+            return false;
+        } finally {
+            this.passwordRequestPending = false;
+            if (button) { button.disabled = false; button.textContent = label; }
+            tabs.forEach(tab => { tab.disabled = false; });
+        }
     }
 
     showAuthModal(initialTab) {
@@ -369,7 +350,7 @@ class AuthManager {
             '<input type="password" class="auth-email-input" id="authModalPasswordInput" placeholder="Password" autocomplete="current-password">' +
             '<button type="button" class="auth-btn auth-btn-email" id="authModalEmailBtn">Log in</button>' +
             '</div>' +
-            '<p class="auth-email-message" id="authModalEmailMessage" style="display:none;"></p>' +
+            '<p class="auth-email-message" id="authModalEmailMessage" role="alert" aria-live="polite" style="display:none;"></p>' +
             '<div class="auth-divider"><span>or</span></div>' +
             '<div class="auth-social-row">' +
             '<button type="button" class="auth-social-btn" id="authModalGoogle" aria-label="Continue with Google"><svg viewBox="0 0 24 24" width="22" height="22"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg></button>' +
@@ -466,8 +447,13 @@ class AuthManager {
             if (promoInputEl) promoInputEl.value = promoFromUrl.trim();
             if (promoInputsEl) promoInputsEl.style.display = 'flex';
         }
-        [document.getElementById('authModalEmailInput'), document.getElementById('authModalPasswordInput')].forEach(function (el) {
-            if (el) el.addEventListener('input', function () { el.classList.remove('auth-input-error'); });
+        [document.getElementById('authModalEmailInput'), document.getElementById('authModalPasswordInput'), document.getElementById('authModalNameInput')].forEach(function (el) {
+            if (el) {
+                el.addEventListener('input', function () { el.classList.remove('auth-input-error'); });
+                el.addEventListener('keydown', function (event) {
+                    if (event.key === 'Enter') { event.preventDefault(); document.getElementById('authModalEmailBtn').click(); }
+                });
+            }
         });
         document.getElementById('authModalEmailBtn').addEventListener('click', function () {
             var emailEl = document.getElementById('authModalEmailInput');
@@ -476,7 +462,7 @@ class AuthManager {
             var email = emailEl && emailEl.value ? emailEl.value.trim() : '';
             var password = passEl ? passEl.value : '';
             var isSignup = document.getElementById('authTabSignup') && document.getElementById('authTabSignup').classList.contains('active');
-            if (!email) {
+            if (!email || !emailEl.validity.valid) {
                 emailEl.placeholder = 'Enter your email';
                 emailEl.classList.add('auth-input-error');
                 if (passEl) passEl.classList.remove('auth-input-error');
@@ -750,5 +736,18 @@ window.patreonAuth = authManager;
 document.addEventListener('DOMContentLoaded', () => {
     authManager.addProfileStyles();
     authManager.updateAuthButtons();
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('auth') === 'error' && params.get('src') === 'google') {
+        const messages = {
+            configuration: 'Google sign-in is temporarily unavailable. Use email or Patreon.',
+            cancelled: 'Google sign-in was cancelled. You can try again.',
+            state: 'This sign-in link expired. Please try Google again.'
+        };
+        authManager.showAuthModal();
+        authManager._authModalEmailMessage.textContent = messages[params.get('reason')] || 'Google sign-in could not be completed. Please try again.';
+        authManager._authModalEmailMessage.style.display = 'block';
+        ['auth', 'src', 'reason'].forEach(key => params.delete(key));
+        history.replaceState(null, '', window.location.pathname + (params.size ? '?' + params.toString() : '') + window.location.hash);
+    }
 });
 

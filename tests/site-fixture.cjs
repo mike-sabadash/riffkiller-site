@@ -4,11 +4,15 @@ const path = require('node:path');
 const {spawn,execFileSync} = require('node:child_process');
 const net = require('node:net');
 const root = path.resolve(__dirname,'..');
-async function startSite() {
+async function startSite(options = {}) {
     const dir=fs.mkdtempSync(path.join(os.tmpdir(),'riffkiller-test-'));
     for (const name of ['api','admin','config','js','css']) fs.cpSync(path.join(root,name),path.join(dir,name),{recursive:true});
     for (const name of fs.readdirSync(root).filter(n=>/\.(html|php)$/.test(n))) fs.copyFileSync(path.join(root,name),path.join(dir,name));
     fs.mkdirSync(path.join(dir,'data'));fs.mkdirSync(path.join(dir,'sessions'));
+    if (options.google) {
+        fs.writeFileSync(path.join(dir,'.env'),'GOOGLE_CLIENT_ID=fixture.apps.googleusercontent.com\nGOOGLE_CLIENT_SECRET=fixture-secret\n');
+        fs.copyFileSync(path.join(__dirname,'google-provider.fixture.php'),path.join(dir,'google-provider.fixture.php'));
+    }
     for (const name of ['riffs.json','collections.json']) fs.copyFileSync(path.join(root,'data',name),path.join(dir,'data',name));
     const riffs=JSON.parse(fs.readFileSync(path.join(dir,'data/riffs.json')));
     const videos=[...new Set(riffs.flatMap(r=>[r.videoFile,r.videoFileRight,r.lessonVideo]).filter(Boolean))];
@@ -31,7 +35,7 @@ return false;
 `);
     const port=await new Promise(resolve=>{const server=net.createServer();server.listen(0,'127.0.0.1',()=>{const p=server.address().port;server.close(()=>resolve(p));});});
     let log='';
-    const server=spawn(process.env.PHP_BIN||'php',['-d','session.save_path='+path.join(dir,'sessions'),'-S','127.0.0.1:'+port,'-t',dir,path.join(dir,'router.php')],{stdio:['ignore','ignore','pipe']});
+    const server=spawn(process.env.PHP_BIN||'php',['-d','session.save_path='+path.join(dir,'sessions'),...(options.google?['-d','auto_prepend_file='+path.join(dir,'google-provider.fixture.php')]:[]),'-S','127.0.0.1:'+port,'-t',dir,path.join(dir,'router.php')],{stdio:['ignore','ignore','pipe']});
     server.stderr.on('data',data=>{log+=data});server.on('error',error=>{log+=error.message});
     const base='http://127.0.0.1:'+port;
     for(let i=0;i<100;i++) {

@@ -73,7 +73,7 @@
     </div>
     
     <script src="js/patreon-config.js"></script>
-    <script src="js/auth-manager.js"></script>
+    <script src="js/auth-manager.js?v=auth-20261020"></script>
     <script>
         document.addEventListener('DOMContentLoaded', async () => {
             const urlParams = new URLSearchParams(window.location.search);
@@ -130,11 +130,7 @@
                 }
 
                 if (data.success) {
-                    var planPageUrl = 'https://www.patreon.com/cw/MikeSabadash?vanity=MikeSabadash';
-                    if (typeof PATREON_CONFIG !== 'undefined' && PATREON_CONFIG.campaignUrl && PATREON_CONFIG.campaignUrl.indexOf('patreon.com') !== -1) {
-                        planPageUrl = PATREON_CONFIG.campaignUrl;
-                    }
-                    console.log('[Patreon callback] Success -> Patreon plan page (800ms)');
+                    console.log('[Patreon callback] Success -> application (800ms)');
                     if (window.patreonAuth) {
                         window.patreonAuth.token = data.token;
                         window.patreonAuth.userData = data.user;
@@ -145,9 +141,9 @@
                         window.patreonAuth.updateAllAuthButtons();
                     }
                     document.querySelector('h1').textContent = 'Success!';
-                    document.querySelector('p').textContent = 'Taking you to Patreon to complete your subscription...';
+                    document.querySelector('p').textContent = 'Returning to RiffKiller...';
                     setTimeout(function() {
-                        window.location.href = planPageUrl;
+                        window.location.href = 'app.html';
                     }, 800);
                 } else {
                     console.error('[Patreon callback] REDIRECT SOURCE: exchange failed (data.success false) -> throw -> catch -> index.html?auth=error (5s)', { status: response.status, data: data });
