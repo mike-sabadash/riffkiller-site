@@ -191,6 +191,9 @@ body.riffs-hub .filter-label {
 }
 
 body.riffs-hub .custom-select {
+    /* Fits the longest option in any language (RU/ES labels are longer than the English ones). */
+    width: auto;
+    min-width: 116px;
     height: 40px;
     border-radius: 12px;
     border: 1px solid rgba(255, 255, 255, 0.12);
@@ -210,6 +213,8 @@ body.riffs-hub .custom-select:focus-within {
 }
 
 body.riffs-hub .select-input {
+    width: auto;
+    min-width: 100%;
     font-family: 'Inter', system-ui, sans-serif;
     font-size: 0.8125rem;
     color: rgba(244, 247, 255, 0.92);

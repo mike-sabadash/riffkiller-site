@@ -363,3 +363,32 @@ test('a riff without DNA says so instead of showing empty tabs',async t=>{
     assert.equal(await page.locator('#dnaStageNav').isVisible(),false);
 });
 
+test('English by default; the header switches to Russian and Spanish and the choice survives navigation',async t=>{
+    const page=await pageFor(t);await page.goto(site.base+'/index.html',{waitUntil:'domcontentloaded'});
+    assert.equal(await page.evaluate(()=>document.documentElement.lang),'en');
+    assert.equal((await page.locator('.topbar-links [data-page=riffs]').textContent()).trim(),'Riffs');
+    await page.click('.rk-lang-toggle');
+    await Promise.all([page.waitForEvent('load'),page.click('.rk-lang-option[data-lang=ru]')]);
+    assert.equal(await page.evaluate(()=>document.documentElement.lang),'ru');
+    assert.equal((await page.locator('.topbar-links [data-page=practice]').textContent()).trim(),'Практика');
+    assert.match(await page.locator('.home-hero-title').textContent(),/Добей каждый рифф/);
+    await page.goto(site.base+'/practice.html?riff=1',{waitUntil:'domcontentloaded'});
+    await page.waitForFunction(()=>document.querySelector('[data-dna-stage=split]')?.textContent.trim()==='Части');
+    assert.equal((await page.locator('[data-dna-stage=split]').textContent()).trim(),'Части');
+    assert.equal(await page.locator('#modeNormalBtn').textContent(),'Обычный');
+    await page.goto(site.base+'/billing.html?lang=es',{waitUntil:'domcontentloaded'});
+    assert.equal(await page.evaluate(()=>document.documentElement.lang),'es-419');
+    assert.match(await page.locator('body').innerText(),/Elige un plan/);
+    const mobile=await pageFor(t,390);await mobile.goto(site.base+'/index.html?lang=es',{waitUntil:'domcontentloaded'});
+    await mobile.click('#burgerMenu');
+    assert.equal(await mobile.locator('.rk-lang-chip.is-active').textContent(),'ES');
+    await Promise.all([mobile.waitForEvent('load'),mobile.click('.rk-lang-chip[data-lang=en]')]);
+    assert.equal(await mobile.evaluate(()=>[document.documentElement.lang,location.search].join('|')),'en|');
+});
+test('Patreon sign-in still completes with Russian selected',async t=>{
+    const page=await pageFor(t);await page.addInitScript(()=>{localStorage.setItem('patreonState','fixture-state');localStorage.setItem('rk-lang','ru');});
+    await page.route('**/patreon-exchange.php',route=>route.fulfill({json:{success:true,token:'fixture-token',user:{id:'fixture-patreon',full_name:'Fixture'},subscription:{status:'active',source:'patreon'}}}));
+    await page.route('**/patreon-validate.php',route=>route.fulfill({json:{success:true,user:{id:'fixture-patreon',full_name:'Fixture'},subscription:{status:'active',source:'patreon'}}}));
+    await page.goto(site.base+'/patreon-callback.html?code=fixture&state=fixture-state',{waitUntil:'domcontentloaded'});await page.waitForURL('**/app.html',{waitUntil:'domcontentloaded'});
+    assert.equal(await page.evaluate(()=>document.documentElement.lang),'ru');
+});
