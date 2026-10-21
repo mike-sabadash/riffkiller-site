@@ -54,3 +54,9 @@ test('every public page loads the language script before the header',()=>{
         if(header>0)assert.ok(at<header,p);
     }
 });
+test('js/i18n dictionaries match tools/i18n/strings.py',()=>{
+    const out=fs.mkdtempSync(path.join(require('node:os').tmpdir(),'rk-i18n-'));
+    require('node:child_process').execFileSync('python3',[path.join(__dirname,'../tools/i18n/build.py'),out]);
+    for(const f of ['ru.js','es.js'])assert.equal(fs.readFileSync(path.join(out,f),'utf8'),fs.readFileSync(path.join(__dirname,'../js/i18n',f),'utf8'),f+' is stale: run python3 tools/i18n/build.py');
+    fs.rmSync(out,{recursive:true,force:true});
+});
