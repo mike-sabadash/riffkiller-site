@@ -51,30 +51,9 @@
     letter-spacing: -.01em;
 }
 
-/* Parts timeline: one bar, each part a block. Current part is lit. */
-.dna-structure { display: flex; gap: 3px; width: 100%; }
-.dna-structure-chip {
-    flex: 1 1 0;
-    min-width: 0;
-    height: 28px;
-    padding: 0;
-    border: 0;
-    border-radius: 4px;
-    color: rgba(255,255,255,.6);
-    background: rgba(255,255,255,.06);
-    font: 500 12px/28px Inter, sans-serif;
-    text-align: center;
-    cursor: pointer;
-    transition: background .15s ease, color .15s ease;
-}
-.dna-structure-chip[data-part="B"] { background: rgba(255,255,255,.11); }
-.dna-structure-chip:hover { color: #fff; background: rgba(255,255,255,.16); }
-.dna-structure-chip.active { color: #fff; background: #9355e5; }
-.dna-structure-caption { margin: 8px 0 0; color: rgba(255,255,255,.45); font-size: 13px; }
+.dna-lab-head h2 { margin-bottom: 0; }
 
-.dna-lab-head { padding-bottom: 18px; border-bottom: 1px solid rgba(255,255,255,.06); }
-
-.dna-stage-content { padding-top: 18px; }
+.dna-stage-content { padding-top: 14px; }
 .dna-copy-lead { margin: 0; color: rgba(255,255,255,.88); font-size: 15px; line-height: 1.6; }
 .dna-copy-note { margin: 10px 0 0; color: rgba(255,255,255,.5); font-size: 14px; line-height: 1.55; }
 

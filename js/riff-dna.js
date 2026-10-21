@@ -79,20 +79,6 @@
         return map;
     }
 
-    function renderStructure() {
-        var el = document.getElementById('dnaStructure');
-        if (!el || !activeRiff) return;
-        var dna = getDNA(activeRiff);
-        var segments = activeRiff.segments || [];
-        var first = {};
-        moleculeMap().forEach(function (m) { first[m.id] = m.firstIndex; });
-        el.innerHTML = dna.structure.map(function (id, i) {
-            var seg = segments[i] && (segments[i].molecule || String(i + 1)) === id ? i : first[id];
-            var attr = typeof seg === 'number' ? ' data-dna-segment="' + seg + '"' : '';
-            return '<button type="button" class="dna-structure-chip" data-part="' + esc(id) + '"' + attr + ' aria-label="Play part ' + esc(id) + '">' + esc(id) + '</button>';
-        }).join('');
-    }
-
     function playWholeRiff() {
         var button = document.querySelector('.segment-btn.all-riff');
         if (button) button.click();
@@ -226,7 +212,6 @@
                 if (!segment.relation) segment.relation = index < 2 ? (index === 0 ? 'Core cell' : 'Resolution') : 'Repeat';
             });
         }
-        renderStructure();
         decorateSegmentControls();
         document.querySelectorAll('.dna-stage').forEach(function (button) {
             button.onclick = function () { renderStage(button.dataset.dnaStage); };
@@ -249,12 +234,6 @@
 
     function segmentChanged(index) {
         currentSegmentIndex = Number(index) || 0;
-        var chips = Array.prototype.slice.call(document.querySelectorAll('.dna-structure-chip'));
-        var exact = chips.filter(function (el) { return Number(el.dataset.dnaSegment) === currentSegmentIndex; });
-        var segment = activeRiff && activeRiff.segments && activeRiff.segments[currentSegmentIndex];
-        // Detail loops past the timeline light the first block of their part.
-        if (!exact.length && segment) exact = chips.filter(function (el) { return el.dataset.part === segment.molecule; }).slice(0, 1);
-        chips.forEach(function (el) { el.classList.toggle('active', exact.indexOf(el) >= 0); });
     }
 
     global.RiffDNA = { init: init, renderStage: renderStage, segmentChanged: segmentChanged, decorateSegmentControls: decorateSegmentControls };
