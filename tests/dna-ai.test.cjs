@@ -90,9 +90,39 @@ test('OpenRouter errors become plain Russian messages',async()=>{
     replies=[[404,{error:{message:'No endpoints found matching your data policy (Free model publication)'}}]];
     r=await draft({riff,notes:'Guitar jumps in after the vocal'});
     assert.match((await r.json()).error,/settings\/privacy/);
-    replies=[[200,{choices:[{message:{content:'Sorry, I cannot help.'}}]}]];
+    replies=[[200,{model:'a:free',choices:[{message:{content:'Sorry, I cannot help.'}}]}],[200,{model:'a:free',choices:[{message:{content:'Still no.'},finish_reason:'length'}]}]];
     r=await draft({riff,notes:'Guitar jumps in after the vocal'});
-    assert.match((await r.json()).error,/JSON/);
+    const body=await r.json();
+    assert.match(body.error,/JSON/);assert.match(body.error,/лимит длины/);
+    assert.equal(body.raw,'Still no.','the answer is shown to the admin');assert.equal(body.model,'a:free');
+});
+
+const good={segments:[{index:0,role:'call',function:'Opens'}],dna:{rule:'Short.'}};
+test('JSON is found inside thinking notes, prose and trailing commas',async()=>{
+    replies=[[200,{choices:[{message:{content:'<think>maybe {"x":1}</think>Sure! {"note":"{not this}"} Here: {"segments":[{"index":0,"role":"call","function":"Opens",}],"dna":{"rule":"Short."},}'}}]}]];
+    const d=(await (await draft({riff,notes:'Guitar jumps in after the vocal'})).json()).draft;
+    assert.deepEqual(d.segments,[{index:0,role:'call',function:'Opens'}]);assert.equal(d.dna.rule,'Short.');
+});
+
+test('an answer that is not JSON gets one more turn asking for JSON only',async()=>{
+    calls.length=0;
+    replies=[[200,{choices:[{message:{content:'Let me think about the riff first...'}}]}],answer(good)];
+    const r=await draft({riff,notes:'Guitar jumps in after the vocal'});
+    assert.equal(r.status,200);assert.equal((await r.json()).draft.dna.rule,'Short.');
+    assert.equal(calls.length,2);
+    const msgs=calls[1].body.messages;
+    assert.equal(msgs[2].role,'assistant');assert.match(msgs[3].content,/only the JSON/);
+    assert.equal(calls[0].body.reasoning.exclude,true);
+});
+
+test('riffs marked as reference go into the prompt as examples, the current one does not',async()=>{
+    const fs=require('node:fs');const file=site.dir+'/data/riffs.json';
+    const list=JSON.parse(fs.readFileSync(file));list[0].dnaReference=true;fs.writeFileSync(file,JSON.stringify(list));
+    calls.length=0;replies=[answer(good),answer(good)];
+    await draft({riff:{...riff,id:999},notes:'Guitar jumps in after the vocal'});
+    assert.match(calls[0].body.messages[1].content,/Reference riffs[\s\S]*"song":"Black Dog"[\s\S]*"role":"launch"/);
+    await draft({riff:{...riff,id:list[0].id},notes:'Guitar jumps in after the vocal'});
+    assert.doesNotMatch(calls[1].body.messages[1].content,/Reference riffs/);
 });
 
 test('job ids are checked and unknown jobs are not found',async()=>{

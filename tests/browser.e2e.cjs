@@ -178,7 +178,12 @@ test('markup editor: S splits at the playhead, undo restores, dragging a boundar
     await page.locator('#segmentRows .segment-row').nth(1).locator('.function').fill('Replies to the first cell');
     assert.match(await page.locator('#edStatus').innerText(),/несохранённые/);
     assert.match(await page.locator('#segmentRows .segment-row').nth(1).locator('.seg-role-help').innerText(),/Answer/);
-    const save=page.waitForResponse(r=>r.url().endsWith('/api/riffs/save.php'));await page.keyboard.press('Control+s');assert.equal((await save).status(),200);
+    // A part with a role but no description: the markup check asks first; Escape keeps editing, then save anyway.
+    await page.evaluate(()=>SegmentEditor.select(3));await page.locator('#segmentRows .segment-row').nth(3).locator('.function').fill('');
+    await page.keyboard.press('Control+s');await page.waitForSelector('#dnaLintDialog[open]');
+    assert.match(await page.locator('#dnaLintList').innerText(),/без описания/);
+    await page.keyboard.press('Escape');assert.equal(await page.locator('#dnaLintDialog[open]').count(),0);
+    const save=page.waitForResponse(r=>r.url().endsWith('/api/riffs/save.php'));await page.keyboard.press('Control+s');await page.click('#dnaLintSave');assert.equal((await save).status(),200);
     await page.waitForFunction(()=>/Сохранено/.test(document.getElementById('edStatus').textContent));
     const saved=JSON.parse(fs.readFileSync(path.join(site.dir,'data/riffs.json')))[0];
     assert.equal(saved.segments.length,11);assert.equal(saved.segments[1].role,'answer');assert.equal(saved.segments[1].function,'Replies to the first cell');

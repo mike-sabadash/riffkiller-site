@@ -26,7 +26,11 @@ function dna_draft_fail($status, $error) {
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     $job = dna_ai_job_read((string)($_GET['job'] ?? ''));
     if ($job === null) dna_draft_fail(404, 'Черновик не найден. Нажмите «Составить черновик» ещё раз.');
-    if (($job['status'] ?? '') === 'error') dna_draft_fail((int)($job['code'] ?? 502), (string)$job['error']);
+    if (($job['status'] ?? '') === 'error') {
+        http_response_code((int)($job['code'] ?? 502));
+        echo json_encode(['success' => false, 'error' => (string)$job['error'], 'raw' => (string)($job['raw'] ?? ''), 'model' => (string)($job['model'] ?? '')], JSON_UNESCAPED_UNICODE);
+        exit();
+    }
     if (($job['status'] ?? '') === 'pending' && time() - (int)($job['started'] ?? 0) > 200) {
         dna_draft_fail(504, 'Модель так и не ответила. Попробуйте ещё раз.');
     }
@@ -63,14 +67,12 @@ if (function_exists('fastcgi_finish_request')) {
     fastcgi_finish_request();
 }
 
-$result = dna_ai_complete(dna_ai_system_prompt(), dna_ai_user_prompt($riff, $notes));
+$result = dna_ai_draft(dna_ai_system_prompt(), dna_ai_user_prompt($riff, $notes, dna_ai_reference_riffs((int)($riff['id'] ?? 0))));
 if (isset($result['error'])) {
-    dna_ai_job_write($id, ['status' => 'error', 'code' => $result['status'], 'error' => $result['error']]);
-} elseif (($raw = dna_ai_extract_json($result['text'])) === null) {
-    dna_ai_job_write($id, ['status' => 'error', 'code' => 502, 'error' => 'Модель ответила не в формате JSON. Нажмите ещё раз или смените модель.']);
+    dna_ai_job_write($id, ['status' => 'error', 'code' => $result['status'], 'error' => $result['error'], 'raw' => $result['raw'] ?? '', 'model' => $result['model'] ?? '']);
 } else {
     dna_ai_job_write($id, ['status' => 'done', 'model' => $result['model'],
-        'draft' => dna_ai_normalize($raw, $riff['segments'], (float)($riff['duration'] ?? 0))]);
+        'draft' => dna_ai_normalize($result['data'], $riff['segments'], (float)($riff['duration'] ?? 0))]);
 }
 
 // Without PHP-FPM (local php -S) the reply goes out only now; the browser polls the finished job.
