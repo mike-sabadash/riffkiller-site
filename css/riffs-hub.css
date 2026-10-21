@@ -1106,3 +1106,80 @@ body.riffs-hub .riff-lock-tag,
         flex-direction: column;
     }
 }
+
+/* Карточки без «украшений»: ни обводок, ни зелёного кольца. На обложке одна метка доступа, сложность — текстом. */
+body.riffs-hub .riff-card,
+.rk-riff-gallery .riff-card,
+body.riffs-hub .riff-card-stack:hover .riff-card,
+.rk-riff-gallery .riff-card-stack:hover .riff-card {
+    border-color: transparent;
+    border-radius: 12px;
+    filter: none;
+}
+body.riffs-hub .riff-card .riff-image,
+.rk-riff-gallery .riff-card .riff-image {
+    transition: opacity .3s ease, transform .35s ease !important;
+}
+body.riffs-hub .riff-card-stack:hover .riff-image,
+.rk-riff-gallery .riff-card-stack:hover .riff-image {
+    transform: scale(1.03);
+}
+body.riffs-hub .riff-card-free::after,
+.rk-riff-gallery .riff-card-free::after {
+    display: none;
+}
+body.riffs-hub .riff-free-tag,
+.rk-riff-gallery .riff-free-tag,
+body.riffs-hub .riff-lock-tag,
+.rk-riff-gallery .riff-lock-tag {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    bottom: auto;
+    transform: none;
+    min-width: 0;
+    padding: 4px 8px;
+    border: 0;
+    border-radius: 6px;
+    clip-path: none;
+    -webkit-clip-path: none;
+    box-shadow: none;
+    text-shadow: none;
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0;
+    line-height: 1.2;
+    color: #fff;
+    background: rgba(8, 8, 12, 0.72);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+body.riffs-hub .riff-free-tag,
+.rk-riff-gallery .riff-free-tag {
+    color: #0b0b0f;
+    background: #fff;
+}
+.riff-meta-below .riff-level {
+    color: rgba(160, 165, 182, 0.7);
+}
+
+/* Коллекции — обычная секция, как «Most killed riffs», без стеклянной панели */
+body.riffs-hub .riffs-panel {
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+}
+/* Селекты сами говорят «All Levels / All Genres» — подписи только для скринридеров */
+body.riffs-hub .filter-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+}

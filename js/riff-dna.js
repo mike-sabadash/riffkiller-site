@@ -6,11 +6,11 @@
     var currentSegmentIndex = 0;
 
     var STAGES = {
-        scan: { kicker: '01 / SCAN', title: 'Hear the organism' },
-        split: { kicker: '02 / SPLIT', title: 'See the molecules' },
-        isolate: { kicker: '03 / ISOLATE', title: 'Find the atoms' },
-        decode: { kicker: '04 / DECODE', title: 'Reveal the hidden law' },
-        mutate: { kicker: '05 / MUTATE', title: 'Keep the law. Change the notes.' }
+        scan: { title: 'Listen to the whole riff first' },
+        split: { title: 'Break it into parts' },
+        isolate: { title: 'What to watch for' },
+        decode: { title: 'Why it sounds like this' },
+        mutate: { title: 'Write your own on the same idea' }
     };
 
     function esc(value) {
@@ -23,26 +23,38 @@
         var dna = riff && riff.dna ? riff.dna : {};
         if (riff && Number(riff.id) === 1 && !riff.dna) {
             dna = {
-                overview: 'Black Dog is a two-molecule organism: a displaced statement and a resolving answer.',
-                formula: '5/8 STATEMENT + 4/4 ANSWER + QUARTER-TONE ATTITUDE',
+                overview: 'Black Dog sounds like one long, wandering line. It is really two short phrases taking turns: a tight one that pulls against the beat and one that brings it back.',
+                formula: '5/8 statement + 4/4 answer + a quarter-tone bend',
                 structure: ['A', 'B', 'A', 'B', 'A', 'B'],
-                law: 'The statement compresses the pulse; the answer restores the ground. Their alternation creates the hook.',
-                insight: 'The phrase sounds free, but the asymmetry is organized.',
+                law: 'The first phrase squeezes the beat, the second one puts it back. Going back and forth between them is the hook.',
+                insight: 'It sounds loose, but every bar is counted.',
                 atoms: [],
-                mutation: { title: 'Build a related riff', description: 'Keep the asymmetrical relationship and change the notes.', steps: ['Write a short 5/8 statement.', 'Answer it in 4/4.', 'Change only the final return.'] }
+                mutation: { title: 'Write a riff in the same spirit', description: 'Keep the uneven back-and-forth, change the notes.', steps: ['Write a short phrase in 5/8.', 'Answer it in 4/4.', 'Change only the last answer.'] }
             };
         }
         var segments = riff && Array.isArray(riff.segments) ? riff.segments : [];
         if (!Array.isArray(dna.structure) || !dna.structure.length) {
             dna.structure = segments.map(function (s, i) { return s.molecule || String(i + 1); }).slice(0, 8);
         }
-        if (!dna.formula) dna.formula = 'PULSE + SHAPE + TOUCH';
-        if (!dna.overview) dna.overview = 'Break the performance into playable molecules, then use the three synchronized views to remove the guesswork.';
-        if (!dna.law) dna.law = 'The pattern becomes recognizable through repetition; its character appears where that repetition changes.';
-        if (!dna.insight) dna.insight = 'Listen for the relationship between timing, movement and articulation — not only the fret numbers.';
+        if (!dna.formula) dna.formula = 'Rhythm + shape + touch';
+        if (!dna.overview) dna.overview = 'Play it through once and get the feel before you work on the hands.';
+        if (!dna.law) dna.law = 'You recognise a riff by what repeats. Its character is in the spot where the repeat changes.';
+        if (!dna.insight) dna.insight = 'Listen to timing, hand movement and pick attack together, not just the fret numbers.';
         if (!Array.isArray(dna.atoms)) dna.atoms = [];
-        if (!dna.mutation) dna.mutation = { title: 'Build a related riff', description: 'Preserve the central rule and change one musical dimension at a time.', steps: ['Keep the rhythm.', 'Change the pitch shape.', 'Restore the original ending.'] };
+        if (!dna.mutation) dna.mutation = { title: 'Write a riff of your own', description: 'Keep the rhythm idea and change one thing at a time.', steps: ['Keep the rhythm.', 'Change the notes.', 'Bring back the original ending.'] };
         return dna;
+    }
+
+    // Data still says "The statement"; a list row reads better as "Statement".
+    function plainName(name) {
+        return String(name).replace(/^the\s+/i, '').replace(/^./, function (c) { return c.toUpperCase(); });
+    }
+
+    // Stored formulas are written in caps ("5/8 STATEMENT + ..."); show them as a sentence.
+    function sentenceCase(text) {
+        var t = String(text || '').trim();
+        if (t === t.toUpperCase()) t = t.toLowerCase();
+        return t.replace(/^./, function (c) { return c.toUpperCase(); });
     }
 
     function moleculeMap() {
@@ -54,7 +66,7 @@
             if (!item) {
                 item = {
                     id: id,
-                    title: segment.moleculeName || segment.name || ('Molecule ' + id),
+                    title: plainName(segment.moleculeName || segment.name || ('Part ' + id)),
                     description: segment.function || 'A playable phrase inside the complete riff.',
                     color: segment.color || '#9355E5',
                     firstIndex: index,
@@ -71,11 +83,14 @@
         var el = document.getElementById('dnaStructure');
         if (!el || !activeRiff) return;
         var dna = getDNA(activeRiff);
-        var colors = {};
-        moleculeMap().forEach(function (m) { colors[m.id] = m.color; });
-        el.innerHTML = dna.structure.map(function (id) {
-            return '<span class="dna-structure-chip" style="--molecule-color:' + esc(colors[id] || '#9355E5') + '">' + esc(id) + '</span>';
-        }).join('<span aria-hidden="true" style="color:rgba(255,255,255,.24);align-self:center">→</span>');
+        var segments = activeRiff.segments || [];
+        var first = {};
+        moleculeMap().forEach(function (m) { first[m.id] = m.firstIndex; });
+        el.innerHTML = dna.structure.map(function (id, i) {
+            var seg = segments[i] && (segments[i].molecule || String(i + 1)) === id ? i : first[id];
+            var attr = typeof seg === 'number' ? ' data-dna-segment="' + seg + '"' : '';
+            return '<button type="button" class="dna-structure-chip" data-part="' + esc(id) + '"' + attr + ' aria-label="Play part ' + esc(id) + '">' + esc(id) + '</button>';
+        }).join('');
     }
 
     function playWholeRiff() {
@@ -106,52 +121,53 @@
 
     function renderScan(dna) {
         return '<p class="dna-copy-lead">' + esc(dna.overview) + '</p>' +
-            '<p class="dna-copy-note">Start with the complete performance. Do not solve the fingers yet — first hear the shape, the pulse and the moment the phrase returns.</p>' +
-            '<button type="button" class="dna-action" data-dna-action="play-all">Play the complete riff</button>';
+            '<p class="dna-copy-note">Don’t think about the fingers yet. Listen for the pulse and for the moment the phrase comes back around.</p>' +
+            '<button type="button" class="dna-action" data-dna-action="play-all">Play full riff</button>';
+    }
+
+    function timesLabel(count) {
+        return count === 1 ? 'Plays once' : 'Plays ' + count + ' times';
     }
 
     function renderSplit() {
-        var cards = moleculeMap().map(function (m) {
-            return '<article class="dna-molecule-card" style="--molecule-color:' + esc(m.color) + '">' +
-                '<span class="dna-card-label">Molecule ' + esc(m.id) + ' · ' + m.count + ' passes</span>' +
-                '<strong class="dna-card-title">' + esc(m.title) + '</strong>' +
-                '<p class="dna-card-desc">' + esc(m.description) + '</p>' +
-                '<button type="button" class="dna-card-button" style="--molecule-color:' + esc(m.color) + '" data-dna-segment="' + m.firstIndex + '">Loop molecule ' + esc(m.id) + '</button>' +
-                '</article>';
+        var rows = moleculeMap().map(function (m) {
+            return '<li class="dna-part">' +
+                '<span class="dna-part-letter" aria-hidden="true">' + esc(m.id) + '</span>' +
+                '<div><strong>' + esc(m.title) + '</strong>' +
+                '<p>' + esc(m.description) + '</p>' +
+                '<span class="dna-part-meta">' + timesLabel(m.count) + '</span></div>' +
+                '<button type="button" class="dna-part-loop" data-dna-segment="' + m.firstIndex + '" aria-label="Loop ' + esc(m.title) + '">Loop</button>' +
+                '</li>';
         }).join('');
-        return '<div class="dna-card-grid">' + cards + '</div>';
+        return '<ul class="dna-list">' + rows + '</ul>';
     }
 
     function renderIsolate(dna) {
         if (!dna.atoms.length) {
-            return '<p class="dna-copy-lead">This riff has not been atomized yet.</p><p class="dna-copy-note">You can still use Left hand, Right hand, Tabs and the segment loops above.</p>';
+            return '<p class="dna-copy-lead">No details written for this riff yet.</p><p class="dna-copy-note">Use the left and right hand cameras, the tabs and the loops on the left.</p>';
         }
-        return '<p class="dna-copy-note" style="margin-top:0;margin-bottom:16px">Select an atom. RiffKiller will open the most useful camera, slow the phrase down and loop the correct molecule.</p>' +
-            '<div class="dna-atom-list">' + dna.atoms.map(function (atom, index) {
-                return '<button type="button" class="dna-atom-card" data-dna-atom="' + index + '">' +
-                    '<span class="dna-atom-type">' + esc(atom.type || 'Atom') + '</span>' +
-                    '<strong>' + esc(atom.label || 'Musical event') + '</strong>' +
-                    '<small>' + esc(atom.tip || 'Watch how this event connects to the pulse.') + '</small>' +
-                '</button>';
-            }).join('') + '</div>';
+        return '<p class="dna-copy-note" style="margin:0 0 6px">Tap one to loop it slowly from the best camera angle.</p>' +
+            '<ul class="dna-list">' + dna.atoms.map(function (atom, index) {
+                return '<li><button type="button" class="dna-detail dna-atom-card" data-dna-atom="' + index + '">' +
+                    '<span class="dna-detail-type">' + esc(atom.type || 'Detail') + '</span>' +
+                    '<strong>' + esc(atom.label || 'Detail') + '</strong>' +
+                    '<small>' + esc(atom.tip || 'Watch how this lines up with the beat.') + '</small>' +
+                '</button></li>';
+            }).join('') + '</ul>';
     }
 
     function renderDecode(dna) {
-        var parts = String(dna.formula).split('+');
-        var formula = parts.map(function (part) { return '<b>' + esc(part.trim()) + '</b>'; }).join('<span>+</span>');
-        return '<div class="dna-decode-grid">' +
-            '<article class="dna-decode-card"><span class="dna-card-label">DNA CODE</span><div class="dna-formula">' + formula + '</div><p class="dna-law">' + esc(dna.law) + '</p></article>' +
-            '<article class="dna-decode-card"><span class="dna-card-label">THE FINGERPRINT</span><div class="dna-fingerprint" aria-label="Riff fingerprint"><i style="--h:40%"></i><i style="--h:72%"></i><i style="--h:52%"></i><i style="--h:28%"></i><i style="--h:40%"></i><i style="--h:72%"></i><i class="break" style="--h:86%"></i><i style="--h:40%"></i></div><p class="dna-insight">' + esc(dna.insight) + '</p></article>' +
-        '</div>';
+        return '<p class="dna-formula">' + esc(sentenceCase(dna.formula)) + '</p>' +
+            '<p class="dna-law">' + esc(dna.law) + '</p>' +
+            '<p class="dna-insight">' + esc(dna.insight) + '</p>';
     }
 
     function renderMutate(dna) {
         var mutation = dna.mutation || {};
-        return '<article class="dna-mutation-card"><span class="dna-card-label">SAME DNA · NEW RIFF</span>' +
-            '<strong class="dna-card-title">' + esc(mutation.title || 'Build a mutation') + '</strong>' +
-            '<p class="dna-card-desc">' + esc(mutation.description || '') + '</p>' +
+        return '<strong class="dna-mutation-title">' + esc(mutation.title || 'Write a riff of your own') + '</strong>' +
+            (mutation.description ? '<p class="dna-copy-note">' + esc(mutation.description) + '</p>' : '') +
             '<ol class="dna-mutation-steps">' + (mutation.steps || []).map(function (step) { return '<li>' + esc(step) + '</li>'; }).join('') + '</ol>' +
-            '<button type="button" class="dna-action" data-dna-stage-jump="split">Return to the molecules</button></article>';
+            '<button type="button" class="dna-action dna-action--text" data-dna-stage-jump="split">← Back to the parts</button>';
     }
 
     function renderStage(stage) {
@@ -159,10 +175,8 @@
         activeStage = stage;
         var dna = getDNA(activeRiff);
         var meta = STAGES[stage];
-        var kicker = document.getElementById('dnaStageKicker');
         var title = document.getElementById('dnaStageTitle');
         var content = document.getElementById('dnaStageContent');
-        if (kicker) kicker.textContent = meta.kicker;
         if (title) title.textContent = meta.title;
         document.querySelectorAll('.dna-stage').forEach(function (button) {
             var selected = button.dataset.dnaStage === stage;
@@ -196,7 +210,6 @@
             if (!segment || button.querySelector('.dna-segment-meta')) return;
             var name = button.querySelector('.segment-name');
             if (name && segment.displayName) name.textContent = segment.displayName;
-            if (name && segment.molecule) name.insertAdjacentHTML('beforeend', '<span class="dna-molecule-badge">' + esc(segment.molecule) + '</span>');
             var meta = document.createElement('span');
             meta.className = 'dna-segment-meta';
             meta.textContent = segment.relation || segment.function || 'Practice segment';
@@ -209,15 +222,10 @@
         if (Number(riff && riff.id) === 1 && Array.isArray(riff.segments)) {
             riff.segments.forEach(function (segment, index) {
                 if (!segment.molecule) segment.molecule = index % 2 === 0 ? 'A' : 'B';
-                if (!segment.moleculeName) segment.moleculeName = index % 2 === 0 ? 'The statement' : 'The answer';
+                if (!segment.moleculeName) segment.moleculeName = index % 2 === 0 ? 'Statement' : 'Answer';
                 if (!segment.relation) segment.relation = index < 2 ? (index === 0 ? 'Core cell' : 'Resolution') : 'Repeat';
             });
         }
-        var dna = getDNA(riff);
-        var formula = document.getElementById('dnaCompactFormula');
-        var overview = document.getElementById('dnaOverviewText');
-        if (formula) formula.textContent = dna.formula;
-        if (overview) overview.textContent = dna.overview;
         renderStructure();
         decorateSegmentControls();
         document.querySelectorAll('.dna-stage').forEach(function (button) {
@@ -241,10 +249,12 @@
 
     function segmentChanged(index) {
         currentSegmentIndex = Number(index) || 0;
-        document.querySelectorAll('.dna-structure-chip').forEach(function(el) {
-            var segment = activeRiff && activeRiff.segments[currentSegmentIndex];
-            el.classList.toggle('active', !!segment && el.textContent === segment.molecule);
-        });
+        var chips = Array.prototype.slice.call(document.querySelectorAll('.dna-structure-chip'));
+        var exact = chips.filter(function (el) { return Number(el.dataset.dnaSegment) === currentSegmentIndex; });
+        var segment = activeRiff && activeRiff.segments && activeRiff.segments[currentSegmentIndex];
+        // Detail loops past the timeline light the first block of their part.
+        if (!exact.length && segment) exact = chips.filter(function (el) { return el.dataset.part === segment.molecule; }).slice(0, 1);
+        chips.forEach(function (el) { el.classList.toggle('active', exact.indexOf(el) >= 0); });
     }
 
     global.RiffDNA = { init: init, renderStage: renderStage, segmentChanged: segmentChanged, decorateSegmentControls: decorateSegmentControls };

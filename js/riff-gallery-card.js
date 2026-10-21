@@ -38,9 +38,9 @@
         card.dataset.id = String(riff.id);
 
         var diffKey = ['beginner', 'intermediate', 'advanced'].indexOf(riff.difficulty) >= 0 ? riff.difficulty : 'intermediate';
-        var difficultyBadge =
-            '<div class="riff-difficulty riff-difficulty--' + diffKey + '">' + DIFF_LABELS[diffKey] + '</div>';
-        var freeTag = riff.isFree ? '<div class="riff-free-tag">FREE</div>' : '';
+        // Сложность — текстом под названием, на обложке остаётся только метка доступа
+        var levelHtml = '<span class="riff-level riff-level--' + diffKey + '"> · ' + DIFF_LABELS[diffKey] + '</span>';
+        var freeTag = riff.isFree ? '<div class="riff-free-tag">Free</div>' : '';
         // hooks.locked: платный рифф для гостя/без подписки — замок заранее, а не сюрприз-редирект на оплату
         var lockTag = hooks.locked
             ? '<div class="riff-lock-tag" title="Premium"><svg viewBox="0 0 16 16" width="12" height="12" fill="none" aria-hidden="true"><rect x="3" y="7" width="10" height="7" rx="1.5" stroke="currentColor" stroke-width="1.5"/><path d="M5.5 7V5a2.5 2.5 0 015 0v2" stroke="currentColor" stroke-width="1.5"/></svg>Premium</div>'
@@ -62,7 +62,6 @@
             'onerror="this.onerror=null; this.style.visibility=\'hidden\'; this.parentElement.querySelector(\'.riff-image-preloader\').style.display=\'none\';">' +
             '</div>' +
             '<div class="riff-overlay riff-overlay--hub" aria-hidden="true"></div>' +
-            difficultyBadge +
             '<button type="button" class="riff-favorite-btn' +
             (isFav ? ' active' : '') +
             '" aria-label="' +
@@ -80,6 +79,7 @@
             esc(riff.song) +
             '</div><div class="riff-artist">' +
             esc(riff.artist) +
+            levelHtml +
             '</div>' +
             (hooks.extraMetaHtml || '');
 

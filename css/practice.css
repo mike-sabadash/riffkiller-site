@@ -2051,7 +2051,4 @@
 .practice-header .breadcrumb-link::before {
     content: '← ';
 }
-/* Один главный заголовок на экране: блок DNA — второй уровень */
-.dna-overview .dna-overview-copy h2 {
-    font-size: clamp(1.125rem, 2vw, 1.5rem);
-}
+

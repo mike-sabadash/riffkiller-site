@@ -1081,6 +1081,15 @@
             }
             .grid-3, .tools-grid, .riff-grid { grid-template-columns: 1fr; }
         }
+        /* Без плейсхолдеров и одинаковых плиток */
+        .comp-video img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .comp-video--one img { filter: grayscale(1) brightness(.6); }
+        .comp-video--split { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; background: #000; }
+        .included-list { list-style: none; margin: 40px auto 0; padding: 0; max-width: 960px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 32px; text-align: left; }
+        .included-list li { padding-top: 16px; border-top: 1px solid rgba(255, 255, 255, 0.12); }
+        .included-list strong { display: block; color: #fff; font-size: 1rem; font-weight: 600; margin-bottom: 6px; }
+        .included-list span { color: rgba(255, 255, 255, 0.6); font-size: 0.9rem; line-height: 1.5; }
+        @media (max-width: 720px) { .included-list { grid-template-columns: 1fr; gap: 20px; } }
     </style>
 </head>
 <body data-rk-header="landing" data-logo-href="#">
@@ -1095,7 +1104,7 @@
         <div class="hero-tab-pattern" aria-hidden="true"></div>
         <div class="container">
             <div class="hero-intro" style="text-align: center; max-width: 800px; margin: 0 auto;">
-                <h1 class="hero-title">Kill every riff.<br><span class="hero-title-line2">One <span class="hero-shot-group"><span class="hero-shot-fire" aria-hidden="true">🔥</span><span class="hero-shot-word">shot</span></span> at a time.</span></h1>
+                <h1 class="hero-title">Kill every riff.<br><span class="hero-title-line2">One <span class="hero-shot-group"><span class="hero-shot-word">shot</span></span> at a time.</span></h1>
                 <p class="hero-sub">Short breakdowns, left/right hand split, slow motion, loops, synced tabs — all in one app.</p>
                 <div class="hero-cta">
                     <button type="button" class="btn btn-primary btn-hero-try">Try Free →</button>
@@ -1109,11 +1118,11 @@
                     <div class="split-demo">
                         <div class="split-left">
                             <img class="split-preview-img" src="assets/img/left_hand_mainpage.jpg" alt="Left hand — fretboard view" width="1280" height="720" fetchpriority="high" decoding="async">
-                            <span class="video-label">🎸 Left hand</span>
+                            <span class="video-label">Left hand</span>
                         </div>
                         <div class="split-right">
                             <img class="split-preview-img" src="assets/img/right_hand_mainpage.jpg" alt="Right hand — picking hand view" width="1280" height="720" decoding="async">
-                            <span class="video-label">🎸 Right hand</span>
+                            <span class="video-label">Right hand</span>
                         </div>
                     </div>
                     <div class="timeline-mock">
@@ -1126,10 +1135,10 @@
                             <span class="segment">Shot 6 (0:17)</span>
                         </div>
                         <div class="controls-demo">
-                            <span class="control-badge">⏵ 0.5x</span>
+                            <span class="control-badge">0.5x</span>
                             <span class="control-badge">0.75x</span>
                             <span class="control-badge">1x</span>
-                            <span class="control-badge">🔁 Loop</span>
+                            <span class="control-badge">Loop</span>
                         </div>
                     </div>
                 </div>
@@ -1141,7 +1150,6 @@
     <!-- Killer Shots (3 pillars) -->
     <section class="section-glow-left">
         <div class="container section-intro">
-            <div class="section-eyebrow">Shots</div>
             <div class="section-title">One riff. One shot.</div>
             <div class="section-sub">Every riff sliced into 10–20 second focused segments – each "shot" is a micro‑lesson.</div>
             <div class="grid-3">
@@ -1167,16 +1175,15 @@
     <!-- Before / After -->
     <section class="section-glow-right">
         <div class="container section-intro">
-            <div class="section-eyebrow">Compare</div>
-            <div class="section-title">Traditional lessons vs. Riff Killer</div>
+            <div class="section-title">Why two cameras</div>
             <div class="comparison">
                 <div class="comp-card">
-                    <div class="comp-video">🎥 YouTube (one angle)</div>
-                    <div class="comp-caption"><strong>Before</strong><br>Endless searching, manual tabs, missing hand positions.</div>
+                    <div class="comp-video comp-video--one"><img src="assets/img/right_hand_mainpage.jpg" alt="A single camera angle" loading="lazy" decoding="async"></div>
+                    <div class="comp-caption"><strong>A typical video lesson</strong><br>One angle, tabs in another tab, and you rewind by hand.</div>
                 </div>
                 <div class="comp-card">
-                    <div class="comp-video" style="background: #151a2a;">🎸 Riff Killer – split view</div>
-                    <div class="comp-caption"><strong>Riff Killer</strong><br>Left + right hand, synced tabs, slow mo, loop — everything in one place.</div>
+                    <div class="comp-video comp-video--split"><img src="assets/img/left_hand_mainpage.jpg" alt="Left hand camera" loading="lazy" decoding="async"><img src="assets/img/right_hand_mainpage.jpg" alt="Right hand camera" loading="lazy" decoding="async"></div>
+                    <div class="comp-caption"><strong>Riff Killer</strong><br>Both hands at once, tabs under the video, slow-down and loop on one screen.</div>
                 </div>
             </div>
         </div>
@@ -1185,23 +1192,18 @@
     <!-- Tools -->
     <section class="tools-section section-glow-left">
         <div class="container section-intro">
-            <div class="section-eyebrow">Tools</div>
-            <div class="section-title">Everything you need to 10x your workflow</div>
-            <div class="tools-grid">
-                <div class="card tool-card"><span class="tool-icon">●</span><h3>Split View</h3><p>Both hands, side by side.</p></div>
-                <div class="card tool-card"><span class="tool-icon">●</span><h3>Slow Motion</h3><p>0.5x and 0.75x playback.</p></div>
-                <div class="card tool-card"><span class="tool-icon">●</span><h3>Loop</h3><p>Repeat any shot endlessly.</p></div>
-                <div class="card tool-card"><span class="tool-icon">●</span><h3>Synced Tabs</h3><p>Tab notation aligned with video.</p></div>
-                <div class="card tool-card"><span class="tool-icon">●</span><h3>Any Device</h3><p>Works on phone, tablet, desktop.</p></div>
-                <div class="card tool-card"><span class="tool-icon">●</span><h3>Fresh Riffs</h3><p>New tracks added monthly.</p></div>
-            </div>
+            <div class="section-title">Also included</div>
+            <ul class="included-list">
+                <li><strong>Tabs under the video</strong><span>Each shot has its own tab, shown right under the hands.</span></li>
+                <li><strong>Phone, tablet or laptop</strong><span>Works in the browser, nothing to install.</span></li>
+                <li><strong>New riffs every month</strong><span>The library grows with every update.</span></li>
+            </ul>
         </div>
     </section>
 
     <!-- Testimonials -->
     <section class="section-glow-right">
         <div class="container section-intro">
-            <div class="section-eyebrow">Voices</div>
             <div class="section-title">What guitarists are saying</div>
             <div class="grid-3">
                 <div class="card card-testimonial">
@@ -1232,7 +1234,6 @@
     <!-- Riff Library -->
     <section class="section-glow-left">
         <div class="container section-intro">
-            <div class="section-eyebrow">Library</div>
             <div class="section-title">Riff Library</div>
             <div class="section-sub">100+ famous riffs, growing every month. Rock, metal, blues, funk.</div>
             <div class="riff-grid">
@@ -1250,7 +1251,6 @@
     <!-- Pricing -->
     <section class="section-glow-right" id="plans">
         <div class="container section-intro">
-            <div class="section-eyebrow">Plans</div>
             <div class="section-title">Start killing riffs today</div>
             <div class="pricing">
                 <div class="price-card"><h3>Free trial</h3><div class="price">$0</div><p>One full riff: Black Dog<br>Try the split view, slow mo, loop.</p><button class="btn btn-outline" style="margin-top: 24px;">Try Free</button></div>

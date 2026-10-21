@@ -1,0 +1,80 @@
+/* Профиль без «геймификации в эмодзи»: плоские карточки, цифры и прогресс, без XP-бейджей и свечений.
+   Подключается последним, после inline-стилей profile.html. */
+.practice-stats-grid { gap: 12px; }
+.practice-stat {
+    height: auto;
+    padding: 18px 20px;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    gap: 6px;
+    border: 1px solid rgba(255,255,255,.06);
+    border-radius: 14px;
+    background: #121214;
+}
+.practice-stat-value { font-size: 28px; }
+.practice-stat-label {
+    order: 2;
+    text-align: left;
+    text-transform: none;
+    letter-spacing: 0;
+    font-size: 13px;
+    color: rgba(255,255,255,.5);
+}
+
+.game-dashboard .card,
+.game-dashboard .card:hover {
+    border: 1px solid rgba(255,255,255,.06);
+    border-radius: 16px;
+    padding: 22px 24px;
+    background: #121214;
+    box-shadow: none;
+}
+.game-dashboard .card::after,
+.game-dashboard .card-icon,
+.game-dashboard .badge,
+.game-dashboard .chip-icon { display: none !important; }
+.game-dashboard .content-col { gap: 14px; }
+.game-dashboard .header-row { min-height: 0; }
+.game-dashboard .row-label {
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 0;
+    text-transform: none !important;
+    color: #fff;
+}
+.game-dashboard .label-group { justify-content: flex-start; width: 100%; gap: 8px; }
+.game-dashboard .main-unit { text-transform: none !important; font-size: 18px; }
+.game-dashboard .streak-card,
+.game-dashboard .challenge-card { background: #121214 !important; }
+.practice-stat-label { letter-spacing: 0 !important; }
+.view-all-link { text-transform: none !important; letter-spacing: 0 !important; font-size: 14px; }
+.game-dashboard .progress-bar { height: 6px; background: rgba(255,255,255,.08); }
+.game-dashboard .streak-fill,
+.game-dashboard .challenge-fill { background: #9355e5; box-shadow: none; }
+.game-dashboard .progress-hint { font-size: 13px; color: rgba(255,255,255,.45); }
+.game-dashboard .main-number { font-size: 40px; color: #fff; background: none; -webkit-text-fill-color: currentColor; text-shadow: none; }
+.game-dashboard .chip,
+.game-dashboard .completed-chip {
+    padding: 4px 10px;
+    border: 1px solid rgba(255,255,255,.1);
+    border-radius: 6px;
+    background: transparent;
+    color: rgba(255,255,255,.6);
+    font-size: 13px;
+}
+
+.achievement-card {
+    border: 1px solid rgba(255,255,255,.06);
+    border-radius: 14px;
+    background: #121214;
+}
+.achievement-card.earned::before,
+.achievement-card.earned::after { display: none; }
+.achievement-icon { display: none; }
+.achievement-name { font-weight: 600; }
+.achievement-card.earned .achievement-name::after {
+    content: ' · Earned';
+    font-weight: 400;
+    color: #b88cff;
+}
