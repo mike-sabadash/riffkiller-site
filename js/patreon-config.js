@@ -17,7 +17,7 @@ function getPatreonRedirectUri() {
 const PATREON_CAMPAIGN_URL = 'https://www.patreon.com/cw/MikeSabadash?vanity=MikeSabadash';
 
 const PATREON_CONFIG = {
-    clientId: '5LA_sQVFkho7zdC6d798d-rYBeBOa2h5r2vUO44p3LCKfE5rNLQfzKq6kY0mz6r2',
+    clientId: 'BGxCjAIvlmmx9cByjsYaUhutfLhfpbDTvpGULH6ZUBtskqtiuz8zzoKveSVi3aoo',
     redirectUri: getPatreonRedirectUri(),
     apiBase: 'https://www.patreon.com',
     responseType: 'code',
