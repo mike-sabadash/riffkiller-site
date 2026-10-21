@@ -138,6 +138,73 @@ test('editor captures boundaries, edits Atoms, saves and reopens without losing 
     if(process.env.QA_SCREENSHOTS)await page.screenshot({path:path.join(process.env.QA_SCREENSHOTS,'editor-desktop.png'),fullPage:true});
     await practice(page);assert.match(await page.locator('.segment-btn').nth(1).innerText(),/Edited in browser/);
 });
+// Browser-playable stand-in for the camera files (sandboxed Chromium may lack H.264).
+let webmCache;
+function webm(){
+    if(!webmCache){const file=path.join(require('node:os').tmpdir(),'rk-editor-'+process.pid+'.webm');
+        require('node:child_process').execFileSync('ffmpeg',['-hide_banner','-loglevel','error','-y','-f','lavfi','-i','testsrc2=size=640x360:rate=30','-t','18.57','-c:v','libvpx-vp9','-b:v','200k','-deadline','realtime',file]);webmCache=file;}
+    return webmCache;
+}
+async function editor(t,width=1440){
+    // These tests save riff 1; put the catalog back so later tests see the fixture.
+    const store=path.join(site.dir,'data/riffs.json'),original=fs.readFileSync(store);t.after(()=>fs.writeFileSync(store,original));
+    const page=await pageFor(t,width);const [name,value]=(await site.adminCookie()).split('=');await page.context().addCookies([{name,value,url:site.base}]);
+    const body=fs.readFileSync(webm());await page.route(/video\.php\?file=/,route=>route.fulfill({status:200,contentType:'video/webm',body,headers:{'Accept-Ranges':'bytes'}}));
+    await page.goto(site.base+'/admin/riffs.html',{waitUntil:'domcontentloaded'});await page.click('.admin-tab[data-tab="edit"]');await page.selectOption('#riffSelect','1');
+    await page.waitForFunction(()=>document.querySelectorAll('#segmentRows .segment-row').length===10);
+    await page.waitForFunction(()=>segmentEditorVideo.readyState>=1&&segmentEditorVideo.duration>0);
+    return page;
+}
+const bounds=page=>page.evaluate(()=>[...document.querySelectorAll('#segmentRows .segment-row')].map(r=>[Number(r.querySelector('.start').value),Number(r.querySelector('.end').value)]));
+test('markup editor: S splits at the playhead, undo restores, dragging a boundary trims, keys pick roles and save persists',async t=>{
+    const page=await editor(t);
+    await page.evaluate(()=>{segmentEditorVideo.currentTime=2.5});await page.waitForFunction(()=>!segmentEditorVideo.seeking);
+    await page.keyboard.press('s');
+    assert.deepEqual((await bounds(page)).slice(1,3),[[1.7,2.5],[2.5,3.44]]);
+    await page.keyboard.press(process.platform==='darwin'?'Meta+z':'Control+z');
+    assert.equal((await bounds(page)).length,10);
+    // Tap S while the video runs past the end: a new part from the last boundary to the playhead.
+    await page.evaluate(()=>{segmentEditorVideo.currentTime=18});await page.waitForFunction(()=>!segmentEditorVideo.seeking);
+    const last=(await bounds(page)).at(-1)[1];await page.keyboard.press('s');
+    assert.deepEqual((await bounds(page)).at(-1),[last,18]);
+    // Trim the start of part 3 with the mouse.
+    await page.locator('.tl').scrollIntoViewIfNeeded();const edge=await page.locator('.tl-seg').nth(2).locator('.tl-edge.l').boundingBox();
+    await page.mouse.move(edge.x+3,edge.y+10);await page.mouse.down();await page.mouse.move(edge.x+33,edge.y+10,{steps:4});await page.mouse.up();
+    const trimmed=(await bounds(page))[2];assert.ok(trimmed[0]>3.64&&trimmed[0]<trimmed[1],JSON.stringify(trimmed));
+    await page.locator('.tl-seg').nth(0).click();
+    await page.keyboard.press('ArrowDown');
+    assert.equal(await page.evaluate(()=>SegmentEditor.selected()),1);
+    await page.locator('#segmentRows .segment-row').nth(1).locator('select.role').selectOption('answer');
+    await page.locator('#segmentRows .segment-row').nth(1).locator('.function').fill('Replies to the first cell');
+    assert.match(await page.locator('#edStatus').innerText(),/несохранённые/);
+    assert.match(await page.locator('#segmentRows .segment-row').nth(1).locator('.seg-role-help').innerText(),/Answer/);
+    const save=page.waitForResponse(r=>r.url().endsWith('/api/riffs/save.php'));await page.keyboard.press('Control+s');assert.equal((await save).status(),200);
+    await page.waitForFunction(()=>/Сохранено/.test(document.getElementById('edStatus').textContent));
+    const saved=JSON.parse(fs.readFileSync(path.join(site.dir,'data/riffs.json')))[0];
+    assert.equal(saved.segments.length,11);assert.equal(saved.segments[1].role,'answer');assert.equal(saved.segments[1].function,'Replies to the first cell');
+    assert.equal(saved.segments[2].start,trimmed[0]);assert.equal(saved.dna.atoms.length,4);
+    if(process.env.QA_SCREENSHOTS)await page.screenshot({path:path.join(process.env.QA_SCREENSHOTS,'markup-editor.png'),fullPage:true});
+});
+test('two cameras from one recording: upload, frame both hands, cut and fill both video fields',async t=>{
+    const page=await editor(t);
+    await page.click('#openCutter');await page.setInputFiles('#cutFile',webm());
+    await page.waitForFunction(()=>!document.getElementById('cutRun').disabled,{timeout:30000});
+    const h=await page.locator('.cut-frame.right .cut-handle[data-h="nw"]').boundingBox();
+    await page.mouse.move(h.x+7,h.y+7);await page.mouse.down();await page.mouse.move(h.x+60,h.y+40,{steps:4});await page.mouse.up();
+    await page.click('#cutRun');
+    await page.waitForFunction(()=>!document.getElementById('cutter').open,{timeout:60000});
+    const left=await page.inputValue('#videoFile'),right=await page.inputValue('#videoFileRight');
+    assert.match(left,/black-dog-left-2\.mp4$/);assert.match(right,/black-dog-right-2\.mp4$/);
+    for(const f of [left,right])assert.ok(fs.existsSync(path.join(site.dir,f)),f);
+    const save=page.waitForResponse(r=>r.url().endsWith('/api/riffs/save.php'));await page.click('#submitBtn');assert.equal((await save).status(),200);
+    const saved=JSON.parse(fs.readFileSync(path.join(site.dir,'data/riffs.json')))[0];
+    assert.equal(saved.videoFile,left);assert.match(saved.videoSource.file,/black-dog-source\.webm$/);
+    assert.ok(saved.videoSource.right.w<320&&Math.abs(saved.videoSource.right.w/saved.videoSource.right.h-16/9)<0.02,JSON.stringify(saved.videoSource));
+});
+test('riff editor fits a phone screen without horizontal scrolling',async t=>{
+    const page=await editor(t,390);
+    const sizes=await page.evaluate(()=>({screen:innerWidth,page:document.documentElement.scrollWidth}));assert.ok(sizes.page<=sizes.screen+1,JSON.stringify(sizes));
+});
 test('mobile practice has all stages and usable segment controls without horizontal overflow',async t=>{
     const page=await pageFor(t,390);await practice(page);
     const sizes=await page.evaluate(()=>({screen:innerWidth,page:document.documentElement.scrollWidth}));assert.ok(sizes.page<=sizes.screen+1,JSON.stringify(sizes));
