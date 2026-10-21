@@ -98,19 +98,10 @@
             (Array.isArray(dna.atoms) && dna.atoms.length > 0) || !!(dna.rule || dna.law || dna.overview);
     }
 
-    // Roles in playing order with neighbours merged; a repeated cycle is shown once with its count.
+    // The riff's phrase: the repeating block of roles and how many times it plays (see RiffDNAVocab.phrase).
     function phrase() {
-        var seq = [];
-        segments().forEach(function (s) {
-            if (s.role && (!seq.length || seq[seq.length - 1].key !== s.role.key)) seq.push(s.role);
-        });
-        for (var size = 1; size <= seq.length / 2; size++) {
-            if (seq.length % size) continue;
-            var ok = true;
-            for (var i = size; i < seq.length && ok; i++) ok = seq[i].key === seq[i % size].key;
-            if (ok) return { unit: seq.slice(0, size), times: seq.length / size };
-        }
-        return { unit: seq, times: 1 };
+        var p = V.phrase(segments().map(function (s) { return s.role ? s.role.key : ''; }));
+        return { unit: p.unit.map(V.role), times: p.times };
     }
 
     function roleWord(role) {

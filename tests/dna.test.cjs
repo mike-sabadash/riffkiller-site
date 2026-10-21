@@ -18,3 +18,14 @@ test('techniques resolve by key and unknown keys stay unknown',()=>{
     assert.equal(V.technique('qbend').label,'Quarter-tone bend');
     assert.equal(V.technique('nope'),null);
 });
+test('the phrase is the repeating block of any length, not only call/answer pairs',()=>{
+    const p=keys=>{const r=V.phrase(keys);return r.unit.join(' ')+' x'+r.times;};
+    assert.equal(p(['call','answer','call','answer','call','answer']),'call answer x3');
+    assert.equal(p(['launch','push','land','launch','push','land']),'launch push land x2');
+    assert.equal(p(['launch','','push','land','','launch','push','land']),'launch push land x2','practice-only shots are skipped');
+    assert.equal(p(['call','push','call','call','push','call']),'call push call x2','a block may start and end on one role');
+    assert.equal(p(['launch','launch','push','land','launch','push','push','land']),'launch push land x2','passes cut into different numbers of shots');
+    assert.equal(p(['launch','climb','hang','turn','land']),'launch climb hang turn land x1');
+    assert.equal(p(['launch','push','land','launch','push','turn']),'launch push land launch push turn x1','a varied last pass is shown in full');
+    assert.equal(p([]),' x1');
+});

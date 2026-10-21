@@ -78,7 +78,33 @@
         return LEGACY_NAMES[name] || '';
     }
 
+    // Shortest block that repeats through the whole riff, with neighbouring shots of one role merged.
+    // Works for any block length: Call → Answer ×4, Launch → Push → Land ×2, a 5-part phrase played once.
+    // keys: role keys in playing order (practice-only shots left out). Returns { unit: [keys], times }.
+    function merge(list) {
+        return list.filter(function (k, i) { return i === 0 || k !== list[i - 1]; });
+    }
+    function cycle(list) {
+        for (var size = 1; size <= list.length / 2; size++) {
+            if (list.length % size) continue;
+            var ok = true;
+            for (var i = size; i < list.length && ok; i++) ok = list[i] === list[i % size];
+            if (ok) return { unit: list.slice(0, size), times: list.length / size };
+        }
+        return null;
+    }
+    function phrase(keys) {
+        keys = (keys || []).filter(Boolean);
+        // Shot by shot first, so a block that starts and ends on the same role (Call → Push → Call) is not glued
+        // to the next pass; then with neighbours merged, for passes cut into a different number of shots.
+        var found = cycle(keys);
+        if (found && merge(found.unit).length > 1) return { unit: merge(found.unit), times: found.times };
+        var merged = merge(keys);
+        return cycle(merged) || { unit: merged, times: 1 };
+    }
+
     global.RiffDNAVocab = {
+        phrase: phrase,
         roles: ROLES,
         techniques: TECHNIQUES,
         groupColors: GROUP_COLORS,
