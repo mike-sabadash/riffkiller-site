@@ -106,6 +106,17 @@
         }).filter(Boolean);
     }
 
+    // A technique between two shots (after a boundary was moved) belongs to the closest one.
+    function nearestSegment(segmentRows, time) {
+        let best = -1, bestGap = Infinity;
+        segmentRows.forEach((row, i) => {
+            const start = Number(row.querySelector('.start').value), end = Number(row.querySelector('.end').value);
+            const gap = time < start ? start - time : (time >= end ? time - end : 0);
+            if (gap < bestGap) { bestGap = gap; best = i; }
+        });
+        return best;
+    }
+
     function load(riff) {
         const dna = riff.dna || {};
         Object.entries(fieldIds).forEach(([key, id]) => {
@@ -141,9 +152,7 @@
             const time = parseFloat(get('time'));
             let segmentIndex = segmentRows.findIndex(row => row.dataset.editorId === get('segment'));
             if (Number.isFinite(time)) {
-                const byTime = segmentRows.findIndex(row => time >= Number(row.querySelector('.start').value) && time < Number(row.querySelector('.end').value));
-                if (byTime < 0) throw new Error('Приём ' + (index + 1) + ': время ' + time + ' с не попадает ни в один сегмент.');
-                segmentIndex = byTime;
+                segmentIndex = nearestSegment(segmentRows, time);
             }
             if (segmentIndex < 0) throw new Error('Приём ' + (index + 1) + ': укажите время или выберите сегмент.');
             const technique = get('technique');
