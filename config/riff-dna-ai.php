@@ -42,7 +42,26 @@ function dna_ai_system_prompt() {
         . "\n\nTechnique keys:\n" . implode("\n", $techniques) . "\n";
 }
 
-function dna_ai_user_prompt(array $riff, $notes) {
+/** Riffs the author marked as reference (riff.dnaReference): examples of how they apply the rules. */
+function dna_ai_reference_riffs($excludeId, $limit = 2) {
+    $list = json_decode((string)@file_get_contents(dirname(__DIR__) . '/data/riffs.json'), true);
+    $out = [];
+    foreach (is_array($list) ? $list : [] as $r) {
+        if (count($out) >= $limit) break;
+        if (empty($r['dnaReference']) || (int)($r['id'] ?? 0) === (int)$excludeId) continue;
+        $segments = [];
+        foreach (array_values($r['segments'] ?? []) as $i => $s) {
+            $segments[] = ['index' => $i, 'start' => round((float)($s['start'] ?? 0), 2), 'end' => round((float)($s['end'] ?? 0), 2),
+                'role' => (string)($s['role'] ?? ''), 'function' => (string)($s['function'] ?? '')];
+        }
+        $dna = is_array($r['dna'] ?? null) ? $r['dna'] : [];
+        $out[] = ['song' => (string)($r['song'] ?? ''), 'artist' => (string)($r['artist'] ?? ''), 'segments' => $segments,
+            'dna' => array_intersect_key($dna, array_flip(['overview', 'rule', 'law', 'preserve', 'change', 'failure', 'atoms', 'mutation']))];
+    }
+    return $out;
+}
+
+function dna_ai_user_prompt(array $riff, $notes, array $references = []) {
     $segments = [];
     foreach (array_values($riff['segments'] ?? []) as $i => $s) {
         $segments[] = [
@@ -61,20 +80,46 @@ function dna_ai_user_prompt(array $riff, $notes) {
         'segments' => $segments,
         'currentDna' => $riff['dna'] ?? new stdClass(),
     ];
-    return "Riff data (JSON):\n" . json_encode($context, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT)
+    $examples = $references ? "Reference riffs the author marked as correct. Follow how they apply the rules (roles, wording, length); never copy their content:\n"
+        . json_encode($references, JSON_UNESCAPED_UNICODE) . "\n\n" : '';
+    return $examples . "Riff data (JSON):\n" . json_encode($context, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT)
         . "\n\nAuthor's description:\n" . trim((string)$notes)
         . "\n\nReturn the JSON draft now.";
 }
 
-/** Models sometimes wrap JSON in prose or ``` fences; take the outermost object. */
+/**
+ * Free models wrap JSON in prose, ``` fences or <think> notes, and sometimes leave trailing commas.
+ * Try every balanced {...} from the first one and keep the first that decodes to a draft.
+ */
 function dna_ai_extract_json($text) {
-    $text = trim((string)$text);
-    $text = preg_replace('/^```(?:json)?\s*|\s*```$/i', '', $text);
-    $start = strpos($text, '{');
-    $end = strrpos($text, '}');
-    if ($start === false || $end === false || $end < $start) return null;
-    $data = json_decode(substr($text, $start, $end - $start + 1), true);
-    return is_array($data) ? $data : null;
+    $text = preg_replace('/<think>.*?<\/think>/s', '', (string)$text);
+    $text = preg_replace('/<think>.*$/s', '', $text);
+    $offset = 0;
+    while (($start = strpos($text, '{', $offset)) !== false) {
+        $end = dna_ai_matching_brace($text, $start);
+        if ($end === null) break;
+        $chunk = substr($text, $start, $end - $start + 1);
+        foreach ([$chunk, preg_replace('/,\s*([}\]])/', '$1', $chunk)] as $candidate) {
+            $data = json_decode($candidate, true);
+            if (is_array($data) && (isset($data['segments']) || isset($data['dna']))) return $data;
+        }
+        $offset = $start + 1;
+    }
+    return null;
+}
+
+function dna_ai_matching_brace($text, $start) {
+    $depth = 0; $inString = false; $len = strlen($text);
+    for ($i = $start; $i < $len; $i++) {
+        $c = $text[$i];
+        if ($inString) {
+            if ($c === '\\') $i++;
+            elseif ($c === '"') $inString = false;
+        } elseif ($c === '"') $inString = true;
+        elseif ($c === '{') $depth++;
+        elseif ($c === '}' && --$depth === 0) return $i;
+    }
+    return null;
 }
 
 function dna_ai_text($v, $max) {
@@ -202,8 +247,32 @@ function dna_ai_job_read($id) {
     return is_array($job) ? $job : null;
 }
 
-/** Calls OpenRouter. Returns ['text' => ..., 'model' => ...] or ['error' => message for the admin, 'status' => http]. */
-function dna_ai_complete($system, $user) {
+/**
+ * Asks for the draft and returns ['data' => decoded JSON, 'model' => ...] or ['error', 'status', 'raw'?].
+ * One answer that is not JSON gets a second turn asking for the JSON only.
+ */
+function dna_ai_draft($system, $user) {
+    $messages = [['role' => 'system', 'content' => $system], ['role' => 'user', 'content' => $user]];
+    $result = dna_ai_complete($messages);
+    if (isset($result['error'])) return $result;
+    $data = dna_ai_extract_json($result['text']);
+    if ($data === null) {
+        $messages[] = ['role' => 'assistant', 'content' => mb_substr($result['text'], 0, 6000)];
+        $messages[] = ['role' => 'user', 'content' => 'That was not one valid JSON object. Reply again with only the JSON object described in the rules, nothing before or after it.'];
+        $retry = dna_ai_complete($messages);
+        if (!isset($retry['error']) && ($data = dna_ai_extract_json($retry['text'])) !== null) $result = $retry;
+        elseif (!isset($retry['error'])) $result = $retry;
+    }
+    if ($data === null) {
+        $cut = ($result['finish'] ?? '') === 'length' ? ' Ответ оборвался на середине: модель упёрлась в лимит длины.' : '';
+        return ['status' => 502, 'error' => 'Модель ответила не в формате JSON.' . $cut . ' Нажмите ещё раз: бесплатный режим каждый раз берёт другую модель.',
+            'raw' => mb_substr($result['text'], 0, 3000), 'model' => $result['model']];
+    }
+    return ['data' => $data, 'model' => $result['model']];
+}
+
+/** Calls OpenRouter. Returns ['text', 'model', 'finish'] or ['error' => message for the admin, 'status' => http]. */
+function dna_ai_complete(array $messages) {
     $key = dna_ai_env('OPENROUTER_API_KEY');
     if ($key === '') {
         return ['status' => 503, 'error' => 'ИИ не подключён: на сервере в .env нет OPENROUTER_API_KEY.'];
@@ -211,9 +280,11 @@ function dna_ai_complete($system, $user) {
     $base = rtrim(dna_ai_env('OPENROUTER_BASE_URL', 'https://openrouter.ai/api/v1'), '/');
     $payload = [
         'model' => dna_ai_env('OPENROUTER_MODEL', DNA_AI_DEFAULT_MODEL),
-        'messages' => [['role' => 'system', 'content' => $system], ['role' => 'user', 'content' => $user]],
+        'messages' => $messages,
         'temperature' => 0.3,
-        'max_tokens' => 3000,
+        // Reasoning models spend part of the budget thinking; keep their notes out of the answer.
+        'max_tokens' => 8000,
+        'reasoning' => ['exclude' => true],
         'response_format' => ['type' => 'json_object'],
     ];
     $result = dna_ai_post($base . '/chat/completions', $key, $payload);
@@ -228,10 +299,11 @@ function dna_ai_complete($system, $user) {
         return ['status' => 502, 'error' => dna_ai_error_message($result['status'], $detail)];
     }
     $text = $data['choices'][0]['message']['content'] ?? '';
+    if (is_array($text)) $text = implode('', array_map(fn($part) => is_array($part) ? (string)($part['text'] ?? '') : (string)$part, $text));
     if (!is_string($text) || trim($text) === '') {
         return ['status' => 502, 'error' => 'Модель вернула пустой ответ. Попробуйте ещё раз.'];
     }
-    return ['text' => $text, 'model' => (string)($data['model'] ?? $payload['model'])];
+    return ['text' => $text, 'model' => (string)($data['model'] ?? $payload['model']), 'finish' => (string)($data['choices'][0]['finish_reason'] ?? '')];
 }
 
 function dna_ai_post($url, $key, array $payload) {

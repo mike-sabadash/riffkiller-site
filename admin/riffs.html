@@ -71,6 +71,12 @@
         .riff-grip svg { width: 18px; height: 18px; }
         .riff-move-cell { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
         /* Разметка сегментов по видео */
+        .dna-reference { margin-bottom: 16px; padding-bottom: 0; }
+        .cut.lint { width: min(560px, calc(100vw - 32px)); }
+        .lint-list { margin: 0; padding: 14px 18px 4px 36px; font-size: 14px; line-height: 1.5; }
+        .lint-list li { margin-bottom: 8px; }
+        .lint-list li[data-segment] { cursor: pointer; text-decoration: underline dotted; text-underline-offset: 3px; }
+        .lint-actions { display: flex; justify-content: flex-end; gap: 10px; padding: 12px 18px 16px; }
         .dna-ai { margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid var(--color-border-light); }
         .dna-ai-title { display: block; font-size: 14px; color: #fff; font-weight: 500; }
         .dna-ai .coll-pick-hint { max-width: none; margin-bottom: 10px; }
@@ -92,6 +98,7 @@
         .dna-ai-result ul { margin: 0; padding-left: 18px; }
         .dna-ai-pick { display: flex; flex-wrap: wrap; gap: 16px; margin: 16px 0 10px; color: var(--color-text-secondary); }
         .dna-ai-pick input { margin-right: 6px; vertical-align: middle; }
+        .dna-ai-raw { white-space: pre-wrap; max-height: 260px; overflow: auto; font-size: 12px; background: rgba(0,0,0,.25); padding: 10px; border-radius: 6px; margin-top: 8px; }
         .dna-ai-model { color: var(--color-text-tertiary); font-size: 12px; margin-top: 8px; }
         @media(max-width:720px){ .dna-ai-result dl { grid-template-columns: 1fr; } .dna-ai-result dt { margin-top: 6px; } }
         .dna-atom-row { border:1px solid #50546a; border-radius:8px; padding:12px; margin-bottom:12px; }
@@ -260,12 +267,13 @@
 
             <section class="ed-section" aria-labelledby="hDna">
                 <header><h2 id="hDna">Riff DNA</h2><p>Почему рифф звучит именно так. Это видит ученик в панели DNA рядом с плеером.</p></header>
+                <label class="ed-check dna-reference"><input type="checkbox" id="dnaReference"> Эталон для ИИ: разметка этого риффа проверена, ИИ берёт её за образец</label>
                 <div id="dnaAiPanel" class="dna-ai">
                     <label for="dnaAiNotes" class="dna-ai-title">Черновик с ИИ</label>
                     <p class="coll-pick-hint">Опишите рифф своими словами: что происходит по сегментам, где пауза, куда садится, какие приёмы и примерно когда. ИИ раздаст роли сегментам и заполнит поля ниже по правилам методологии. Ничего не сохраняется, пока вы не проверите черновик и не нажмёте «Сохранить».</p>
                     <textarea id="dnaAiNotes" rows="4" placeholder="Вокал поёт фразу и замолкает, гитара врывается не в долю. Сегменты 1, 3, 5, 9 — вход, 2, 4, 6, 10 — разворот и посадка на E5. 7 и 8 — разбор деталей. На ~2 c четвертьтоновый бенд на 5 ладу G, легато 7–5–6–7 в начале."></textarea>
                     <div class="dna-ai-actions">
-                        <button type="button" class="btn btn-secondary" id="dnaAiRun">Составить черновик</button>
+                        <button type="button" class="ed-btn" id="dnaAiRun">Составить черновик</button>
                         <span id="dnaAiStatus" class="dna-ai-status" role="status"></span>
                     </div>
                     <div id="dnaAiResult" class="dna-ai-result" hidden></div>
@@ -293,6 +301,14 @@
         </div>
     </div>
 
+    <dialog class="cut lint" id="dnaLintDialog" aria-labelledby="dnaLintTitle">
+        <div class="cut-head"><h2 id="dnaLintTitle">Проверьте разметку перед сохранением</h2></div>
+        <ul id="dnaLintList" class="lint-list"></ul>
+        <div class="lint-actions">
+            <button type="button" class="ed-btn" id="dnaLintBack">Вернуться и поправить</button>
+            <button type="button" class="ed-btn primary" id="dnaLintSave">Сохранить как есть</button>
+        </div>
+    </dialog>
     <dialog class="cut" id="cutter" aria-labelledby="cutTitle">
         <div class="cut-head"><h2 id="cutTitle">Две камеры из одного видео</h2><button type="button" class="ed-btn icon" id="cutClose" aria-label="Закрыть">✕</button></div>
         <div class="cut-body">
@@ -342,7 +358,8 @@
 
     <script src="../js/riff-dna-vocab.js?v=dna2"></script>
     <script src="../js/admin-dna.js?v=dna2"></script>
-    <script src="../js/admin-dna-ai.js?v=ai2"></script>
+    <script src="../js/riff-dna-lint.js?v=lint1"></script>
+    <script src="../js/admin-dna-ai.js?v=ai3"></script>
     <script src="../js/admin-segments.js?v=ed1"></script>
     <script src="../js/admin-cutter.js?v=ed1"></script>
     <script>
@@ -644,6 +661,7 @@
         if (g && !Array.prototype.some.call(ge.options, function (o) { return o.value === g; })) { var o = document.createElement('option'); o.value = g; o.textContent = g; ge.appendChild(o); }
         ge.value = g || 'rock';
         document.getElementById('isFree').checked = !!riff.isFree;
+        document.getElementById('dnaReference').checked = !!riff.dnaReference;
         document.getElementById('videoFile').value = riff.videoFile || '';
         document.getElementById('videoFileRight').value = riff.videoFileRight || '';
         document.getElementById('thumbnail').value = riff.thumbnail || '';
@@ -702,7 +720,26 @@
     function videoBase() {
         return 'assets/video/' + (slugOf(document.getElementById('artist').value) || 'artist') + '/' + (slugOf(document.getElementById('song').value) || 'song') + '/';
     }
-    function save() {
+    // Shows the markup warnings and resolves true when the admin still wants to save.
+    function confirmLint(warnings) {
+        var dialog = document.getElementById('dnaLintDialog'), list = document.getElementById('dnaLintList');
+        list.replaceChildren();
+        warnings.forEach(function (w) {
+            var li = document.createElement('li'); li.textContent = w.text;
+            if (Number.isInteger(w.segment)) {
+                li.dataset.segment = w.segment; li.title = 'Показать часть ' + (w.segment + 1);
+                li.onclick = function () { dialog.close(); SegmentEditor.select(w.segment, true); };
+            }
+            list.appendChild(li);
+        });
+        return new Promise(function (resolve) {
+            document.getElementById('dnaLintSave').onclick = function () { dialog.close(); resolve(true); };
+            document.getElementById('dnaLintBack').onclick = function () { dialog.close(); };
+            dialog.onclose = function () { resolve(false); };
+            dialog.showModal();
+        });
+    }
+    function save(checked) {
         var form = document.getElementById('riffForm');
         var editId = form.dataset.editId||'', song = document.getElementById('song').value.trim(), artist = document.getElementById('artist').value.trim();
         if(!song||!artist){ showMsg('Укажите песню и исполнителя', true); document.getElementById(song ? 'artist' : 'song').focus(); return; }
@@ -715,6 +752,8 @@
         var dna;
         try { dna = RiffDNAEditor.read(editingRiff && editingRiff.dna); }
         catch (err) { showMsg(err.message, true); return; }
+        var warnings = checked === true ? [] : RiffDNALint.check({ segments: segs, dna: dna });
+        if (warnings.length) { confirmLint(warnings).then(function (ok) { if (ok) save(true); }); return; }
         var submitBtn = document.getElementById('submitBtn'); submitBtn.disabled = true;
         setStatus('Сохраняю…');
         Promise.all([
@@ -723,7 +762,7 @@
             uT ? uploadImage(uT, th||'assets/img/'+(uT.name||'riff-'+(editId||'new')+'.png')) : Promise.resolve(th),
             uLesson ? uploadVideo(uLesson, basePath + songSlug + '-lesson.mp4', 'lessonVideoProgress') : Promise.resolve(vLesson)
         ]).then(function(r){
-            var riff = Object.assign({}, editingRiff || {}, { song:song, artist:artist, duration: SegmentEditor.duration() || parseFloat(document.getElementById('duration').value)||0, difficulty: document.getElementById('difficulty').value||'intermediate', genre: document.getElementById('genre').value.trim()||'rock', isFree: document.getElementById('isFree').checked, videoFile: r[0]||basePath+'left.mp4', videoFileRight: r[1]||basePath+'right.mp4', thumbnail: r[2]||'assets/img/riff-1.png', lessonVideo: r[3]||vLesson||null, segments: segs, dna: dna, collectionIds: getSelectedCollectionIds() });
+            var riff = Object.assign({}, editingRiff || {}, { song:song, artist:artist, duration: SegmentEditor.duration() || parseFloat(document.getElementById('duration').value)||0, difficulty: document.getElementById('difficulty').value||'intermediate', genre: document.getElementById('genre').value.trim()||'rock', isFree: document.getElementById('isFree').checked, dnaReference: document.getElementById('dnaReference').checked, videoFile: r[0]||basePath+'left.mp4', videoFileRight: r[1]||basePath+'right.mp4', thumbnail: r[2]||'assets/img/riff-1.png', lessonVideo: r[3]||vLesson||null, segments: segs, dna: dna, collectionIds: getSelectedCollectionIds() });
             if (videoSource) riff.videoSource = videoSource;
             if(editId) riff.id = parseInt(editId,10);
             return fetch(saveUrl, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({riff:riff, expectedRiff:editingRiff}) }).then(function(x){return x.json();});

@@ -124,10 +124,10 @@
         box.appendChild(pick);
 
         const actions = el('div', null, 'dna-ai-actions');
-        const apply = el('button', 'Применить к форме', 'btn btn-primary btn-small');
+        const apply = el('button', 'Применить к форме', 'ed-btn primary');
         apply.type = 'button'; apply.id = 'dnaAiApply';
         apply.onclick = applyDraft;
-        const discard = el('button', 'Отклонить', 'btn btn-secondary btn-small');
+        const discard = el('button', 'Отклонить', 'ed-btn');
         discard.type = 'button';
         discard.onclick = () => { draft = null; box.hidden = true; box.replaceChildren(); status(''); };
         actions.append(apply, discard);
@@ -155,12 +155,27 @@
         status('Черновик перенесён в форму. Проверьте поля и нажмите «Сохранить».');
     }
 
+    // When the model's answer could not be read, show it so it can be sent to whoever tunes the rules.
+    function showRaw(raw, model) {
+        const box = $('dnaAiResult');
+        box.replaceChildren();
+        const details = el('details');
+        details.appendChild(el('summary', 'Что ответила модель' + (model ? ' (' + model + ')' : '')));
+        details.appendChild(el('pre', raw, 'dna-ai-raw'));
+        box.appendChild(details);
+        box.hidden = false;
+    }
+
     async function requestJson(url, options) {
         const response = await fetch(url, options);
         const data = await response.json().catch(() => ({
             error: response.status === 504 ? 'Сервер не дождался ответа модели (504). Попробуйте ещё раз.' : 'Сервер ответил не JSON (' + response.status + ').'
         }));
-        if (!response.ok || !data.success) throw new Error(data.error || 'Ошибка ' + response.status);
+        if (!response.ok || !data.success) {
+            const err = new Error(data.error || 'Ошибка ' + response.status);
+            err.raw = data.raw; err.model = data.model;
+            throw err;
+        }
         return data;
     }
 
@@ -171,6 +186,7 @@
         if (notes.length < 10) { status('Опишите рифф хотя бы одной фразой.', true); return; }
         const button = $('dnaAiRun');
         button.disabled = true;
+        $('dnaAiResult').hidden = true;
         status('ИИ составляет черновик…');
         try {
             let data = await requestJson('/api/riffs/dna-draft.php', {
@@ -192,6 +208,7 @@
             status('Черновик готов. Проверьте его ниже.');
         } catch (err) {
             status(err.message, true);
+            if (err.raw) showRaw(err.raw, err.model);
         } finally {
             button.disabled = false;
         }
