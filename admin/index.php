@@ -698,7 +698,7 @@ $codes = promo_list_all();
         <section>
             <h2>Тестовый доступ</h2>
             <div class="card">
-                <p style="margin:0 0 12px;">Одноразовая ссылка для полного премиум-доступа (без Patreon/Stripe).</p>
+                <p style="margin:0 0 12px;">Одноразовая ссылка для полного премиум-доступа (без Patreon/Stripe), действует сутки.</p>
                 <button type="button" class="btn btn-primary" id="btnTestAccount">Создать тестовую ссылку</button>
                 <div id="testLinkResult" style="margin-top:16px;padding:16px;background:rgba(147,85,229,0.2);border-radius:8px;display:none;word-break:break-all;"></div>
             </div>
