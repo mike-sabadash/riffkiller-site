@@ -127,6 +127,10 @@ for key in PATREON_CLIENT_ID PATREON_CLIENT_SECRET PATREON_CAMPAIGN_ID PATREON_T
   if grep -Eq "^\s*${key}\s*=\s*\S" "$root/.env" 2>/dev/null; then env_set+=("$key"); else env_missing+=("$key"); fi
 done
 note ".env set: ${env_set[*]:-none}; missing: ${env_missing[*]:-none}"
+ff="$(command -v ffmpeg || true)"
+note "ffmpeg: ${ff:-missing}${ff:+ ($("$ff" -hide_banner -version 2>/dev/null | head -n1 | cut -c1-60))}"
+fpm_ini="$(ls /etc/php/*/fpm/php.ini 2>/dev/null | tail -n1)"
+note "php-fpm ini: ${fpm_ini:-none}; disable_functions: $(grep -hE '^\s*disable_functions' "$fpm_ini" /etc/php/*/fpm/pool.d/*.conf 2>/dev/null | tr '\n' ' ' | cut -c1-300); upload_max_filesize: $(grep -hE '^\s*(upload_max_filesize|post_max_size|max_execution_time)' "$fpm_ini" 2>/dev/null | tr '\n' ' ')"
 
 [ "$mode" = preflight ] && exit 0
 [ "$mode" = apply ] || fail "Unknown mode $mode"
