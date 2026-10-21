@@ -445,7 +445,8 @@ function initCollections() {
     if (!grid) return;
     
     grid.innerHTML = '';
-    appState.collectionsData.forEach(collection => {
+    // Пустые коллекции («0») на витрине выглядят как сломанные — показываем только с риффами.
+    appState.collectionsData.filter(c => c.videoCount > 0).forEach(collection => {
         grid.appendChild(createCollectionCard(collection));
     });
 }
@@ -460,14 +461,16 @@ function createCollectionCard(collection) {
     
     card.innerHTML = `
         <img src="${collection.imageUrl}" alt="${collection.name}" class="collection-image" 
-             onerror="this.src='https://via.placeholder.com/300x180/2a2d42/ffffff?text=${encodeURIComponent(collection.name)}'">
+             onerror="this.onerror=null; this.style.visibility='hidden'">
         <div class="collection-overlay"></div>
         <div class="collection-content">
-            <div class="collection-video-info">
-                ${cameraIcon}
-                <span class="video-count">${collection.videoCount}</span>
+            <div class="collection-text">
+                <span class="collection-name">${collection.name}</span>
+                <span class="collection-video-info">
+                    ${cameraIcon}
+                    <span class="video-count">${collection.videoCount} ${collection.videoCount === 1 ? 'riff' : 'riffs'}</span>
+                </span>
             </div>
-            <span class="collection-name">${collection.name}</span>
             <button class="favorite-btn ${collection.isFavorite ? 'active' : ''}" 
                     aria-label="${collection.isFavorite ? 'Remove from favorites' : 'Add to favorites'}">
                 ${favoriteIcon}

@@ -797,3 +797,75 @@ html[data-theme='light'] .profile-mini-name {
         font-size: 0.85rem;
     }
 }
+
+/* ==========================================================================
+   Дизайн-аудит 2026-10: сетка, иерархия кнопок, активный пункт
+   ========================================================================== */
+
+/* Контент шапки на той же вертикали, что и контент страниц (.page-container в base.css); фон полосы — на всю ширину. */
+@media (min-width: 901px) {
+    .topbar .container.topbar-inner {
+        max-width: 1440px;
+        padding-left: 120px;
+        padding-right: 120px;
+    }
+}
+@media (min-width: 901px) and (max-width: 1400px) {
+    .topbar .container.topbar-inner { padding-left: 100px; padding-right: 100px; }
+}
+@media (min-width: 901px) and (max-width: 1200px) {
+    .topbar .container.topbar-inner { padding-left: 80px; padding-right: 80px; }
+}
+@media (min-width: 901px) and (max-width: 1024px) {
+    .topbar .container.topbar-inner { padding-left: 60px; padding-right: 60px; }
+}
+
+/* Одна высота у всех кнопок шапки (было 44 у Plans и 38–40 у Log in / Sign up). */
+:root {
+    --rk-header-btn-min-height: 40px;
+}
+
+/* Один основной CTA: Sign up. Plans — второстепенная ссылка, а не вторая фиолетовая кнопка. */
+.topbar .btn-plans-nav {
+    min-height: var(--rk-header-btn-min-height);
+    padding: 9px 14px;
+    background: transparent;
+    box-shadow: none;
+    color: var(--rk-header-link, #ffffff);
+    border-radius: 12px;
+}
+.topbar .btn-plans-nav:hover {
+    background: rgba(255, 255, 255, 0.06);
+    box-shadow: none;
+    color: #ffffff;
+}
+
+/* Активный раздел виден: подчёркивание акцентом, без «серых» неактивных пунктов. */
+.topbar .topbar-links .topbar-link-btn.active,
+.topbar .topbar-links a[aria-current='page'] {
+    text-decoration: underline;
+    text-decoration-color: #9355e5;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 8px;
+}
+
+/* Мобильное меню: Plans уже есть в списке разделов — дубль-кнопку внизу убираем. */
+.mobile-menu-overlay .mobile-auth .mobile-plans-btn {
+    display: none;
+}
+/* Кнопки как на десктопе: Log in — контур, Sign up — акцент (была белая). */
+.mobile-menu-overlay .mobile-signup-btn.btn-primary {
+    background: #9355e5;
+    color: #ffffff;
+    border: 1px solid transparent;
+}
+.mobile-menu-overlay .mobile-signup-btn.btn-outline {
+    background: rgba(255, 255, 255, 0.03);
+    color: #eef2ff;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+html[data-theme='light'] .mobile-menu-overlay .mobile-signup-btn.btn-outline {
+    background: transparent;
+    color: #12121a;
+    border-color: rgba(18, 18, 26, 0.2);
+}

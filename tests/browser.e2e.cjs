@@ -43,6 +43,14 @@ test('home opens the library; normal sign-up and login survive reload without a 
     await page.waitForFunction(()=>window.authManager.isAuthenticated && window.authManager.hasActiveSubscription());
     if(process.env.QA_SCREENSHOTS)await page.screenshot({path:path.join(process.env.QA_SCREENSHOTS,'library-desktop.png'),fullPage:true});
 });
+test('collection page lists its riffs and the profile shows no placeholder payments',async t=>{
+    const page=await pageFor(t);await page.goto(site.base+'/collection.html?id=1',{waitUntil:'domcontentloaded'});
+    await page.waitForSelector('#collectionRiffsGrid .riff-card');
+    const expected=JSON.parse(fs.readFileSync(path.join(site.dir,'data/collections.json'))).find(c=>c.id===1).riffs?.length;
+    if(expected)assert.equal(await page.locator('#collectionRiffsGrid .riff-card').count(),expected);
+    await page.goto(site.base+'/profile.html',{waitUntil:'domcontentloaded'});
+    assert.equal(await page.getByText('15 March 2026').count(),0);
+});
 test('email submits with Enter, blocks duplicate requests and recovers after a wrong password',async t=>{
     const page=await pageFor(t);await page.goto(site.base+'/',{waitUntil:'domcontentloaded'});
     await page.getByText('Sign up',{exact:true}).first().click();

@@ -34,7 +34,7 @@
     /* ===== ТИПОГРАФИКА ===== */
     
     /* Семейства шрифтов */
-    --font-family-primary: 'Roboto', sans-serif;
+    --font-family-primary: 'Inter', system-ui, -apple-system, sans-serif;
     --font-family-accent: 'Zen Dots', cursive;
     /* Шапка — как landing.html (Inter) */
     --font-header-ui: 'Inter', system-ui, -apple-system, sans-serif;
@@ -148,6 +148,8 @@
 
 html {
     color-scheme: dark;
+    /* Полоса scrollbar-gutter (rk-header.css) красится в фон страницы, а не остаётся пустой */
+    background-color: var(--color-primary);
 }
 
 /*

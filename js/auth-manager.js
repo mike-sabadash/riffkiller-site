@@ -723,7 +723,7 @@ class AuthManager {
             .mini-avatar-img { width: 100%; height: 100%; object-fit: cover; }
             .mobile-subscribe-btn { width: 100%; margin-bottom: 8px; text-align: center; text-decoration: none; display: inline-block; }
             .mobile-profile-link { display: flex; flex-direction: column; gap: 15px; text-decoration: none; }
-            .mobile-profile-name { font-family: 'Roboto', sans-serif; font-size: 16px; color: #ffffff; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.1); }
+            .mobile-profile-name { font-family: Inter, system-ui, sans-serif; font-size: 16px; color: #ffffff; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.1); }
             .mobile-logout-btn { width: 100%; }
         `;
         document.head.appendChild(style);

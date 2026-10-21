@@ -534,3 +534,15 @@ body.profile-page .view-all-link:hover {
         padding: 18px 16px;
     }
 }
+
+/* Пока нет истории платежей — блок подписки на всю ширину */
+body.profile-page .subscription-payment-grid--single {
+    grid-template-columns: 1fr;
+}
+
+/* Пустое состояние подписки: текст и кнопка не слипаются */
+body.profile-page .subscription-details-empty {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+}

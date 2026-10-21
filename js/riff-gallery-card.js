@@ -14,7 +14,7 @@
             .replace(/'/g, '&#39;');
     }
 
-    var DIFF_LABELS = { beginner: 'beginner', intermediate: 'intermediate', advanced: 'advanced' };
+    var DIFF_LABELS = { beginner: 'Beginner', intermediate: 'Intermediate', advanced: 'Advanced' };
 
     var FAVORITE_SVG =
         '<svg class="favorite-icon" viewBox="0 0 16 16" fill="none"><path d="M8 2L9.79611 5.52786L13.6574 6.21885L10.8287 9.16714L11.4721 13L8 11.1279L4.52786 13L5.17127 9.16714L2.3426 6.21885L6.20389 5.52786L8 2Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/></svg>';
@@ -54,9 +54,7 @@
             esc(riff.song) +
             '" class="riff-image" style="opacity:0; transition:opacity 0.3s ease; width:100%; height:100%; object-fit:cover; position:absolute; top:0; left:0;" ' +
             'onload="this.style.opacity=\'1\'; this.parentElement.querySelector(\'.riff-image-preloader\').style.display=\'none\';" ' +
-            'onerror="this.src=\'https://via.placeholder.com/214x180/2a2d42/ffffff?text=' +
-            encodeURIComponent(riff.song || '') +
-            '\'; this.style.opacity=\'1\'; this.parentElement.querySelector(\'.riff-image-preloader\').style.display=\'none\';">' +
+            'onerror="this.onerror=null; this.style.visibility=\'hidden\'; this.parentElement.querySelector(\'.riff-image-preloader\').style.display=\'none\';">' +
             '</div>' +
             '<div class="riff-overlay riff-overlay--hub" aria-hidden="true"></div>' +
             difficultyBadge +
