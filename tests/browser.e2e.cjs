@@ -146,6 +146,8 @@ function webm(){
     return webmCache;
 }
 async function editor(t,width=1440){
+    // These tests save riff 1; put the catalog back so later tests see the fixture.
+    const store=path.join(site.dir,'data/riffs.json'),original=fs.readFileSync(store);t.after(()=>fs.writeFileSync(store,original));
     const page=await pageFor(t,width);const [name,value]=(await site.adminCookie()).split('=');await page.context().addCookies([{name,value,url:site.base}]);
     const body=fs.readFileSync(webm());await page.route(/video\.php\?file=/,route=>route.fulfill({status:200,contentType:'video/webm',body,headers:{'Accept-Ranges':'bytes'}}));
     await page.goto(site.base+'/admin/riffs.html',{waitUntil:'domcontentloaded'});await page.click('.admin-tab[data-tab="edit"]');await page.selectOption('#riffSelect','1');
