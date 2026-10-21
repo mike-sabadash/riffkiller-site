@@ -2,7 +2,9 @@
 /**
  * Test accounts store: data/test_accounts.json
  * Developer test accounts - full premium, never expire.
+ * Login links are one-time and expire after TEST_LOGIN_TTL seconds.
  */
+if (!defined('TEST_LOGIN_TTL')) define('TEST_LOGIN_TTL', 24 * 3600);
 if (!function_exists('test_accounts_path')) {
     function test_accounts_path() {
         return dirname(__DIR__) . '/data/test_accounts.json';
@@ -40,7 +42,9 @@ function test_account_create() {
 function test_account_find_by_token($token) {
     $items = test_accounts_load();
     foreach ($items as $t) {
-        if (hash_equals($t['token'] ?? '', $token)) return $t;
+        if (!hash_equals($t['token'] ?? '', $token)) continue;
+        $created = strtotime($t['created_at'] ?? '');
+        return ($created && time() - $created <= TEST_LOGIN_TTL) ? $t : null;
     }
     return null;
 }
