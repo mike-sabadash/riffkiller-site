@@ -16,120 +16,100 @@
                 "end": 1.6,
                 "name": "Shot 1",
                 "color": "#9355E5",
-                "displayName": "Statement · Pass 1",
-                "molecule": "A",
-                "moleculeName": "The statement",
-                "relation": "Core cell",
-                "function": "Introduces the displaced rhythmic shape",
-                "tabImage": "assets/tabs/led-zeppelin/black-dog/1.png"
+                "displayName": "Launch · Pass 1",
+                "function": "Jumps in off balance: a short 5/8 cell around the 7th fret",
+                "tabImage": "assets/tabs/led-zeppelin/black-dog/1.png",
+                "role": "launch"
             },
             {
                 "start": 1.7,
                 "end": 3.44,
                 "name": "Shot 2",
                 "color": "#9355E5",
-                "displayName": "Answer · Pass 1",
-                "molecule": "B",
-                "moleculeName": "The answer",
-                "relation": "Resolution",
-                "function": "Answers the statement and returns the phrase home",
-                "tabImage": "assets/tabs/led-zeppelin/black-dog/2.png"
+                "displayName": "Land · Pass 1",
+                "function": "Turns around and lands on E5 in 4/4",
+                "tabImage": "assets/tabs/led-zeppelin/black-dog/2.png",
+                "role": "land"
             },
             {
                 "start": 3.64,
                 "end": 5.56,
                 "name": "Shot 3",
                 "color": "#9355E5",
-                "displayName": "Statement · Pass 2",
-                "molecule": "A",
-                "moleculeName": "The statement",
-                "relation": "Repeat",
-                "function": "Repeats the core cell for recognition",
-                "tabImage": "assets/tabs/led-zeppelin/black-dog/3.png"
+                "displayName": "Launch · Pass 2",
+                "function": "Jumps in off balance: a short 5/8 cell around the 7th fret",
+                "tabImage": "assets/tabs/led-zeppelin/black-dog/3.png",
+                "role": "launch"
             },
             {
                 "start": 5.992,
                 "end": 7.42,
                 "name": "Shot 4",
                 "color": "#9355E5",
-                "displayName": "Answer · Pass 2",
-                "molecule": "B",
-                "moleculeName": "The answer",
-                "relation": "Repeat",
-                "function": "Restores the answer after the repeated statement",
-                "tabImage": "assets/tabs/led-zeppelin/black-dog/4.png"
+                "displayName": "Land · Pass 2",
+                "function": "Turns around and lands on E5 in 4/4",
+                "tabImage": "assets/tabs/led-zeppelin/black-dog/4.png",
+                "role": "land"
             },
             {
                 "start": 7.588,
                 "end": 9.1,
                 "name": "Shot 5",
                 "color": "#9355E5",
-                "displayName": "Statement · Pass 3",
-                "molecule": "A",
-                "moleculeName": "The statement",
-                "relation": "Repeat",
-                "function": "Reinforces the asymmetrical pulse",
-                "tabImage": "assets/tabs/led-zeppelin/black-dog/5.png"
+                "displayName": "Launch · Pass 3",
+                "function": "Jumps in off balance: a short 5/8 cell around the 7th fret",
+                "tabImage": "assets/tabs/led-zeppelin/black-dog/5.png",
+                "role": "launch"
             },
             {
                 "start": 9.212,
                 "end": 10.836,
                 "name": "Shot 6",
                 "color": "#9355E5",
-                "displayName": "Answer · Pass 3",
-                "molecule": "B",
-                "moleculeName": "The answer",
-                "relation": "Repeat",
-                "function": "Balances the displaced statement",
-                "tabImage": "assets/tabs/led-zeppelin/black-dog/6.png"
+                "displayName": "Land · Pass 3",
+                "function": "Turns around and lands on E5 in 4/4",
+                "tabImage": "assets/tabs/led-zeppelin/black-dog/6.png",
+                "role": "land"
             },
             {
                 "start": 11.06,
                 "end": 11.816,
                 "name": "Shot 7",
                 "color": "#9355E5",
-                "displayName": "Statement · Detail",
-                "molecule": "A",
-                "moleculeName": "The statement",
-                "relation": "Close study",
-                "function": "Short isolation of the core attack",
-                "tabImage": "assets/tabs/led-zeppelin/black-dog/7.png"
+                "displayName": "Detail · entry",
+                "function": "Short drill of one spot, not part of the phrase",
+                "tabImage": "assets/tabs/led-zeppelin/black-dog/7.png",
+                "role": ""
             },
             {
                 "start": 11.817,
                 "end": 13.44,
                 "name": "Shot 8",
                 "color": "#9355E5",
-                "displayName": "Answer · Detail",
-                "molecule": "B",
-                "moleculeName": "The answer",
-                "relation": "Close study",
-                "function": "Short isolation of the resolving motion",
-                "tabImage": "assets/tabs/led-zeppelin/black-dog/8.png"
+                "displayName": "Detail · landing",
+                "function": "Short drill of one spot, not part of the phrase",
+                "tabImage": "assets/tabs/led-zeppelin/black-dog/8.png",
+                "role": ""
             },
             {
                 "start": 13.441,
                 "end": 15.316,
                 "name": "Shot 9",
                 "color": "#9355E5",
-                "displayName": "Statement · Final pass",
-                "molecule": "A",
-                "moleculeName": "The statement",
-                "relation": "Full-speed check",
-                "function": "Tests the statement at performance speed",
-                "tabImage": "assets/tabs/led-zeppelin/black-dog/9.png"
+                "displayName": "Launch · Final pass",
+                "function": "Jumps in off balance: a short 5/8 cell around the 7th fret",
+                "tabImage": "assets/tabs/led-zeppelin/black-dog/9.png",
+                "role": "launch"
             },
             {
                 "start": 15.456,
                 "end": 17.136,
                 "name": "Shot 10",
                 "color": "#9355E5",
-                "displayName": "Answer · Final pass",
-                "molecule": "B",
-                "moleculeName": "The answer",
-                "relation": "Full-speed check",
-                "function": "Completes the organism at performance speed",
-                "tabImage": "assets/tabs/led-zeppelin/black-dog/10.png"
+                "displayName": "Land · Final pass",
+                "function": "Turns around and lands on E5 in 4/4",
+                "tabImage": "assets/tabs/led-zeppelin/black-dog/10.png",
+                "role": "land"
             }
         ],
         "isFavorite": false,
@@ -140,60 +120,68 @@
         ],
         "id": 1,
         "dna": {
-            "overview": "Black Dog feels like one long, unpredictable phrase. Under the surface it is a two-molecule organism: a displaced statement and a resolving answer, repeated until the landing feels inevitable.",
-            "formula": "5/8 STATEMENT + 4/4 ANSWER + QUARTER-TONE ATTITUDE",
-            "structure": [
-                "A",
-                "B",
-                "A",
-                "B",
-                "A",
-                "B"
+            "overview": "Black Dog lives inside a conversation. The voice leaves a gap, the guitar jumps in off balance, winds through short cells, turns and lands on E.",
+            "rule": "The cells are simple. The phrase is uneven.",
+            "law": "Each cell is short and easy to remember, but where it falls against the beat and the vocal gaps breaks the square feel. Landing on E5 puts the ground back under it.",
+            "preserve": [
+                "The gap before the guitar comes in",
+                "The off-balance entry",
+                "Launch, then turn, then land",
+                "The landing on E"
             ],
-            "law": "The hook does not come from a large collection of notes. Molecule A compresses the pulse, molecule B restores the ground, and their alternation keeps moving the listener between instability and return.",
-            "insight": "The supplied notation exposes the fingerprint: the statement is grouped in 5/8 before the answer returns to 4/4. The phrase sounds free, but its asymmetry is organized.",
+            "change": [
+                "The middle notes",
+                "The register",
+                "How many times a cell repeats",
+                "Articulation"
+            ],
+            "failure": "You remove the gap, the turn or the landing on E. The notes stay, the riff disappears.",
             "atoms": [
                 {
-                    "type": "Pulse",
-                    "label": "The 5/8 compression",
-                    "tip": "Count the short statement as its own cell. Do not force it into four beats.",
+                    "technique": "accent",
+                    "label": "Off-beat entry",
+                    "tip": "Come in right after the gap, a hair early. Count the gap, not the notes.",
+                    "time": 0.05,
                     "segmentIndex": 0,
                     "view": "right",
                     "speed": 0.5
                 },
                 {
-                    "type": "Shape",
-                    "label": "7–5–6–7 contour",
-                    "tip": "Watch the left hand as the compact contour leaves and returns to the seventh fret.",
+                    "technique": "legato",
+                    "label": "7–5–6–7",
+                    "tip": "Watch the left hand leave the 7th fret and come straight back; pick only the first note.",
+                    "time": 0.5,
                     "segmentIndex": 0,
                     "view": "left",
                     "speed": 0.5
                 },
                 {
-                    "type": "Touch",
-                    "label": "Quarter-tone bend",
-                    "tip": "This is attitude, not a full semitone target. Compare the fretting hand with the tab marking.",
+                    "technique": "qbend",
+                    "label": "5th fret",
+                    "tip": "Just a nudge, not a full half step. Compare the hand with the tab.",
+                    "time": 2.1,
                     "segmentIndex": 1,
                     "view": "split",
                     "speed": 0.5
                 },
                 {
-                    "type": "Return",
-                    "label": "Answer lands in 4/4",
-                    "tip": "Hear how the answer makes the preceding asymmetry feel intentional.",
+                    "technique": "anchor",
+                    "label": "E5 (0–2–2)",
+                    "tip": "Land firmly and let it ring: this is home.",
+                    "time": 3.1,
                     "segmentIndex": 1,
                     "view": "right",
                     "speed": 0.75
                 }
             ],
             "mutation": {
-                "title": "Build a Black Dog relative — without copying the riff",
-                "description": "Preserve the asymmetrical relationship, not the original notes. This turns analysis into vocabulary.",
+                "title": "Write a riff in the same spirit",
+                "description": "Keep the uneven entry and the landing, not the notes.",
                 "steps": [
-                    "Create a short five-eighths statement from a different three- or four-note contour.",
-                    "Answer it in four-four and land clearly on a new root note.",
-                    "Add one expressive atom — a quarter-tone bend, rake or slide — but keep the rhythmic law intact.",
-                    "Play A → B three times, then change only the final answer. That change becomes your hook."
+                    "Leave a short gap, then come in with a three- or four-note cell in 5/8.",
+                    "Answer it in 4/4 and land clearly on a new root.",
+                    "Add one technique: a small bend, a rake or a slide.",
+                    "Play the pair three times, then change only the last landing. That change is your hook."
                 ]
             }
         }
