@@ -124,12 +124,15 @@ test('editor captures boundaries, edits Atoms, saves and reopens without losing 
     await page.locator('#segmentRows .name').first().fill('Edited in browser');
     await page.locator('#dnaAtomsEditor [data-field="label"]').first().fill('Edited Atom');
     var firstSave = page.waitForResponse(r=>r.url().endsWith('/api/riffs/save.php'));
-    await page.click('#submitBtn');assert.equal((await firstSave).status(),200);
+    // The first Atom (0.05 s) is now before the moved start of part 1: the markup check says so, save anyway.
+    await page.click('#submitBtn');await page.waitForSelector('#dnaLintDialog[open]');
+    assert.match(await page.locator('#dnaLintList').innerText(),/0\.05 с не попадает/);
+    await page.click('#dnaLintSave');assert.equal((await firstSave).status(),200);
     await page.waitForSelector('#saveFeedback.show');
     await page.waitForFunction(()=>document.querySelector('#riffForm').dataset.editId==='1' && document.querySelector('#riffSelect').value==='1');
     await page.waitForTimeout(200);
     var secondSave = page.waitForResponse(r=>r.url().endsWith('/api/riffs/save.php'));
-    await page.click('#submitBtn');assert.equal((await secondSave).status(),200);
+    await page.click('#submitBtn');await page.click('#dnaLintSave');assert.equal((await secondSave).status(),200);
     await page.reload({waitUntil:'domcontentloaded'});await page.click('.admin-tab[data-tab="edit"]');await page.selectOption('#riffSelect','1');await page.waitForFunction(()=>document.querySelectorAll('#segmentRows .segment-row').length===10);
     assert.equal(await page.locator('#segmentRows .name').first().inputValue(),'Edited in browser');
     assert.equal(await page.locator('#segmentRows .role').first().inputValue(),'launch');
@@ -201,7 +204,10 @@ test('two cameras from one recording: upload, frame both hands, cut and fill bot
     const left=await page.inputValue('#videoFile'),right=await page.inputValue('#videoFileRight');
     assert.match(left,/black-dog-left-2\.mp4$/);assert.match(right,/black-dog-right-2\.mp4$/);
     for(const f of [left,right])assert.ok(fs.existsSync(path.join(site.dir,f)),f);
-    const save=page.waitForResponse(r=>r.url().endsWith('/api/riffs/save.php'));await page.click('#submitBtn');assert.equal((await save).status(),200);
+    // Earlier tests leave markup warnings on this riff; they are not what this test checks, so save past them.
+    const save=page.waitForResponse(r=>r.url().endsWith('/api/riffs/save.php'));await page.click('#submitBtn');
+    if(await page.locator('#dnaLintDialog[open]').count())await page.click('#dnaLintSave');
+    assert.equal((await save).status(),200);
     const saved=JSON.parse(fs.readFileSync(path.join(site.dir,'data/riffs.json')))[0];
     assert.equal(saved.videoFile,left);assert.match(saved.videoSource.file,/black-dog-source\.webm$/);
     assert.ok(saved.videoSource.right.w<320&&Math.abs(saved.videoSource.right.w/saved.videoSource.right.h-16/9)<0.02,JSON.stringify(saved.videoSource));
