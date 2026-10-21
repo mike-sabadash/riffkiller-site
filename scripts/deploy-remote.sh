@@ -75,6 +75,9 @@ if [ "$mode" = verify ]; then
   ok=1
   c="$(fetch "$chosen" api/riffs/list.php "$body")"
   if [ "$c" = 200 ] && grep -q '"song"' "$body"; then note "api/riffs/list.php: 200 JSON"; else echo "::error::api/riffs/list.php: HTTP $c" >&2; ok=0; fi
+  c="$(fetch "$chosen" "api/test-login.php?token=verify" "$body")"
+  if [ "$c" = 200 ] && grep -q '"success":false' "$body" && [ "$(fetch "$chosen" test-login.html "$body")" = 200 ]; then note "test login: page and API answer"
+  else echo "::error::test-login.html or api/test-login.php is not served (api HTTP $c)" >&2; ok=0; fi
   for p in "video.php?file=.env" "video.php?file=data/users.json" test.php env-check.php patreon-secrets.php; do
     c="$(fetch "$chosen" "$p" "$body")"
     if [ "$c" = 200 ]; then echo "::error::$p returned 200" >&2; ok=0; else note "$p: $c"; fi
@@ -107,8 +110,9 @@ changed=(); added=()
 while IFS= read -r f; do
   case "$f" in
     data/*|.env*|assets/video/*|.github/*|.claude/*|tests/*|tools/*|docs/*|deploy/*|scripts/*|*.md|.cursorrules|.gitignore) continue ;;
-    # Server-managed loader (repaired in place) and local-only development/test helpers.
-    config/load-env.php|package.json|package-lock.json|server.cjs|dev-router.php|test-login.html|api/test-login.php|api/create-test-account.php|*.log) continue ;;
+    # Server-managed loader (repaired in place) and local-only development helpers.
+    # test-login.html and api/test-login.php ship: the admin's test-account links open them.
+    config/load-env.php|package.json|package-lock.json|server.cjs|dev-router.php|api/create-test-account.php|*.log) continue ;;
   esac
   if [ ! -e "$root/$f" ]; then added+=("$f")
   elif [[ "$f" == assets/* ]]; then continue
@@ -129,7 +133,7 @@ done
 note ".env set: ${env_set[*]:-none}; missing: ${env_missing[*]:-none}"
 ff="$(command -v ffmpeg || true)"
 note "ffmpeg: ${ff:-missing}${ff:+ ($("$ff" -hide_banner -version 2>/dev/null | head -n1 | cut -c1-60))}"
-fpm_ini="$(ls /etc/php/*/fpm/php.ini 2>/dev/null | tail -n1)"
+fpm_ini="$(ls /etc/php/*/fpm/php.ini 2>/dev/null | tail -n1 || true)"
 note "php-fpm ini: ${fpm_ini:-none}; disable_functions: $(grep -hE '^\s*disable_functions' "$fpm_ini" /etc/php/*/fpm/pool.d/*.conf 2>/dev/null | tr '\n' ' ' | cut -c1-300); upload_max_filesize: $(grep -hE '^\s*(upload_max_filesize|post_max_size|max_execution_time)' "$fpm_ini" 2>/dev/null | tr '\n' ' ')"
 
 note "Upload limits: pool $(grep -hE '^\s*php(_admin)?_value\[(upload_max_filesize|post_max_size|max_execution_time)' /etc/php/*/fpm/pool.d/*.conf 2>/dev/null | tr '\n' ' '); user.ini $(cat "$root/.user.ini" 2>/dev/null | tr '\n' ' '); nginx $(grep -rhE 'client_max_body_size|fastcgi_read_timeout' /etc/nginx/nginx.conf /etc/nginx/conf.d /etc/nginx/sites-enabled 2>/dev/null | tr -s ' ' | tr '\n' ' ')"
