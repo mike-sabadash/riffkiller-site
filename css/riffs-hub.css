@@ -886,3 +886,223 @@ body.riffs-hub .collection-header-section .collection-title {
     color: rgba(244, 247, 255, 0.98);
     margin: 32px 0 0;
 }
+
+/* ==========================================================================
+   Редизайн главной 2026-10: hero с кадром продукта, Continue, замки, бейджи
+   ========================================================================== */
+
+body.riffs-hub .home-hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.08fr);
+    gap: 48px;
+    align-items: center;
+    margin: 8px 0 64px;
+    max-width: none;
+}
+body.riffs-hub .home-hero-title {
+    font-size: clamp(2rem, 3.6vw, 2.85rem);
+    line-height: 1.08;
+    margin-bottom: 16px;
+    text-wrap: balance;
+}
+body.riffs-hub .home-hero .riffs-hero-lead {
+    font-size: 1rem;
+    max-width: 30em;
+}
+body.riffs-hub .home-hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 28px;
+}
+body.riffs-hub .home-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 48px;
+    padding: 0 24px;
+    border-radius: 12px;
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+body.riffs-hub .home-btn[hidden] {
+    display: none;
+}
+body.riffs-hub .home-btn--primary {
+    background: #9355e5;
+    color: #fff;
+    box-shadow: 0 10px 28px rgba(147, 85, 229, 0.32);
+}
+body.riffs-hub .home-btn--primary:hover {
+    background: #7c45c7;
+    transform: translateY(-1px);
+}
+body.riffs-hub .home-btn--ghost {
+    color: #eef2ff;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.03);
+}
+body.riffs-hub .home-btn--ghost:hover {
+    border-color: rgba(255, 255, 255, 0.4);
+    background: rgba(255, 255, 255, 0.08);
+}
+body.riffs-hub .home-hero-facts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 20px;
+    margin: 28px 0 0;
+    padding: 0;
+    list-style: none;
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 0.8125rem;
+    color: rgba(196, 200, 214, 0.9);
+}
+body.riffs-hub .home-hero-facts li {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+body.riffs-hub .home-hero-facts li::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #9355e5;
+}
+
+/* Кадр продукта: две камеры, как в плеере */
+body.riffs-hub .home-hero-visual {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    padding: 8px;
+    border-radius: 24px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    box-shadow: 0 40px 80px -32px rgba(147, 85, 229, 0.35), 0 24px 48px -24px rgba(0, 0, 0, 0.6);
+}
+body.riffs-hub .home-cam {
+    position: relative;
+    margin: 0;
+    aspect-ratio: 4 / 5;
+    border-radius: 16px;
+    overflow: hidden;
+    background: #14141a;
+}
+body.riffs-hub .home-cam img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+body.riffs-hub .home-cam figcaption,
+body.riffs-hub .home-chip {
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: #fff;
+    padding: 6px 10px;
+    border-radius: 999px;
+    background: rgba(8, 8, 12, 0.62);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+body.riffs-hub .home-cam figcaption {
+    position: absolute;
+    left: 12px;
+    bottom: 12px;
+}
+body.riffs-hub .home-cam-bar {
+    grid-column: 1 / -1;
+    display: flex;
+    gap: 8px;
+    padding: 4px 4px 2px;
+}
+body.riffs-hub .home-chip--active {
+    background: #9355e5;
+    border-color: transparent;
+}
+
+body.riffs-hub .continue-section[hidden] {
+    display: none;
+}
+body.riffs-hub .continue-section {
+    margin-bottom: 48px;
+}
+
+/* Бейдж сложности: тёмный чип с цветной точкой вместо трёх ярких заливок */
+body.riffs-hub .riff-difficulty,
+.rk-riff-gallery .riff-difficulty {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 9px 4px 8px;
+    border-radius: 999px;
+    font-size: 0.625rem;
+    background: rgba(8, 8, 12, 0.62) !important;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+body.riffs-hub .riff-difficulty::before,
+.rk-riff-gallery .riff-difficulty::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #f59e0b;
+}
+body.riffs-hub .riff-difficulty--beginner::before,
+.rk-riff-gallery .riff-difficulty--beginner::before {
+    background: #22c55e;
+}
+body.riffs-hub .riff-difficulty--advanced::before,
+.rk-riff-gallery .riff-difficulty--advanced::before {
+    background: #f43f5e;
+}
+
+/* Замок на платных риффах (нет подписки) */
+body.riffs-hub .riff-lock-tag,
+.rk-riff-gallery .riff-lock-tag {
+    position: absolute;
+    left: 10px;
+    bottom: 10px;
+    z-index: 3;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 9px 4px 7px;
+    border-radius: 999px;
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 0.625rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: #fff;
+    background: rgba(8, 8, 12, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+@media (max-width: 900px) {
+    body.riffs-hub .home-hero {
+        grid-template-columns: 1fr;
+        gap: 28px;
+        margin-bottom: 48px;
+    }
+    body.riffs-hub .home-cam {
+        aspect-ratio: 1 / 1;
+    }
+}
+@media (max-width: 480px) {
+    body.riffs-hub .home-hero-actions .home-btn {
+        flex: 1 1 100%;
+    }
+    body.riffs-hub .home-hero-facts {
+        flex-direction: column;
+    }
+}

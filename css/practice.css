@@ -1998,3 +1998,60 @@
     .practice-workspace .mode-btn { padding: 8px 10px; }
     .practice-workspace .tab-toggle-btn { padding: 8px 10px; }
 }
+
+/* Редизайн 2026-10: крошка «← Riffs» мелко сверху, название риффа — фирменный display-шрифт */
+@font-face {
+    font-family: 'TT Travels Next';
+    src: url('../fonts/TT_Travels_Next_Trial_Bold.ttf') format('truetype');
+    font-weight: 700;
+    font-display: swap;
+}
+.practice-header .breadcrumbs {
+    gap: 12px;
+    align-items: flex-start;
+}
+.practice-header .breadcrumb-arrow {
+    margin-top: 2px;
+}
+.practice-header .arrow-icon {
+    width: 28px;
+    height: 12px;
+    opacity: 0.7;
+}
+.practice-header .practice-title {
+    flex-wrap: wrap;
+    row-gap: 10px;
+    column-gap: 6px;
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    line-height: 1;
+}
+.practice-header .breadcrumb-link,
+.practice-header .breadcrumb-separator {
+    color: rgba(160, 165, 182, 0.95);
+}
+.practice-header .breadcrumb-current {
+    flex-basis: 100%;
+    opacity: 1;
+    font-family: 'TT Travels Next', 'Space Grotesk', 'Inter', system-ui, sans-serif;
+    font-weight: 700;
+    font-size: clamp(1.5rem, 3vw, 2.25rem);
+    letter-spacing: 0.01em;
+    text-transform: none;
+    line-height: 1.15;
+    color: rgba(244, 247, 255, 0.98);
+}
+/* Стрелку-картинку заменяет «←» в самой крошке — название риффа встаёт на левую вертикаль контента */
+.practice-header .breadcrumb-arrow {
+    display: none;
+}
+.practice-header .breadcrumb-link::before {
+    content: '← ';
+}
+/* Один главный заголовок на экране: блок DNA — второй уровень */
+.dna-overview .dna-overview-copy h2 {
+    font-size: clamp(1.125rem, 2vw, 1.5rem);
+}

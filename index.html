@@ -19,7 +19,7 @@
     <link rel="stylesheet" href="css/base.css">
     <link rel="stylesheet" href="css/components.css?v=d20261021">
     <!-- rk-header подтягивается через @import в components.css -->
-    <link rel="stylesheet" href="css/riffs-hub.css?v=d20261021">
+    <link rel="stylesheet" href="css/riffs-hub.css?v=d20261021b">
     <link rel="stylesheet" href="css/rk-theme-light.css">
 
     <!-- Favicon -->
@@ -31,11 +31,46 @@
     <div class="page-container">
         <!-- Основной контент -->
         <main class="main-content">
-            <header class="riffs-hero">
-                <p class="riffs-hero-eyebrow">Library</p>
-                <h1 class="riffs-hero-title">Riffs &amp; collections</h1>
-                <p class="riffs-hero-lead">Browse by collection or dive into the most practiced riffs. Use filters to match your level and genre.</p>
+            <!-- Первый экран: обещание + реальный кадр продукта (две камеры), CTA меняется в main.js -->
+            <header class="home-hero">
+                <div class="home-hero-copy">
+                    <p class="riffs-hero-eyebrow">Riff library</p>
+                    <h1 class="riffs-hero-title home-hero-title">Kill every riff. One shot at a time.</h1>
+                    <p class="riffs-hero-lead">Famous riffs cut into 10–20 second shots. Watch both hands side by side, slow it down, loop the hard part and follow the tabs.</p>
+                    <div class="home-hero-actions">
+                        <a class="home-btn home-btn--primary" id="homeHeroPrimary" href="practice.html?riff=1">Start a free riff</a>
+                        <a class="home-btn home-btn--ghost" id="homeHeroSecondary" href="billing.html">See plans</a>
+                    </div>
+                    <ul class="home-hero-facts">
+                        <li>Left + right hand cameras</li>
+                        <li>×0.75 and ×0.5 slow motion</li>
+                        <li>Loops and synced tabs</li>
+                    </ul>
+                </div>
+                <div class="home-hero-visual" aria-hidden="true">
+                    <figure class="home-cam">
+                        <img src="assets/img/left_hand_mainpage.jpg" alt="" loading="eager" decoding="async">
+                        <figcaption>Left hand</figcaption>
+                    </figure>
+                    <figure class="home-cam">
+                        <img src="assets/img/right_hand_mainpage.jpg" alt="" loading="eager" decoding="async">
+                        <figcaption>Right hand</figcaption>
+                    </figure>
+                    <div class="home-cam-bar">
+                        <span class="home-chip">Shot 4 · 0:11</span>
+                        <span class="home-chip home-chip--active">×0.75</span>
+                        <span class="home-chip">Loop</span>
+                    </div>
+                </div>
             </header>
+
+            <!-- Continue practicing: показывается, только если есть недавние риффы (main.js) -->
+            <section class="riffs-section continue-section" id="continueSection" hidden>
+                <div class="riffs-section-head">
+                    <h2 class="riffs-title">Continue practicing</h2>
+                </div>
+                <div class="riffs-grid" id="continueGrid"></div>
+            </section>
 
             <!-- Блок коллекций -->
             <section class="collections-section">
@@ -115,7 +150,7 @@
             <section class="riffs-section">
                 <div class="riffs-section-head">
                     <h2 class="riffs-title">Most killed riffs</h2>
-                    <p class="riffs-section-desc">A curated slice of the library — change difficulty or genre above to refresh the grid.</p>
+                    <p class="riffs-section-desc">Start with a free riff. Premium riffs open with any plan.</p>
                 </div>
 
                 <!-- Карточки риффов -->
@@ -186,7 +221,7 @@
     </script>
 
 <!-- Специфичный для страницы -->
-<script src="js/riff-gallery-card.js?v=d20261021"></script>
-<script src="js/main.js?v=d20261021"></script>
+<script src="js/riff-gallery-card.js?v=d20261021b"></script>
+<script src="js/main.js?v=d20261021b"></script>
 </body>
 </html>

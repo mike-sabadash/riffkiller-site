@@ -374,6 +374,13 @@ document.addEventListener('DOMContentLoaded', () => {
         initFilters();
         initNavigationArrows();
         initRiffs();
+        renderHomeHero();
+        renderContinueRow();
+        // Подписка известна только после загрузки сессии — перерисовываем замки и CTA
+        const auth = window.authManager;
+        if (auth && auth.ready && typeof auth.ready.then === 'function') {
+            auth.ready.then(() => { initRiffs(); renderHomeHero(); renderContinueRow(); }).catch(() => {});
+        }
     }
     function applyCollectionsFromApi(cols) {
         if (!Array.isArray(cols) || cols.length === 0) return;
@@ -536,12 +543,47 @@ function initRiffs() {
 }
 
 // Создание карточки риффа — общая разметка: js/riff-gallery-card.js
+function hasActiveSubscription() {
+    const auth = window.authManager || window.patreonAuth;
+    return !!(auth && typeof auth.hasActiveSubscription === 'function' && auth.hasActiveSubscription());
+}
+
+// Первый экран: гостю — бесплатный рифф, вернувшемуся — «Continue» с последнего риффа
+function renderHomeHero() {
+    const primary = document.getElementById('homeHeroPrimary');
+    const secondary = document.getElementById('homeHeroSecondary');
+    if (!primary) return;
+    const byId = id => appState.riffsDatabase.find(r => String(r.id) === String(id));
+    const last = (appState.recentlyPracticed || []).map(r => byId(r.id)).find(Boolean);
+    const free = appState.riffsDatabase.find(r => r.isFree);
+    const target = last || free;
+    if (target) {
+        primary.textContent = last ? `Continue ${target.song}` : `Start free: ${target.song}`;
+        primary.href = `practice.html?riff=${target.id}`;
+    }
+    if (secondary) secondary.hidden = hasActiveSubscription();
+}
+
+function renderContinueRow() {
+    const section = document.getElementById('continueSection');
+    const grid = document.getElementById('continueGrid');
+    if (!section || !grid) return;
+    const riffs = (appState.recentlyPracticed || [])
+        .map(r => appState.riffsDatabase.find(x => String(x.id) === String(r.id)))
+        .filter(Boolean)
+        .slice(0, 5);
+    grid.innerHTML = '';
+    riffs.forEach(riff => grid.appendChild(createRiffCard(riff)));
+    section.hidden = riffs.length === 0;
+}
+
 function createRiffCard(riff) {
     if (!window.RiffKillerRiffGallery || typeof window.RiffKillerRiffGallery.createCard !== 'function') {
         console.error('RiffKillerRiffGallery missing; include js/riff-gallery-card.js before main.js');
         return document.createElement('div');
     }
     return window.RiffKillerRiffGallery.createCard(riff, {
+        locked: !riff.isFree && !hasActiveSubscription(),
         onFavoriteClick(e, favBtn) {
             e.stopPropagation();
             if (!window.patreonAuth || !window.patreonAuth.isAuthenticated) {
