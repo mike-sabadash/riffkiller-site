@@ -43,3 +43,12 @@ test('atoms without time or outside the parts, and empty rule or exercise',()=>{
 test('practice-only lessons without DNA are left alone',()=>{
     assert.deepEqual(texts({segments:[seg(0,2,'',''),seg(2,4,'','')],dna:{}}),[]);
 });
+
+test('a button caption that names another role is pointed out',()=>{
+    const named=(name,role)=>Object.assign(seg(0,2,role),{displayName:name});
+    const w=check({segments:[named('Statement · Pass 1','call'),Object.assign(seg(2,4,'call'),{displayName:'Answer · Pass 2'}),seg(4,6,'land')],dna:full});
+    assert.equal(w.length,1,JSON.stringify(w));
+    assert.equal(w[0].segment,1);
+    assert.match(w[0].text,/«Answer · Pass 2» называет роль Answer, а выбрана Call/);
+    assert.deepEqual(texts({segments:[named('Shot 1','call'),named('Land it','land')],dna:full}),[]);
+});

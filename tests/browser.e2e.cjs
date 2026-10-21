@@ -321,6 +321,42 @@ test('Riff DNA shows the phrase, a live map of roles and techniques that light u
     await page.waitForFunction(()=>document.querySelector('[data-dna-atom="2"]')?.classList.contains('now'));
     assert.match(await page.locator('#dnaLive').innerText(),/Quarter-tone bend/);
 });
+test('part buttons show one role each, a key explains the roles and the i opens a dark hint',async t=>{
+    const page=await pageFor(t,390);
+    // Older lessons on production name the halves "Statement · …" / "Answer · …" while the role is set separately.
+    await page.route('**/api/riffs/list.php*',async route=>{
+        const response=await route.fetch();const body=await response.json();
+        const list=Array.isArray(body)?body:(body.riffs||body.data||[]);
+        const riff=list.find(r=>String(r.id)==='1');
+        riff.segments[0].displayName='Statement · Pass 1';
+        riff.segments[1].displayName='Answer · Pass 1';riff.segments[1].role='answer';
+        riff.segments[6].displayName='Answer · Final pass';
+        await route.fulfill({response,json:body});
+    });
+    await practice(page);
+    const buttons=page.locator('.segment-btn:not(.all-riff)');
+    const row=async i=>({name:await buttons.nth(i).locator('.segment-name').innerText(),role:await buttons.nth(i).locator('.dna-segment-role').innerText()});
+    assert.deepEqual(await row(0),{name:'Pass 1',role:'Launch'});
+    assert.deepEqual(await row(1),{name:'Pass 1',role:'Answer'});
+    assert.deepEqual(await row(6),{name:'Final pass',role:'Drill'});
+    assert.equal(await page.locator('.dna-segment-role').count(),10,'Every part says what it is');
+    assert.deepEqual(await page.locator('.segment-key-item').allInnerTexts(),['Launch','Answer','Land','Drill']);
+    const hint=page.locator('.segment-key-item .rk-hint').first();
+    await hint.click();
+    const tip=page.locator('#rkTip');
+    assert.equal(await tip.isVisible(),true);
+    assert.match(await tip.innerText(),/sharp entry/);
+    const box=await tip.boundingBox();
+    assert.ok(box.x>=0 && box.x+box.width<=390,JSON.stringify(box));
+    assert.equal(await page.evaluate(()=>getComputedStyle(document.getElementById('rkTip')).backgroundColor),'rgb(11, 11, 14)');
+    assert.equal(await page.evaluate(()=>leftVideo.paused),true,'Tapping the i does not play anything');
+    await page.locator('body').click({position:{x:5,y:5}});
+    assert.equal(await tip.isVisible(),false);
+    await page.locator('#dna-tab-isolate').click();
+    await page.locator('.dna-atom-item .rk-hint').first().click();
+    assert.ok((await tip.innerText()).length>10);
+    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)<=1,true);
+});
 test('a riff without DNA says so instead of showing empty tabs',async t=>{
     const page=await pageFor(t);await practice(page,7);
     assert.equal(await page.locator('#dnaEmpty').isVisible(),true);

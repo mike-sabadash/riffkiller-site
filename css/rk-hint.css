@@ -1,0 +1,50 @@
+/* Round "i" next to a term and the dark hint it opens (js/rk-hint.js) */
+.rk-hint {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    margin: -4px 0 -4px 2px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: none;
+    color: rgba(255, 255, 255, .42);
+    vertical-align: middle;
+    cursor: help;
+    flex: none;
+    -webkit-tap-highlight-color: transparent;
+}
+.rk-hint:hover,
+.rk-hint[aria-expanded="true"] { color: rgba(255, 255, 255, .9); }
+.rk-hint:focus-visible { outline: 2px solid #cfff55; outline-offset: 0; }
+
+.rk-tip {
+    position: absolute;
+    z-index: 10000;
+    max-width: min(280px, calc(100vw - 24px));
+    padding: 8px 11px;
+    border-radius: 8px;
+    background: #0b0b0e;
+    box-shadow: 0 6px 24px rgba(0, 0, 0, .45), 0 0 0 1px rgba(255, 255, 255, .08);
+    color: rgba(255, 255, 255, .92);
+    font: 400 13px/1.45 'Inter', system-ui, sans-serif;
+    text-align: left;
+    pointer-events: none;
+}
+.rk-tip[hidden] { display: none; }
+.rk-tip::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: var(--arrow, 50%);
+    margin-left: -5px;
+    border: 5px solid transparent;
+    border-top-color: #0b0b0e;
+}
+.rk-tip--below::after { top: auto; bottom: 100%; border-top-color: transparent; border-bottom-color: #0b0b0e; }
+
+html[data-theme='light'] .rk-hint { color: rgba(20, 20, 30, .42); }
+html[data-theme='light'] .rk-hint:hover,
+html[data-theme='light'] .rk-hint[aria-expanded="true"] { color: rgba(20, 20, 30, .9); }

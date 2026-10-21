@@ -8,6 +8,15 @@
     const V = global.RiffDNAVocab || (typeof require === 'function' ? require('./riff-dna-vocab.js').RiffDNAVocab : null);
     const GAP = 0.5;
 
+    // "Answer · Pass 2" → 'answer': the role a button caption names by its first word, as older lessons did.
+    const NAME_WORDS = { statement: 'call', response: 'answer' };
+    function nameRole(name) {
+        const m = /^\s*(?:the\s+)?([a-z]+)\b/i.exec(name || '');
+        if (!m) return '';
+        const word = m[1].toLowerCase();
+        return V.role(word) ? word : (NAME_WORDS[word] || '');
+    }
+
     function check(riff) {
         const segments = (riff.segments || []).map(s => Object.assign({}, s, { start: Number(s.start), end: Number(s.end) }));
         const dna = riff.dna || {};
@@ -31,6 +40,10 @@
             segments.forEach((s, i) => {
                 if (!roleOf(s) && i > first && i < last && !(s.function || '').trim()) {
                     out.push({ segment: i, text: n(i) + ' без роли посреди фразы: это упражнение или роль забыта? Если упражнение, напишите в описании, что в ней отрабатывается.' });
+                }
+                const said = nameRole(s.displayName || s.name);
+                if (said && roleOf(s) && said !== s.role) {
+                    out.push({ segment: i, text: n(i) + ': подпись кнопки «' + (s.displayName || s.name) + '» называет роль ' + V.role(said).label + ', а выбрана ' + roleOf(s).label + '. На сайте останется только ' + roleOf(s).label + ' — проверьте, какая роль верна.' });
                 }
                 if (roleOf(s) && !(s.function || '').trim()) out.push({ segment: i, text: n(i) + ' (' + roleOf(s).label + ') без описания: ученик не увидит, что делает эта часть.' });
             });
