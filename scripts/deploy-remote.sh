@@ -132,6 +132,7 @@ note "ffmpeg: ${ff:-missing}${ff:+ ($("$ff" -hide_banner -version 2>/dev/null | 
 fpm_ini="$(ls /etc/php/*/fpm/php.ini 2>/dev/null | tail -n1)"
 note "php-fpm ini: ${fpm_ini:-none}; disable_functions: $(grep -hE '^\s*disable_functions' "$fpm_ini" /etc/php/*/fpm/pool.d/*.conf 2>/dev/null | tr '\n' ' ' | cut -c1-300); upload_max_filesize: $(grep -hE '^\s*(upload_max_filesize|post_max_size|max_execution_time)' "$fpm_ini" 2>/dev/null | tr '\n' ' ')"
 
+note "Upload limits: pool $(grep -hE '^\s*php(_admin)?_value\[(upload_max_filesize|post_max_size|max_execution_time)' /etc/php/*/fpm/pool.d/*.conf 2>/dev/null | tr '\n' ' '); user.ini $(cat "$root/.user.ini" 2>/dev/null | tr '\n' ' '); nginx $(grep -rhE 'client_max_body_size|fastcgi_read_timeout' /etc/nginx/nginx.conf /etc/nginx/conf.d /etc/nginx/sites-enabled 2>/dev/null | tr -s ' ' | tr '\n' ' ')"
 [ "$mode" = preflight ] && exit 0
 [ "$mode" = apply ] || fail "Unknown mode $mode"
 repair_root_mode "$root"
