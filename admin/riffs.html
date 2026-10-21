@@ -735,7 +735,8 @@
         return new Promise(function (resolve) {
             document.getElementById('dnaLintSave').onclick = function () { dialog.close(); resolve(true); };
             document.getElementById('dnaLintBack').onclick = function () { dialog.close(); };
-            dialog.onclose = function () { resolve(false); };
+            // A close event queued by the previous Escape can land after showModal(); only a real close counts.
+            dialog.onclose = function () { if (!dialog.open) resolve(false); };
             dialog.showModal();
         });
     }
