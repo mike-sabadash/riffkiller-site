@@ -33,6 +33,33 @@
         themeIcons +
         '<span class="rk-theme-toggle-label">Тема</span></button>';
 
+    // Language switcher (js/i18n.js). Names stay in their own language, so they are marked translate="no".
+    var i18n = window.RK_I18N;
+    var langHeader = '';
+    var langMobile = '';
+    if (i18n) {
+        var cur = i18n.lang;
+        var curShort = 'EN';
+        var items = '';
+        var row = '';
+        i18n.languages.forEach(function (l) {
+            if (l.code === cur) curShort = l.short;
+            var on = l.code === cur;
+            items +=
+                '<li role="none"><button type="button" role="menuitemradio" aria-checked="' + on + '" class="rk-lang-option" data-lang="' +
+                l.code + '" lang="' + l.html + '">' + l.name + '</button></li>';
+            row +=
+                '<button type="button" class="rk-lang-chip' + (on ? ' is-active' : '') + '" aria-pressed="' + on + '" data-lang="' +
+                l.code + '" lang="' + l.html + '" title="' + l.name + '">' + l.short + '</button>';
+        });
+        langHeader =
+            '<div class="rk-lang" translate="no">' +
+            '<button type="button" class="rk-lang-toggle" aria-haspopup="true" aria-expanded="false" aria-label="Language">' + curShort +
+            '<svg width="8" height="6" viewBox="0 0 8 6" fill="none" aria-hidden="true"><path d="M1 1.5L4 4.5L7 1.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
+            '</button><ul class="rk-lang-menu" role="menu" hidden>' + items + '</ul></div>';
+        langMobile = '<div class="rk-lang-row" role="group" aria-label="Language" translate="no">' + row + '</div>';
+    }
+
     // TEMPORARY_LIGHT_THEME: restore via RK_FEATURES.lightTheme in rk-theme-init.js.
     if (!window.RK_FEATURES || !window.RK_FEATURES.lightTheme) {
         themeToggleHeader = '';
@@ -68,6 +95,7 @@
             '<div class="topbar-landing-desktop-auth">' +
             '<button type="button" class="btn btn-primary js-landing-auth-modal">Sign in</button>' +
             '</div>' +
+            langHeader +
             '<span class="burger-anchor"><button type="button" class="burger-menu" id="burgerMenu" aria-label="Open menu" aria-expanded="false" aria-controls="mobileMenu"></button></span></div></div></header>';
         mobile =
             '<div class="mobile-menu-overlay" id="mobileMenuOverlay" aria-hidden="true">' +
@@ -81,7 +109,9 @@
             '<a href="index.html" class="mobile-nav-link">Riffs</a>' +
             '<a href="practice.html" class="mobile-nav-link">Practice</a>' +
             '<a href="#plans" class="mobile-nav-link mobile-nav-anchor">Plans</a>' +
-            '</nav></div></div>';
+            '</nav>' +
+            langMobile +
+            '</div></div>';
     } else {
         middle =
             '<nav class="topbar-links" aria-label="Main">' +
@@ -102,6 +132,7 @@
             '<span class="login-text">Log in</span>' +
             '<button type="button" class="btn btn-primary btn-signup">Sign up</button>' +
             '</div>' +
+            langHeader +
             '<span class="burger-anchor"><button type="button" class="burger-menu" id="burgerMenu" aria-label="Open menu" aria-expanded="false" aria-controls="mobileMenu"></button></span></div></div></header>';
         mobile =
             '<div class="mobile-menu-overlay" id="mobileMenuOverlay">' +
@@ -119,6 +150,7 @@
             '" data-page="profile">Profile</button>' +
             '<button type="button" class="mobile-nav-item mobile-plans-link" id="mobilePlansLink" data-page="plans">Plans</button>' +
             '</nav>' +
+            langMobile +
             '<div class="mobile-auth">' +
             '<button type="button" class="mobile-login-btn">Log in</button>' +
             '<button type="button" class="btn btn-primary mobile-signup-btn">Sign up</button>' +
@@ -133,6 +165,40 @@
     while (wrap.firstChild) {
         frag.appendChild(wrap.firstChild);
     }
+    if (i18n) {
+        frag.querySelectorAll('[data-lang]').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                i18n.set(btn.getAttribute('data-lang'));
+            });
+        });
+        var langBox = frag.querySelector('.rk-lang');
+        if (langBox) {
+            var toggle = langBox.querySelector('.rk-lang-toggle');
+            var menu = langBox.querySelector('.rk-lang-menu');
+            var setOpen = function (open) {
+                menu.hidden = !open;
+                toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+            };
+            toggle.addEventListener('click', function (e) {
+                e.stopPropagation();
+                setOpen(menu.hidden);
+                if (!menu.hidden) {
+                    var checked = menu.querySelector('[aria-checked="true"]');
+                    if (checked) checked.focus();
+                }
+            });
+            document.addEventListener('click', function (e) {
+                if (!langBox.contains(e.target)) setOpen(false);
+            });
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape' && !menu.hidden) {
+                    setOpen(false);
+                    toggle.focus();
+                }
+            });
+        }
+    }
+
     var parent = mount.parentNode;
     var next = mount.nextSibling;
     parent.removeChild(mount);

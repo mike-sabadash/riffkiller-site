@@ -869,3 +869,115 @@ html[data-theme='light'] .mobile-menu-overlay .mobile-signup-btn.btn-outline {
     color: #12121a;
     border-color: rgba(18, 18, 26, 0.2);
 }
+
+/* Language switcher (js/site-header.js + js/i18n.js): compact code in the header, full names in the list. */
+.rk-lang {
+    position: relative;
+    display: inline-flex;
+}
+
+.rk-lang-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: var(--rk-header-btn-min-height, 38px);
+    padding: 0 6px;
+    background: none;
+    border: none;
+    color: var(--rk-mobile-nav-text, #ffffff);
+    font-family: var(--rk-header-font-family);
+    font-weight: 500;
+    font-size: 14px;
+    letter-spacing: 0.4px;
+    opacity: 0.8;
+    cursor: pointer;
+}
+
+.rk-lang-toggle:hover,
+.rk-lang-toggle[aria-expanded="true"] {
+    opacity: 1;
+}
+
+.rk-lang-toggle svg {
+    transition: transform 0.15s ease;
+}
+
+.rk-lang-toggle[aria-expanded="true"] svg {
+    transform: rotate(180deg);
+}
+
+.rk-lang-menu {
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    z-index: 1200;
+    min-width: 148px;
+    margin: 0;
+    padding: 6px;
+    list-style: none;
+    background: #141414;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+}
+
+.rk-lang-menu[hidden] {
+    display: none;
+}
+
+.rk-lang-option {
+    display: block;
+    width: 100%;
+    padding: 9px 10px;
+    background: none;
+    border: none;
+    border-radius: 6px;
+    color: rgba(255, 255, 255, 0.72);
+    font-family: var(--rk-header-font-family);
+    font-size: 14px;
+    text-align: left;
+    cursor: pointer;
+}
+
+.rk-lang-option:hover,
+.rk-lang-option:focus-visible {
+    background: rgba(255, 255, 255, 0.06);
+    color: #ffffff;
+    outline: none;
+}
+
+.rk-lang-option[aria-checked="true"] {
+    color: #ffffff;
+    font-weight: 600;
+}
+
+.rk-lang-row {
+    display: flex;
+    gap: 4px;
+    padding: 4px 0 20px;
+}
+
+.rk-lang-chip {
+    padding: 8px 12px;
+    background: none;
+    border: none;
+    border-radius: 6px;
+    color: var(--rk-mobile-nav-text, #ffffff);
+    font-family: var(--rk-header-font-family);
+    font-weight: 500;
+    font-size: 14px;
+    letter-spacing: 0.04em;
+    opacity: 0.5;
+    cursor: pointer;
+}
+
+.rk-lang-chip.is-active {
+    opacity: 1;
+    background: rgba(255, 255, 255, 0.08);
+}
+
+@media (max-width: 900px) {
+    .topbar-actions .rk-lang {
+        display: none;
+    }
+}

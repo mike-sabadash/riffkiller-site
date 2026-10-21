@@ -73,7 +73,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Retry loading profile when userData arrives (covers slow api/me or race conditions)
     const retryLoad = () => {
         const nameEl = document.getElementById('profileName');
-        if (window.patreonAuth && window.patreonAuth.userData && nameEl && (nameEl.textContent === 'Loading...' || !nameEl.textContent.trim())) {
+        if (window.patreonAuth && window.patreonAuth.userData && nameEl && (nameEl.textContent === 'Loading...' || (window.RK_I18N && nameEl.textContent === window.RK_I18N.t('Loading...')) || !nameEl.textContent.trim())) {
             loadUserProfile();
             updateSubscriptionDetailsCard();
         }

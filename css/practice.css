@@ -240,6 +240,7 @@
         font-family: var(--font-family-primary);
         font-weight: 500;
     }
+    html[lang="ru"] .tab-toggle-btn .tab-text::after { content: 'Табы'; }
 }
 
 /* === ВИДЕОПЛЭЕР === */
