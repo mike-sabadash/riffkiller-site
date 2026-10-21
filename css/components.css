@@ -5,7 +5,7 @@
 /* Inter подключается в <head> страниц приложения + переменная --font-header-ui в variables.css */
 
 /* === HEADER — единая шапка (разметка: js/site-header.js) === */
-@import url('rk-header.css');
+@import url('rk-header.css?v=d20261021');
 @import url('rk-site-footer.css');
 
 /* === COLLECTIONS SECTION === */
