@@ -155,6 +155,15 @@
         status('Черновик перенесён в форму. Проверьте поля и нажмите «Сохранить».');
     }
 
+    async function requestJson(url, options) {
+        const response = await fetch(url, options);
+        const data = await response.json().catch(() => ({
+            error: response.status === 504 ? 'Сервер не дождался ответа модели (504). Попробуйте ещё раз.' : 'Сервер ответил не JSON (' + response.status + ').'
+        }));
+        if (!response.ok || !data.success) throw new Error(data.error || 'Ошибка ' + response.status);
+        return data;
+    }
+
     async function run() {
         const notes = $('dnaAiNotes').value.trim();
         const segments = readSegments();
@@ -162,17 +171,22 @@
         if (notes.length < 10) { status('Опишите рифф хотя бы одной фразой.', true); return; }
         const button = $('dnaAiRun');
         button.disabled = true;
-        status('ИИ составляет черновик, обычно 10–60 секунд…');
+        status('ИИ составляет черновик…');
         try {
-            const response = await fetch('/api/riffs/dna-draft.php', {
+            let data = await requestJson('/api/riffs/dna-draft.php', {
                 method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     notes,
                     riff: { song: $('song').value.trim(), artist: $('artist').value.trim(), duration: duration(), segments, dna: currentDna() }
                 })
             });
-            const data = await response.json().catch(() => ({ error: 'Сервер ответил не JSON (' + response.status + ').' }));
-            if (!response.ok || !data.success) throw new Error(data.error || 'Ошибка ' + response.status);
+            // The model works in the background; free models can take a couple of minutes.
+            const job = data.job, started = Date.now();
+            while (!data.draft) {
+                await new Promise(resolve => setTimeout(resolve, 3000));
+                status('ИИ составляет черновик: ' + Math.round((Date.now() - started) / 1000) + ' с. Бесплатные модели отвечают до 2–3 минут.');
+                data = await requestJson('/api/riffs/dna-draft.php?job=' + encodeURIComponent(job), { credentials: 'same-origin' });
+            }
             draft = data.draft;
             render(draft, data.model);
             status('Черновик готов. Проверьте его ниже.');
