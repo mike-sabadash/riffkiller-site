@@ -133,7 +133,8 @@ fpm_ini="$(ls /etc/php/*/fpm/php.ini 2>/dev/null | tail -n1)"
 note "php-fpm ini: ${fpm_ini:-none}; disable_functions: $(grep -hE '^\s*disable_functions' "$fpm_ini" /etc/php/*/fpm/pool.d/*.conf 2>/dev/null | tr '\n' ' ' | cut -c1-300); upload_max_filesize: $(grep -hE '^\s*(upload_max_filesize|post_max_size|max_execution_time)' "$fpm_ini" 2>/dev/null | tr '\n' ' ')"
 
 note "Upload limits: pool $(grep -hE '^\s*php(_admin)?_value\[(upload_max_filesize|post_max_size|max_execution_time)' /etc/php/*/fpm/pool.d/*.conf 2>/dev/null | tr '\n' ' '); user.ini $(cat "$root/.user.ini" 2>/dev/null | tr '\n' ' '); nginx $(grep -rhE 'client_max_body_size|fastcgi_read_timeout' /etc/nginx/nginx.conf /etc/nginx/conf.d /etc/nginx/sites-enabled 2>/dev/null | tr -s ' ' | tr '\n' ' ')"
-note "Writable by the web server: assets/video $(stat -c %U:%G "$root/assets/video" 2>/dev/null || echo missing), data $(stat -c %U:%G "$root/data" 2>/dev/null)"
+web_user="$(ps -eo user=,comm= | awk '$2 ~ /php-fpm/ && $1 != "root" {print $1; exit}')"
+note "Media folders: assets/video $(stat -c '%a %U:%G' "$root/assets/video" 2>/dev/null || echo missing), assets/img $(stat -c '%a %U:%G' "$root/assets/img" 2>/dev/null || echo missing); web user ${web_user:-unknown}"
 [ "$mode" = preflight ] && exit 0
 [ "$mode" = apply ] || fail "Unknown mode $mode"
 repair_root_mode "$root"
@@ -156,6 +157,14 @@ install_release() {
   done
   for f in "${retired[@]}"; do rm -rf "${root:?}/$f" || return 1; done
   install -d -m 750 "$root/data/logs" || return 1
+  # The admin uploads and cuts videos as the web user: media folders are group-writable for it
+  # (setgid keeps the group on new artist/song folders). Nothing is moved or deleted.
+  if [ "$(id -u)" = 0 ] && [ -n "$web_user" ]; then
+    for d in assets/video assets/img; do
+      install -d -m 2775 "$root/$d" || return 1
+      chgrp -R "$web_user" "$root/$d" && chmod -R g+rwX "$root/$d" && find "$root/$d" -type d -exec chmod g+s {} + || return 1
+    done
+  fi
   if [ "$(id -u)" = 0 ]; then chown "$(stat -c %u:%g "$root/data")" "$root/data/logs" || return 1; fi
   for f in "${changed[@]}" "${added[@]}"; do
     if [[ "$f" == *.php ]]; then php -l "$root/$f" >/dev/null || return 1; fi
