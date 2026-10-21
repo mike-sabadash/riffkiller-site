@@ -316,7 +316,7 @@ function loadCollection(collectionId) {
     if (banner) {
         banner.innerHTML = `
             <img src="${collection.imageUrl}" alt="${collection.name}" class="collection-banner-image" 
-                 onerror="this.src='https://via.placeholder.com/1200x200/2a2d42/ffffff?text=${encodeURIComponent(collection.name)}'">
+                 onerror="this.onerror=null; this.style.visibility='hidden'">
             <div class="collection-banner-overlay"></div>
         `;
     }

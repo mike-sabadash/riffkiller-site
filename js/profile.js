@@ -235,6 +235,12 @@ function loadUserProfile() {
         profileProvider.textContent = label;
         profileProvider.style.display = label ? 'block' : 'none';
     }
+
+    // Строка «Reset password» ведёт в настройки Patreon — показываем её только тем, кто вошёл через Patreon.
+    var passwordRow = document.querySelector('.profile-field-column--password');
+    if (passwordRow) {
+        passwordRow.style.display = (userData.provider || '').toLowerCase() === 'patreon' ? '' : 'none';
+    }
     
     if (avatarImg) {
         avatarImg.src = userData.image_url || 'assets/icons/default-avatar.svg';
@@ -467,7 +473,7 @@ function updateSubscriptionDetailsCard() {
             (manageHtml ? '<div class="subscription-details-actions">' + manageHtml + '</div>' : '');
         contentEl.style.display = 'block';
     } else {
-        emptyEl.style.display = 'block';
+        emptyEl.style.display = 'flex';
     }
 }
 
