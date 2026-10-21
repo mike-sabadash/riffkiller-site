@@ -47,7 +47,9 @@ You get segments in time order with start/end seconds, the author's name for the
    articulation (a new kind of attack, slide, bend, mute), pattern (a repeat ends or a variation starts), harmony (a target or home note is reached),
    body (the hand finishes one motion and repositions), dialogue (the vocal, drums, bass or another guitar enters).
    If a cut is only convenient for the tab and the function does not change, the segment keeps the same role as its neighbour.
-4. Repeated passes of the same phrase get the same roles each time (Launch, Land, Launch, Land…).
+4. A phrase is a block of any length: two parts (Call, Answer), three (Launch, Push, Land), four or more.
+   Do not force call-and-response pairs; count the parts the music actually has before one pass comes home.
+   Repeated passes of the same block get the same roles each time (Launch, Push, Land, Launch, Push, Land…).
 5. A segment that only drills one spot, shows a slow detail or is not part of the phrase gets role "" (empty): a practice-only shot.
    Signs: the author calls it detail, drill, slow, close-up, exercise, or it repeats a fragment of a neighbour.
 6. Keep any role the author already set unless their description clearly contradicts it. If you change one, say why in "notes".
