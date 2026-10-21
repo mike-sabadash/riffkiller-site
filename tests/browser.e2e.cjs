@@ -27,7 +27,7 @@ test('home opens the library; normal sign-up and login survive reload without a 
     const page=await pageFor(t);await page.goto(site.base+'/',{waitUntil:'domcontentloaded'});
     await page.waitForSelector('#riffsGrid .riff-card');
     assert.equal(await page.locator('#comingSoonLanding').count(),0);
-    assert.ok((await page.locator('body').innerText()).includes('Riffs & collections'));
+    assert.ok((await page.locator('body').innerText()).includes('Kill every riff'));assert.ok(await page.locator('#homeHeroPrimary').getAttribute('href'));
     await page.getByText('Sign up',{exact:true}).first().click();
     await page.fill('#authModalNameInput','Browser Practice');await page.fill('#authModalEmailInput','browser-test@example.com');await page.fill('#authModalPasswordInput','browser-test-password');
     await page.click('#authModalEmailBtn');await page.waitForFunction(()=>window.authManager.isAuthenticated);

@@ -61,6 +61,32 @@
             .plan-card { min-width: auto; }
             .methods-grid { grid-template-columns: 1fr; }
         }
+        /* Редизайн 2026-10: заголовок в фирменном шрифте, шаги 1/2, крупные планы, одна выделенная карта способа */
+        @font-face { font-family: 'TT Travels Next'; src: url('fonts/TT_Travels_Next_Trial_Bold.ttf') format('truetype'); font-weight: 700; font-display: swap; }
+        .billing-main { max-width: 1040px; padding-top: 40px; }
+        .billing-header { margin-bottom: 48px; }
+        .billing-eyebrow { font-family: 'Inter', system-ui, sans-serif; font-size: 0.6875rem !important; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(196, 181, 252, 0.98) !important; margin-bottom: 12px; }
+        .billing-header h1 { font-family: 'TT Travels Next', 'Space Grotesk', 'Inter', system-ui, sans-serif; font-weight: 700; font-size: clamp(2rem, 4vw, 2.75rem); line-height: 1.1; margin-bottom: 12px; }
+        .billing-header > p:not(.billing-eyebrow) { font-size: 1rem; color: rgba(196, 200, 214, 0.9); }
+        .billing-includes { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px 24px; list-style: none; padding: 0; margin: 24px 0 0; font-size: 0.875rem; color: rgba(230, 232, 240, 0.92); }
+        .billing-includes li { display: inline-flex; align-items: center; gap: 8px; }
+        .billing-includes li::before { content: ''; width: 16px; height: 16px; border-radius: 50%; background: rgba(147, 85, 229, 0.18) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M4.5 8.2l2.2 2.2 4.8-4.8' fill='none' stroke='%23c4b5fc' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / 16px no-repeat; }
+        .plan-section h2, .methods-section h2 { font-size: 0.8125rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: rgba(160, 165, 182, 0.95); margin-bottom: 16px; }
+        .plans-row { display: grid; grid-template-columns: repeat(2, minmax(0, 260px)); justify-content: center; gap: 16px; }
+        .plan-card { padding: 24px; border-radius: 20px; text-align: left; position: relative; }
+        .plan-card.selected { box-shadow: 0 0 0 1px #9355e5, 0 16px 40px -16px rgba(147, 85, 229, 0.45); }
+        .plan-card.selected::after { content: ''; position: absolute; top: 20px; right: 20px; width: 20px; height: 20px; border-radius: 50%; background: #9355e5 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M4.5 8.2l2.2 2.2 4.8-4.8' fill='none' stroke='white' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / 16px no-repeat; }
+        .plan-name { font-size: 0.875rem; color: rgba(196, 200, 214, 0.95); margin-bottom: 8px; }
+        .plan-price { font-family: 'Inter', system-ui, sans-serif; font-size: 2.25rem; font-weight: 700; letter-spacing: -0.02em; line-height: 1; display: inline; }
+        .plan-period { display: inline; margin-left: 6px; }
+        .plan-save { display: inline-block; margin-top: 12px; padding: 4px 10px; border-radius: 999px; font-size: 0.75rem; font-weight: 600; color: #86efac; background: rgba(34, 197, 94, 0.12); }
+        .methods-grid { gap: 16px; }
+        .method-card { border-radius: 20px; }
+        .method-card--featured { border-color: rgba(147, 85, 229, 0.55); background: linear-gradient(180deg, rgba(147, 85, 229, 0.10), rgba(147, 85, 229, 0.02)); }
+        .method-card:not(.method-card--featured) .method-cta a { background: transparent; border: 1px solid rgba(255, 255, 255, 0.22); }
+        .method-card:not(.method-card--featured) .method-cta a:hover { background: rgba(255, 255, 255, 0.08); }
+        .method-cta a, .method-cta button { min-height: 44px; border-radius: 12px; }
+        @media (max-width: 640px) { .plans-row { grid-template-columns: 1fr; } .billing-includes { flex-direction: column; align-items: flex-start; max-width: 320px; margin-left: auto; margin-right: auto; } }
     </style>
 </head>
 <body data-rk-header="app" data-logo-href="index.html" data-nav-active="billing">
@@ -70,12 +96,19 @@
         <main class="main-content">
             <div class="billing-main">
                 <header class="billing-header">
-                    <h1>Riff Killer</h1>
-                    <p>Full access to all riffs, tabs, slow-mo and practice tools. Choose how to subscribe.</p>
+                    <p class="billing-eyebrow">Plans</p>
+                    <h1>Unlock every riff</h1>
+                    <p>One plan, everything included. Cancel anytime.</p>
+                    <ul class="billing-includes">
+                        <li>Full riff library, new riffs monthly</li>
+                        <li>Left + right hand cameras</li>
+                        <li>Slow motion, loops, Speed Trainer</li>
+                        <li>Synced tabs and Riff DNA breakdowns</li>
+                    </ul>
                 </header>
 
                 <section class="plan-section">
-                    <h2>Plan</h2>
+                    <h2>1. Choose a plan</h2>
                     <div class="plans-row">
                         <div class="plan-card selected" id="planMonthly" data-plan="monthly">
                             <div class="plan-name">Monthly</div>
@@ -86,13 +119,13 @@
                             <div class="plan-name">Yearly</div>
                             <div class="plan-price">$90</div>
                             <div class="plan-period">per year</div>
-                            <div class="plan-save">Save $18</div>
+                            <div class="plan-save">2 months free · save $18</div>
                         </div>
                     </div>
                 </section>
 
                 <section class="methods-section">
-                    <h2>Payment methods</h2>
+                    <h2>2. Choose how to pay</h2>
                     <div class="methods-grid">
                         <div class="method-card">
                             <span class="method-icon">💳</span>
@@ -112,7 +145,7 @@
                                 <a href="billing-cryptomus.html" id="cryptoLink">Subscribe with Cryptomus</a>
                             </div>
                         </div>
-                        <div class="method-card" style="border-color: rgba(147,85,229,0.4);">
+                        <div class="method-card method-card--featured">
                             <span class="method-icon">🎸</span>
                             <h3>Patreon</h3>
                             <span class="method-tag">Riff Killer plan</span>

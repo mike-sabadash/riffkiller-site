@@ -6,13 +6,13 @@
     <meta name="theme-color" content="#0a0a0a" id="rk-theme-color">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Riff Killer — Riffs & collections</title>
-    
+
     <!-- Шрифты -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <!-- Inter (opsz) + Space Grotesk fallback для TT Travels — как profile / landing -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&family=Space+Grotesk:wght@500;600;700&family=Zen+Dots&display=swap" rel="stylesheet">
-    
+
     <!-- CSS файлы -->
     <link rel="stylesheet" href="css/reset.css">
     <link rel="stylesheet" href="css/variables.css?v=d20261021">
@@ -21,7 +21,7 @@
     <!-- rk-header подтягивается через @import в components.css -->
     <link rel="stylesheet" href="css/riffs-hub.css?v=d20261021">
     <link rel="stylesheet" href="css/rk-theme-light.css">
-    
+
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="assets/icons/favicon.svg">
 </head>
@@ -31,11 +31,46 @@
     <div class="page-container">
         <!-- Основной контент -->
         <main class="main-content">
-            <header class="riffs-hero">
-                <p class="riffs-hero-eyebrow">Library</p>
-                <h1 class="riffs-hero-title">Riffs &amp; collections</h1>
-                <p class="riffs-hero-lead">Browse by collection or dive into the most practiced riffs. Use filters to match your level and genre.</p>
+            <!-- Первый экран: обещание + реальный кадр продукта (две камеры), CTA меняется в main.js -->
+            <header class="home-hero">
+                <div class="home-hero-copy">
+                    <p class="riffs-hero-eyebrow">Riff library</p>
+                    <h1 class="riffs-hero-title home-hero-title">Kill every riff. One shot at a time.</h1>
+                    <p class="riffs-hero-lead">Famous riffs cut into 10–20 second shots. Watch both hands side by side, slow it down, loop the hard part and follow the tabs.</p>
+                    <div class="home-hero-actions">
+                        <a class="home-btn home-btn--primary" id="homeHeroPrimary" href="practice.html?riff=1">Start a free riff</a>
+                        <a class="home-btn home-btn--ghost" id="homeHeroSecondary" href="billing.html">See plans</a>
+                    </div>
+                    <ul class="home-hero-facts">
+                        <li>Left + right hand cameras</li>
+                        <li>×0.75 and ×0.5 slow motion</li>
+                        <li>Loops and synced tabs</li>
+                    </ul>
+                </div>
+                <div class="home-hero-visual" aria-hidden="true">
+                    <figure class="home-cam">
+                        <img src="assets/img/left_hand_mainpage.jpg" alt="" loading="eager" decoding="async">
+                        <figcaption>Left hand</figcaption>
+                    </figure>
+                    <figure class="home-cam">
+                        <img src="assets/img/right_hand_mainpage.jpg" alt="" loading="eager" decoding="async">
+                        <figcaption>Right hand</figcaption>
+                    </figure>
+                    <div class="home-cam-bar">
+                        <span class="home-chip">Shot 4 · 0:11</span>
+                        <span class="home-chip home-chip--active">×0.75</span>
+                        <span class="home-chip">Loop</span>
+                    </div>
+                </div>
             </header>
+
+            <!-- Continue practicing: показывается, только если есть недавние риффы (main.js) -->
+            <section class="riffs-section continue-section" id="continueSection" hidden>
+                <div class="riffs-section-head">
+                    <h2 class="riffs-title">Continue practicing</h2>
+                </div>
+                <div class="riffs-grid" id="continueGrid"></div>
+            </section>
 
             <!-- Блок коллекций -->
             <section class="collections-section">
@@ -45,11 +80,11 @@
                     <div class="collections-title-wrapper">
                         <h2 class="collections-title">Collections</h2>
                     </div>
-                    
+
                     <div class="filters-container">
                         <!-- Фильтр по сложности -->
                         <div class="filter-group">
-                            <label class="filter-label">Difficulty</label>
+                            <label class="filter-label" for="difficultyFilter">Difficulty</label>
                             <div class="custom-select">
                                 <select class="select-input" id="difficultyFilter">
                                     <option value="all">All Levels</option>
@@ -64,10 +99,10 @@
                                 </div>
                             </div>
                         </div>
-                        
+
                         <!-- Фильтр по жанру -->
                         <div class="filter-group">
-                            <label class="filter-label">Genre</label>
+                            <label class="filter-label" for="genreFilter">Genre</label>
                             <div class="custom-select">
                                 <select class="select-input" id="genreFilter">
                                     <option value="all">All Genres</option>
@@ -84,7 +119,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <!-- Стрелки навигации -->
                     <div class="collections-nav">
                         <button class="nav-arrow nav-arrow-prev" aria-label="Previous collections">
@@ -101,7 +136,7 @@
                         </button>
                     </div>
                 </div>
-                
+
                 <!-- Карточки коллекций -->
                 <div class="collections-grid-wrapper">
                     <div class="collections-grid" id="collectionsGrid">
@@ -110,22 +145,22 @@
                 </div>
                 </div>
             </section>
-            
+
             <!-- Блок Most Killed Riffs -->
             <section class="riffs-section">
                 <div class="riffs-section-head">
                     <h2 class="riffs-title">Most killed riffs</h2>
-                    <p class="riffs-section-desc">A curated slice of the library — change difficulty or genre above to refresh the grid.</p>
+                    <p class="riffs-section-desc">Start with a free riff. Premium riffs open with any plan.</p>
                 </div>
-                
+
                 <!-- Карточки риффов -->
                 <div class="riffs-grid" id="riffsGrid">
                     <!-- Карточки будут добавлены через JavaScript -->
                 </div>
             </section>
-            
+
         </main>
-        
+
         <!-- Футер -->
         <footer class="footer">
             <div class="footer-container">
@@ -133,7 +168,7 @@
                 <div class="footer-copyright">
                     <p class="footer-text">© 2026 Riff Killer. All rights reserved. <a href="billing.html" class="footer-link">Pricing</a></p>
                 </div>
-                
+
                 <!-- Социальные сети -->
                 <div class="footer-social">
                     <a href="https://www.instagram.com/mikesabad" class="social-link" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
@@ -163,9 +198,9 @@
                 </div>
             </div>
         </footer>
-        
+
     </div>
-    
+
     <!-- JavaScript (Patreon: config must load before auth) -->
     <script src="js/patreon-config.js"></script>
     <script src="js/auth-manager.js?v=d20261021"></script>
