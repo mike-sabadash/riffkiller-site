@@ -189,8 +189,25 @@
 .dna-lab--empty .dna-stage-nav,
 .dna-lab--empty #dnaStagePanel { display: none; }
 
-/* Segment buttons: role under the name */
-.segment-btn .dna-segment-role { margin-left: auto; padding-left: 8px; color: var(--role); font-size: 12px; font-weight: 500; }
+/* Segment buttons: the part's role on the right, explained by the key above the grid */
+.segment-btn .dna-segment-role { margin-left: auto; padding-left: 8px; color: var(--role); font-size: 12px; font-weight: 500; white-space: nowrap; }
+.segment-btn .dna-segment-role--drill { color: rgba(255,255,255,.4); font-weight: 400; }
+.segment-btn.active .dna-segment-role--drill { color: rgba(255,255,255,.6); }
+.segment-key { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 14px; margin: 0 0 10px; font-size: 12px; line-height: 22px; }
+.segment-key[hidden] { display: none; }
+.segment-key-title { display: inline-flex; align-items: center; color: rgba(255,255,255,.45); }
+.segment-key-item { display: inline-flex; align-items: center; color: var(--role); font-weight: 500; }
+
+/* "i" next to terms inside the panel */
+.dna-lab-head h2 .rk-hint { margin-left: 4px; }
+.dna-phrase .rk-hint { margin-left: 1px; }
+.dna-part strong .rk-hint { margin-left: 2px; }
+.dna-atom-item { position: relative; }
+.dna-atom-item > .rk-hint { position: absolute; top: 10px; right: 6px; margin: 0; }
+.dna-atom-item > .dna-atom-card { width: calc(100% - 26px); padding-right: 36px; }
+
+html[data-theme='light'] .segment-key-title,
+html[data-theme='light'] .segment-btn .dna-segment-role--drill { color: rgba(20,20,30,.5); }
 
 /* Rule */
 .dna-rule { margin: 0 0 12px; color: #fff; font-size: 18px; font-weight: 600; line-height: 1.4; }

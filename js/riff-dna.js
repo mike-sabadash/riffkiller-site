@@ -14,12 +14,16 @@
     var liveTimer = null;
 
     var STAGES = {
-        scan: { title: 'Hear the whole phrase first' },
-        split: { title: 'The parts and their jobs' },
-        isolate: { title: 'Techniques to watch' },
-        decode: { title: 'Why it sounds like this' },
-        mutate: { title: 'Write your own on the same idea' }
+        scan: { title: 'Hear the whole phrase first', hint: 'A riff is a phrase, like a sentence. The coloured words are its parts in playing order, and ×N is how many times the phrase repeats.' },
+        split: { title: 'The parts and their jobs', hint: 'Each part of the riff has a job in the phrase: it opens it, builds tension, turns or comes home. The job is the same idea in every riff, the notes are this riff\'s own.' },
+        isolate: { title: 'Techniques to watch', hint: 'Techniques are what the hands do at an exact moment: a bend, a slide, a palm mute. Each one is marked at its time in the video.' },
+        decode: { title: 'Why it sounds like this', hint: 'The rule is what makes this riff recognisable. Keep it and you can change the rest.' },
+        mutate: { title: 'Write your own on the same idea', hint: 'Keep the rule, change the notes, and you get a riff of your own built the same way.' }
     };
+
+    function hint(text, label) {
+        return global.RKHint ? global.RKHint.icon(text, label) : '';
+    }
 
     function esc(value) {
         return String(value == null ? '' : value)
@@ -85,6 +89,7 @@
                 name: tech && tech.key !== 'other' ? tech.label : (a.type || 'Technique'),
                 label: a.label || '',
                 tip: a.tip || '',
+                hint: tech && tech.hint ? tech.hint : '',
                 view: a.view,
                 speed: a.speed
             };
@@ -104,8 +109,9 @@
         return { unit: p.unit.map(V.role), times: p.times };
     }
 
-    function roleWord(role) {
-        return '<span class="dna-role-word" style="--role:' + role.color + '">' + esc(role.label) + '</span>';
+    function roleWord(role, withHint) {
+        return '<span class="dna-role-word" style="--role:' + role.color + '">' + esc(role.label) +
+            (withHint ? hint(role.hint, role.label) : '') + '</span>';
     }
 
     function playWholeRiff() {
@@ -133,8 +139,13 @@
 
     function renderScan(dna) {
         var p = phrase();
+        var seen = {};
         var sentence = p.unit.length
-            ? '<p class="dna-phrase" aria-label="Riff phrase">' + p.unit.map(roleWord).join('<span class="dna-phrase-sep" aria-hidden="true">→</span>') +
+            ? '<p class="dna-phrase" aria-label="Riff phrase">' + p.unit.map(function (role) {
+                var first = !seen[role.key];
+                seen[role.key] = true;
+                return roleWord(role, first);
+            }).join('<span class="dna-phrase-sep" aria-hidden="true">→</span>') +
                 (p.times > 1 ? '<span class="dna-phrase-times">×' + p.times + '</span>' : '') + '</p>'
             : '';
         var overview = dna.overview ? '<p class="dna-copy-lead">' + esc(dna.overview) + '</p>' : '';
@@ -182,7 +193,7 @@
         var rows = byRole.map(function (r) {
             return '<li class="dna-part">' +
                 '<span class="dna-part-dot" style="--role:' + r.role.color + '" aria-hidden="true"></span>' +
-                '<div><strong>' + esc(r.role.label) + '</strong>' +
+                '<div><strong>' + esc(r.role.label) + hint(r.role.hint, r.role.label) + '</strong>' +
                 '<p>' + esc(r.note || r.role.hint) + '</p>' +
                 '<span class="dna-part-meta">' + (r.count === 1 ? 'One shot' : r.count + ' shots') + '</span></div>' +
                 '<button type="button" class="dna-part-loop" data-dna-segment="' + r.first + '" aria-label="Loop ' + esc(r.role.label) + '">Loop</button>' +
@@ -200,11 +211,11 @@
         return '<p class="dna-copy-note" style="margin:0 0 6px">Tap one to loop it slowly from the best camera. While the riff plays, the current one lights up.</p>' +
             '<ul class="dna-list">' + list.map(function (a) {
                 var where = a.segment && a.segment.role ? ' · in ' + a.segment.role.label : '';
-                return '<li><button type="button" class="dna-detail dna-atom-card" data-dna-atom="' + a.index + '" data-time="' + a.time + '">' +
+                return '<li class="dna-atom-item"><button type="button" class="dna-detail dna-atom-card" data-dna-atom="' + a.index + '" data-time="' + a.time + '">' +
                     '<span class="dna-detail-type">' + fmtTime(a.time) + where + '</span>' +
                     '<strong>' + esc(a.name) + (a.label ? ' <em>' + esc(a.label) + '</em>' : '') + '</strong>' +
                     (a.tip ? '<small>' + esc(a.tip) + '</small>' : '') +
-                '</button></li>';
+                '</button>' + hint(a.hint, a.name) + '</li>';
             }).join('') + '</ul>';
     }
 
@@ -240,7 +251,7 @@
         var dna = dnaOf(activeRiff);
         var title = document.getElementById('dnaStageTitle');
         var content = document.getElementById('dnaStageContent');
-        if (title) title.textContent = STAGES[stage].title;
+        if (title) title.innerHTML = esc(STAGES[stage].title) + hint(STAGES[stage].hint, STAGES[stage].title);
         document.querySelectorAll('.dna-stage').forEach(function (button) {
             var selected = button.dataset.dnaStage === stage;
             button.classList.toggle('active', selected);
@@ -301,7 +312,7 @@
         if (!live) return;
         if (!state.playing || (!seg && !now)) { live.hidden = true; return; }
         var parts = [];
-        if (seg && seg.role) parts.push('<span class="dna-live-role" style="--role:' + seg.role.color + '">' + esc(seg.role.label) + '</span>');
+        if (seg && seg.role) parts.push('<span class="dna-live-role" style="--role:' + seg.role.color + '" data-tip="' + esc(seg.role.hint) + '">' + esc(seg.role.label) + '</span>');
         if (now) parts.push('<strong>' + esc(now.name) + '</strong>' + (now.label ? ' ' + esc(now.label) : ''));
         else if (next) parts.push('Next: ' + esc(next.name) + ' at ' + fmtTime(next.time));
         live.innerHTML = parts.join('<span class="dna-live-sep" aria-hidden="true">·</span>');
@@ -310,22 +321,67 @@
 
     /* ---------- segment buttons under the video ---------- */
 
+    // Older lessons named the buttons after their half of the riff ("Statement · Pass 1", "Answer · Detail").
+    // Once a part has a role, that word only competes with the coloured role, so the button keeps the rest of the name.
+    var LEGACY_WORDS = ['statement', 'response', 'a', 'b'];
+    function nameWithoutRoleWord(name) {
+        var m = /^\s*(?:the\s+)?([a-z]+)\s*[·:\-–—]\s*(.+)$/i.exec(name || '');
+        if (!m) return name;
+        var word = m[1].toLowerCase();
+        return V.role(word) || LEGACY_WORDS.indexOf(word) >= 0 ? m[2] : name;
+    }
+
+    function segmentRole(segment) {
+        var role = V.role(V.roleFromLegacy(segment));
+        if (role) return role;
+        // An empty role saved in the editor means a drill shot; a riff with no DNA at all gets no labels.
+        return segment && segment.role === '' && hasDNA(activeRiff) ? V.practice : null;
+    }
+
+    function segmentKey(roles) {
+        if (!roles.length) return '';
+        return '<span class="segment-key-title">Part roles' +
+            hint('The coloured word on a part is its job in the phrase. It is the same set of jobs in every riff.', 'part roles') + '</span>' +
+            roles.map(function (role) {
+                return '<span class="segment-key-item" style="--role:' + role.color + '">' + esc(role.label) + hint(role.hint, role.label) + '</span>';
+            }).join('');
+    }
+
     function decorateSegmentControls() {
         if (!activeRiff || !Array.isArray(activeRiff.segments)) return;
+        var container = document.getElementById('segmentControls');
+        var used = [];
         var buttons = document.querySelectorAll('.segment-btn:not(.all-riff)');
         buttons.forEach(function (button, index) {
             var segment = activeRiff.segments[index];
-            if (!segment || button.querySelector('.dna-segment-role')) return;
+            if (!segment) return;
             var name = button.querySelector('.segment-name');
-            if (name && segment.displayName) name.textContent = segment.displayName;
-            var role = V.role(V.roleFromLegacy(segment));
-            if (!role || (name && name.textContent.toLowerCase().indexOf(role.label.toLowerCase()) >= 0)) return;
+            var role = segmentRole(segment);
+            var old = button.querySelector('.dna-segment-role');
+            if (old) old.remove();
+            if (name) name.textContent = role ? nameWithoutRoleWord(segment.displayName || segment.name || name.textContent) : (segment.displayName || name.textContent);
+            if (!role) return;
+            if (used.indexOf(role) < 0 && !used.some(function (r) { return r.key === role.key; })) used.push(role);
             var tag = document.createElement('span');
-            tag.className = 'dna-segment-role';
+            tag.className = 'dna-segment-role' + (role.key ? '' : ' dna-segment-role--drill');
             tag.style.setProperty('--role', role.color);
+            tag.setAttribute('data-tip', role.hint);
             tag.textContent = role.label;
             button.appendChild(tag);
         });
+        if (!container || !container.parentNode) return;
+        var key = document.getElementById('segmentKey');
+        if (!key) {
+            key = document.createElement('div');
+            key.id = 'segmentKey';
+            key.className = 'segment-key';
+            container.parentNode.insertBefore(key, container);
+        }
+        // Key in the order roles go in the method (start → tension → turn → home), drill last.
+        var order = V.roles.map(function (r) { return r.key; });
+        used.sort(function (x, y) { return (x.key ? order.indexOf(x.key) : 99) - (y.key ? order.indexOf(y.key) : 99); });
+        key.innerHTML = segmentKey(used);
+        key.hidden = !used.length;
     }
 
     function init(riff) {

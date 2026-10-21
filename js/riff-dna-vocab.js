@@ -16,40 +16,40 @@
     };
 
     var ROLES = [
-        { key: 'call', label: 'Call', group: 'start', hint: 'Opens the phrase and sets up what comes next' },
-        { key: 'launch', label: 'Launch', group: 'start', hint: 'Jumps in, often right after a pause' },
-        { key: 'push', label: 'Push', group: 'tension', hint: 'Drives forward and adds momentum' },
-        { key: 'repeat', label: 'Repeat', group: 'tension', hint: 'Repeats a short cell so the ear locks onto it' },
-        { key: 'climb', label: 'Climb', group: 'tension', hint: 'Moves up and builds tension' },
-        { key: 'fall', label: 'Fall', group: 'tension', hint: 'Moves down and lets the tension out' },
-        { key: 'hang', label: 'Hang', group: 'tension', hint: 'Holds on and leaves the phrase unresolved' },
-        { key: 'turn', label: 'Turn', group: 'turn', hint: 'Changes direction and starts heading home' },
-        { key: 'answer', label: 'Answer', group: 'turn', hint: 'Replies to the phrase before it' },
-        { key: 'land', label: 'Land', group: 'home', hint: 'Arrives home on the root' },
-        { key: 'reset', label: 'Reset', group: 'home', hint: 'Gets ready for the next cycle' },
-        { key: 'space', label: 'Space', group: 'space', hint: 'Silence, vocal or another instrument that is part of the riff' }
+        { key: 'call', label: 'Call', group: 'start', hint: 'The first idea of the phrase. It sets up the material that the next part answers.' },
+        { key: 'launch', label: 'Launch', group: 'start', hint: 'A sharp entry: the guitar jumps in after a pause, the vocal or another instrument.' },
+        { key: 'push', label: 'Push', group: 'tension', hint: 'Adds movement and energy and pulls toward the next part.' },
+        { key: 'repeat', label: 'Repeat', group: 'tension', hint: 'Repeats a short motif so the ear locks onto it.' },
+        { key: 'climb', label: 'Climb', group: 'tension', hint: 'Moves up in pitch or register, and the tension grows.' },
+        { key: 'fall', label: 'Fall', group: 'tension', hint: 'Moves down, and the tension goes away.' },
+        { key: 'hang', label: 'Hang', group: 'tension', hint: 'Holds a note or a motif and leaves the phrase unresolved.' },
+        { key: 'turn', label: 'Turn', group: 'turn', hint: 'Changes direction and leads the phrase back to the root.' },
+        { key: 'answer', label: 'Answer', group: 'turn', hint: 'Replies to the Call: similar rhythm or register, but it closes the thought.' },
+        { key: 'land', label: 'Land', group: 'home', hint: 'The phrase comes home, onto the root note.' },
+        { key: 'reset', label: 'Reset', group: 'home', hint: 'A link after which the phrase starts again.' },
+        { key: 'space', label: 'Space', group: 'space', hint: 'Silence or another part, like the vocal, that is still part of the riff.' }
     ];
 
     var TECHNIQUES = [
-        { key: 'bend', label: 'Bend' },
-        { key: 'qbend', label: 'Quarter-tone bend' },
-        { key: 'release', label: 'Bend release' },
-        { key: 'vibrato', label: 'Vibrato' },
-        { key: 'slide', label: 'Slide' },
-        { key: 'hammer', label: 'Hammer-on' },
-        { key: 'pull', label: 'Pull-off' },
-        { key: 'legato', label: 'Legato run' },
-        { key: 'trill', label: 'Trill' },
-        { key: 'palm', label: 'Palm mute' },
-        { key: 'rake', label: 'Rake' },
-        { key: 'accent', label: 'Accent' },
-        { key: 'ghost', label: 'Ghost note' },
-        { key: 'double', label: 'Double stop' },
-        { key: 'harmonic', label: 'Harmonic' },
-        { key: 'open', label: 'Open string' },
-        { key: 'tremolo', label: 'Tremolo picking' },
-        { key: 'gap', label: 'Pause' },
-        { key: 'anchor', label: 'Home note' },
+        { key: 'bend', label: 'Bend', hint: 'Push the string across the fret to raise the pitch.' },
+        { key: 'qbend', label: 'Quarter-tone bend', hint: 'A small bend, about a quarter tone: the note just goes sour, blues style.' },
+        { key: 'release', label: 'Bend release', hint: 'Let a bent string come back down to its normal pitch while it still rings.' },
+        { key: 'vibrato', label: 'Vibrato', hint: 'Shake the pitch of a held note up and down to make it sing.' },
+        { key: 'slide', label: 'Slide', hint: 'Move to another fret without lifting the finger, so the pitch glides.' },
+        { key: 'hammer', label: 'Hammer-on', hint: 'Sound a higher note by hitting the string with a fretting finger, no pick.' },
+        { key: 'pull', label: 'Pull-off', hint: 'Pull a fretting finger off the string so a lower note sounds, no pick.' },
+        { key: 'legato', label: 'Legato run', hint: 'Several notes in a row played with hammer-ons and pull-offs, picked once.' },
+        { key: 'trill', label: 'Trill', hint: 'Fast alternation between two notes with hammer-ons and pull-offs.' },
+        { key: 'palm', label: 'Palm mute', hint: 'Rest the picking hand on the strings by the bridge for a tight, muted sound.' },
+        { key: 'rake', label: 'Rake', hint: 'Drag the pick across muted strings into the target note.' },
+        { key: 'accent', label: 'Accent', hint: 'Play this note harder than the ones around it.' },
+        { key: 'ghost', label: 'Ghost note', hint: 'A barely heard, muted note that keeps the rhythm going.' },
+        { key: 'double', label: 'Double stop', hint: 'Two notes on neighbouring strings played together.' },
+        { key: 'harmonic', label: 'Harmonic', hint: 'A bell-like overtone: touch the string lightly over the fret instead of pressing it.' },
+        { key: 'open', label: 'Open string', hint: 'An open string rings under or between the fretted notes.' },
+        { key: 'tremolo', label: 'Tremolo picking', hint: 'Pick one note as fast and evenly as you can.' },
+        { key: 'gap', label: 'Pause', hint: 'A planned pause. The silence is part of the rhythm.' },
+        { key: 'anchor', label: 'Home note', hint: 'The note the riff keeps coming back to.' },
         { key: 'other', label: 'Other' }
     ];
 
@@ -63,6 +63,9 @@
         var r = find(ROLES, key);
         return r ? { key: r.key, label: r.label, group: r.group, hint: r.hint, color: GROUP_COLORS[r.group] } : null;
     }
+
+    // A part with no role is a drill shot: it stays a loop button but is not part of the phrase.
+    var PRACTICE = { key: '', label: 'Drill', hint: 'A shot for practice only. It is not part of the phrase.', color: GROUP_COLORS.space };
 
     function technique(key) {
         return find(TECHNIQUES, key);
@@ -108,6 +111,7 @@
         roles: ROLES,
         techniques: TECHNIQUES,
         groupColors: GROUP_COLORS,
+        practice: PRACTICE,
         role: role,
         technique: technique,
         roleFromLegacy: roleFromLegacy
