@@ -121,10 +121,15 @@
         .seg-move-btn:hover { background: rgba(255,255,255,0.12); }
         .seg-move-btn:disabled { opacity: 0.2; cursor: not-allowed; }
         .segment-row { flex-wrap: wrap; }
-        .segment-row input.molecule { width: 70px; }
-        .segment-row input.molecule-name { width: 150px; }
-        .segment-row input.relation { width: 130px; }
+        .segment-row select.role { width: 300px; padding: 6px 8px; background: rgba(255,255,255,0.06); border: 1px solid var(--color-border-light); border-radius: 6px; color: #fff; font-size: 13px; }
+        .segment-row select.role option { color: #000; }
         .segment-row input.function { width: min(360px, 100%); flex: 1 1 260px; }
+        .segment-editor-seg .seg-role-label { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #0b0b0f; font: 600 11px/1 Roboto, sans-serif; pointer-events: none; white-space: nowrap; overflow: hidden; max-width: calc(100% - 24px); }
+        .segment-editor-atom { position: absolute; bottom: -7px; width: 10px; height: 10px; margin-left: -5px; border-radius: 50%; background: #fff; border: 2px solid #0b0b0f; pointer-events: none; z-index: 3; }
+        .dna-atom-row { border:1px solid #50546a; border-radius:8px; padding:12px; margin-bottom:12px; }
+        .dna-atom-row select { width:100%; padding:10px 12px; background:rgba(255,255,255,.06); border:1px solid var(--color-border-light); border-radius:8px; color:#fff; }
+        .dna-atom-row select option { color:#000; }
+        .dna-atom-now { margin-top: 6px; }
         .dna-admin-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
         .dna-admin-grid .wide { grid-column:1/-1; }
         .dna-admin-grid input, .dna-admin-grid textarea { width:100%; max-width:none !important; padding:10px 12px; background:rgba(255,255,255,.06); border:1px solid var(--color-border-light); border-radius:8px; color:#fff; font:13px/1.5 Roboto,sans-serif; }
@@ -197,21 +202,6 @@
                 <div class="form-row"><label>Thumbnail</label><input type="text" id="thumbnail" placeholder="assets/img/riff-1.png"><input type="file" id="thumbnailUpload" accept="image/*" style="margin-top:6px"></div>
             </div>
             <div class="form-section">
-                <h2>Riff DNA</h2>
-                <p class="coll-pick-hint">Методический слой. Остальные риффы продолжат работать без этих полей.</p>
-                <div class="dna-admin-grid">
-                    <label class="wide">Overview<textarea id="dnaOverviewInput" placeholder="What the listener should notice before touching the controls"></textarea></label>
-                    <label class="wide">DNA formula<input type="text" id="dnaFormulaInput" placeholder="PULSE + SHAPE + TOUCH"></label>
-                    <label>Structure<input type="text" id="dnaStructureInput" placeholder="A, B, A, B"></label>
-                    <label>Law<textarea id="dnaLawInput" placeholder="Why the pattern works"></textarea></label>
-                    <label class="wide">Insight<textarea id="dnaInsightInput" placeholder="The hidden relationship or aha moment"></textarea></label>
-                    <div class="wide"><label>Atoms</label><div id="dnaAtomsEditor"></div><button type="button" class="btn btn-secondary btn-small" id="dnaAddAtom">+ Atom</button></div>
-                    <label>Mutation title<input type="text" id="dnaMutationTitleInput" placeholder="Build a related riff"></label>
-                    <label>Mutation description<textarea id="dnaMutationDescriptionInput" placeholder="What must remain and what can change"></textarea></label>
-                    <label>Mutation steps<textarea id="dnaMutationStepsInput" placeholder="One step per line"></textarea></label>
-                </div>
-            </div>
-            <div class="form-section">
                 <h2>Сегменты</h2>
                 <div class="segment-editor-video-wrap">
                     <p class="segment-editor-hint">Верхняя шкала и полоса сегментов одной ширины; белая черта — текущее место воспроизведения. Клик по сегменту — выделение, двигайте границы. «+ Добавить сегмент» — под полосой.</p>
@@ -249,6 +239,22 @@
                 <div id="segmentRows"></div>
             </div>
             <div class="form-section">
+                <h2>Riff DNA</h2>
+                <p class="coll-pick-hint"><b>Как это работает.</b> Рифф — фраза. Каждый сегмент выше получает <b>роль (Molecule)</b>: что он делает во фразе (Call, Launch, Climb, Turn, Land…). Из ролей сайт сам собирает фразу риффа (например «Launch → Climb → Turn → Land») и цветную карту по таймлайну. <b>Приёмы (Atoms)</b> — техники в конкретный момент: бенд, слайд, hammer-on, palm mute… Поставьте видео на нужное место и нажмите «+ Приём» — время подставится само, и на сайте приём подсветится ровно в этот момент. Сегменты без роли — просто упражнения, во фразу не входят.</p>
+                <div class="dna-admin-grid">
+                    <label class="wide">Organism — что слушатель слышит целиком<textarea id="dnaOverviewInput" placeholder="Голос оставляет паузу, гитара врывается, крутится на коротких клетках и садится на E"></textarea></label>
+                    <div class="wide"><label>Приёмы (Atoms)</label><div id="dnaAtomsEditor"></div><button type="button" class="btn btn-secondary btn-small" id="dnaAddAtom">+ Приём в текущий момент видео</button></div>
+                    <label class="wide">DNA Rule — одна фраза<input type="text" id="dnaRuleInput" placeholder="The cells are simple. The phrase is uneven."></label>
+                    <label class="wide">Почему это работает<textarea id="dnaLawInput" placeholder="Коротко: какое правило связывает части"></textarea></label>
+                    <label>Что сохранить (по строке)<textarea id="dnaPreserveInput" placeholder="Пауза перед входом&#10;Посадка на E"></textarea></label>
+                    <label>Что можно менять (по строке)<textarea id="dnaChangeInput" placeholder="Средние ноты&#10;Регистр"></textarea></label>
+                    <label class="wide">Рифф ломается, если…<input type="text" id="dnaFailureInput" placeholder="Убрать паузу, разворот или посадку на E"></label>
+                    <label>Упражнение: название<input type="text" id="dnaMutationTitleInput" placeholder="Write a riff in the same spirit"></label>
+                    <label>Упражнение: суть<textarea id="dnaMutationDescriptionInput" placeholder="Что сохранить, что поменять"></textarea></label>
+                    <label class="wide">Упражнение: шаги (по строке)<textarea id="dnaMutationStepsInput" placeholder="Один шаг на строку"></textarea></label>
+                </div>
+            </div>
+            <div class="form-section">
                 <button type="submit" class="btn btn-primary" id="submitBtn">Сохранить</button>
                 <button type="button" class="btn btn-secondary" id="deleteBtn" style="margin-left:10px; display:none;">Удалить</button>
                 <div id="saveFeedback" class="save-feedback"><span style="font-size:18px">✓</span> <span>Изменения сохранены</span></div>
@@ -258,9 +264,12 @@
         </div>
     </div>
 
-    <script src="../js/admin-dna.js?v=1"></script>
+    <script src="../js/riff-dna-vocab.js?v=dna1"></script>
+    <script src="../js/admin-dna.js?v=dna1"></script>
     <script>
 (function() {
+    // admin-dna.js redraws the strip when roles or technique times change.
+    window.segmentEditorRenderStrip = segmentEditorRenderStrip;
     var listUrl = '/api/riffs/list.php';
     var saveUrl = '/api/riffs/save.php';
     var reorderUrl = '/api/riffs/reorder.php';
@@ -564,13 +573,22 @@
         div.innerHTML = '<input type="number" step="0.001" class="start" placeholder="start" value="'+sv+'"><input type="number" step="0.001" class="end" placeholder="end" value="'+ev+'"><input type="text" class="name" placeholder="Shot '+n+'" value="'+(defaultName||'').replace(/"/g,'&quot;')+'"><select class="color-select">'+buildColorSelectOptions(segColor)+'</select><input type="text" class="color-hex" placeholder="#hex" value="'+(isCustom?segColor:'')+'" maxlength="7"><button type="button" class="btn btn-secondary btn-small seg-move-btn seg-move-up" title="Вверх">▲</button><button type="button" class="btn btn-secondary btn-small seg-move-btn seg-move-down" title="Вниз">▼</button><button type="button" class="btn btn-secondary btn-small rm-seg">−</button>';
         div._segmentData = Object.assign({}, original || {});
         div.dataset.editorId = String(++nextSegmentEditorId);
-        [['molecule','Molecule: A'], ['molecule-name','Molecule name'], ['relation','Relation: Repeat'], ['function','Function']].forEach(function(field) {
-            var input = document.createElement('input');
-            input.type = 'text'; input.className = field[0]; input.placeholder = field[1];
-            input.setAttribute('aria-label', field[1]);
-            input.value = div._segmentData[field[0] === 'molecule-name' ? 'moleculeName' : field[0]] || '';
-            div.appendChild(input);
-        });
+        var roleSelect = document.createElement('select');
+        roleSelect.className = 'role';
+        roleSelect.setAttribute('aria-label', 'Роль во фразе (Molecule)');
+        roleSelect.innerHTML = '<option value="">Роль: нет (упражнение)</option>' + RiffDNAVocab.roles.map(function (r) {
+            return '<option value="' + r.key + '" title="' + r.hint + '">' + r.label + ' — ' + r.hint + '</option>';
+        }).join('');
+        // Older lessons used free A/B names; suggest the matching role so one save converts them.
+        roleSelect.value = RiffDNAVocab.roleFromLegacy(div._segmentData);
+        roleSelect.addEventListener('change', function () { if (typeof segmentEditorRenderStrip === 'function') segmentEditorRenderStrip(); });
+        div.appendChild(roleSelect);
+        var fnInput = document.createElement('input');
+        fnInput.type = 'text'; fnInput.className = 'function';
+        fnInput.placeholder = 'Что делает эта часть (видно ученику)';
+        fnInput.setAttribute('aria-label', 'Что делает эта часть');
+        fnInput.value = div._segmentData.function || '';
+        div.appendChild(fnInput);
         var tabInput = document.createElement('input');
         tabInput.type = 'text';
         tabInput.className = 'tab-image';
@@ -657,6 +675,7 @@
             if(!riff.segments||riff.segments.length===0) addSegmentRow(c, 0, 0, 'Shot 1');
             segmentEditorUpdateMoveBtns();
             RiffDNAEditor.load(riff);
+            segmentEditorRenderStrip();
             document.getElementById('riffForm').dataset.editId = riff.id;
             segmentEditorSetVideo(riff.videoFile || riff.videoFileRight || '');
             if (collectionsFormCache.length) {
@@ -774,6 +793,7 @@
                 end: segmentEditorNormalizeValue(endIn && endIn.value),
                 name: (nameIn && nameIn.value) || '',
                 color: segColor,
+                role: (row.querySelector('.role') || {}).value || '',
                 rowEl: row
             });
         });
@@ -799,9 +819,18 @@
             block.dataset.segmentIndex = idx;
             block.style.left = left + '%';
             block.style.width = w + '%';
-            block.style.background = seg.color || '#9355E5';
-            block.innerHTML = '<span class="seg-handle seg-handle-left" data-side="left" title="Двигать начало"></span><span class="seg-handle seg-handle-right" data-side="right" title="Двигать конец"></span>';
+            var role = RiffDNAVocab.role(seg.role);
+            block.style.background = role ? role.color : (seg.color || '#9355E5');
+            block.title = (role ? role.label + ' · ' : '') + (seg.name || ('Shot ' + (idx + 1)));
+            block.innerHTML = '<span class="seg-role-label">' + (role ? role.label : '') + '</span><span class="seg-handle seg-handle-left" data-side="left" title="Двигать начало"></span><span class="seg-handle seg-handle-right" data-side="right" title="Двигать конец"></span>';
             wrap.appendChild(block);
+        });
+        if (window.RiffDNAEditor && RiffDNAEditor.atomTimes) RiffDNAEditor.atomTimes().forEach(function (a) {
+            var tick = document.createElement('div');
+            tick.className = 'segment-editor-atom';
+            tick.style.left = Math.min(100, (a.time / stripDuration) * 100) + '%';
+            tick.title = a.label + ' · ' + a.time + ' с';
+            wrap.appendChild(tick);
         });
         var range = document.getElementById('segmentEditorTimeline');
         if (range && stripDuration > 0) {
@@ -1019,9 +1048,10 @@
             var colHex = row.querySelector('.color-hex');
             var segColor = (colSel && colSel.value==='custom' && colHex) ? (colHex.value||'').trim() : (colSel ? colSel.value : null);
             if (!segColor || !/^#[0-9A-Fa-f]{6}$/.test(segColor)) segColor = SEGMENT_COLORS[0].hex;
-            segs.push(Object.assign({}, row._segmentData || {}, { tabImage: row.querySelector('.tab-image').value.trim(),
-                molecule: row.querySelector('.molecule').value.trim(), moleculeName: row.querySelector('.molecule-name').value.trim(),
-                relation: row.querySelector('.relation').value.trim(), function: row.querySelector('.function').value.trim(),
+            var segData = Object.assign({}, row._segmentData || {});
+            delete segData.molecule; delete segData.moleculeName; delete segData.relation;
+            segs.push(Object.assign(segData, { tabImage: row.querySelector('.tab-image').value.trim(),
+                role: row.querySelector('.role').value, function: row.querySelector('.function').value.trim(),
                 displayName: (row._segmentData || {}).name === n ? ((row._segmentData || {}).displayName || n) : n, start: segmentEditorNormalizeValue(row.querySelector('.start').value), end: segmentEditorNormalizeValue(row.querySelector('.end').value), name: n || ('Shot ' + (i+1)), color: segColor }));
         });
         var dna;

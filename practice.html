@@ -20,7 +20,7 @@
     <link rel="stylesheet" href="css/components.css?v=d20261021">
     <link rel="stylesheet" href="css/rk-header.css?v=d20261021">
     <link rel="stylesheet" href="css/practice.css?v=h20261021">
-    <link rel="stylesheet" href="css/riff-dna.css?v=h20261021">
+    <link rel="stylesheet" href="css/riff-dna.css?v=dna1">
     <link rel="stylesheet" href="css/riffs-hub.css?v=h20261021">
     <link rel="stylesheet" href="css/rk-theme-light.css">
 
@@ -195,21 +195,20 @@
             <nav class="dna-stage-nav" id="dnaStageNav" aria-label="Riff DNA" role="tablist">
                 <button type="button" class="dna-stage active" data-dna-stage="scan" id="dna-tab-scan" role="tab" aria-controls="dnaStagePanel" aria-selected="true" tabindex="0">Listen</button>
                 <button type="button" class="dna-stage" data-dna-stage="split" id="dna-tab-split" role="tab" aria-controls="dnaStagePanel" aria-selected="false" tabindex="-1">Parts</button>
-                <button type="button" class="dna-stage" data-dna-stage="isolate" id="dna-tab-isolate" role="tab" aria-controls="dnaStagePanel" aria-selected="false" tabindex="-1">Details</button>
-                <button type="button" class="dna-stage" data-dna-stage="decode" id="dna-tab-decode" role="tab" aria-controls="dnaStagePanel" aria-selected="false" tabindex="-1">Why it works</button>
+                <button type="button" class="dna-stage" data-dna-stage="isolate" id="dna-tab-isolate" role="tab" aria-controls="dnaStagePanel" aria-selected="false" tabindex="-1">Techniques</button>
+                <button type="button" class="dna-stage" data-dna-stage="decode" id="dna-tab-decode" role="tab" aria-controls="dnaStagePanel" aria-selected="false" tabindex="-1">Rule</button>
                 <button type="button" class="dna-stage" data-dna-stage="mutate" id="dna-tab-mutate" role="tab" aria-controls="dnaStagePanel" aria-selected="false" tabindex="-1">Your turn</button>
             </nav>
 
 
                 <div id="dnaStagePanel" role="tabpanel" tabindex="0" aria-labelledby="dna-tab-scan">
                 <div class="dna-lab-head">
-                    <div>
-                                                <h2 id="dnaStageTitle">Listen to the whole riff first</h2>
-                    </div>
-                    <div class="dna-structure" id="dnaStructure" aria-label="Riff structure"></div>
+                    <h2 id="dnaStageTitle">Hear the whole phrase first</h2>
                 </div>
                 <div class="dna-stage-content" id="dnaStageContent"></div>
+                <p class="dna-live" id="dnaLive" aria-live="polite" hidden></p>
                 </div>
+                <p class="dna-empty" id="dnaEmpty" hidden><strong>Riff DNA</strong> for this riff is still being written: its parts and techniques will show up here. For now, loop the shots, switch cameras and slow it down.</p>
             </section>
 
             </div>
@@ -299,7 +298,8 @@
 <script src="js/practice-media.js?v=1"></script>
 <script src="js/practice-transport.js?v=1"></script>
 <script src="js/riff-gallery-card.js?v=h20261021"></script>
-<script src="js/riff-dna.js?v=h20261021"></script>
+<script src="js/riff-dna-vocab.js?v=dna1"></script>
+<script src="js/riff-dna.js?v=dna1"></script>
 <script src="js/practice.js?v=7"></script>
 </body>
 </html>

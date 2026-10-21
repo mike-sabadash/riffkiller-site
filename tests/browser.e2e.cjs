@@ -132,7 +132,7 @@ test('editor captures boundaries, edits Atoms, saves and reopens without losing 
     await page.click('#submitBtn');assert.equal((await secondSave).status(),200);
     await page.reload({waitUntil:'domcontentloaded'});await page.click('.admin-tab[data-tab="edit"]');await page.selectOption('#riffSelect','1');await page.waitForFunction(()=>document.querySelectorAll('#segmentRows .segment-row').length===10);
     assert.equal(await page.locator('#segmentRows .name').first().inputValue(),'Edited in browser');
-    assert.equal(await page.locator('#segmentRows .molecule').first().inputValue(),'A');
+    assert.equal(await page.locator('#segmentRows .role').first().inputValue(),'launch');
     assert.equal(await page.locator('#dnaAtomsEditor [data-field="label"]').first().inputValue(),'Edited Atom');
     assert.match(await page.locator('#segmentRows .tab-image').first().inputValue(),/1\.png$/);
     if(process.env.QA_SCREENSHOTS)await page.screenshot({path:path.join(process.env.QA_SCREENSHOTS,'editor-desktop.png'),fullPage:true});
@@ -229,3 +229,23 @@ test('DNA tabs stay beside their content at desktop, tablet and mobile sizes; th
         if(process.env.QA_SCREENSHOTS){await page.waitForTimeout(250);await page.screenshot({path:path.join(process.env.QA_SCREENSHOTS,'workspace-'+width+'.png'),fullPage:true});}
     }
 });
+test('Riff DNA shows the phrase, a live map of roles and techniques that light up with the video',async t=>{
+    const page=await pageFor(t);await practice(page);
+    assert.match(await page.locator('.dna-phrase').innerText(),/Launch\s*→\s*Land/);
+    await page.locator('#dna-tab-split').click();
+    assert.equal(await page.locator('.dna-map-block').count(),10);
+    assert.equal(await page.locator('.dna-map-block--plain').count(),2,'Practice-only shots are not part of the phrase');
+    await page.locator('.dna-map-block').nth(3).click();
+    await page.waitForFunction(()=>currentSegment===3 && !leftVideo.paused);
+    await page.waitForFunction(()=>document.querySelector('.dna-map-block.active')?.dataset.dnaSegment==='3');
+    await page.locator('#dna-tab-isolate').click();
+    await page.evaluate(()=>{loopActive=false;loopAllRiff=true;practiceTransport.seek(2.1);return practiceTransport.play();});
+    await page.waitForFunction(()=>document.querySelector('[data-dna-atom="2"]')?.classList.contains('now'));
+    assert.match(await page.locator('#dnaLive').innerText(),/Quarter-tone bend/);
+});
+test('a riff without DNA says so instead of showing empty tabs',async t=>{
+    const page=await pageFor(t);await practice(page,7);
+    assert.equal(await page.locator('#dnaEmpty').isVisible(),true);
+    assert.equal(await page.locator('#dnaStageNav').isVisible(),false);
+});
+
