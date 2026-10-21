@@ -126,6 +126,29 @@
         .segment-row input.function { width: min(360px, 100%); flex: 1 1 260px; }
         .segment-editor-seg .seg-role-label { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #0b0b0f; font: 600 11px/1 Roboto, sans-serif; pointer-events: none; white-space: nowrap; overflow: hidden; max-width: calc(100% - 24px); }
         .segment-editor-atom { position: absolute; bottom: -7px; width: 10px; height: 10px; margin-left: -5px; border-radius: 50%; background: #fff; border: 2px solid #0b0b0f; pointer-events: none; z-index: 3; }
+        .dna-ai { margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid var(--color-border-light); }
+        .dna-ai-title { display: block; font-size: 14px; color: #fff; font-weight: 500; }
+        .dna-ai .coll-pick-hint { max-width: none; margin-bottom: 10px; }
+        .dna-ai textarea { width: 100%; padding: 10px 12px; background: rgba(255,255,255,.06); border: 1px solid var(--color-border-light); border-radius: 8px; color: #fff; font: 13px/1.5 Roboto, sans-serif; resize: vertical; }
+        .dna-ai-actions { display: flex; align-items: center; gap: 12px; margin-top: 10px; flex-wrap: wrap; }
+        .dna-ai-status { font-size: 13px; color: var(--color-text-tertiary); }
+        .dna-ai-status.error { color: #F44336; }
+        .dna-ai-result { margin-top: 16px; font-size: 13px; line-height: 1.5; }
+        .dna-ai-result h3 { font-size: 13px; font-weight: 500; color: var(--color-text-secondary); margin: 16px 0 6px; }
+        .dna-ai-result h3:first-child { margin-top: 0; }
+        .dna-ai-result table { width: 100%; border-collapse: collapse; }
+        .dna-ai-result td { padding: 6px 8px 6px 0; vertical-align: top; border-top: 1px solid rgba(255,255,255,.08); }
+        .dna-ai-result td:first-child { width: 28px; color: var(--color-text-tertiary); }
+        .dna-ai-result .was { color: var(--color-text-tertiary); text-decoration: line-through; margin-right: 6px; }
+        .dna-ai-result .same { color: var(--color-text-tertiary); }
+        .dna-ai-result dl { display: grid; grid-template-columns: 150px 1fr; gap: 6px 12px; margin: 0; }
+        .dna-ai-result dt { color: var(--color-text-tertiary); }
+        .dna-ai-result dd { margin: 0; white-space: pre-line; }
+        .dna-ai-result ul { margin: 0; padding-left: 18px; }
+        .dna-ai-pick { display: flex; flex-wrap: wrap; gap: 16px; margin: 16px 0 10px; color: var(--color-text-secondary); }
+        .dna-ai-pick input { margin-right: 6px; vertical-align: middle; }
+        .dna-ai-model { color: var(--color-text-tertiary); font-size: 12px; margin-top: 8px; }
+        @media(max-width:720px){ .dna-ai-result dl { grid-template-columns: 1fr; } .dna-ai-result dt { margin-top: 6px; } }
         .dna-atom-row { border:1px solid #50546a; border-radius:8px; padding:12px; margin-bottom:12px; }
         .dna-atom-row select { width:100%; padding:10px 12px; background:rgba(255,255,255,.06); border:1px solid var(--color-border-light); border-radius:8px; color:#fff; }
         .dna-atom-row select option { color:#000; }
@@ -240,6 +263,16 @@
             </div>
             <div class="form-section">
                 <h2>Riff DNA</h2>
+                <div id="dnaAiPanel" class="dna-ai">
+                    <label for="dnaAiNotes" class="dna-ai-title">Черновик с ИИ</label>
+                    <p class="coll-pick-hint">Опишите рифф своими словами: что происходит по сегментам, где пауза, куда садится, какие приёмы и примерно когда. ИИ раздаст роли сегментам и заполнит поля ниже по правилам методологии. Ничего не сохраняется, пока вы не проверите черновик и не нажмёте «Сохранить».</p>
+                    <textarea id="dnaAiNotes" rows="4" placeholder="Вокал поёт фразу и замолкает, гитара врывается не в долю. Сегменты 1, 3, 5, 9 — вход, 2, 4, 6, 10 — разворот и посадка на E5. 7 и 8 — разбор деталей. На ~2 c четвертьтоновый бенд на 5 ладу G, легато 7–5–6–7 в начале."></textarea>
+                    <div class="dna-ai-actions">
+                        <button type="button" class="btn btn-secondary" id="dnaAiRun">Составить черновик</button>
+                        <span id="dnaAiStatus" class="dna-ai-status" role="status"></span>
+                    </div>
+                    <div id="dnaAiResult" class="dna-ai-result" hidden></div>
+                </div>
                 <p class="coll-pick-hint"><b>Как это работает.</b> Рифф — фраза. Каждый сегмент выше получает <b>роль (Molecule)</b>: что он делает во фразе (Call, Launch, Climb, Turn, Land…). Из ролей сайт сам собирает фразу риффа (например «Launch → Climb → Turn → Land») и цветную карту по таймлайну. <b>Приёмы (Atoms)</b> — техники в конкретный момент: бенд, слайд, hammer-on, palm mute… Поставьте видео на нужное место и нажмите «+ Приём» — время подставится само, и на сайте приём подсветится ровно в этот момент. Сегменты без роли — просто упражнения, во фразу не входят.</p>
                 <div class="dna-admin-grid">
                     <label class="wide">Organism — что слушатель слышит целиком<textarea id="dnaOverviewInput" placeholder="Голос оставляет паузу, гитара врывается, крутится на коротких клетках и садится на E"></textarea></label>
@@ -266,6 +299,7 @@
 
     <script src="../js/riff-dna-vocab.js?v=dna1"></script>
     <script src="../js/admin-dna.js?v=dna2"></script>
+    <script src="../js/admin-dna-ai.js?v=ai1"></script>
     <script>
 (function() {
     // admin-dna.js redraws the strip when roles or technique times change.
