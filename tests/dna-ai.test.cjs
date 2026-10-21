@@ -25,6 +25,12 @@ after(()=>{site?.stop();noKey?.stop();mock.close();});
 
 const riff={song:'Black Dog',artist:'Led Zeppelin',duration:10,segments:[{start:0,end:2,name:'Shot 1',role:'',function:''},{start:2,end:4,name:'Shot 2',role:'land',function:'Lands on E'},{start:4,end:6,name:'Detail',role:'',function:''}],dna:{}};
 const post=(s,body,cookie)=>fetch(s.base+'/api/riffs/dna-draft.php',{method:'POST',headers:{'Content-Type':'application/json',...(cookie?{Cookie:cookie}:{})},body:JSON.stringify(body)});
+// Starts a draft and reads the finished job, as the editor does by polling.
+async function draft(body){
+    const started=await post(site,body,admin);assert.equal(started.status,200);
+    const {job}=await started.json();assert.match(job,/^[a-f0-9]{24}$/);
+    return fetch(site.base+'/api/riffs/dna-draft.php?job='+job,{headers:{Cookie:admin}});
+}
 const answer=obj=>[200,{model:'some/model:free',choices:[{message:{content:'Here is the draft:\n```json\n'+JSON.stringify(obj)+'\n```'}}]}];
 
 test('the server reads the same roles and techniques as the site',()=>{
@@ -53,7 +59,7 @@ test('the draft is built from the rules and cleaned to the editor format',async(
             mutation:{title:'Same spirit',steps:['Leave a gap','Land']}},
         notes:['Где вступает вокал?']
     })];
-    const r=await post(site,{riff,notes:'Вокал, пауза, гитара врывается и садится на E. На 2.5 c бенд.'},admin);
+    const r=await draft({riff,notes:'Вокал, пауза, гитара врывается и садится на E. На 2.5 c бенд.'},admin);
     const data=await r.json();
     assert.equal(r.status,200,JSON.stringify(data));
     assert.equal(calls.length,2,'retries without response_format');
@@ -79,14 +85,20 @@ test('the draft is built from the rules and cleaned to the editor format',async(
 
 test('OpenRouter errors become plain Russian messages',async()=>{
     replies=[[429,{error:{message:'Rate limit exceeded: free-models-per-day'}}]];
-    let r=await post(site,{riff,notes:'Guitar jumps in after the vocal'},admin);
+    let r=await draft({riff,notes:'Guitar jumps in after the vocal'});
     assert.equal(r.status,502);assert.match((await r.json()).error,/Лимит/);
     replies=[[404,{error:{message:'No endpoints found matching your data policy (Free model publication)'}}]];
-    r=await post(site,{riff,notes:'Guitar jumps in after the vocal'},admin);
+    r=await draft({riff,notes:'Guitar jumps in after the vocal'});
     assert.match((await r.json()).error,/settings\/privacy/);
     replies=[[200,{choices:[{message:{content:'Sorry, I cannot help.'}}]}]];
-    r=await post(site,{riff,notes:'Guitar jumps in after the vocal'},admin);
+    r=await draft({riff,notes:'Guitar jumps in after the vocal'});
     assert.match((await r.json()).error,/JSON/);
+});
+
+test('job ids are checked and unknown jobs are not found',async()=>{
+    assert.equal((await fetch(site.base+'/api/riffs/dna-draft.php?job=../riffs',{headers:{Cookie:admin}})).status,404);
+    assert.equal((await fetch(site.base+'/api/riffs/dna-draft.php?job='+'a'.repeat(24),{headers:{Cookie:admin}})).status,404);
+    assert.equal((await fetch(site.base+'/api/riffs/dna-draft.php?job='+'a'.repeat(24))).status,403);
 });
 
 test('a riff without segments or description is refused before calling the model',async()=>{

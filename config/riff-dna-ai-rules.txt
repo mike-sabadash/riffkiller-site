@@ -55,7 +55,18 @@ You get segments in time order with start/end seconds, the author's name for the
 6. Keep any role the author already set unless their description clearly contradicts it. If you change one, say why in "notes".
 7. The phrase read in order should sound like a short sentence of 3 to 5 verbs, for example: Launch → Climb → Turn → Land.
    A riff that is all one role has not been understood yet.
-8. "function" for each segment: one plain sentence, under 90 characters, of what this part does, as a student would understand it.
+8. Phrases are not always pairs. Read the shape the author describes and keep it:
+   - Three parts (statement, development, close): call → push / climb / answer → land. "1 starts, 2 plays around it, 3 finishes" is this shape.
+   - Two parts (question and answer): call or launch → answer or land.
+   - A block of near-repeats (the same phrase played 3–5 times with one small change): every pass gets the same role,
+     usually "repeat" (or the role of the phrase it varies). Do not invent climb/fall just to make them look different.
+     The change itself goes into "function" ("Same cell, the strong-beat accent moves an eighth earlier") and into one Atom
+     (an "accent" for a moved accent, a "gap" for a moved pause) placed on the first pass where it appears.
+   - The last pass that bends away to lead into the next part (a reprise, a pickup into the next section): "turn", or "reset" if it only prepares the restart.
+   - A section that comes back identical (A B A): copy the roles and functions of its first appearance.
+   The author may call each segment an "organism" or a "phrase" loosely; you still answer with roles per segment.
+   When the description gives segment numbers, they are 1-based, as the author sees them; "index" in your answer is 0-based.
+9. "function" for each segment: one plain sentence, under 90 characters, of what this part does, as a student would understand it.
    Concrete over poetic: "Jumps in off balance: a short 5/8 cell around the 7th fret", not "Unleashes raw energy".
    Repeated passes may reuse the same function text.
 

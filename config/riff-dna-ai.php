@@ -168,6 +168,40 @@ function dna_ai_normalize(array $raw, array $segments, $duration) {
     ];
 }
 
+/** Drafts run after the HTTP reply (see api/riffs/dna-draft.php); the browser polls this small file store. */
+function dna_ai_job_dir() {
+    return dirname(__DIR__) . '/data/dna-ai-jobs';
+}
+
+function dna_ai_job_path($id) {
+    return preg_match('/^[a-f0-9]{24}$/', (string)$id) ? dna_ai_job_dir() . '/' . $id . '.json' : null;
+}
+
+function dna_ai_job_create() {
+    $dir = dna_ai_job_dir();
+    if (!is_dir($dir) && !@mkdir($dir, 0755, true)) return null;
+    foreach (glob($dir . '/*.json') ?: [] as $old) {
+        if (filemtime($old) < time() - 86400) @unlink($old);
+    }
+    $id = bin2hex(random_bytes(12));
+    return dna_ai_job_write($id, ['status' => 'pending']) ? $id : null;
+}
+
+function dna_ai_job_write($id, array $job) {
+    $path = dna_ai_job_path($id);
+    if ($path === null) return false;
+    $job['started'] = $job['started'] ?? (is_file($path) ? (int)(json_decode((string)file_get_contents($path), true)['started'] ?? time()) : time());
+    $tmp = $path . '.tmp';
+    return @file_put_contents($tmp, json_encode($job, JSON_UNESCAPED_UNICODE)) !== false && @rename($tmp, $path);
+}
+
+function dna_ai_job_read($id) {
+    $path = dna_ai_job_path($id);
+    if ($path === null || !is_file($path)) return null;
+    $job = json_decode((string)file_get_contents($path), true);
+    return is_array($job) ? $job : null;
+}
+
 /** Calls OpenRouter. Returns ['text' => ..., 'model' => ...] or ['error' => message for the admin, 'status' => http]. */
 function dna_ai_complete($system, $user) {
     $key = dna_ai_env('OPENROUTER_API_KEY');
@@ -179,6 +213,7 @@ function dna_ai_complete($system, $user) {
         'model' => dna_ai_env('OPENROUTER_MODEL', DNA_AI_DEFAULT_MODEL),
         'messages' => [['role' => 'system', 'content' => $system], ['role' => 'user', 'content' => $user]],
         'temperature' => 0.3,
+        'max_tokens' => 3000,
         'response_format' => ['type' => 'json_object'],
     ];
     $result = dna_ai_post($base . '/chat/completions', $key, $payload);
@@ -205,7 +240,7 @@ function dna_ai_post($url, $key, array $payload) {
         CURLOPT_POST => true,
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_CONNECTTIMEOUT => 10,
-        CURLOPT_TIMEOUT => 100,
+        CURLOPT_TIMEOUT => 180,
         CURLOPT_HTTPHEADER => [
             'Authorization: Bearer ' . $key,
             'Content-Type: application/json',
