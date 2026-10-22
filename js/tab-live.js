@@ -11,8 +11,11 @@
     'use strict';
 
     var QUARTER = 960; // alphaTab ticks per quarter note
-    var LIB = 'js/vendor/alphatab/alphaTab.min.js?v=1.6.3';
-    var FONTS = 'js/vendor/alphatab/font/';
+    // Paths are resolved from this script, so the admin (one folder down) loads the same files.
+    var script = typeof document !== 'undefined' && document.currentScript;
+    var BASE = script && script.src ? script.src.replace(/js\/tab-live\.js.*$/, '') : '';
+    var LIB = BASE + 'js/vendor/alphatab/alphaTab.min.js?v=1.6.3';
+    var FONTS = BASE + 'js/vendor/alphatab/font/';
 
     // ---- Timing (pure, unit-tested) ----
 
@@ -50,6 +53,62 @@
         if (tick < from.start) return { bar: i, beat: -1, x: bar.x0 + (from.x - bar.x0) * tick / (from.start || 1) };
         var f = nextStart > from.start ? (tick - from.start) / (nextStart - from.start) : 0;
         return { bar: i, beat: k, x: from.x + (nextX - from.x) * f };
+    }
+
+    /**
+     * Suggests bars for every shot. Shots with the same role play the same bars; a new role takes the next
+     * bars of the file, as many as best fill the shot's length. Practice-only shots (no role) stay empty.
+     * segments: [{ start, end, role }], bars: [{ ms }]. Returns [[from, to] | null], 1-based.
+     */
+    function autoMap(segments, bars) {
+        var next = 0, byRole = {};
+        return segments.map(function (s) {
+            if (!s.role) return null;
+            if (byRole[s.role]) return byRole[s.role].slice();
+            if (next >= bars.length) return null;
+            var want = Math.max(0, s.end - s.start) * 1000, sum = 0, best = next, bestErr = Infinity;
+            for (var k = next; k < bars.length; k++) {
+                sum += bars[k].ms;
+                var err = Math.abs(sum - want);
+                if (err < bestErr) { bestErr = err; best = k; }
+                if (sum > want) break;
+            }
+            byRole[s.role] = [next + 1, best + 1];
+            next = best + 1;
+            return byRole[s.role].slice();
+        });
+    }
+
+    /** "1-2", "3", "1–2" → [from, to]; empty or invalid → null. */
+    function parseBars(text) {
+        var m = String(text || '').trim().match(/^(\d+)\s*(?:[-–—]\s*(\d+))?$/);
+        if (!m) return null;
+        var from = Number(m[1]), to = m[2] ? Number(m[2]) : from;
+        return from >= 1 && to >= from ? [from, to] : null;
+    }
+
+    function formatBars(range) {
+        return Array.isArray(range) && range.length ? (range[0] === range[1] || range[1] == null ? String(range[0]) : range[0] + '–' + range[1]) : '';
+    }
+
+    /** Bar list of a loaded score for the admin: length and time signature of every bar. */
+    function summarize(score) {
+        return barDurations(score.masterBars, score.tempo).map(function (d, i) {
+            var mb = score.masterBars[i];
+            return { ms: d.ms, ticks: d.ticks, ts: mb.timeSignatureNumerator + '/' + mb.timeSignatureDenominator };
+        });
+    }
+
+    /** Reads a tab without drawing it: { tex } or { bytes } or { file } (site path). */
+    function readScore(source) {
+        return loadLib().then(function (at) {
+            if (source.tex) return at.importer.ScoreLoader.loadAlphaTex(source.tex);
+            var bytes = source.bytes ? Promise.resolve(source.bytes) : fetch(BASE + source.file).then(function (r) {
+                if (!r.ok) throw new Error('HTTP ' + r.status);
+                return r.arrayBuffer();
+            });
+            return bytes.then(function (b) { return at.importer.ScoreLoader.loadScoreFromBytes(new Uint8Array(b)); });
+        });
     }
 
     /** Bars of a shot: its own tabBars, clamped to the file. */
@@ -130,7 +189,7 @@
                 api.error.on(function (e) { reject(e); });
                 api.renderFinished.on(measure);
                 if (riff.tab.tex) api.tex(riff.tab.tex, [track]);
-                else api.load(riff.tab.file, [track]);
+                else api.load(BASE + riff.tab.file, [track]);
             });
         });
 
@@ -208,5 +267,8 @@
         return { ready: ready, showSegment: showSegment, update: update, destroy: destroy };
     }
 
-    global.TabLive = { barDurations: barDurations, cursorAt: cursorAt, barsOf: barsOf, hasTab: hasTab, create: create };
+    global.TabLive = {
+        barDurations: barDurations, cursorAt: cursorAt, barsOf: barsOf, autoMap: autoMap, parseBars: parseBars, formatBars: formatBars,
+        hasTab: hasTab, create: create, readScore: readScore, summarize: summarize
+    };
 })(typeof window !== 'undefined' ? window : this);

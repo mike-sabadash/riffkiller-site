@@ -25,8 +25,11 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !isset($_FILES['file']) || $_FILES[
 }
 
 $path = isset($_POST['path']) ? trim((string) $_POST['path']) : '';
-// Media only, inside assets/: never scripts, HTML or SVG anywhere under the web root.
-if ($path === '' || strpos($path, '..') !== false || !preg_match('#^assets/[a-zA-Z0-9/_.\-]+\.(mp4|webm|mov|png|jpe?g|webp|gif)$#i', $path)) {
+// Media only, inside assets/: never scripts, HTML, SVG or XML anywhere under the web root.
+// Tab files (Guitar Pro, compressed MusicXML) only under assets/tabs/.
+$media = '#^assets/[a-zA-Z0-9/_.\-]+\.(mp4|webm|mov|png|jpe?g|webp|gif)$#i';
+$tabs = '#^assets/tabs/[a-zA-Z0-9/_.\-]+\.(gp|gp3|gp4|gp5|gpx|mxl)$#i';
+if ($path === '' || strpos($path, '..') !== false || !(preg_match($media, $path) || preg_match($tabs, $path))) {
     http_response_code(400);
     echo json_encode(['success' => false, 'error' => 'Invalid path']);
     exit();

@@ -407,3 +407,21 @@ test('a riff with a tab file shows a live tab strip whose cursor follows the vid
     assert.ok(await x()!==first,'cursor moves while the video plays');
     if(process.env.QA_SCREENSHOTS)await page.locator('.video-player-container').screenshot({path:path.join(process.env.QA_SCREENSHOTS,'practice-live-tab.png')});
 });
+test('tab block reads alphaTex, maps bars to parts by role and length, and saves them with the riff',async t=>{
+    const page=await editor(t);
+    await page.click('#tabTexBox summary');
+    await page.fill('#tabTex','\\tempo 171\n.\n\\ts 5 8 7.4.8 5.3.8 6.3.8 7.3.8 7.4.8 |\n\\ts 4 4 \\tempo 160 5.2.4{v} 7.3.4 5.3.8 7.4.8 5.4.4');
+    await page.waitForFunction(()=>/Прочитано: 2 такта/.test(document.getElementById('tabStatus').textContent),null,{timeout:20000});
+    await page.click('#tabAutoMap');
+    const bars=await page.evaluate(()=>[...document.querySelectorAll('#segmentRows .tab-bars')].map(i=>i.value));
+    assert.deepEqual(bars.slice(0,2),['1','2'],JSON.stringify(bars));
+    assert.equal(bars[2],'1','a repeated role reuses its bars');
+    if(process.env.QA_SCREENSHOTS)await page.locator('section[aria-labelledby="hTabs"]').screenshot({path:path.join(process.env.QA_SCREENSHOTS,'editor-tabs.png')});
+    const saved=page.waitForResponse(r=>r.url().endsWith('/api/riffs/save.php'));
+    await page.click('#submitBtn');
+    if(await page.locator('#dnaLintDialog[open]').count())await page.click('#dnaLintSave');
+    assert.equal((await saved).status(),200);
+    const store=JSON.parse(fs.readFileSync(path.join(site.dir,'data/riffs.json'),'utf8'));const riff=(Array.isArray(store)?store:Object.values(store)).find(r=>r.id===1);
+    assert.match(riff.tab.tex,/\\ts 5 8/);
+    assert.deepEqual(riff.segments[0].tabBars,[1,1]);assert.deepEqual(riff.segments[1].tabBars,[2,2]);
+});

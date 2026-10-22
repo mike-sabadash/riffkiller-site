@@ -70,7 +70,7 @@
         return {
             start: round3(row.querySelector('.start').value), end: round3(row.querySelector('.end').value),
             name: row.querySelector('.name').value, role: row.querySelector('.role').value,
-            fn: row.querySelector('.function').value, tab: row.querySelector('.tab-image').value,
+            fn: row.querySelector('.function').value, tab: row.querySelector('.tab-image').value, bars: row.querySelector('.tab-bars').value,
             color: color, row: row
         };
     }
@@ -121,7 +121,8 @@
                 '<div class="ed-row2"><label class="ed-field"><span>Начало, сек</span><input type="number" class="start" step="0.01" min="0"></label>' +
                 '<label class="ed-field"><span>Конец, сек</span><input type="number" class="end" step="0.01" min="0"></label></div>' +
                 '<label class="ed-field"><span>Подпись кнопки в плеере</span><input type="text" class="name"></label>' +
-                '<label class="ed-field"><span>Картинка табов</span><input type="text" class="tab-image" placeholder="assets/tabs/artist/song/1.png"></label>' +
+                '<div class="ed-row2"><label class="ed-field"><span>Такты в файле табов</span><input type="text" class="tab-bars" inputmode="numeric" placeholder="например 1–2"></label>' +
+                '<label class="ed-field"><span>Картинка табов, если нет файла</span><input type="text" class="tab-image" placeholder="assets/tabs/artist/song/1.png"></label></div>' +
                 '<div class="ed-field"><span>Цвет кнопки в плеере</span><div class="seg-colors">' +
                     COLORS.map(function (c) { return '<button type="button" data-hex="' + c.hex + '" title="' + c.name + '" style="background:' + c.hex + '"></button>'; }).join('') +
                     '<button type="button" data-hex="custom" title="Свой цвет" style="background:conic-gradient(#f44336,#ffc107,#4caf50,#2196f3,#9355e5,#f44336)"></button>' +
@@ -136,6 +137,7 @@
         row.querySelector('.name').value = d.name || '';
         row.querySelector('.function').value = d.fn || '';
         row.querySelector('.tab-image').value = d.tab || '';
+        row.querySelector('.tab-bars').value = d.bars || '';
         row.querySelector('.color-select').value = custom ? 'custom' : COLORS.filter(function (c) { return c.hex.toLowerCase() === String(color).toLowerCase(); })[0].hex;
         row.querySelector('.color-hex').value = custom ? color : '';
         return row;
@@ -143,7 +145,7 @@
 
     function rowState(row) {
         var s = readRow(row);
-        return { data: Object.assign({}, row._segmentData), editorId: row.dataset.editorId, start: s.start, end: s.end, name: s.name, role: s.role, fn: s.fn, tab: s.tab, color: s.color };
+        return { data: Object.assign({}, row._segmentData), editorId: row.dataset.editorId, start: s.start, end: s.end, name: s.name, role: s.role, fn: s.fn, tab: s.tab, bars: s.bars, color: s.color };
     }
 
     function insertRow(index, d) {
@@ -625,7 +627,7 @@
         (riff.segments || []).forEach(function (s, i) {
             container().appendChild(makeRow({
                 data: s, start: s.start, end: s.end, name: s.name || ('Shot ' + (i + 1)), role: V.roleFromLegacy(s),
-                fn: s.function || '', color: s.color,
+                fn: s.function || '', color: s.color, bars: window.TabLive ? TabLive.formatBars(s.tabBars) : '',
                 tab: s.tabImage || (riff.videoFile || '').replace('/video/', '/tabs/').replace(/[^/]+$/, (i + 1) + '.png')
             }));
         });
@@ -641,7 +643,9 @@
     function collect() {
         return rows().map(function (row, i) {
             var s = readRow(row), data = Object.assign({}, row._segmentData || {}), n = s.name.trim();
-            delete data.molecule; delete data.moleculeName; delete data.relation;
+            delete data.molecule; delete data.moleculeName; delete data.relation; delete data.tabBars;
+            var bars = window.TabLive ? TabLive.parseBars(s.bars) : null;
+            if (bars) data.tabBars = bars;
             return Object.assign(data, {
                 tabImage: s.tab.trim(), role: s.role, function: s.fn.trim(),
                 displayName: (row._segmentData || {}).name === n ? ((row._segmentData || {}).displayName || n) : n,
@@ -742,7 +746,13 @@
     root.SegmentEditor = {
         init: init, load: load, collect: collect, setVideo: setVideo, render: render,
         validate: function () { return validate(true); }, duration: videoDuration, split: split, undo: undo,
-        selected: function () { return selected; }, select: select
+        selected: function () { return selected; }, select: select,
+        // Tab bars per part, used by the tab block (admin-tabs.js).
+        parts: function () { return segs().map(function (x) { return { start: x.start, end: x.end, role: x.role, bars: x.bars }; }); },
+        setTabBars: function (list) {
+            rows().forEach(function (row, i) { row.querySelector('.tab-bars').value = TabLive.formatBars(list[i]); });
+            if (root.RiffEditorDirty) root.RiffEditorDirty();
+        }
     };
     // Older hooks used by admin-dna.js and the DNA assistant.
     root.segmentEditorRenderStrip = render;
