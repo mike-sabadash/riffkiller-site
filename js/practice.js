@@ -790,35 +790,15 @@ function setVideoMode(mode) {
         ['left', 'right', 'split'].forEach(view => videoWrapper.classList.toggle(view + '-mode', view === mode));
     }
 
-    switch(mode) {
-        case 'left':
-            leftVideo.style.opacity = '1';
-            leftVideo.style.pointerEvents = 'auto';
-            leftVideo.muted = false;
-            rightVideo.style.opacity = '0';
-            rightVideo.style.pointerEvents = 'none';
-            rightVideo.muted = true;
-            break;
-            
-        case 'right':
-            leftVideo.style.opacity = '0';
-            leftVideo.style.pointerEvents = 'none';
-            leftVideo.muted = true;
-            rightVideo.style.opacity = '1';
-            rightVideo.style.pointerEvents = 'auto';
-            rightVideo.muted = false;
-            break;
-            
-        case 'split':
-            leftVideo.style.opacity = '1';
-            leftVideo.style.pointerEvents = 'auto';
-            leftVideo.muted = true;
-            rightVideo.style.opacity = '1';
-            rightVideo.style.pointerEvents = 'auto';
-            rightVideo.muted = false;
-            break;
-    }
-    
+    // Sound always comes from the left camera (the clock); both angles are crops of one take.
+    // Moving audio between elements on every switch restarts the audio clock and makes the pair drift.
+    const show = {left: [1, 0], right: [0, 1], split: [1, 1]}[mode] || [1, 0];
+    [leftVideo, rightVideo].forEach((video, i) => {
+        video.style.opacity = String(show[i]);
+        video.style.pointerEvents = show[i] ? 'auto' : 'none';
+    });
+    leftVideo.muted = false;
+    rightVideo.muted = true;
 }
 
 // Сообщение при попытке использовать управление в lesson mode

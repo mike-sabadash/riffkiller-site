@@ -89,6 +89,12 @@ test('segment loops, angle changes, tabs, slow motion, drift correction and paus
     let state=await sample();assert.ok(state.l>=3.64 && state.l<5.7,JSON.stringify(state));
     await page.click('#toggleTabs');await page.waitForFunction(()=>document.querySelector('.tabs-image')?.complete);
     assert.match(await page.locator('.tabs-image').getAttribute('src'),/3\.png$/);
+    // Changing the angle never moves the sound or re-seeks the second camera (that stalls its decoder).
+    const switching=await page.evaluate(async()=>{let seeks=0;const on=()=>{if(!leftVideo.seeking)seeks++;};rightVideo.addEventListener('seeking',on);
+        for(const mode of ['right','left','split','right','left']){document.querySelector('.mode-btn[data-mode="'+mode+'"]').click();await new Promise(r=>setTimeout(r,250));
+            if(leftVideo.muted||!rightVideo.muted)return {mode,leftMuted:leftVideo.muted,rightMuted:rightVideo.muted};}
+        rightVideo.removeEventListener('seeking',on);return {seeks,paused:leftVideo.paused||rightVideo.paused};});
+    assert.deepEqual(switching,{seeks:0,paused:false});
     await page.locator('[data-mode="right"]').click();await page.locator('[data-mode="split"]').click();
     assert.equal(await page.locator('#toggleTabs').evaluate(el=>el.classList.contains('active')),true);
     await page.locator('.speed-btn[data-speed="0.5"]').click();state=await sample();assert.equal(state.rate,.5);
@@ -112,7 +118,7 @@ test('All Riff updates tabs; Speed Trainer advances only on completed loops',asy
     await page.waitForFunction(()=>playbackSpeed===.5);
     await page.evaluate(()=>{practiceTransport.pause();currentSegment=6;loopAllRiff=false;loopActive=true;setPracticeMode('speed');practiceTransport.seek(11.06);return practiceTransport.play();});
     await page.waitForFunction(()=>playbackSpeed===.75,{timeout:12000});
-    assert.equal(await page.evaluate(()=>rightVideo.playbackRate),.75);
+    assert.equal(await page.evaluate(()=>practiceTransport.rate),.75);assert.ok(await page.evaluate(()=>Math.abs(rightVideo.playbackRate/.75-1)<=.1));
 });
 test('editor captures boundaries, edits Atoms, saves and reopens without losing metadata',async t=>{
     const page=await pageFor(t);const [name,value]=(await site.adminCookie()).split('=');await page.context().addCookies([{name,value,url:site.base}]);await page.goto(site.base+'/admin/riffs.html',{waitUntil:'domcontentloaded'});await page.click('.admin-tab[data-tab="edit"]');await page.selectOption('#riffSelect','1');
@@ -246,7 +252,7 @@ test('Normal restores speed and loop settings; manual speed and loop controls le
     assert.equal(await page.evaluate(()=>loopAllRiff),false);
     await page.click('#modeNormalBtn');assert.equal(await page.evaluate(()=>loopAllRiff),true);
     assert.equal(await page.evaluate(()=>leftVideo.paused),false);
-    assert.equal(await page.evaluate(()=>leftVideo.playbackRate===rightVideo.playbackRate),true);
+    assert.equal(await page.evaluate(()=>Math.abs(rightVideo.playbackRate/leftVideo.playbackRate-1)<=.1),true);
 });
 test('both recordings download before Play; loops, seeks and angle changes work offline',async t=>{
     const page=await pageFor(t);

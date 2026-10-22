@@ -1,6 +1,9 @@
 /* One clock for both camera angles. Switching the visible angle never changes time. */
 (function (root) {
     'use strict';
+    // Small drift is pulled in by nudging the follower's speed; a seek stalls the decoder
+    // (back to the last keyframe), and repeated seeks on every frame of drift read as stutter.
+    const NUDGE_FROM = 0.02, SEEK_FROM = 0.25, SEEK_COOLDOWN_MS = 1500, MAX_NUDGE = 0.1;
     class PracticeTransport {
         constructor(left, right, options = {}) {
             this.left = left;
@@ -12,6 +15,7 @@
             this.pending = false;
             this.revision = 0;
             this.rate = 1;
+            this.lastSyncSeek = -Infinity;
             this.listeners = [];
             const listen = (video, event, fn) => {
                 video.addEventListener(event, fn);
@@ -55,6 +59,19 @@
             this.rate = rate;
             this.videos.forEach(v => { v.playbackRate = rate; });
         }
+        follow() {
+            const drift = this.right.currentTime - this.time;
+            const now = root.performance ? root.performance.now() : Date.now();
+            if (Math.abs(drift) >= SEEK_FROM && now - this.lastSyncSeek >= SEEK_COOLDOWN_MS) {
+                this.lastSyncSeek = now;
+                this.right.playbackRate = this.rate;
+                this.right.currentTime = this.time;
+                return;
+            }
+            const nudge = Math.abs(drift) < NUDGE_FROM ? 0 : Math.max(-MAX_NUDGE, Math.min(MAX_NUDGE, drift));
+            const target = Math.round(this.rate * (1 - nudge) * 1000) / 1000;
+            if (this.right.playbackRate !== target) this.right.playbackRate = target;
+        }
         seek(time) {
             if (!Number.isFinite(time)) return this.time;
             const target = Math.max(0, this.duration ? Math.min(time, this.duration) : time);
@@ -93,10 +110,7 @@
         }
         tick() {
             if (this.pending || this.buffering || this.videos.some(v => v.seeking)) return;
-            if (this.intendedPlaying && !this.left.paused && !this.right.paused &&
-                Math.abs(this.right.currentTime - this.time) > 0.08) {
-                this.right.currentTime = this.time;
-            }
+            if (this.intendedPlaying && !this.left.paused && !this.right.paused) this.follow();
             if (this.options.onTick) this.options.onTick(this.time);
         }
         destroy() {
