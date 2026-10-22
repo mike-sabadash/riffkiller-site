@@ -228,19 +228,36 @@ html[data-theme='light'] .segment-btn .dna-segment-role--drill { color: rgba(20,
 .dna-mutation-steps li::marker { color: rgba(255,255,255,.4); }
 
 
-/* Tabs are the third synchronized view, not a full-screen replacement. */
+/* Tabs are the third synchronized view: a full-width band, not a full-screen replacement. */
 .practice-page .tabs-overlay {
     top: auto;
     bottom: 0;
-    height: 35%;
-    padding: 10px 16px 8px;
+    height: auto;
+    padding: 8px 12px;
     align-items: center;
-    background: rgba(4,5,7,.94);
+    background: rgba(4,5,7,.9);
     border-top: 1px solid rgba(255,255,255,.12);
+    --tab-max-h: 150px;
 }
-.practice-page .tabs-image { width: auto; max-width: 88%; max-height: 100%; border-radius: 9px; box-shadow: none; }
+.practice-page .tabs-frame {
+    position: relative;
+    overflow: hidden;
+    width: min(100%, calc(var(--tab-max-h) * var(--tab-ratio, 3)));
+    border-radius: 8px;
+}
+.practice-page .tabs-image { position: absolute; display: block; max-width: none; height: auto; border-radius: 0; box-shadow: none; }
 .practice-page .tabs-overlay:not(.hidden) ~ .video-element,
 .practice-page .split-mode .tabs-overlay:not(.hidden) ~ .video-element.right-hand { opacity: 1 !important; }
+/* Portrait phones: the band sits under the video at full width so the hands stay visible. */
+.practice-page .tabs-overlay.below-video {
+    position: static;
+    margin-top: 8px;
+    padding: 0;
+    background: none;
+    border-top: 0;
+    --tab-max-h: 40vh;
+}
+.practice-page .tabs-overlay.below-video.hidden { display: none; }
 
 /* Tabs and their panel stay adjacent at every breakpoint. */
 .practice-workspace .dna-lab { margin: 0; min-width: 0; }

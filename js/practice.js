@@ -1429,13 +1429,33 @@ function ensureTabsOverlay() {
     
     tabsImage = tabsOverlay.querySelector('.tabs-image');
     if (!tabsImage) {
+        const frame = document.createElement('div');
+        frame.className = 'tabs-frame';
         tabsImage = document.createElement('img');
         tabsImage.alt = 'Guitar Tabs';
         tabsImage.className = 'tabs-image';
-        tabsOverlay.appendChild(tabsImage);
+        frame.appendChild(tabsImage);
+        tabsOverlay.appendChild(frame);
+    }
+    placeTabsStrip();
+    if (!placeTabsStrip.bound && window.matchMedia) {
+        placeTabsStrip.bound = true;
+        const query = window.matchMedia(TABS_BELOW_VIDEO);
+        if (query.addEventListener) query.addEventListener('change', placeTabsStrip);
     }
     
     return tabsOverlay;
+}
+
+// Phones in portrait have room under the video, so the strip sits there and keeps the hands visible.
+const TABS_BELOW_VIDEO = '(max-width: 760px) and (orientation: portrait)';
+function placeTabsStrip() {
+    const videoWrapper = document.getElementById('videoWrapper');
+    if (!tabsOverlay || !videoWrapper) return;
+    const below = !!(window.matchMedia && window.matchMedia(TABS_BELOW_VIDEO).matches);
+    tabsOverlay.classList.toggle('below-video', below);
+    if (below && tabsOverlay.parentElement === videoWrapper) videoWrapper.after(tabsOverlay);
+    else if (!below && tabsOverlay.parentElement !== videoWrapper) videoWrapper.appendChild(tabsOverlay);
 }
 
 // Построение пути к табам для текущего сегмента
@@ -1495,6 +1515,7 @@ function updateTabsForCurrentSegment() {
         }
     };
     
+    tabsImage.onload = () => { if (window.TabStrip) TabStrip.apply(tabsImage); };
     tabsImage.src = path;
     return true;
 }
