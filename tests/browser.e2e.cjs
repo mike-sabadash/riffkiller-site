@@ -430,6 +430,8 @@ test('on a phone, bars wider than the screen scroll so the last notes of a part 
         const host=document.querySelector('.tabs-overlay.is-live .tab-live'),score=host.querySelector('.tab-live-score'),cursor=host.querySelector('.tab-live-cursor');
         return {host:host.getBoundingClientRect().toJSON(),cursor:cursor.getBoundingClientRect().toJSON(),shifted:score.style.transform,content:score.scrollWidth};
     });
+    const drawings=await page.evaluate(()=>[...document.querySelectorAll('.tab-live .at-surface > div')].filter(d=>d.style.top==='0px').length);
+    assert.equal(drawings,1,'only the last render is on screen, not every scale it went through');
     assert.ok(view.content>view.host.width,'two bars are wider than the phone: '+JSON.stringify(view));
     assert.match(view.shifted,/translateX\(-/,'the bars scrolled');
     assert.ok(view.cursor.x>=view.host.x&&view.cursor.x<=view.host.x+view.host.width,'cursor in view: '+JSON.stringify(view));
