@@ -58,3 +58,10 @@ test('note times come back from the sync, and a sync that no longer fits the sho
     assert.equal(syncOf({...seg,start:20,end:22}),null,'the shot was moved');
     assert.equal(syncOf({start:0,end:1,tabBars:[1,1]}),null);
 });
+test('a part cut mid-bar starts and ends the cursor where its anchors say',()=>{
+    const layout=[{ticks:3840},{ticks:3840}];
+    const anchors=[[3,1920,10],[3,2880,10.5],[4,960,11]];
+    assert.deepEqual(positionAt(anchors,3,layout,10,11,10),{bar:0,tick:1920});
+    assert.deepEqual(positionAt(anchors,3,layout,10,11,9.9),{bar:0,tick:1920});
+    assert.deepEqual(positionAt(anchors,3,layout,10,11,11),{bar:1,tick:960});
+});

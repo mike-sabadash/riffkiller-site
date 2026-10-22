@@ -245,7 +245,14 @@
             peaks++;
             if (taken[f]) heard++;
         }
-        return { anchors: anchors, score: hit / E, contrast: pitchHit / E - base, recall: peaks ? heard / peaks : 1 };
+        // Share of the notes that land on an attack: a tab with bars the take skips puts notes on nothing.
+        var attacked = 0;
+        path.forEach(function (p) {
+            var top = 0;
+            for (var d = -2; d <= 2; d++) if (p + d >= 0 && p + d < F) top = Math.max(top, feat.onset[f0 + p + d]);
+            if (top >= 0.2) attacked++;
+        });
+        return { anchors: anchors, score: hit / E, contrast: pitchHit / E - base, recall: peaks ? heard / peaks : 1, precision: attacked / E };
     }
 
     /**
@@ -278,6 +285,57 @@
         return best;
     }
 
+    /**
+     * Syncs the whole tab to the whole take at once, for parts cut by phrase rather than by bar line.
+     * The tab is matched once from the first part's start to the last part's end (its length may differ by ±25%),
+     * then each part gets the bars it covers and the notes heard inside it, plus its start and end as places in the tab.
+     * parts: [{ start, end }]. Returns { parts: [{ bars, anchors, notes } | null], score, contrast, recall } or null.
+     */
+    function syncWhole(score, trackIndex, durations, feat, parts) {
+        if (!parts.length || !durations.length) return null;
+        var evs = events(score, trackIndex, 1, durations.length, durations), total = tabLength(1, durations.length, durations);
+        var t0 = Math.min.apply(null, parts.map(function (p) { return p.start; }));
+        var t1 = Math.max.apply(null, parts.map(function (p) { return p.end; }));
+        var best = null;
+        for (var k = 0.75; k <= 1.25001; k += 0.05) {
+            var m = align(evs, total, feat, t0, t0 + (t1 - t0) * k);
+            if (m && (!best || m.score + m.recall > best.score + best.recall)) best = m;
+        }
+        if (!best) return null;
+        var heard = best.anchors.map(function (a, i) { return { t: a[2], ms: evs[i].ms }; });
+        best.parts = parts.map(function (p) {
+            var inside = best.anchors.filter(function (a) { return a[2] >= p.start && a[2] < p.end; });
+            if (!inside.length) return null;
+            var first = placeAt(heard, durations, p.start), last = placeAt(heard, durations, p.end);
+            // A part that ends right on a bar line does not show the next bar.
+            if (last.tick === 0 && last.bar > first.bar) { last.bar--; last.tick = durations[last.bar - 1].ticks; }
+            var anchors = [[first.bar, first.tick, p.start]].concat(inside, [[last.bar, last.tick, p.end]]);
+            return { bars: [first.bar, last.bar], anchors: anchors, notes: inside.length };
+        });
+        return best;
+    }
+
+    // Place in the tab (1-based bar, tick) heard at video time t: between heard notes in proportion, and
+    // before the first or after the last one at the pace of the nearest two.
+    function placeAt(heard, durations, t) {
+        var n = heard.length, i = 0, ms;
+        if (n === 1) ms = heard[0].ms;
+        else {
+            while (i < n - 2 && heard[i + 1].t <= t) i++;
+            var a = heard[i], b = heard[i + 1];
+            ms = a.ms + (b.ms - a.ms) * (t - a.t) / ((b.t - a.t) || 1);
+        }
+        var total = tabLength(1, durations.length, durations);
+        ms = Math.max(0, Math.min(total, ms));
+        for (var bar = 1, acc = 0; bar <= durations.length; bar++) {
+            var d = durations[bar - 1];
+            if (ms < acc + d.ms || bar === durations.length) {
+                return { bar: bar, tick: Math.round(Math.min(1, (ms - acc) / (d.ms || 1)) * d.ticks) };
+            }
+            acc += d.ms;
+        }
+    }
+
     // ---- Browser: the video's sound ----
 
     /** Mono samples at 22050 Hz from a media URL. */
@@ -298,7 +356,7 @@
     }
 
     global.TabSync = {
-        RATE: RATE, features: features, events: events, align: align, syncPart: syncPart,
+        RATE: RATE, features: features, events: events, align: align, syncPart: syncPart, syncWhole: syncWhole,
         decode: decode, tabLength: tabLength
     };
 })(typeof window !== 'undefined' ? window : this);

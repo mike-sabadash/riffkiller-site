@@ -9,9 +9,10 @@
 const fs = require('node:fs');
 const alphaTab = require('../js/vendor/alphatab/alphaTab.min.js');
 const { summarize, formatBars } = require('../js/tab-live.js').TabLive;
-const { features, syncPart, RATE } = require('../js/tab-sync.js').TabSync;
+const { features, syncPart, syncWhole, RATE } = require('../js/tab-sync.js').TabSync;
 
 const SURE = 0.05; // same threshold as the admin (js/admin-tabs.js)
+const ON_ATTACK = 0.8; // share of the tab's notes heard as attacks for the whole take to count as played in one go
 
 function args(argv) {
     const out = {};
@@ -58,7 +59,17 @@ function main() {
     const feat = features(samples.subarray(Math.floor(t0 * RATE), Math.ceil(t1 * RATE)), t0);
 
     const segments = {}, rows = [];
-    parts.forEach((p, i) => {
+    // First the whole take at once: parts are often cut by phrase, not by bar line.
+    const whole = syncWhole(score, track, bars, feat, parts);
+    const wholeSure = whole && whole.contrast >= SURE && whole.precision >= ON_ATTACK;
+    if (wholeSure) {
+        parts.forEach((p, i) => {
+            const r = whole.parts[i];
+            if (r) segments[i] = { tabBars: r.bars, tabSync: r.anchors };
+            rows.push('| ' + (i + 1) + ' | ' + (p.role || 'drill') + ' | ' + p.start.toFixed(2) + '–' + p.end.toFixed(2) + ' | ' +
+                (r ? formatBars(r.bars) : '—') + ' | ' + (r ? r.notes : 0) + ' | ' + (r ? 'yes' : 'no notes heard') + ' |');
+        });
+    } else parts.forEach((p, i) => {
         const r = syncPart(score, track, bars, feat, { start: p.start, end: p.end, bars: Array.isArray(p.tabBars) ? p.tabBars : null }, false);
         const sure = r && r.contrast >= SURE;
         if (sure) segments[i] = { tabBars: r.bars, tabSync: r.anchors };
@@ -79,7 +90,10 @@ function main() {
         '',
         'Tab: ' + bars.length + ' bars (' + sigs + '), tempo ' + Math.round(score.tempo) + '. Audio: ' + (samples.length / RATE).toFixed(1) + ' s.',
         '',
-        '| Part | Role | Video, s | Bars | Pitch match | Synced |',
+        whole ? 'Whole take: pitch match ' + whole.contrast.toFixed(2) + ', notes on an attack ' + Math.round(whole.precision * 100) + '%, attacks explained ' + Math.round(whole.recall * 100) + '%' +
+            (wholeSure ? '.' : ' (too low, each part on its own instead).') : 'Whole take: no match.',
+        '',
+        '| Part | Role | Video, s | Bars | ' + (wholeSure ? 'Notes' : 'Pitch match') + ' | Synced |',
         '|---|---|---|---|---|---|',
         ...rows,
         '',

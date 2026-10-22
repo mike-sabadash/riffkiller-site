@@ -140,15 +140,17 @@
         var startOf = [], acc = 0;
         layout.forEach(function (b) { startOf.push(acc); acc += b.ticks; });
         var pos = function (a) { var i = a[0] - from; return i >= 0 && i < layout.length ? startOf[i] + a[1] : null; };
-        var pts = [[segStart, 0]];
+        // A part cut mid-bar carries its start and end as anchors; otherwise it starts and ends on its bar lines.
+        var pts = [];
         anchors.forEach(function (a) {
-            var p = pos(a);
-            if (p == null || a[2] <= pts[pts.length - 1][0] || p < pts[pts.length - 1][1]) return;
+            var p = pos(a), last = pts[pts.length - 1];
+            if (p == null || (last && (a[2] <= last[0] || p < last[1]))) return;
             pts.push([a[2], p]);
         });
+        if (!pts.length || pts[0][0] > segStart) pts.unshift([segStart, 0]);
         if (segEnd > pts[pts.length - 1][0]) pts.push([segEnd, acc]);
         var at;
-        if (t <= pts[0][0]) at = 0;
+        if (t <= pts[0][0]) at = pts[0][1];
         else if (t >= pts[pts.length - 1][0]) at = pts[pts.length - 1][1];
         else {
             var k = 0;
