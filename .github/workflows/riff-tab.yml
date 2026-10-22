@@ -1,0 +1,93 @@
+name: Riff tab sync
+
+# Agent tool: puts a tab (alphaTex in content/tabs/) into a riff and syncs it to the sound of the riff's video.
+# apply=false only reports what the sync found; apply=true writes it to production data (backup first).
+on:
+  workflow_dispatch:
+    inputs:
+      riff_id:
+        description: Riff id
+        required: true
+      tex:
+        description: alphaTex file in the repo, e.g. content/tabs/led-zeppelin/black-dog.tex
+        required: true
+      track:
+        description: Guitar track in the tab (0-based)
+        default: '0'
+      apply:
+        description: Write the result to production
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: riffkiller-production
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://riffkiller.fun
+    env:
+      DEPLOY_HOST: ${{ secrets.CLAUDE_DEPLOY_HOST }}
+      DEPLOY_USER: ${{ secrets.CLAUDE_DEPLOY_USER }}
+      DEPLOY_PORT: ${{ secrets.CLAUDE_DEPLOY_PORT || '22' }}
+      RIFFKILLER_ROOT: ${{ vars.RIFFKILLER_ROOT }}
+      RIFF_ID: ${{ inputs.riff_id }}
+      TEX: ${{ inputs.tex }}
+      TRACK: ${{ inputs.track }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Check inputs
+        run: |
+          [[ "$RIFF_ID" =~ ^[0-9]+$ ]] || { echo "::error::riff_id must be a number"; exit 1; }
+          [[ "$TRACK" =~ ^[0-9]+$ ]] || { echo "::error::track must be a number"; exit 1; }
+          [[ "$TEX" =~ ^content/tabs/[A-Za-z0-9._/-]+\.tex$ && "$TEX" != *..* && -f "$TEX" ]] || { echo "::error::tex must be a file under content/tabs/"; exit 1; }
+
+      - name: Configure SSH
+        env:
+          SSH_KEY: ${{ secrets.CLAUDE_DEPLOY_SSH_KEY }}
+          KNOWN_HOSTS: ${{ secrets.CLAUDE_DEPLOY_KNOWN_HOSTS }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/deploy_key
+          printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/deploy_key ~/.ssh/known_hosts
+          printf 'Host prod\n  HostName %s\n  User %s\n  Port %s\n  IdentityFile ~/.ssh/deploy_key\n  IdentitiesOnly yes\n  StrictHostKeyChecking yes\n' \
+            "$DEPLOY_HOST" "$DEPLOY_USER" "$DEPLOY_PORT" > ~/.ssh/config
+          dir="/tmp/riffkiller-tab-$GITHUB_RUN_ID"
+          ssh prod "install -d -m 700 '$dir'"
+          scp -q scripts/riff-tab-remote.sh scripts/riff-tab-apply.php "prod:$dir/"
+          echo "REMOTE_DIR=$dir" >> "$GITHUB_ENV"
+
+      - name: Read the riff and the sound of its video
+        run: |
+          ssh prod "RIFFKILLER_ROOT='$RIFFKILLER_ROOT' bash '$REMOTE_DIR/riff-tab-remote.sh' riffs" > riffs.json
+          video="$(node -e 'const l=require("./riffs.json");const r=(Array.isArray(l)?l:Object.values(l)).find(x=>String(x.id)===process.argv[1]);if(!r)process.exit(2);process.stdout.write(r.videoFile||r.videoFileRight||"")' "$RIFF_ID")"
+          [ -n "$video" ] || { echo "::error::riff $RIFF_ID has no video"; exit 1; }
+          echo "::notice::Video: $video"
+          ssh prod "RIFFKILLER_ROOT='$RIFFKILLER_ROOT' bash '$REMOTE_DIR/riff-tab-remote.sh' audio '$video'" > audio.wav
+          echo "::notice::Audio: $(stat -c %s audio.wav) bytes"
+
+      - name: Sync the tab to the sound
+        run: node tools/tab-sync-cli.cjs --riffs riffs.json --id "$RIFF_ID" --tex "$TEX" --track "$TRACK" --wav audio.wav --out patch.json | tee -a "$GITHUB_STEP_SUMMARY"
+
+      - name: Write to production
+        if: inputs.apply
+        run: |
+          scp -q patch.json "prod:$REMOTE_DIR/patch.json"
+          ssh prod "RIFFKILLER_ROOT='$RIFFKILLER_ROOT' bash '$REMOTE_DIR/riff-tab-remote.sh' apply '$REMOTE_DIR/patch.json'"
+
+      - name: Clean up
+        if: always()
+        run: |
+          rm -f riffs.json audio.wav
+          [ -z "${REMOTE_DIR:-}" ] || ssh prod "rm -rf '$REMOTE_DIR'" || true
