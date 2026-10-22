@@ -398,7 +398,8 @@ test('in Russian and Spanish every interface string on the main pages is transla
     const walk=v=>{if(typeof v==='string')content.add(v.replace(/\s+/g,' ').trim());else if(v&&typeof v==='object')Object.values(v).forEach(walk);};
     // Read the fixture's data, not the repository's: the editor tests above save riffs there.
     for(const f of ['riffs.json','collections.json'])walk(JSON.parse(fs.readFileSync(path.join(site.dir,'data',f),'utf8')));
-    const fromContent=s=>content.has(s)||[...content].some(c=>c.length>2&&s.includes(c));
+    // Pages also show pieces of content: "Pass 1" from a part named "Statement · Pass 1".
+    const fromContent=s=>content.has(s)||[...content].some(c=>(c.length>2&&s.includes(c))||(s.length>3&&c.includes(s)));
     const brands=/^(Riff Killer|Instagram|YouTube|Facebook|Patreon|Stripe|Cryptomus|Mike Sabadash|RK-X+|\S+@\S+)$/;
     for(const lang of ['ru','es']){
         const page=await pageFor(t);await page.addInitScript(l=>localStorage.setItem('rk-lang',l),lang);
