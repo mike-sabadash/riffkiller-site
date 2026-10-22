@@ -1486,10 +1486,52 @@ function getTabsImagePathForSegment(index) {
     return parts.join('/');
 }
 
+// Live tab (alphaTab) for riffs that have a tab file; pictures stay the fallback.
+let tabLive = null;
+let tabLiveRiff = null;
+let tabLiveFailed = false;
+let tabLiveRaf = 0;
+
+function liveTabForCurrentRiff(overlay) {
+    if (!window.TabLive || !TabLive.hasTab(currentRiff) || tabLiveFailed) return null;
+    if (tabLive && tabLiveRiff === currentRiff) return tabLive;
+    if (tabLive) tabLive.destroy();
+    let host = overlay.querySelector('.tab-live');
+    if (!host) {
+        host = document.createElement('div');
+        host.className = 'tab-live';
+        overlay.appendChild(host);
+    }
+    tabLiveRiff = currentRiff;
+    tabLive = TabLive.create(host, currentRiff);
+    tabLive.ready.catch(() => {
+        tabLiveFailed = true;
+        overlay.classList.remove('is-live');
+        if (tabsVisible) updateTabsForCurrentSegment();
+    });
+    return tabLive;
+}
+
+function tabLiveTick() {
+    if (!tabsVisible || !tabLive || !leftVideo) { tabLiveRaf = 0; return; }
+    tabLive.update(leftVideo.currentTime);
+    tabLiveRaf = requestAnimationFrame(tabLiveTick);
+}
+
 // Обновление картинки табов под текущий сегмент
 function updateTabsForCurrentSegment() {
     const overlay = ensureTabsOverlay();
     if (!overlay || !currentRiff) return false;
+    const live = liveTabForCurrentRiff(overlay);
+    overlay.classList.toggle('is-live', !!live);
+    if (live) {
+        const index = currentSegment || 0;
+        live.showSegment(index).then(shown => {
+            if (index === (currentSegment || 0)) overlay.classList.toggle('is-idle', !shown);
+        }).catch(() => {});
+        if (!tabLiveRaf) tabLiveRaf = requestAnimationFrame(tabLiveTick);
+        return true;
+    }
     if (!tabsImage) {
         tabsImage = overlay.querySelector('.tabs-image');
         if (!tabsImage) return false;

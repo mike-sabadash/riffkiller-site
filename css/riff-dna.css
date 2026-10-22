@@ -271,3 +271,19 @@ html[data-theme='light'] .segment-btn .dna-segment-role--drill { color: rgba(20,
     .dna-stage-nav::-webkit-scrollbar { display: none; }
     .dna-stage { font-size: 13px; }
 }
+
+/* Live tab (alphaTab): replaces the picture when the riff has a tab file. */
+.practice-page .tab-live { display: none; position: relative; width: 100%; overflow: hidden; min-height: 72px; --tab-live-max-h: 150px; }
+.practice-page .tabs-overlay.below-video .tab-live { --tab-live-max-h: 190px; }
+.practice-page .tabs-overlay.is-live .tab-live { display: block; }
+.practice-page .tabs-overlay.is-live .tabs-frame { display: none; }
+.practice-page .tabs-overlay.is-live.is-idle { visibility: hidden; }
+.practice-page .tabs-overlay.below-video.is-live { padding: 8px 0; background: rgba(4,5,7,.9); border-radius: 12px; }
+.practice-page .tab-live-score { position: relative; }
+.practice-page .tab-live-score .at-surface { background: transparent !important; }
+.practice-page .tab-live-cursor {
+    position: absolute; top: 4px; bottom: 4px; left: 0; width: 2px;
+    background: #B8F05A; border-radius: 1px; opacity: 0; pointer-events: none;
+    box-shadow: 0 0 8px rgba(184,240,90,.55);
+}
+.practice-page .tab-live.is-ready .tab-live-cursor { opacity: 1; }
