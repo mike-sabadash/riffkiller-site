@@ -99,8 +99,19 @@ function main() {
         '|---|---|---|---|---|---|',
         ...rows,
         '',
-        'Synced ' + Object.keys(segments).length + ' of ' + parts.length + ' parts (pitch match ≥ ' + SURE + ').'
+        'Synced ' + Object.keys(segments).length + ' of ' + parts.length + ' parts (pitch match ≥ ' + SURE + ').',
+        '',
+        '<details><summary>Note times per part (bar:tick @ s): stored now → found now</summary>',
+        '',
+        ...parts.map((p, i) => '- ' + (i + 1) + ': [' + (p.tabBars || '') + '] ' + anchorsText(p.tabSync) + ' → [' +
+            (segments[i] ? segments[i].tabBars : '') + '] ' + anchorsText(segments[i] && segments[i].tabSync)),
+        '',
+        '</details>'
     ].join('\n'));
+}
+
+function anchorsText(list) {
+    return Array.isArray(list) ? list.map(a => a[0] + ':' + Math.round(a[1]) + '@' + Number(a[2]).toFixed(2)).join(' ') : '—';
 }
 
 module.exports = { readWav };
