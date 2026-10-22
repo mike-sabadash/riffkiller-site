@@ -548,7 +548,8 @@
             "0.5x": "0.5x",
             "0.75x": "0.75x",
             "1x": "1x",
-            "2× XP": "2× XP"
+            "2× XP": "2× XP",
+            "All Riff": "Весь рифф"
         },
         patterns: [
         // Russian plural: 1 фрагмент, 2 фрагмента, 5 фрагментов.
@@ -565,12 +566,13 @@
         [/^Downloading both cameras · ([\d.]+) \/ ([\d.]+) MB$/, 'Загружаем обе камеры · $1 / $2 МБ'],
         [/^— (\d+) full loops at half speed$/, '— $1 полных повтора на половинной скорости'],
         [/^— (\d+) loops$/, '— $1 повтора'],
-        [/^Next: (.+) at (\d+:\d\d)$/, function (m, part) { return 'Далее: ' + part(m[1]) + ' в ' + m[2]; }],
+        [/^Next: (.+) at (\d+:\d\d(?:\.\d+)?)$/, function (m, part) { return 'Далее: ' + part(m[1]) + ' в ' + m[2]; }],
         [/^Next:$/, 'Дальше:'],
-        [/^(.+) at (\d+:\d\d)$/, function (m, part) { return part(m[1]) + ' в ' + m[2]; }],
-        [/^(.+) · (\d+:\d\d)$/, function (m, part) { return part(m[1]) + ' · ' + m[2]; }],
+        [/^(.+) at (\d+:\d\d(?:\.\d+)?)$/, function (m, part) { return part(m[1]) + ' в ' + m[2]; }],
+        [/^(.+) · (\d+:\d\d(?:\.\d+)?)$/, function (m, part) { return part(m[1]) + ' · ' + m[2]; }],
         [/^Loop (.+)$/, function (m, part) { return 'Повторять: ' + m[1].split(', ').map(part).join(', '); }],
-        [/^· in (.+)$/, function (m, part) { return '· в части ' + part(m[1]); }],
+        [/^(?:([\d:.]+) )?· in (.+)$/, function (m, part) { return (m[1] ? m[1] + ' ' : '') + '· в части ' + part(m[2]); }],
+        [/^(\S+) · (.+) · ([\d:.]+–[\d:.]+)$/, function (m, part) { return part(m[1]) + ' · ' + part(m[2]) + ' · ' + m[3]; }],
         [/^Payment: (\w+)(?: · Next billing: (.+))?$/, function (m, part) { return 'Оплата: ' + part(m[1]) + (m[2] ? ' · Следующее списание: ' + m[2] : ''); }],
         [/^(\d+) \/ (\d+) segments$/, '$1 / $2 фрагментов'],
         [/^Progress to (\d+)-day milestone$/, 'До рубежа в $1 дней'],

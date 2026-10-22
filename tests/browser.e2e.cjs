@@ -396,7 +396,8 @@ test('in Russian and Spanish every interface string on the main pages is transla
     // Riff content comes from the admin (titles, part names, DNA texts) and is not part of the interface dictionary.
     const content=new Set();
     const walk=v=>{if(typeof v==='string')content.add(v.replace(/\s+/g,' ').trim());else if(v&&typeof v==='object')Object.values(v).forEach(walk);};
-    for(const f of ['riffs.json','collections.json'])walk(JSON.parse(fs.readFileSync(path.join(__dirname,'../data',f),'utf8')));
+    // Read the fixture's data, not the repository's: the editor tests above save riffs there.
+    for(const f of ['riffs.json','collections.json'])walk(JSON.parse(fs.readFileSync(path.join(site.dir,'data',f),'utf8')));
     const fromContent=s=>content.has(s)||[...content].some(c=>c.length>2&&s.includes(c));
     const brands=/^(Riff Killer|Instagram|YouTube|Facebook|Patreon|Stripe|Cryptomus|Mike Sabadash|RK-X+|\S+@\S+)$/;
     for(const lang of ['ru','es']){
