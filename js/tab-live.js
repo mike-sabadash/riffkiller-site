@@ -276,11 +276,30 @@
                     resolve();
                 });
                 api.error.on(function (e) { reject(e); });
-                api.renderFinished.on(measure);
+                // alphaTab keeps the drawing of the previous render in the strip; a new one replaces it.
+                api.renderStarted.on(function () {
+                    var surface = canvas.querySelector('.at-surface');
+                    if (surface) while (surface.firstChild) surface.removeChild(surface.firstChild);
+                });
+                api.renderFinished.on(rendered);
                 if (riff.tab.tex) api.tex(riff.tab.tex, [track]);
                 else api.load(BASE + riff.tab.file, [track]);
             });
         });
+
+        // One render at a time: a render asked for while another is drawing (a part switch, the fit to width)
+        // waits for it, otherwise alphaTab leaves both drawings on top of each other.
+        var drawing = false, again = false;
+        function render() {
+            if (drawing) { again = true; return; }
+            drawing = true;
+            api.render();
+        }
+        function rendered() {
+            drawing = false;
+            if (again) { again = false; render(); return; }
+            measure();
+        }
 
         function trackStaff() {
             var t = score && score.tracks[Number(riff.tab.track) || 0];
@@ -324,7 +343,7 @@
             if (Math.abs(scale - api.settings.display.scale) < 0.05) return;
             api.settings.display.scale = scale;
             api.updateSettings();
-            api.render();
+            render();
         }
 
         function showSegment(index) {
@@ -336,7 +355,7 @@
                 api.settings.display.startBar = range.from;
                 api.settings.display.barCount = range.to - range.from + 1;
                 api.updateSettings();
-                api.render();
+                render();
                 return true;
             });
         }

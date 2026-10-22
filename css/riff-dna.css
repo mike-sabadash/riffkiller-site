@@ -283,7 +283,7 @@ html[data-theme='light'] .segment-btn .dna-segment-role--drill { color: rgba(20,
 .practice-page .tab-live-score { will-change: transform; }
 .practice-page .tab-live-loading { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 13px; color: rgba(244,244,246,0.6); pointer-events: none; }
 .practice-page .tab-live.is-ready .tab-live-loading { display: none; }
-.practice-page .tab-live-score .at-surface { background: transparent !important; }
+.practice-page .tab-live-score .at-surface { background: transparent !important; overflow: visible !important; }
 .practice-page .tab-live-cursor {
     position: absolute; top: 4px; bottom: 4px; left: 0; width: 2px;
     background: #B8F05A; border-radius: 1px; opacity: 0; pointer-events: none;
