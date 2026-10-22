@@ -231,7 +231,7 @@
      *   update(time)       - move the cursor to video time
      */
     function create(host, riff) {
-        var api = null, score = null, durations = [], current = -1, fitted = -1, layout = [], ready = null;
+        var api = null, score = null, durations = [], current = -1, layout = [], ready = null, shift = 0, lastTime = -1;
         var canvas = document.createElement('div');
         canvas.className = 'tab-live-score';
         var cursor = document.createElement('div');
@@ -329,19 +329,27 @@
             fitWidth();
         }
 
-        // A shot shows one or two bars: scale them to fill the strip so fret numbers stay readable on phones.
+        // One size for the whole riff, so the strip does not jump between parts: about three bars across the
+        // strip (at the riff's average bar width), never so small that fret numbers get hard to read on a phone.
+        // Worked out once from the first part shown, again only when the strip itself changes width (rotation).
+        var riffScale = 0, scaledFor = 0;
         function fitWidth() {
-            if (!layout.length || fitted === current) return;
-            fitted = current;
-            var system = api.renderer.boundsLookup.staffSystems[0];
-            var width = host.clientWidth, used = layout[layout.length - 1].x1;
-            var tall = system ? system.realBounds.y + system.realBounds.h : canvas.offsetHeight;
-            if (!width || !used) return;
+            if (!layout.length) return;
+            var width = host.clientWidth;
+            if (!width) return;
             var s = api.settings.display.scale;
-            var maxHeight = parseFloat(getComputedStyle(host).getPropertyValue('--tab-live-max-h')) || 160;
-            var scale = Math.max(0.8, Math.min(2.2, s * (width - 8) / used, tall ? s * maxHeight / tall : 2.2));
-            if (Math.abs(scale - api.settings.display.scale) < 0.05) return;
-            api.settings.display.scale = scale;
+            if (!riffScale || Math.abs(width - scaledFor) > 40) {
+                var bars = 0;
+                layout.forEach(function (b) { bars += b.x1 - b.x0; });
+                var perBar = bars / layout.length / s;
+                var system = api.renderer.boundsLookup.staffSystems[0];
+                var tall = system ? (system.realBounds.y + system.realBounds.h) / s : 0;
+                var maxHeight = parseFloat(getComputedStyle(host).getPropertyValue('--tab-live-max-h')) || 160;
+                riffScale = Math.max(0.8, Math.min(1.6, (width - 16) / (3 * perBar), tall ? maxHeight / tall : 1.6));
+                scaledFor = width;
+            }
+            if (Math.abs(riffScale - s) < 0.01) return;
+            api.settings.display.scale = riffScale;
             api.updateSettings();
             render();
         }
@@ -352,6 +360,7 @@
                 if (!range) { current = index; layout = []; host.classList.remove('is-ready'); return false; }
                 if (index === current && layout.length) return true;
                 current = index;
+                shift = 0; lastTime = -1; canvas.style.transform = '';
                 api.settings.display.startBar = range.from;
                 api.settings.display.barCount = range.to - range.from + 1;
                 api.updateSettings();
@@ -363,6 +372,9 @@
         function update(time) {
             var seg = riff.segments[current];
             if (!seg || !layout.length) return;
+            // The two cameras are kept in step by small seeks; a step back of a few frames is not a move back.
+            if (lastTime >= 0 && time < lastTime && lastTime - time < 0.25) time = lastTime;
+            lastTime = time;
             var sync = syncOf(seg), at;
             if (sync) {
                 var p = positionAt(sync, barsOf(seg, durations.length).from, layout, seg.start, seg.end, time);
@@ -371,10 +383,16 @@
                 at = cursorAt(layout, seg.start, seg.end, time);
             }
             if (!at) return;
-            // Bars wider than a phone screen even at the smallest readable size scroll with the cursor.
-            var width = host.clientWidth, used = layout[layout.length - 1].x1 + 8;
-            var shift = used > width ? Math.max(0, Math.min(used - width, at.x - width * 0.35)) : 0;
-            canvas.style.transform = shift ? 'translateX(' + (-shift).toFixed(1) + 'px)' : '';
+            // Bars wider than the strip turn like pages: the view stays put while the cursor crosses it and
+            // moves on once the cursor nears the right edge (or jumps back when the part loops).
+            var width = host.clientWidth, overflow = layout[layout.length - 1].x1 + 8 - width;
+            var next = shift;
+            if (overflow <= 16) next = 0;
+            else if (at.x - shift > width * 0.8 || at.x < shift + width * 0.05) next = Math.max(0, Math.min(overflow, at.x - width * 0.2));
+            if (next !== shift) {
+                shift = next;
+                canvas.style.transform = shift ? 'translateX(' + (-shift).toFixed(0) + 'px)' : '';
+            }
             cursor.style.transform = 'translateX(' + (at.x - shift).toFixed(1) + 'px)';
         }
 
