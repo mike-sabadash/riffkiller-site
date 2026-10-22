@@ -169,7 +169,7 @@
      * Matches the events of one part to the sound between t0 and t1 (seconds).
      * Every note gets one frame, in order; a note scores for an attack at its frame and for its pitches
      * sounding just after it, and a gap scores less the more it differs from the tab's rhythm.
-     * Returns { anchors: [[bar, tick, seconds]], score, contrast } or null: score is about 0..2 per note,
+     * Returns { anchors: [[bar, tick, seconds]], score, contrast, recall } or null: score is about 0..2 per note,
      * contrast is how much better the pitches match than the same notes anywhere in the part.
      */
     function align(evs, totalMs, feat, t0, t1) {
@@ -234,7 +234,18 @@
             pitchHit += tone[n * F + path[n]];
             return [e.bar, e.tick, Math.round(((f0 + path[n]) / fps + LATENCY + shift) * 1000) / 1000];
         });
-        return { anchors: anchors, score: hit / E, contrast: pitchHit / E - base };
+        // Share of the clear attacks inside the part that some note explains: a range that covers only
+        // part of what is played can match its own notes well and still leave most attacks unexplained.
+        var lo0 = Math.max(0, Math.round((t0 - shift - LATENCY) * fps) - f0), hi0 = Math.min(F - 1, Math.round((t1 - shift - LATENCY) * fps) - f0);
+        var taken = new Uint8Array(F), peaks = 0, heard = 0;
+        path.forEach(function (p) { for (var d = -3; d <= 3; d++) if (p + d >= 0 && p + d < F) taken[p + d] = 1; });
+        for (f = Math.max(1, lo0); f <= Math.min(F - 2, hi0); f++) {
+            var o = feat.onset[f0 + f];
+            if (o < 0.3 || o < feat.onset[f0 + f - 1] || o < feat.onset[f0 + f + 1]) continue;
+            peaks++;
+            if (taken[f]) heard++;
+        }
+        return { anchors: anchors, score: hit / E, contrast: pitchHit / E - base, recall: peaks ? heard / peaks : 1 };
     }
 
     /**
@@ -260,7 +271,7 @@
             var m = align(evs, tabLength(r[0], r[1], durations), feat, part.start, part.end);
             if (!m) return;
             var keep = part.bars && part.bars[0] === r[0] && part.bars[1] === r[1];
-            var value = m.score + (keep ? 0.03 : 0);
+            var value = m.score + m.recall + (keep ? 0.03 : 0);
             if (!best || value > best.value) best = { bars: r, anchors: m.anchors, score: m.score, contrast: m.contrast, value: value };
         });
         if (best) delete best.value;
