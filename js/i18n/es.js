@@ -133,6 +133,7 @@
             "Camera view": "Vista de cámara",
             "Show Tabs": "Mostrar tablatura",
             "Hide Tabs": "Ocultar tablatura",
+            "Loading tab…": "Cargando tablatura…",
             "Guitar Tabs": "Tablatura",
             "Tab not available": "Tablatura no disponible",
             "Recording download": "Descarga de la grabación",
