@@ -392,3 +392,18 @@ test('Patreon sign-in still completes with Russian selected',async t=>{
     await page.goto(site.base+'/patreon-callback.html?code=fixture&state=fixture-state',{waitUntil:'domcontentloaded'});await page.waitForURL('**/app.html',{waitUntil:'domcontentloaded'});
     assert.equal(await page.evaluate(()=>document.documentElement.lang),'ru');
 });
+test('a riff with a tab file shows a live tab strip whose cursor follows the video',async t=>{
+    const file=path.join(site.dir,'data/riffs.json');const original=fs.readFileSync(file,'utf8');t.after(()=>fs.writeFileSync(file,original));
+    const riffs=JSON.parse(original);const riff=Array.isArray(riffs)?riffs[0]:Object.values(riffs)[0];
+    riff.tab={tex:'\\tempo 171\n.\n\\ts 5 8 7.4.8 5.3.8 6.3.8 7.3.8 7.4.8 |\n\\ts 4 4 \\tempo 160 5.2.4{v} 7.3.4 5.3.8 7.4.8 5.4.4'};
+    riff.segments.forEach((s,i)=>{s.tabBars=i%2?[2,2]:[1,1];});
+    fs.writeFileSync(file,JSON.stringify(riffs));
+    const page=await pageFor(t);await practice(page);
+    await page.locator('.segment-btn').nth(1).click();await page.click('#toggleTabs');
+    await page.waitForSelector('.tabs-overlay.is-live .tab-live.is-ready',{timeout:20000});
+    assert.equal(await page.locator('.tabs-frame').isVisible(),false,'the picture gives way to the live tab');
+    const x=()=>page.evaluate(()=>parseFloat(document.querySelector('.tab-live-cursor').style.transform.replace(/[^\d.]/g,''))||0);
+    const first=await x();await page.waitForTimeout(400);
+    assert.ok(await x()!==first,'cursor moves while the video plays');
+    if(process.env.QA_SCREENSHOTS)await page.locator('.video-player-container').screenshot({path:path.join(process.env.QA_SCREENSHOTS,'practice-live-tab.png')});
+});

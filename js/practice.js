@@ -1429,13 +1429,33 @@ function ensureTabsOverlay() {
     
     tabsImage = tabsOverlay.querySelector('.tabs-image');
     if (!tabsImage) {
+        const frame = document.createElement('div');
+        frame.className = 'tabs-frame';
         tabsImage = document.createElement('img');
         tabsImage.alt = 'Guitar Tabs';
         tabsImage.className = 'tabs-image';
-        tabsOverlay.appendChild(tabsImage);
+        frame.appendChild(tabsImage);
+        tabsOverlay.appendChild(frame);
+    }
+    placeTabsStrip();
+    if (!placeTabsStrip.bound && window.matchMedia) {
+        placeTabsStrip.bound = true;
+        const query = window.matchMedia(TABS_BELOW_VIDEO);
+        if (query.addEventListener) query.addEventListener('change', placeTabsStrip);
     }
     
     return tabsOverlay;
+}
+
+// Phones in portrait have room under the video, so the strip sits there and keeps the hands visible.
+const TABS_BELOW_VIDEO = '(max-width: 760px) and (orientation: portrait)';
+function placeTabsStrip() {
+    const videoWrapper = document.getElementById('videoWrapper');
+    if (!tabsOverlay || !videoWrapper) return;
+    const below = !!(window.matchMedia && window.matchMedia(TABS_BELOW_VIDEO).matches);
+    tabsOverlay.classList.toggle('below-video', below);
+    if (below && tabsOverlay.parentElement === videoWrapper) videoWrapper.after(tabsOverlay);
+    else if (!below && tabsOverlay.parentElement !== videoWrapper) videoWrapper.appendChild(tabsOverlay);
 }
 
 // Построение пути к табам для текущего сегмента
@@ -1466,10 +1486,52 @@ function getTabsImagePathForSegment(index) {
     return parts.join('/');
 }
 
+// Live tab (alphaTab) for riffs that have a tab file; pictures stay the fallback.
+let tabLive = null;
+let tabLiveRiff = null;
+let tabLiveFailed = false;
+let tabLiveRaf = 0;
+
+function liveTabForCurrentRiff(overlay) {
+    if (!window.TabLive || !TabLive.hasTab(currentRiff) || tabLiveFailed) return null;
+    if (tabLive && tabLiveRiff === currentRiff) return tabLive;
+    if (tabLive) tabLive.destroy();
+    let host = overlay.querySelector('.tab-live');
+    if (!host) {
+        host = document.createElement('div');
+        host.className = 'tab-live';
+        overlay.appendChild(host);
+    }
+    tabLiveRiff = currentRiff;
+    tabLive = TabLive.create(host, currentRiff);
+    tabLive.ready.catch(() => {
+        tabLiveFailed = true;
+        overlay.classList.remove('is-live');
+        if (tabsVisible) updateTabsForCurrentSegment();
+    });
+    return tabLive;
+}
+
+function tabLiveTick() {
+    if (!tabsVisible || !tabLive || !leftVideo) { tabLiveRaf = 0; return; }
+    tabLive.update(leftVideo.currentTime);
+    tabLiveRaf = requestAnimationFrame(tabLiveTick);
+}
+
 // Обновление картинки табов под текущий сегмент
 function updateTabsForCurrentSegment() {
     const overlay = ensureTabsOverlay();
     if (!overlay || !currentRiff) return false;
+    const live = liveTabForCurrentRiff(overlay);
+    overlay.classList.toggle('is-live', !!live);
+    if (live) {
+        const index = currentSegment || 0;
+        live.showSegment(index).then(shown => {
+            if (index === (currentSegment || 0)) overlay.classList.toggle('is-idle', !shown);
+        }).catch(() => {});
+        if (!tabLiveRaf) tabLiveRaf = requestAnimationFrame(tabLiveTick);
+        return true;
+    }
     if (!tabsImage) {
         tabsImage = overlay.querySelector('.tabs-image');
         if (!tabsImage) return false;
@@ -1495,6 +1557,7 @@ function updateTabsForCurrentSegment() {
         }
     };
     
+    tabsImage.onload = () => { if (window.TabStrip) TabStrip.apply(tabsImage); };
     tabsImage.src = path;
     return true;
 }
