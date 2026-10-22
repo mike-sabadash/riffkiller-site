@@ -25,3 +25,14 @@ test('a shot maps to its own bars, clamped to the file',()=>{
     assert.equal(hasTab({tab:{file:'a.gp'},segments:[{}]}),false,'needs at least one mapped shot');
     assert.equal(hasTab({tab:{tex:'.'},segments:[{tabBars:[1,1]}]}),true);
 });
+const {autoMap,parseBars,formatBars}=require('../js/tab-live.js').TabLive;
+test('auto-mapping gives repeated roles the same bars and new roles the next bars that fill the shot',()=>{
+    const bars=[{ms:877},{ms:1500},{ms:1500},{ms:1500}];
+    const segs=[{start:0,end:0.9,role:'launch'},{start:1,end:2.6,role:'land'},{start:3,end:3.9,role:'launch'},{start:4,end:5,role:''},{start:5,end:8,role:'reset'}];
+    assert.deepEqual(autoMap(segs,bars),[[1,1],[2,2],[1,1],null,[3,4]]);
+    assert.deepEqual(autoMap([{start:0,end:1,role:'call'},{start:1,end:2,role:'answer'}],[{ms:900}]),[[1,1],null],'nothing left for a new role');
+});
+test('bar ranges read and print the way the admin field shows them',()=>{
+    assert.deepEqual([parseBars('1-2'),parseBars(' 3 '),parseBars('2–5'),parseBars('3-1'),parseBars('')],[[1,2],[3,3],[2,5],null,null]);
+    assert.deepEqual([formatBars([1,2]),formatBars([4,4]),formatBars(null)],['1–2','4','']);
+});

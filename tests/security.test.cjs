@@ -32,6 +32,10 @@ test('admin uploads accept media under assets/ only',async()=>{
     const ok=await upload('cover.png','assets/img/security-test.png',admin);assert.equal(ok.status,200);
     assert.ok(fs.existsSync(path.join(site.dir,'assets/img/security-test.png')));
     fs.rmSync(path.join(site.dir,'assets/img/security-test.png'));
+    for(const target of ['assets/img/riff.gp','assets/tabs/x.xml','assets/tabs/x.musicxml','assets/tabs/x.gp.php'])
+        assert.equal((await upload('x',target,admin)).status,400,target);
+    const tab=await upload('riff.gp','assets/tabs/security-test/riff.gp',admin);assert.equal(tab.status,200);
+    fs.rmSync(path.join(site.dir,'assets/tabs/security-test'),{recursive:true});
 });
 test('subscriptions cannot be granted without the server secret; test accounts need the admin',async()=>{
     const grant=await post('/api/subscription/update.php',{user_id:'u_attacker',status:'active',source:'patreon'});

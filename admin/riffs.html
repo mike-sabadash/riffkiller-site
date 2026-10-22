@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="../css/reset.css">
     <link rel="stylesheet" href="../css/variables.css">
     <!-- Не подключаем base.css и components.css — там стили заглушки; админка риффов самодостаточна -->
-    <link rel="stylesheet" href="../css/admin-editor.css?v=ed2">
+    <link rel="stylesheet" href="../css/admin-editor.css?v=ed2t">
     <link rel="icon" type="image/svg+xml" href="../assets/icons/favicon.svg">
     <style>
         html, body { background: #111629 !important; background-image: none !important; color: #fff; font-family: Roboto, sans-serif; min-height: 100vh; min-height: 100dvh; padding: 24px; margin: 0; padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px) + 52px); }
@@ -191,6 +191,17 @@
                 </details>
             </section>
 
+            <section class="ed-section" aria-labelledby="hTabs">
+                <header><h2 id="hTabs">Табы</h2><p>Один файл табов на весь рифф. Под каждой частью плеер покажет её такты, курсор идёт за видео. Картинки по частям тогда не нужны.</p></header>
+                <div class="ed-grid">
+                    <div class="ed-field span-2"><span>Файл Guitar Pro или MusicXML</span><input type="text" id="tabFile" class="ed-input" placeholder="assets/tabs/artist/song/song.gp"><input type="file" id="tabFileUpload" accept=".gp,.gp3,.gp4,.gp5,.gpx,.mxl,.musicxml,.xml" aria-label="Загрузить файл табов"></div>
+                    <details class="ed-more span-2" id="tabTexBox"><summary>Или вставить alphaTex из Tab Builder на rechord.online</summary><textarea id="tabTex" class="ed-input ed-tab-tex" rows="6" spellcheck="false" aria-label="alphaTex"></textarea></details>
+                    <label class="ed-field"><span>Дорожка с гитарой</span><select id="tabTrack" class="ed-input"></select></label>
+                </div>
+                <p class="ed-tab-status" id="tabStatus" role="status"></p>
+                <button type="button" class="ed-btn" id="tabAutoMap">Расставить такты по частям</button>
+            </section>
+
             <section class="ed-section" aria-labelledby="hMarkup">
                 <header><h2 id="hMarkup">Разметка</h2><p>Части риффа на видео. Из них плеер делает кнопки для отработки, а Riff DNA — фразу.</p><button type="button" class="ed-link" id="markupGuideToggle">Как размечать</button></header>
                 <div class="ed-guide" id="markupGuide">
@@ -360,7 +371,9 @@
     <script src="../js/admin-dna.js?v=dna2"></script>
     <script src="../js/riff-dna-lint.js?v=lint1"></script>
     <script src="../js/admin-dna-ai.js?v=ai3"></script>
-    <script src="../js/admin-segments.js?v=ed1"></script>
+    <script src="../js/tab-live.js?v=2"></script>
+    <script src="../js/admin-tabs.js?v=1"></script>
+    <script src="../js/admin-segments.js?v=ed2"></script>
     <script src="../js/admin-cutter.js?v=ed1"></script>
     <script>
 (function() {
@@ -668,6 +681,7 @@
         document.getElementById('lessonVideo').value = riff.lessonVideo || '';
         ['videoFileUpload', 'videoFileRightUpload', 'thumbnailUpload', 'lessonVideoUpload'].forEach(function (id) { document.getElementById(id).value = ''; });
         SegmentEditor.load(riff);
+        TabEditor.load(riff);
         RiffDNAEditor.load(riff);
         SegmentEditor.render();
         document.getElementById('riffForm').dataset.editId = riff.id || '';
@@ -761,9 +775,11 @@
             uL ? uploadVideo(uL, basePath + songSlug + '-left.mp4', 'videoFileProgress') : Promise.resolve(vL),
             uR ? uploadVideo(uR, basePath + songSlug + '-right.mp4', 'videoFileRightProgress') : Promise.resolve(vR),
             uT ? uploadImage(uT, th||'assets/img/'+(uT.name||'riff-'+(editId||'new')+'.png')) : Promise.resolve(th),
-            uLesson ? uploadVideo(uLesson, basePath + songSlug + '-lesson.mp4', 'lessonVideoProgress') : Promise.resolve(vLesson)
+            uLesson ? uploadVideo(uLesson, basePath + songSlug + '-lesson.mp4', 'lessonVideoProgress') : Promise.resolve(vLesson),
+            TabEditor.collect(uploadImage, basePath.replace(/^assets\/video\//, 'assets/tabs/'))
         ]).then(function(r){
             var riff = Object.assign({}, editingRiff || {}, { song:song, artist:artist, duration: SegmentEditor.duration() || parseFloat(document.getElementById('duration').value)||0, difficulty: document.getElementById('difficulty').value||'intermediate', genre: document.getElementById('genre').value.trim()||'rock', isFree: document.getElementById('isFree').checked, dnaReference: document.getElementById('dnaReference').checked, videoFile: r[0]||basePath+'left.mp4', videoFileRight: r[1]||basePath+'right.mp4', thumbnail: r[2]||'assets/img/riff-1.png', lessonVideo: r[3]||vLesson||null, segments: segs, dna: dna, collectionIds: getSelectedCollectionIds() });
+            if (r[4]) riff.tab = r[4]; else delete riff.tab;
             if (videoSource) riff.videoSource = videoSource;
             if(editId) riff.id = parseInt(editId,10);
             return fetch(saveUrl, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({riff:riff, expectedRiff:editingRiff}) }).then(function(x){return x.json();});
@@ -836,6 +852,7 @@
         });
     });
     SegmentEditor.init();
+    TabEditor.init();
     loadRiffs();
     fillForm({});
 })();
