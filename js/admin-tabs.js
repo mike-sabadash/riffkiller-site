@@ -131,6 +131,7 @@
     }
 
     var SURE = 0.05; // pitch match above chance (see TabSync.align) below which a part is left as it is
+    var ON_ATTACK = 0.8; // share of the tab's notes heard as attacks for the whole take to count as played in one go
     var later = function (fn) { return new Promise(function (resolve) { setTimeout(function () { resolve(fn()); }, 0); }); };
 
     /** Finds each part's bars and note times in the video's sound. */
@@ -151,16 +152,12 @@
                 return TabSync.features(samples.subarray(Math.floor(t0 * TabSync.RATE), Math.ceil(t1 * TabSync.RATE)), t0);
             });
         }).then(function (feat) {
-            var results = [];
-            return parts.reduce(function (chain, p, i) {
-                return chain.then(function () {
-                    status('Ищу ноты в части ' + (i + 1) + ' из ' + parts.length + '…');
-                    return later(function () {
-                        var r = TabSync.syncPart(score, track, bars, feat, { start: p.start, end: p.end, bars: TabLive.parseBars(p.bars) }, false);
-                        results.push(r && r.contrast >= SURE ? r : null);
-                    });
-                });
-            }, Promise.resolve()).then(function () { return results; });
+            // First the whole take at once: parts are often cut by phrase, not by bar line.
+            status('Ищу ноты всего дубля…');
+            return later(function () {
+                var whole = TabSync.syncWhole(score, track, bars, feat, parts);
+                return whole && whole.contrast >= SURE && whole.precision >= ON_ATTACK ? whole.parts : null;
+            }).then(function (whole) { return whole || byPart(feat); });
         }).then(function (results) {
             SegmentEditor.setTabSync(results);
             var done = results.filter(Boolean).length, unsure = [];
@@ -171,6 +168,20 @@
         }).catch(function (err) {
             status('Не удалось прочитать звук видео: ' + (err && err.message ? err.message : err), true);
         }).then(function () { button.disabled = false; });
+
+        // Each part on its own, when the take skips bars of the tab or repeats them.
+        function byPart(feat) {
+            var results = [];
+            return parts.reduce(function (chain, p, i) {
+                return chain.then(function () {
+                    status('Ищу ноты в части ' + (i + 1) + ' из ' + parts.length + '…');
+                    return later(function () {
+                        var r = TabSync.syncPart(score, track, bars, feat, { start: p.start, end: p.end, bars: TabLive.parseBars(p.bars) }, false);
+                        results.push(r && r.contrast >= SURE ? r : null);
+                    });
+                });
+            }, Promise.resolve()).then(function () { return results; });
+        }
     }
 
     /** The tab to save: uploads a picked file first. upload(blob, path) → Promise<savedPath>. */

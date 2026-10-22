@@ -296,6 +296,9 @@
         var evs = events(score, trackIndex, 1, durations.length, durations), total = tabLength(1, durations.length, durations);
         var t0 = Math.min.apply(null, parts.map(function (p) { return p.start; }));
         var t1 = Math.max.apply(null, parts.map(function (p) { return p.end; }));
+        // The whole tab has to be about as long as the take; a short tab repeated in the video is synced part by part.
+        var ratio = total / ((t1 - t0) * 1000 || 1);
+        if (ratio < 0.6 || ratio > 1.6) return null;
         var best = null;
         for (var k = 0.75; k <= 1.25001; k += 0.05) {
             var m = align(evs, total, feat, t0, t0 + (t1 - t0) * k);
