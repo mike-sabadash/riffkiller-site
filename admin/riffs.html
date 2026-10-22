@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="../css/reset.css">
     <link rel="stylesheet" href="../css/variables.css">
     <!-- Не подключаем base.css и components.css — там стили заглушки; админка риффов самодостаточна -->
-    <link rel="stylesheet" href="../css/admin-editor.css?v=ed2u">
+    <link rel="stylesheet" href="../css/admin-editor.css?v=ed2v">
     <link rel="icon" type="image/svg+xml" href="../assets/icons/favicon.svg">
     <style>
         html, body { background: #111629 !important; background-image: none !important; color: #fff; font-family: Roboto, sans-serif; min-height: 100vh; min-height: 100dvh; padding: 24px; margin: 0; padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px) + 52px); }
@@ -192,10 +192,15 @@
             </section>
 
             <section class="ed-section" aria-labelledby="hTabs">
-                <header><h2 id="hTabs">Табы</h2><p>Один файл табов на весь рифф. Под каждой частью плеер покажет её такты, курсор идёт за видео. Картинки по частям тогда не нужны.</p></header>
+                <header><h2 id="hTabs">Табы</h2><p>Это не картинка, а сами ноты: один файл табов на весь рифф. Сайт сам рисует под видео такты текущей части и ведёт по ним курсор. Картинки табов у частей тогда не нужны.</p></header>
+                <ol class="ed-tab-howto">
+                    <li>Возьмите файл Guitar Pro (.gp, .gp5, .gpx) с этим риффом. Если файла нет, наберите рифф на rechord.online: Tab Builder, режим Notation, кнопка «Экспорт GP».</li>
+                    <li>Загрузите файл ниже. Под полем появится, сколько в нём тактов.</li>
+                    <li>Нажмите «Расставить такты по частям», проверьте такты у частей и сохраните.</li>
+                </ol>
                 <div class="ed-grid">
-                    <div class="ed-field span-2"><span>Файл Guitar Pro или MusicXML</span><input type="text" id="tabFile" class="ed-input" placeholder="assets/tabs/artist/song/song.gp"><input type="file" id="tabFileUpload" accept=".gp,.gp3,.gp4,.gp5,.gpx,.mxl,.musicxml,.xml" aria-label="Загрузить файл табов"></div>
-                    <details class="ed-more span-2" id="tabTexBox"><summary>Или вставить alphaTex из Tab Builder на rechord.online</summary><textarea id="tabTex" class="ed-input ed-tab-tex" rows="6" spellcheck="false" aria-label="alphaTex"></textarea></details>
+                    <div class="ed-field span-2"><span>Файл табов</span><input type="file" id="tabFileUpload" accept=".gp,.gp3,.gp4,.gp5,.gpx,.mxl,.musicxml,.xml" aria-label="Загрузить файл табов"><input type="text" id="tabFile" class="ed-input" placeholder="или путь к файлу на сайте: assets/tabs/artist/song/song.gp"></div>
+                    <details class="ed-more span-2" id="tabTexBox"><summary>Вместо файла: текст табов из rechord (Notation, кнопка «Код»)</summary><textarea id="tabTex" class="ed-input ed-tab-tex" rows="6" spellcheck="false" aria-label="Текст табов alphaTex" placeholder="\tempo 120&#10;.&#10;5.3 7.3 5.4 7.4 |"></textarea></details>
                     <label class="ed-field"><span>Дорожка с гитарой</span><select id="tabTrack" class="ed-input"></select></label>
                 </div>
                 <p class="ed-tab-status" id="tabStatus" role="status"></p>
