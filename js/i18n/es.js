@@ -534,7 +534,12 @@
             "Could not update profile": "No se pudo actualizar el perfil",
             "Could not reach Stripe. Please try again.": "No se pudo conectar con Stripe. Inténtalo de nuevo.",
             "Could not send. Try again or contact us directly.": "No se pudo enviar. Inténtalo de nuevo o contáctanos directamente.",
-            "Not authenticated": "No has iniciado sesión"
+            "Not authenticated": "No has iniciado sesión",
+            "Each block is one shot of the video, coloured by its job in the phrase. Tap a block to loop it; dots below are techniques.": "Cada bloque es una toma del video, coloreada según su función en la frase. Toca un bloque para repetirlo; los puntos de abajo son técnicas.",
+            "0.5x": "0.5x",
+            "0.75x": "0.75x",
+            "1x": "1x",
+            "2× XP": "2× XP"
         },
         patterns: [
         [/^1 shots$/, '1 toma'],

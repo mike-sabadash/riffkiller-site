@@ -576,4 +576,9 @@ T = [
 ("Could not reach Stripe. Please try again.", "Не удалось связаться со Stripe. Попробуй ещё раз.", "No se pudo conectar con Stripe. Inténtalo de nuevo."),
 ("Could not send. Try again or contact us directly.", "Не удалось отправить. Попробуй ещё раз или напиши нам напрямую.", "No se pudo enviar. Inténtalo de nuevo o contáctanos directamente."),
 ("Not authenticated", "Нужно войти", "No has iniciado sesión"),
+("Each block is one shot of the video, coloured by its job in the phrase. Tap a block to loop it; dots below are techniques.", "Каждый блок — один фрагмент видео, цвет показывает его роль во фразе. Нажми на блок, чтобы зациклить его; точки ниже — приёмы.", "Cada bloque es una toma del video, coloreada según su función en la frase. Toca un bloque para repetirlo; los puntos de abajo son técnicas."),
+("0.5x", "0.5x", "0.5x"),
+("0.75x", "0.75x", "0.75x"),
+("1x", "1x", "1x"),
+("2× XP", "2× XP", "2× XP"),
 ]

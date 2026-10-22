@@ -392,3 +392,20 @@ test('Patreon sign-in still completes with Russian selected',async t=>{
     await page.goto(site.base+'/patreon-callback.html?code=fixture&state=fixture-state',{waitUntil:'domcontentloaded'});await page.waitForURL('**/app.html',{waitUntil:'domcontentloaded'});
     assert.equal(await page.evaluate(()=>document.documentElement.lang),'ru');
 });
+test('in Russian and Spanish every interface string on the main pages is translated; only riff content stays as typed',async t=>{
+    // Riff content comes from the admin (titles, part names, DNA texts) and is not part of the interface dictionary.
+    const content=new Set();
+    const walk=v=>{if(typeof v==='string')content.add(v.replace(/\s+/g,' ').trim());else if(v&&typeof v==='object')Object.values(v).forEach(walk);};
+    for(const f of ['riffs.json','collections.json'])walk(JSON.parse(fs.readFileSync(path.join(__dirname,'../data',f),'utf8')));
+    const fromContent=s=>content.has(s)||[...content].some(c=>c.length>2&&s.includes(c));
+    const brands=/^(Riff Killer|Instagram|YouTube|Facebook|Patreon|Stripe|Cryptomus|Mike Sabadash|RK-X+|\S+@\S+)$/;
+    for(const lang of ['ru','es']){
+        const page=await pageFor(t);await page.addInitScript(l=>localStorage.setItem('rk-lang',l),lang);
+        const missing=new Set();
+        const collect=async()=>{for(const s of await page.evaluate(()=>RK_I18N.missing()))if(!brands.test(s)&&!fromContent(s))missing.add(s);};
+        for(const p of ['index.html','landing.html','billing.html','profile.html','favorites.html']){await page.goto(site.base+'/'+p,{waitUntil:'load'});await collect();}
+        await practice(page);
+        for(const stage of ['scan','split','isolate','decode','mutate']){await page.locator('[data-dna-stage='+stage+']').click();await collect();}
+        assert.deepEqual([...missing],[],lang+': add these to tools/i18n/strings.py and run python3 tools/i18n/build.py');
+    }
+});

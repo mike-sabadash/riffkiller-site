@@ -543,7 +543,12 @@
             "Could not update profile": "Не удалось обновить профиль",
             "Could not reach Stripe. Please try again.": "Не удалось связаться со Stripe. Попробуй ещё раз.",
             "Could not send. Try again or contact us directly.": "Не удалось отправить. Попробуй ещё раз или напиши нам напрямую.",
-            "Not authenticated": "Нужно войти"
+            "Not authenticated": "Нужно войти",
+            "Each block is one shot of the video, coloured by its job in the phrase. Tap a block to loop it; dots below are techniques.": "Каждый блок — один фрагмент видео, цвет показывает его роль во фразе. Нажми на блок, чтобы зациклить его; точки ниже — приёмы.",
+            "0.5x": "0.5x",
+            "0.75x": "0.75x",
+            "1x": "1x",
+            "2× XP": "2× XP"
         },
         patterns: [
         // Russian plural: 1 фрагмент, 2 фрагмента, 5 фрагментов.
