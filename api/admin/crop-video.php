@@ -83,7 +83,9 @@ $job = [
 file_put_contents($dir . '/job.json', json_encode($job));
 
 $crop = function ($b) { return 'crop=' . $b['w'] . ':' . $b['h'] . ':' . $b['x'] . ':' . $b['y']; };
-$encode = '-c:v libx264 -preset veryfast -crf 18 -pix_fmt yuv420p -c:a aac -b:a 160k -movflags +faststart';
+// A keyframe every half second: loops, segment jumps and camera re-sync seek without decoding seconds of video.
+$encode = '-c:v libx264 -preset veryfast -crf 18 -pix_fmt yuv420p -force_key_frames ' . escapeshellarg('expr:gte(t,n_forced*0.5)')
+    . ' -c:a aac -b:a 160k -movflags +faststart';
 $cmd = escapeshellarg($ffmpeg) . ' -y -hide_banner -nostdin -nostats -i ' . escapeshellarg($root . '/' . $source)
     . ' -filter_complex ' . escapeshellarg('[0:v]split=2[a][b];[a]' . $crop($boxes['left']) . '[l];[b]' . $crop($boxes['right']) . '[r]')
     . ' -map "[l]" -map "0:a?" ' . $encode . ' ' . escapeshellarg($dir . '/left.mp4')
