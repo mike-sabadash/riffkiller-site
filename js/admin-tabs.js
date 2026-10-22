@@ -114,7 +114,7 @@
     /** Adds Riff DNA atoms for the techniques written in the tab, at their moments in the video. */
     function suggestAtoms() {
         if (!state.score) { atomStatus('Сначала добавьте табы в блоке «Табы».', true); return; }
-        var parts = SegmentEditor.parts().map(function (p) { return { start: p.start, end: p.end, bars: TabLive.parseBars(p.bars) }; });
+        var parts = SegmentEditor.parts().map(function (p) { return { start: p.start, end: p.end, bars: TabLive.parseBars(p.bars), sync: p.sync }; });
         if (!parts.some(function (p) { return p.bars; })) { atomStatus('У частей не указаны такты: нажмите «Расставить такты по частям».', true); return; }
         var events = TabAtoms.extract(state.score, Number(el('tabTrack').value) || 0);
         if (!events.length) { atomStatus('В табах нет приёмов: бендов, легато, слайдов, вибрато, palm mute.', true); return; }
@@ -128,6 +128,49 @@
         if (placed.unplaced) notes.push('в тактах без части: ' + placed.unplaced);
         atomStatus((added.length ? 'Добавлено приёмов: ' + added.length + '. Проверьте подписи и время, допишите подсказки.' : 'Новых приёмов нет.') +
             (notes.length ? ' Пропущено ' + notes.join(', ') + '.' : ''));
+    }
+
+    var SURE = 0.05; // pitch match above chance (see TabSync.align) below which a part is left as it is
+    var later = function (fn) { return new Promise(function (resolve) { setTimeout(function () { resolve(fn()); }, 0); }); };
+
+    /** Finds each part's bars and note times in the video's sound. */
+    function syncAudio() {
+        if (!state.score) { status('Сначала добавьте файл табов или alphaTex.', true); return; }
+        var video = el('segmentEditorVideo'), src = video && (video.currentSrc || video.src);
+        var parts = SegmentEditor.parts();
+        if (!src) { status('Сначала выберите видео риффа.', true); return; }
+        if (!parts.length) { status('Сначала разметьте части на видео.', true); return; }
+        var button = el('tabSyncAudio'), track = Number(el('tabTrack').value) || 0, score = state.score, bars = state.bars;
+        button.disabled = true;
+        status('Загружаю звук видео…');
+        TabSync.decode(src).then(function (samples) {
+            status('Слушаю звук…');
+            var t0 = Math.max(0, Math.min.apply(null, parts.map(function (p) { return p.start; })) - 1);
+            var t1 = Math.max.apply(null, parts.map(function (p) { return p.end; })) + 1;
+            return later(function () {
+                return TabSync.features(samples.subarray(Math.floor(t0 * TabSync.RATE), Math.ceil(t1 * TabSync.RATE)), t0);
+            });
+        }).then(function (feat) {
+            var results = [];
+            return parts.reduce(function (chain, p, i) {
+                return chain.then(function () {
+                    status('Ищу ноты в части ' + (i + 1) + ' из ' + parts.length + '…');
+                    return later(function () {
+                        var r = TabSync.syncPart(score, track, bars, feat, { start: p.start, end: p.end, bars: TabLive.parseBars(p.bars) }, false);
+                        results.push(r && r.contrast >= SURE ? r : null);
+                    });
+                });
+            }, Promise.resolve()).then(function () { return results; });
+        }).then(function (results) {
+            SegmentEditor.setTabSync(results);
+            var done = results.filter(Boolean).length, unsure = [];
+            results.forEach(function (r, i) { if (!r) unsure.push(i + 1); });
+            status('По звуку синхронизировано частей: ' + done + ' из ' + results.length + '.' +
+                (unsure.length ? ' Не нашёл уверенно ноты в частях ' + unsure.join(', ') + ': там такты остались прежними, проверьте их.' : '') +
+                ' Сохраните и проверьте курсор в плеере.', !done);
+        }).catch(function (err) {
+            status('Не удалось прочитать звук видео: ' + (err && err.message ? err.message : err), true);
+        }).then(function () { button.disabled = false; });
     }
 
     /** The tab to save: uploads a picked file first. upload(blob, path) → Promise<savedPath>. */
@@ -159,8 +202,9 @@
             timer = setTimeout(function () { read({ tex: tex }); }, 500);
         });
         el('tabAutoMap').addEventListener('click', function (e) { e.preventDefault(); autoMap(); });
+        el('tabSyncAudio').addEventListener('click', function (e) { e.preventDefault(); syncAudio(); });
         el('dnaTabAtoms').addEventListener('click', function (e) { e.preventDefault(); suggestAtoms(); });
     }
 
-    root.TabEditor = { init: init, load: load, collect: collect, autoMap: autoMap, suggestAtoms: suggestAtoms };
+    root.TabEditor = { init: init, load: load, collect: collect, autoMap: autoMap, suggestAtoms: suggestAtoms, syncAudio: syncAudio };
 })(window);

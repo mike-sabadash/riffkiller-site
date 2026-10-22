@@ -196,7 +196,7 @@
                 <ol class="ed-tab-howto">
                     <li>Возьмите файл Guitar Pro (.gp, .gp5, .gpx) с этим риффом. Если файла нет, наберите рифф на rechord.online: Tab Builder, режим Notation, кнопка «Экспорт GP».</li>
                     <li>Загрузите файл ниже. Под полем появится, сколько в нём тактов.</li>
-                    <li>Нажмите «Расставить такты по частям», проверьте такты у частей и сохраните.</li>
+                    <li>Нажмите «Синхронизировать по звуку»: сайт услышит в видео, какие такты играет каждая часть и где звучит каждая нота. Если звука в видео нет или он грязный, нажмите «Расставить такты по ролям». Проверьте такты у частей и сохраните.</li>
                 </ol>
                 <div class="ed-grid">
                     <div class="ed-field span-2"><span>Файл табов</span><input type="file" id="tabFileUpload" accept=".gp,.gp3,.gp4,.gp5,.gpx,.mxl,.musicxml,.xml" aria-label="Загрузить файл табов"><input type="text" id="tabFile" class="ed-input" placeholder="или путь к файлу на сайте: assets/tabs/artist/song/song.gp"></div>
@@ -204,7 +204,7 @@
                     <label class="ed-field"><span>Дорожка с гитарой</span><select id="tabTrack" class="ed-input"></select></label>
                 </div>
                 <p class="ed-tab-status" id="tabStatus" role="status"></p>
-                <button type="button" class="ed-btn" id="tabAutoMap">Расставить такты по частям</button>
+                <div class="dna-atom-actions"><button type="button" class="ed-btn" id="tabSyncAudio">Синхронизировать по звуку</button><button type="button" class="ed-btn" id="tabAutoMap">Расставить такты по ролям</button></div>
             </section>
 
             <section class="ed-section" aria-labelledby="hMarkup">
@@ -376,10 +376,11 @@
     <script src="../js/admin-dna.js?v=dna3"></script>
     <script src="../js/riff-dna-lint.js?v=lint1"></script>
     <script src="../js/admin-dna-ai.js?v=ai3"></script>
-    <script src="../js/tab-live.js?v=2"></script>
-    <script src="../js/tab-atoms.js?v=1"></script>
-    <script src="../js/admin-tabs.js?v=2"></script>
-    <script src="../js/admin-segments.js?v=ed2"></script>
+    <script src="../js/tab-live.js?v=3"></script>
+    <script src="../js/tab-sync.js?v=1"></script>
+    <script src="../js/tab-atoms.js?v=2"></script>
+    <script src="../js/admin-tabs.js?v=3"></script>
+    <script src="../js/admin-segments.js?v=ed3"></script>
     <script src="../js/admin-cutter.js?v=ed1"></script>
     <script>
 (function() {
