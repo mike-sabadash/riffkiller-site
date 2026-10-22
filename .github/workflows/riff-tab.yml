@@ -18,6 +18,10 @@ on:
         description: Write the result to production
         type: boolean
         default: false
+      keep_audio:
+        description: Print the notes heard in the riff's sound and keep it as a run artifact for a day (to look into a poor sync)
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -79,6 +83,18 @@ jobs:
 
       - name: Sync the tab to the sound
         run: node tools/tab-sync-cli.cjs --riffs riffs.json --id "$RIFF_ID" --tex "$TEX" --track "$TRACK" --wav audio.wav --out patch.json | tee -a "$GITHUB_STEP_SUMMARY"
+
+      - name: Notes heard in the sound
+        if: inputs.keep_audio
+        run: node tools/audio-notes.cjs audio.wav
+
+      - name: Keep the sound
+        if: inputs.keep_audio
+        uses: actions/upload-artifact@v4
+        with:
+          name: riff-${{ inputs.riff_id }}-audio
+          path: audio.wav
+          retention-days: 1
 
       - name: Write to production
         if: inputs.apply
