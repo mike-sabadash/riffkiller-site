@@ -84,6 +84,8 @@ function main() {
         segments
     };
     fs.writeFileSync(a.out, JSON.stringify(patch));
+    // For the workflow's "write only if every part is synced" mode.
+    if (process.env.GITHUB_OUTPUT) fs.appendFileSync(process.env.GITHUB_OUTPUT, 'all_synced=' + (parts.length > 0 && Object.keys(segments).length === parts.length) + '\n');
     const sigs = [...new Set(bars.map(b => b.ts))].join(', ');
     console.log([
         '### ' + (riff.artist || '') + ' — ' + (riff.song || riff.title || ('riff ' + riff.id)),
