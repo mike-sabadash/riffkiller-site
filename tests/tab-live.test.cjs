@@ -36,3 +36,25 @@ test('bar ranges read and print the way the admin field shows them',()=>{
     assert.deepEqual([parseBars('1-2'),parseBars(' 3 '),parseBars('2–5'),parseBars('3-1'),parseBars('')],[[1,2],[3,3],[2,5],null,null]);
     assert.deepEqual([formatBars([1,2]),formatBars([4,4]),formatBars(null)],['1–2','4','']);
 });
+const {positionAt,timeOf,syncOf}=require('../js/tab-live.js').TabLive;
+test('a shot synced to the sound moves the cursor from note to note at the heard times',()=>{
+    const layout=[{ticks:3840},{ticks:3840}];
+    const anchors=[[3,0,10.2],[3,1920,11.0],[4,0,11.4]];
+    assert.deepEqual(positionAt(anchors,3,layout,10,12,10.2),{bar:0,tick:0});
+    assert.deepEqual(positionAt(anchors,3,layout,10,12,10.6),{bar:0,tick:960},'halfway between two heard notes');
+    const late=positionAt(anchors,3,layout,10,12,11.2);
+    assert.deepEqual([late.bar,Math.round(late.tick)],[0,2880],'a late note slows the cursor down');
+    const tail=positionAt(anchors,3,layout,10,12,11.7);
+    assert.deepEqual([tail.bar,Math.round(tail.tick)],[1,1920],'after the last note it runs to the end of the shot');
+    assert.deepEqual(positionAt(anchors,3,layout,10,12,9),{bar:0,tick:0});
+});
+test('note times come back from the sync, and a sync that no longer fits the shot is ignored',()=>{
+    const anchors=[[3,0,10.2],[3,1920,11.0],[4,0,11.4]];
+    assert.equal(timeOf(anchors,3,1920),11);
+    assert.equal(timeOf(anchors,3,960),10.6);
+    const seg={start:10,end:12,tabBars:[3,4],tabSync:anchors};
+    assert.equal(syncOf(seg),anchors);
+    assert.equal(syncOf({...seg,tabBars:[1,2]}),null,'bars changed by hand');
+    assert.equal(syncOf({...seg,start:20,end:22}),null,'the shot was moved');
+    assert.equal(syncOf({start:0,end:1,tabBars:[1,1]}),null);
+});

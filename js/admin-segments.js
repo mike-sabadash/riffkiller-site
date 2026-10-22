@@ -646,6 +646,8 @@
             delete data.molecule; delete data.moleculeName; delete data.relation; delete data.tabBars;
             var bars = window.TabLive ? TabLive.parseBars(s.bars) : null;
             if (bars) data.tabBars = bars;
+            // Sound sync is kept only while it still fits the part's bars and place in the video.
+            if (data.tabSync && !(window.TabLive && TabLive.syncOf({ tabSync: data.tabSync, tabBars: bars, start: s.start, end: s.end }))) delete data.tabSync;
             return Object.assign(data, {
                 tabImage: s.tab.trim(), role: s.role, function: s.fn.trim(),
                 displayName: (row._segmentData || {}).name === n ? ((row._segmentData || {}).displayName || n) : n,
@@ -748,7 +750,23 @@
         validate: function () { return validate(true); }, duration: videoDuration, split: split, undo: undo,
         selected: function () { return selected; }, select: select,
         // Tab bars per part, used by the tab block (admin-tabs.js).
-        parts: function () { return segs().map(function (x) { return { start: x.start, end: x.end, role: x.role, bars: x.bars }; }); },
+        parts: function () {
+            return segs().map(function (x) {
+                var sync = (x.row._segmentData || {}).tabSync;
+                var bars = TabLive.parseBars(x.bars);
+                return { start: x.start, end: x.end, role: x.role, bars: x.bars, sync: TabLive.syncOf({ tabSync: sync, tabBars: bars, start: x.start, end: x.end }) };
+            });
+        },
+        // Results of the sound sync: bars and note times per part; null leaves a part as it is.
+        setTabSync: function (list) {
+            rows().forEach(function (row, i) {
+                var r = list[i];
+                if (!r) return;
+                row.querySelector('.tab-bars').value = TabLive.formatBars(r.bars);
+                row._segmentData = Object.assign({}, row._segmentData, { tabSync: r.anchors });
+            });
+            if (root.RiffEditorDirty) root.RiffEditorDirty();
+        },
         setTabBars: function (list) {
             rows().forEach(function (row, i) { row.querySelector('.tab-bars').value = TabLive.formatBars(list[i]); });
             if (root.RiffEditorDirty) root.RiffEditorDirty();

@@ -105,7 +105,8 @@
      * Places techniques in the video. A bar can be played by several parts (repeated roles share bars);
      * the technique goes to the first of them. Time inside the part is the bar's place in the part's bars,
      * stretched over the part the same way the practice cursor moves.
-     * events: from extract(); bars: [{ ms, ticks }]; parts: [{ start, end, bars: [from, to] }] (1-based).
+     * events: from extract(); bars: [{ ms, ticks }]; parts: [{ start, end, bars: [from, to], sync? }] (1-based).
+     * A part synced to the sound (sync = its anchors) places techniques at the heard note instead.
      * Returns { atoms: [{ technique, label, time, segmentIndex, view, speed }], unplaced: n }.
      */
     function place(events, bars, parts) {
@@ -118,6 +119,9 @@
             }
             if (index < 0 || !bars[ev.bar]) { unplaced++; return; }
             var part = parts[index], r2 = part.bars, total = 0, before = 0;
+            // A part synced to the sound knows when each note is played.
+            var heard = part.sync && typeof TabLive !== 'undefined' ? TabLive.timeOf(part.sync, bar, ev.tick) : null;
+            if (heard != null) { atoms.push(atom(ev, heard, index)); return; }
             for (var k = r2[0] - 1; k < r2[1] && k < bars.length; k++) {
                 if (k < ev.bar) before += bars[k].ms;
                 total += bars[k].ms;
@@ -125,12 +129,16 @@
             var b = bars[ev.bar];
             before += b.ticks ? Math.min(1, ev.tick / b.ticks) * b.ms : 0;
             var time = part.start + (total ? before / total : 0) * Math.max(0, part.end - part.start);
-            atoms.push({
-                technique: ev.technique, label: ev.label, time: Math.round(time * 100) / 100, segmentIndex: index,
-                view: RIGHT_HAND[ev.technique] ? 'right' : 'left', speed: 0.5
-            });
+            atoms.push(atom(ev, time, index));
         });
         return { atoms: atoms, unplaced: unplaced };
+    }
+
+    function atom(ev, time, index) {
+        return {
+            technique: ev.technique, label: ev.label, time: Math.round(time * 100) / 100, segmentIndex: index,
+            view: RIGHT_HAND[ev.technique] ? 'right' : 'left', speed: 0.5
+        };
     }
 
     /** Drops suggestions that repeat an atom already in the list (same technique within a quarter second). */

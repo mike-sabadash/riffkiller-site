@@ -46,3 +46,10 @@ test('suggestions already in the list are skipped',()=>{
     const s=[{technique:'bend',time:11},{technique:'bend',time:12},{technique:'palm',time:11}];
     assert.deepEqual(fresh(s,[{technique:'bend',time:11.1},{technique:'slide',time:12}]),[s[1],s[2]]);
 });
+test('in a part synced to the sound a technique goes to the heard note',()=>{
+    globalThis.TabLive=require('../js/tab-live.js').TabLive;
+    const bars=[{ms:2000,ticks:3840}];
+    const parts=[{start:10,end:14,bars:[1,1],sync:[[1,0,10.3],[1,1920,12.6]]}];
+    const r=place([{bar:0,tick:1920,technique:'bend',label:'a'}],bars,parts);
+    assert.equal(r.atoms[0].time,12.6);
+});

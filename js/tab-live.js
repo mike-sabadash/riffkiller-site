@@ -44,16 +44,24 @@
         while (i < bars.length - 1 && ms >= bars[i].ms) { ms -= bars[i].ms; i++; }
         var bar = bars[i];
         var tick = Math.min(bar.ticks, (bar.ms ? ms / bar.ms : 0) * bar.ticks);
+        var beat = beatAt(bar, tick);
+        return { bar: i, beat: beat.k, x: beat.x };
+    }
+
+    // Cursor x at a tick inside a laid-out bar: between the beats around it.
+    function beatAt(bar, tick) {
         var beats = bar.beats || [];
-        if (!beats.length) return { bar: i, beat: -1, x: bar.x0 + (bar.x1 - bar.x0) * tick / (bar.ticks || 1) };
+        if (!beats.length) return { k: -1, x: bar.x0 + (bar.x1 - bar.x0) * tick / (bar.ticks || 1) };
         var k = 0;
         while (k < beats.length - 1 && beats[k + 1].start <= tick) k++;
         var from = beats[k], nextStart = k + 1 < beats.length ? beats[k + 1].start : bar.ticks;
         var nextX = k + 1 < beats.length ? beats[k + 1].x : bar.x1;
-        if (tick < from.start) return { bar: i, beat: -1, x: bar.x0 + (from.x - bar.x0) * tick / (from.start || 1) };
+        if (tick < from.start) return { k: -1, x: bar.x0 + (from.x - bar.x0) * tick / (from.start || 1) };
         var f = nextStart > from.start ? (tick - from.start) / (nextStart - from.start) : 0;
-        return { bar: i, beat: k, x: from.x + (nextX - from.x) * f };
+        return { k: k, x: from.x + (nextX - from.x) * f };
     }
+
+    function xAtTick(bar, tick) { return beatAt(bar, tick).x; }
 
     /**
      * Suggests bars for every shot. Shots with the same role play the same bars; a new role takes the next
@@ -118,6 +126,68 @@
         var from = Math.max(1, Math.min(barCount, Math.round(Number(r[0]) || 1)));
         var to = Math.max(from, Math.min(barCount, Math.round(Number(r[1] != null ? r[1] : r[0]) || from)));
         return { from: from, to: to };
+    }
+
+    // ---- Shots synced to the sound (segment.tabSync, written by js/tab-sync.js in the admin) ----
+
+    /**
+     * Where the music is at video time t for a part synced to the sound.
+     * anchors: [[bar, tick, seconds]]; layout: [{ ticks }] for bars from..; returns { bar: index into layout, tick }.
+     * Before the first note the cursor runs from the part start, after the last note to the end of the bars.
+     */
+    function positionAt(anchors, from, layout, segStart, segEnd, t) {
+        if (!anchors || !anchors.length || !layout.length) return null;
+        var startOf = [], acc = 0;
+        layout.forEach(function (b) { startOf.push(acc); acc += b.ticks; });
+        var pos = function (a) { var i = a[0] - from; return i >= 0 && i < layout.length ? startOf[i] + a[1] : null; };
+        var pts = [[segStart, 0]];
+        anchors.forEach(function (a) {
+            var p = pos(a);
+            if (p == null || a[2] <= pts[pts.length - 1][0] || p < pts[pts.length - 1][1]) return;
+            pts.push([a[2], p]);
+        });
+        if (segEnd > pts[pts.length - 1][0]) pts.push([segEnd, acc]);
+        var at;
+        if (t <= pts[0][0]) at = 0;
+        else if (t >= pts[pts.length - 1][0]) at = pts[pts.length - 1][1];
+        else {
+            var k = 0;
+            while (k < pts.length - 2 && pts[k + 1][0] <= t) k++;
+            var p0 = pts[k], p1 = pts[k + 1];
+            at = p0[1] + (p1[1] - p0[1]) * (t - p0[0]) / (p1[0] - p0[0]);
+        }
+        at = Math.min(acc, Math.max(0, at));
+        var bar = 0;
+        while (bar < layout.length - 1 && at >= startOf[bar + 1]) bar++;
+        return { bar: bar, tick: at - startOf[bar] };
+    }
+
+    /** Video time of a bar/tick in a synced part (inverse of positionAt between anchors), or null. */
+    function timeOf(anchors, bar, tick) {
+        if (!anchors || !anchors.length) return null;
+        var key = function (a) { return a[0] * 1e6 + a[1]; }, want = bar * 1e6 + tick;
+        for (var i = 0; i < anchors.length; i++) {
+            if (key(anchors[i]) === want) return anchors[i][2];
+            if (key(anchors[i]) > want) {
+                if (!i) return anchors[0][2];
+                var a = anchors[i - 1], b = anchors[i];
+                // Same bar: ticks are proportional; across bars use the order only.
+                var f = a[0] === b[0] ? (tick - a[1]) / ((b[1] - a[1]) || 1) : 0.5;
+                return Math.round((a[2] + (b[2] - a[2]) * f) * 100) / 100;
+            }
+        }
+        return anchors[anchors.length - 1][2];
+    }
+
+    /** A shot's sync anchors when they still fit its bars and its place in the video, otherwise null. */
+    function syncOf(segment) {
+        var a = segment && segment.tabSync, r = segment && segment.tabBars;
+        if (!Array.isArray(a) || !a.length || !Array.isArray(r)) return null;
+        var from = r[0], to = r[1] != null ? r[1] : r[0];
+        var ok = a.every(function (x) {
+            return Array.isArray(x) && x[0] >= from && x[0] <= to && x[2] >= segment.start - 0.3 && x[2] <= segment.end + 0.3;
+        });
+        return ok ? a : null;
     }
 
     // ---- Browser part ----
@@ -255,7 +325,13 @@
         function update(time) {
             var seg = riff.segments[current];
             if (!seg || !layout.length) return;
-            var at = cursorAt(layout, seg.start, seg.end, time);
+            var sync = syncOf(seg), at;
+            if (sync) {
+                var p = positionAt(sync, barsOf(seg, durations.length).from, layout, seg.start, seg.end, time);
+                at = p && { x: xAtTick(layout[p.bar], p.tick) };
+            } else {
+                at = cursorAt(layout, seg.start, seg.end, time);
+            }
             if (at) cursor.style.transform = 'translateX(' + at.x.toFixed(1) + 'px)';
         }
 
@@ -269,6 +345,7 @@
 
     global.TabLive = {
         barDurations: barDurations, cursorAt: cursorAt, barsOf: barsOf, autoMap: autoMap, parseBars: parseBars, formatBars: formatBars,
-        hasTab: hasTab, create: create, readScore: readScore, summarize: summarize
+        hasTab: hasTab, create: create, readScore: readScore, summarize: summarize,
+        positionAt: positionAt, timeOf: timeOf, syncOf: syncOf, xAtTick: xAtTick
     };
 })(typeof window !== 'undefined' ? window : this);

@@ -154,11 +154,11 @@ function webm(){
         require('node:child_process').execFileSync('ffmpeg',['-hide_banner','-loglevel','error','-y','-f','lavfi','-i','testsrc2=size=640x360:rate=30','-t','18.57','-c:v','libvpx-vp9','-b:v','200k','-deadline','realtime',file]);webmCache=file;}
     return webmCache;
 }
-async function editor(t,width=1440){
+async function editor(t,width=1440,video=webm()){
     // These tests save riff 1; put the catalog back so later tests see the fixture.
     const store=path.join(site.dir,'data/riffs.json'),original=fs.readFileSync(store);t.after(()=>fs.writeFileSync(store,original));
     const page=await pageFor(t,width);const [name,value]=(await site.adminCookie()).split('=');await page.context().addCookies([{name,value,url:site.base}]);
-    const body=fs.readFileSync(webm());await page.route(/video\.php\?file=/,route=>route.fulfill({status:200,contentType:'video/webm',body,headers:{'Accept-Ranges':'bytes'}}));
+    const body=fs.readFileSync(video);await page.route(/video\.php\?file=/,route=>route.fulfill({status:200,contentType:'video/webm',body,headers:{'Accept-Ranges':'bytes'}}));
     await page.goto(site.base+'/admin/riffs.html',{waitUntil:'domcontentloaded'});await page.click('.admin-tab[data-tab="edit"]');await page.selectOption('#riffSelect','1');
     await page.waitForFunction(()=>document.querySelectorAll('#segmentRows .segment-row').length===10);
     await page.waitForFunction(()=>segmentEditorVideo.readyState>=1&&segmentEditorVideo.duration>0);
@@ -450,4 +450,44 @@ test('DNA atoms are suggested from the tab at their moment in the part that play
     assert.equal(await page.locator('#dnaAtomsEditor > div').count(),4,'a second click adds nothing twice');
     if(process.env.QA_SCREENSHOTS)await page.locator('#dnaAtomsEditor').evaluate(e=>e.parentElement.scrollIntoView());
     if(process.env.QA_SCREENSHOTS)await page.locator('#dnaAtomsEditor').locator('..').screenshot({path:path.join(process.env.QA_SCREENSHOTS,'editor-tab-atoms.png')});
+});
+test('sound sync finds each part bars and note times in the video, skips silent parts and saves them',async t=>{
+    const {render,perform,writeWav}=require('./guitar-synth.cjs');
+    const alphaTab=require('../js/vendor/alphatab/alphaTab.min.js');
+    const {barDurations}=require('../js/tab-live.js').TabLive;const {events,tabLength}=require('../js/tab-sync.js').TabSync;
+    const tex='\\tempo 171\n.\n:8 5.3 7.3 5.4 7.4 5.3 7.3 5.4 7.4 |\n:8 0.6 3.6 5.6 0.6 3.5 5.5 3.5 0.6 |';
+    const score=alphaTab.importer.ScoreLoader.loadAlphaTex(tex),d=barDurations(score.masterBars,score.tempo);
+    const store=JSON.parse(fs.readFileSync(path.join(site.dir,'data/riffs.json'),'utf8'));
+    const parts=(Array.isArray(store)?store:Object.values(store)).find(r=>r.id===1).segments;
+    // Launch parts play bar 1, land parts bar 2, the two drill parts are silent.
+    const notes=[],played=[];
+    parts.forEach((p,i)=>{
+        if(!p.role)return;const bar=p.role==='launch'?1:2,evs=events(score,0,bar,bar,d),len=tabLength(bar,bar,d);
+        const take=perform(evs,len,p.start+0.1,Math.min(1.1,(p.end-p.start-0.2)/(len/1000)),0.01,i+1);
+        notes.push(...take);played[i]=take;
+    });
+    const dir=fs.mkdtempSync(path.join(require('node:os').tmpdir(),'rk-sound-')),wav=path.join(dir,'riff.wav'),file=path.join(dir,'riff.webm');
+    writeWav(wav,render(notes,18.6));
+    require('node:child_process').execFileSync('ffmpeg',['-hide_banner','-loglevel','error','-y','-f','lavfi','-i','testsrc2=size=320x180:rate=30','-i',wav,'-t','18.57','-c:v','libvpx-vp9','-b:v','100k','-deadline','realtime','-c:a','libopus','-b:a','96k',file]);
+    t.after(()=>fs.rmSync(dir,{recursive:true,force:true}));
+    const page=await editor(t,1440,file);
+    await page.click('#tabTexBox summary');await page.fill('#tabTex',tex);
+    await page.waitForFunction(()=>/Прочитано: 2 такта/.test(document.getElementById('tabStatus').textContent),null,{timeout:20000});
+    await page.click('#tabSyncAudio');
+    await page.waitForFunction(()=>/По звуку синхронизировано/.test(document.getElementById('tabStatus').textContent),null,{timeout:60000});
+    const status=await page.textContent('#tabStatus');
+    assert.match(status,/частей: 8 из 10/,status);assert.match(status,/частях 7, 8/,status);
+    const bars=await page.evaluate(()=>[...document.querySelectorAll('#segmentRows .tab-bars')].map(i=>i.value));
+    assert.deepEqual(bars,['1','2','1','2','1','2','','','1','2']);
+    if(process.env.QA_SCREENSHOTS)await page.locator('section[aria-labelledby="hTabs"]').screenshot({path:path.join(process.env.QA_SCREENSHOTS,'editor-tab-sync.png')});
+    const saved=page.waitForResponse(r=>r.url().endsWith('/api/riffs/save.php'));
+    await page.click('#submitBtn');
+    if(await page.locator('#dnaLintDialog[open]').count())await page.click('#dnaLintSave');
+    assert.equal((await saved).status(),200);
+    const after=JSON.parse(fs.readFileSync(path.join(site.dir,'data/riffs.json'),'utf8'));const riff=(Array.isArray(after)?after:Object.values(after)).find(r=>r.id===1);
+    const sync=riff.segments[2].tabSync;
+    assert.equal(sync.length,8);
+    const worst=Math.max(...sync.map((a,k)=>Math.abs(a[2]-played[2][k].t)));
+    assert.ok(worst<0.03,'every note within 30 ms of where it sounds, worst '+worst);
+    assert.equal(riff.segments[6].tabSync,undefined);
 });
