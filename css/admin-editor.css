@@ -258,3 +258,5 @@ body.ed-page .btn { font-family: inherit; }
 .ed-tab-tex { width: 100%; margin-top: 8px; font: 13px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; resize: vertical; }
 .ed-tab-status { min-height: 1.4em; margin: 12px 0; color: var(--ed-text-3); font-size: 13px; }
 .ed-tab-status.bad { color: #ff8a80; }
+.dna-atom-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.dna-atom-actions .ed-tab-status { margin: 0; }

@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="../css/reset.css">
     <link rel="stylesheet" href="../css/variables.css">
     <!-- Не подключаем base.css и components.css — там стили заглушки; админка риффов самодостаточна -->
-    <link rel="stylesheet" href="../css/admin-editor.css?v=ed2t">
+    <link rel="stylesheet" href="../css/admin-editor.css?v=ed2u">
     <link rel="icon" type="image/svg+xml" href="../assets/icons/favicon.svg">
     <style>
         html, body { background: #111629 !important; background-image: none !important; color: #fff; font-family: Roboto, sans-serif; min-height: 100vh; min-height: 100dvh; padding: 24px; margin: 0; padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px) + 52px); }
@@ -291,7 +291,7 @@
                 </div>
                 <div class="dna-admin-grid">
                     <label class="wide">Как рифф звучит целиком (Organism)<textarea id="dnaOverviewInput" placeholder="Голос оставляет паузу, гитара врывается, крутится на коротких клетках и садится на E"></textarea></label>
-                    <div class="wide"><label>Приёмы (Atoms) — бенды, слайды, hammer-on в конкретный момент</label><div id="dnaAtomsEditor"></div><button type="button" class="ed-btn" id="dnaAddAtom">+ Приём в текущий момент видео</button></div>
+                    <div class="wide"><label>Приёмы (Atoms) — бенды, слайды, hammer-on в конкретный момент</label><div id="dnaAtomsEditor"></div><div class="dna-atom-actions"><button type="button" class="ed-btn" id="dnaAddAtom">+ Приём в текущий момент видео</button><button type="button" class="ed-btn" id="dnaTabAtoms">Приёмы из табов</button><span id="dnaTabAtomsStatus" class="ed-tab-status" role="status"></span></div></div>
                     <label class="wide">Правило риффа одной фразой (DNA Rule)<input type="text" id="dnaRuleInput" placeholder="The cells are simple. The phrase is uneven."></label>
                     <label class="wide">Почему это работает<textarea id="dnaLawInput" placeholder="Коротко: какое правило связывает части"></textarea></label>
                     <label>Что сохранить (по строке)<textarea id="dnaPreserveInput" placeholder="Пауза перед входом&#10;Посадка на E"></textarea></label>
@@ -368,11 +368,12 @@
     </dialog>
 
     <script src="../js/riff-dna-vocab.js?v=dna2"></script>
-    <script src="../js/admin-dna.js?v=dna2"></script>
+    <script src="../js/admin-dna.js?v=dna3"></script>
     <script src="../js/riff-dna-lint.js?v=lint1"></script>
     <script src="../js/admin-dna-ai.js?v=ai3"></script>
     <script src="../js/tab-live.js?v=2"></script>
-    <script src="../js/admin-tabs.js?v=1"></script>
+    <script src="../js/tab-atoms.js?v=1"></script>
+    <script src="../js/admin-tabs.js?v=2"></script>
     <script src="../js/admin-segments.js?v=ed2"></script>
     <script src="../js/admin-cutter.js?v=ed1"></script>
     <script>
