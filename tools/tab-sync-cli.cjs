@@ -87,4 +87,8 @@ function main() {
     ].join('\n'));
 }
 
-try { main(); } catch (e) { console.error('::error::' + e.message); process.exit(1); }
+module.exports = { readWav };
+
+if (require.main === module) {
+    try { main(); } catch (e) { console.error('::error::' + e.message); process.exit(1); }
+}
