@@ -195,12 +195,24 @@
     // ---- Browser part ----
 
     var libPromise = null;
+    /** Starts fetching alphaTab and its music font ahead of time (call when a riff with a tab opens). */
+    function preload() {
+        try {
+            var font = document.createElement('link');
+            font.rel = 'preload'; font.as = 'font'; font.type = 'font/woff2'; font.crossOrigin = 'anonymous';
+            font.href = FONTS + 'Bravura.woff2';
+            document.head.appendChild(font);
+        } catch (e) {}
+        return loadLib().catch(function () {});
+    }
     function loadLib() {
         if (global.alphaTab && global.alphaTab.AlphaTabApi) return Promise.resolve(global.alphaTab);
         if (libPromise) return libPromise;
         libPromise = new Promise(function (resolve, reject) {
             var s = document.createElement('script');
             s.src = LIB;
+            // The riff's videos download in the background at the same time; the tab is small and goes first.
+            s.setAttribute('fetchpriority', 'high');
             s.onload = function () { global.alphaTab ? resolve(global.alphaTab) : reject(new Error('alphaTab missing')); };
             s.onerror = function () { libPromise = null; reject(new Error('alphaTab failed to load')); };
             document.head.appendChild(s);
@@ -224,8 +236,13 @@
         canvas.className = 'tab-live-score';
         var cursor = document.createElement('div');
         cursor.className = 'tab-live-cursor';
+        // Shown until the first bars are drawn, so a slow phone connection does not look like an empty black strip.
+        var loading = document.createElement('div');
+        loading.className = 'tab-live-loading';
+        loading.textContent = 'Loading tab…';
         host.appendChild(canvas);
         host.appendChild(cursor);
+        host.appendChild(loading);
 
         ready = loadLib().then(function (at) {
             var track = Number(riff.tab.track) || 0;
@@ -334,7 +351,12 @@
             } else {
                 at = cursorAt(layout, seg.start, seg.end, time);
             }
-            if (at) cursor.style.transform = 'translateX(' + at.x.toFixed(1) + 'px)';
+            if (!at) return;
+            // Bars wider than a phone screen even at the smallest readable size scroll with the cursor.
+            var width = host.clientWidth, used = layout[layout.length - 1].x1 + 8;
+            var shift = used > width ? Math.max(0, Math.min(used - width, at.x - width * 0.35)) : 0;
+            canvas.style.transform = shift ? 'translateX(' + (-shift).toFixed(1) + 'px)' : '';
+            cursor.style.transform = 'translateX(' + (at.x - shift).toFixed(1) + 'px)';
         }
 
         function destroy() {
@@ -347,7 +369,7 @@
 
     global.TabLive = {
         barDurations: barDurations, cursorAt: cursorAt, barsOf: barsOf, autoMap: autoMap, parseBars: parseBars, formatBars: formatBars,
-        hasTab: hasTab, create: create, readScore: readScore, summarize: summarize,
+        hasTab: hasTab, create: create, preload: preload, readScore: readScore, summarize: summarize,
         positionAt: positionAt, timeOf: timeOf, syncOf: syncOf, xAtTick: xAtTick
     };
 })(typeof window !== 'undefined' ? window : this);

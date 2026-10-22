@@ -142,6 +142,7 @@
             "Camera view": "Камера",
             "Show Tabs": "Показать табы",
             "Hide Tabs": "Скрыть табы",
+            "Loading tab…": "Загружаю табы…",
             "Guitar Tabs": "Табулатура",
             "Tab not available": "Табулатуры пока нет",
             "Recording download": "Загрузка записи",

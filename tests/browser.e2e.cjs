@@ -413,6 +413,28 @@ test('a riff with a tab file shows a live tab strip whose cursor follows the vid
     assert.ok(await x()!==first,'cursor moves while the video plays');
     if(process.env.QA_SCREENSHOTS)await page.locator('.video-player-container').screenshot({path:path.join(process.env.QA_SCREENSHOTS,'practice-live-tab.png')});
 });
+test('on a phone, bars wider than the screen scroll so the last notes of a part stay in view',async t=>{
+    const file=path.join(site.dir,'data/riffs.json');const original=fs.readFileSync(file,'utf8');t.after(()=>fs.writeFileSync(file,original));
+    const riffs=JSON.parse(original);const riff=Array.isArray(riffs)?riffs[0]:Object.values(riffs)[0];
+    riff.tab={tex:fs.readFileSync(path.join(__dirname,'../content/tabs/led-zeppelin/black-dog.tex'),'utf8')};
+    // Like Black Dog part 4: the last note of bar 5, then all of bar 6 with its bend.
+    riff.segments.forEach(s=>{s.tabBars=[5,6];s.tabSync=[[5,1440,s.start],[6,1920,(s.start+s.end)/2],[6,3840,s.end]];});
+    fs.writeFileSync(file,JSON.stringify(riffs));
+    const page=await pageFor(t,390);await practice(page);
+    await page.locator('.segment-btn').nth(1).click();await page.click('#toggleTabs');
+    await page.waitForSelector('.tabs-overlay.is-live .tab-live.is-ready',{timeout:20000});
+    const seg=riff.segments[1];
+    await page.evaluate(t=>{const v=document.querySelector('#videoWrapper video');v.pause();v.currentTime=t;},seg.end-0.05);
+    await page.waitForTimeout(600);
+    const view=await page.evaluate(()=>{
+        const host=document.querySelector('.tabs-overlay.is-live .tab-live'),score=host.querySelector('.tab-live-score'),cursor=host.querySelector('.tab-live-cursor');
+        return {host:host.getBoundingClientRect().toJSON(),cursor:cursor.getBoundingClientRect().toJSON(),shifted:score.style.transform,content:score.scrollWidth};
+    });
+    assert.ok(view.content>view.host.width,'two bars are wider than the phone: '+JSON.stringify(view));
+    assert.match(view.shifted,/translateX\(-/,'the bars scrolled');
+    assert.ok(view.cursor.x>=view.host.x&&view.cursor.x<=view.host.x+view.host.width,'cursor in view: '+JSON.stringify(view));
+    if(process.env.QA_SCREENSHOTS)await page.locator('.tabs-overlay.is-live .tab-live').screenshot({path:path.join(process.env.QA_SCREENSHOTS,'practice-live-tab-phone.png')});
+});
 test('tab block reads alphaTex, maps bars to parts by role and length, and saves them with the riff',async t=>{
     const page=await editor(t);
     await page.click('#tabTexBox summary');

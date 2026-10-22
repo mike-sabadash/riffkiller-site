@@ -549,6 +549,8 @@ function initPracticePage() {
         rkMarkLastPracticed(currentRiff.id);
         updateTitle();
         videosFullyLoaded = false;
+        // The tab library goes ahead of the two video downloads that start next.
+        if (window.TabLive && TabLive.hasTab(currentRiff)) TabLive.preload();
         initVideoPlayers();
         showVideoLoadingPlaceholder();
         initControls();
