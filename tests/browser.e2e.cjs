@@ -431,3 +431,23 @@ test('tab block reads alphaTex, maps bars to parts by role and length, and saves
     assert.match(riff.tab.tex,/\\ts 5 8/);
     assert.deepEqual(riff.segments[0].tabBars,[1,1]);assert.deepEqual(riff.segments[1].tabBars,[2,2]);
 });
+test('DNA atoms are suggested from the tab at their moment in the part that plays the bar',async t=>{
+    const page=await editor(t);
+    await page.click('#tabTexBox summary');
+    await page.fill('#tabTex','\\tempo 120\n.\n5.3{b (0 4)} 7.3{h} 9.3 5.6{pm} 5.6{pm} |\n7.3{sl} 9.3 r.2 |');
+    await page.waitForFunction(()=>/Прочитано: 2 такта/.test(document.getElementById('tabStatus').textContent),null,{timeout:20000});
+    await page.evaluate(()=>{document.getElementById('dnaAtomsEditor').replaceChildren();document.querySelectorAll('#segmentRows .tab-bars').forEach((i,k)=>{i.value=k===0?'1-2':''})});
+    await page.click('#dnaTabAtoms');
+    const atoms=await page.evaluate(()=>[...document.querySelectorAll('#dnaAtomsEditor > div')].map(c=>[c.querySelector('[data-field="technique"]').value,c.querySelector('[data-field="label"]').value,Number(c.querySelector('[data-field="time"]').value)]));
+    const [start,end]=(await bounds(page))[0];
+    assert.deepEqual(atoms.map(a=>a[0]),['bend','hammer','palm','slide'],JSON.stringify(atoms));
+    assert.equal(atoms[0][1],'5 лад, струна G, на тон');
+    assert.equal(atoms[0][2],start,'the first beat sits at the start of the part');
+    assert.ok(atoms.every(a=>a[2]>=start&&a[2]<end),JSON.stringify([start,end,atoms]));
+    assert.match(await page.textContent('#dnaTabAtomsStatus'),/Добавлено приёмов: 4/);
+    await page.click('#dnaTabAtoms');
+    assert.match(await page.textContent('#dnaTabAtomsStatus'),/Новых приёмов нет/);
+    assert.equal(await page.locator('#dnaAtomsEditor > div').count(),4,'a second click adds nothing twice');
+    if(process.env.QA_SCREENSHOTS)await page.locator('#dnaAtomsEditor').evaluate(e=>e.parentElement.scrollIntoView());
+    if(process.env.QA_SCREENSHOTS)await page.locator('#dnaAtomsEditor').locator('..').screenshot({path:path.join(process.env.QA_SCREENSHOTS,'editor-tab-atoms.png')});
+});

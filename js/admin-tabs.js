@@ -6,7 +6,7 @@
 (function (root) {
     'use strict';
 
-    var state = { bars: [], pending: null, readToken: 0 };
+    var state = { bars: [], score: null, pending: null, readToken: 0 };
     function el(id) { return document.getElementById(id); }
 
     function status(text, bad) {
@@ -41,11 +41,13 @@
         return TabLive.readScore(source).then(function (score) {
             if (token !== state.readToken) return null;
             state.bars = TabLive.summarize(score);
+            state.score = score;
             describe(score);
             return score;
         }).catch(function (err) {
             if (token !== state.readToken) return null;
             state.bars = [];
+            state.score = null;
             status('Не удалось прочитать табы: ' + (err && err.message ? err.message : err), true);
             return null;
         });
@@ -55,6 +57,7 @@
         var tab = (riff && riff.tab) || {};
         state.pending = null;
         state.bars = [];
+        state.score = null;
         el('tabFile').value = tab.file || '';
         el('tabTex').value = tab.tex || '';
         el('tabFileUpload').value = '';
@@ -102,6 +105,31 @@
             (empty ? '; частям без роли и тем, кому не хватило тактов, укажите вручную (' + empty + ').' : '.'));
     }
 
+    function atomStatus(text, bad) {
+        var s = el('dnaTabAtomsStatus');
+        s.textContent = text || '';
+        s.classList.toggle('bad', !!bad);
+    }
+
+    /** Adds Riff DNA atoms for the techniques written in the tab, at their moments in the video. */
+    function suggestAtoms() {
+        if (!state.score) { atomStatus('Сначала добавьте табы в блоке «Табы».', true); return; }
+        var parts = SegmentEditor.parts().map(function (p) { return { start: p.start, end: p.end, bars: TabLive.parseBars(p.bars) }; });
+        if (!parts.some(function (p) { return p.bars; })) { atomStatus('У частей не указаны такты: нажмите «Расставить такты по частям».', true); return; }
+        var events = TabAtoms.extract(state.score, Number(el('tabTrack').value) || 0);
+        if (!events.length) { atomStatus('В табах нет приёмов: бендов, легато, слайдов, вибрато, palm mute.', true); return; }
+        var placed = TabAtoms.place(events, state.bars, parts);
+        var added = TabAtoms.fresh(placed.atoms, RiffDNAEditor.list());
+        added.forEach(RiffDNAEditor.add);
+        if (root.segmentEditorRenderStrip) root.segmentEditorRenderStrip();
+        if (added.length && root.RiffEditorDirty) root.RiffEditorDirty();
+        var notes = [];
+        if (placed.atoms.length - added.length) notes.push('уже в списке: ' + (placed.atoms.length - added.length));
+        if (placed.unplaced) notes.push('в тактах без части: ' + placed.unplaced);
+        atomStatus((added.length ? 'Добавлено приёмов: ' + added.length + '. Проверьте подписи и время, допишите подсказки.' : 'Новых приёмов нет.') +
+            (notes.length ? ' Пропущено ' + notes.join(', ') + '.' : ''));
+    }
+
     /** The tab to save: uploads a picked file first. upload(blob, path) → Promise<savedPath>. */
     function collect(upload, folder) {
         var tex = el('tabTex').value.trim(), file = el('tabFile').value.trim();
@@ -131,7 +159,8 @@
             timer = setTimeout(function () { read({ tex: tex }); }, 500);
         });
         el('tabAutoMap').addEventListener('click', function (e) { e.preventDefault(); autoMap(); });
+        el('dnaTabAtoms').addEventListener('click', function (e) { e.preventDefault(); suggestAtoms(); });
     }
 
-    root.TabEditor = { init: init, load: load, collect: collect, autoMap: autoMap };
+    root.TabEditor = { init: init, load: load, collect: collect, autoMap: autoMap, suggestAtoms: suggestAtoms };
 })(window);
