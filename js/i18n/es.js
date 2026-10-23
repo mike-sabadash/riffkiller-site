@@ -133,6 +133,7 @@
             "Camera view": "Vista de cámara",
             "Show Tabs": "Mostrar tablatura",
             "Hide Tabs": "Ocultar tablatura",
+            "Loading tab…": "Cargando tablatura…",
             "Guitar Tabs": "Tablatura",
             "Tab not available": "Tablatura no disponible",
             "Recording download": "Descarga de la grabación",
@@ -540,7 +541,9 @@
             "0.75x": "0.75x",
             "1x": "1x",
             "2× XP": "2× XP",
-            "All Riff": "Riff completo"
+            "All Riff": "Riff completo",
+            "Left": "Izquierda",
+            "Right": "Derecha"
         },
         patterns: [
         [/^1 shots$/, '1 toma'],

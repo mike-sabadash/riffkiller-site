@@ -49,6 +49,12 @@ test('one recording becomes two synchronized camera videos with the chosen frame
     assert.equal(v(left).nb_read_frames,v(right).nb_read_frames);
     assert.ok(left.streams.some(s=>s.codec_type==='audio'));
     assert.ok(Math.abs(Number(left.format.duration)-Number(right.format.duration))<0.05);
+    // Keyframes every 0.5 s so seeks in practice stay cheap on phones.
+    for(const out of [state.outputs.left,state.outputs.right]){
+        const keys=execFileSync('ffprobe',['-v','error','-select_streams','v','-skip_frame','nokey','-show_entries','frame=pts_time','-of','csv=p=0',path.join(site.dir,out)]).toString().trim().split('\n').map(parseFloat);
+        assert.ok(keys.length>=6,out+': '+keys.length+' keyframes');
+        for(let i=1;i<keys.length;i++)assert.ok(keys[i]-keys[i-1]<=0.55,out+' gap at '+keys[i]);
+    }
     // A second run keeps the first pair and writes next to it.
     const again=await (await post({source:target,song:'Crop Song',left:{x:0,y:0,w:320,h:180},right:{x:320,y:0,w:320,h:180}})).json();
     for(let i=0;i<200;i++){state=await (await fetch(site.base+'/api/admin/crop-video.php?job='+again.job,{headers:{Cookie:admin}})).json();if(state.state!=='running')break;await new Promise(r=>setTimeout(r,100));}

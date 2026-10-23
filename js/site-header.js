@@ -54,7 +54,7 @@
         });
         langHeader =
             '<div class="rk-lang" translate="no">' +
-            '<button type="button" class="rk-lang-toggle" aria-haspopup="true" aria-expanded="false" aria-label="Language">' + curShort +
+            '<button type="button" class="rk-lang-toggle" aria-haspopup="true" aria-expanded="false" aria-label="Language"><span class="rk-lang-code">' + curShort + '</span>' +
             '<svg width="8" height="6" viewBox="0 0 8 6" fill="none" aria-hidden="true"><path d="M1 1.5L4 4.5L7 1.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
             '</button><ul class="rk-lang-menu" role="menu" hidden>' + items + '</ul></div>';
         langMobile = '<div class="rk-lang-row" role="group" aria-label="Language" translate="no">' + row + '</div>';
@@ -166,12 +166,36 @@
         frag.appendChild(wrap.firstChild);
     }
     if (i18n) {
-        frag.querySelectorAll('[data-lang]').forEach(function (btn) {
+        var langButtons = Array.prototype.slice.call(frag.querySelectorAll('[data-lang]'));
+        var langCode = frag.querySelector('.rk-lang-code');
+        // Marks the choice right away; the page text follows as soon as the dictionary is in.
+        var showLang = function (code) {
+            langButtons.forEach(function (b) {
+                var on = b.getAttribute('data-lang') === code;
+                if (b.classList.contains('rk-lang-chip')) {
+                    b.classList.toggle('is-active', on);
+                    b.setAttribute('aria-pressed', on ? 'true' : 'false');
+                } else {
+                    b.setAttribute('aria-checked', on ? 'true' : 'false');
+                }
+            });
+            i18n.languages.forEach(function (l) {
+                if (l.code === code && langCode) langCode.textContent = l.short;
+            });
+        };
+        i18n.onChange(showLang);
+        var langBox = frag.querySelector('.rk-lang');
+        langButtons.forEach(function (btn) {
             btn.addEventListener('click', function () {
-                i18n.set(btn.getAttribute('data-lang'));
+                var code = btn.getAttribute('data-lang');
+                showLang(code);
+                if (langBox && langBox.contains(btn)) {
+                    langBox.querySelector('.rk-lang-menu').hidden = true;
+                    langBox.querySelector('.rk-lang-toggle').setAttribute('aria-expanded', 'false');
+                }
+                i18n.set(code);
             });
         });
-        var langBox = frag.querySelector('.rk-lang');
         if (langBox) {
             var toggle = langBox.querySelector('.rk-lang-toggle');
             var menu = langBox.querySelector('.rk-lang-menu');

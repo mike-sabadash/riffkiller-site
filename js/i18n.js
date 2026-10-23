@@ -4,6 +4,7 @@
  *   <script src="js/i18n.js?v=..."></script>
  * English stays in the markup and in the scripts. For RU/ES this file pulls js/i18n/<lang>.js and translates
  * text nodes and the attributes below by their English text, including anything scripts insert later.
+ * Switching language re-translates the page in place, without a reload: each node remembers its English text.
  * Admin content and other text that must stay as typed: put it inside translate="no" or data-i18n-skip.
  * Strings that never reach the DOM (alert, confirm): RK_I18N.t('English text').
  */
@@ -16,8 +17,8 @@
         { code: 'es', short: 'ES', name: 'Español', html: 'es-419' }
     ];
     var STORE = 'rk-lang';
-    var VERSION = 'i2';
-    var ATTRS = ['title', 'alt', 'placeholder', 'aria-label', 'data-tip', 'data-tooltip'];
+    var VERSION = 'i3';
+    var ATTRS = ['title', 'alt', 'placeholder', 'aria-label', 'data-tip', 'data-tooltip', 'data-short'];
 
     function known(code) {
         for (var i = 0; i < LANGS.length; i++) if (LANGS[i].code === code) return LANGS[i];
@@ -33,9 +34,11 @@
         if (known(saved)) lang = saved;
     } catch (e) {}
 
-    var exact = {};
-    var patterns = [];
+    var dicts = { en: { exact: {}, patterns: [] } };
+    var dict = dicts.en;
+    var loadingLang = null;
     var missing = {};
+    var listeners = [];
 
     function norm(s) {
         return String(s).replace(/\s+/g, ' ').trim();
@@ -44,17 +47,17 @@
     // A part of a pattern match (a technique name, a plan) translated when we know it, kept as is otherwise.
     function part(text) {
         var key = norm(text);
-        return Object.prototype.hasOwnProperty.call(exact, key) ? exact[key] : text;
+        return Object.prototype.hasOwnProperty.call(dict.exact, key) ? dict.exact[key] : text;
     }
 
     function lookup(text) {
         var key = norm(text);
         if (!key || !/[A-Za-z]/.test(key)) return null;
-        if (Object.prototype.hasOwnProperty.call(exact, key)) return exact[key];
-        for (var i = 0; i < patterns.length; i++) {
-            var m = key.match(patterns[i][0]);
+        if (Object.prototype.hasOwnProperty.call(dict.exact, key)) return dict.exact[key];
+        for (var i = 0; i < dict.patterns.length; i++) {
+            var m = key.match(dict.patterns[i][0]);
             if (m) {
-                var out = patterns[i][1];
+                var out = dict.patterns[i][1];
                 return typeof out === 'function' ? out(m, part) : out.replace(/\$(\d)/g, function (_, n) { return m[n] || ''; });
             }
         }
@@ -62,14 +65,12 @@
         return null;
     }
 
-    // Keeps the whitespace around the text so inline layout does not shift.
-    function swap(text) {
-        var found = lookup(text);
-        if (found === null) return null;
-        var lead = text.match(/^\s*/)[0];
-        var tail = text.match(/\s*$/)[0];
-        var next = lead + found + tail;
-        return next === text ? null : next;
+    // English → current language, keeping the whitespace around the text so inline layout does not shift.
+    function render(english) {
+        if (lang === 'en') return english;
+        var found = lookup(english);
+        if (found === null) return english;
+        return english.match(/^\s*/)[0] + found + english.match(/\s*$/)[0];
     }
 
     function skipped(el) {
@@ -81,37 +82,35 @@
         return false;
     }
 
-    // Last value we wrote, per node/attribute, so our own writes are not translated twice.
-    var written = typeof WeakMap === 'function' ? new WeakMap() : null;
+    // Per node and attribute: the English source and the last value we wrote. A value that differs from what we
+    // wrote came from the page's own scripts and is the new English source.
+    var memo = new WeakMap();
 
     function textNode(node) {
-        if (written && written.get(node) === node.nodeValue) return;
         if (skipped(node.parentNode)) return;
-        var next = swap(node.nodeValue);
-        if (next === null) return;
-        node.nodeValue = next;
-        if (written) written.set(node, next);
+        var m = memo.get(node);
+        var source = m && m.out === node.nodeValue ? m.src : node.nodeValue;
+        var out = render(source);
+        if (out !== node.nodeValue) node.nodeValue = out;
+        if (out !== source || m) memo.set(node, { src: source, out: out });
     }
 
     function attrs(el) {
         if (skipped(el)) return;
-        var memo = written && written.get(el);
+        var all = memo.get(el);
         for (var i = 0; i < ATTRS.length; i++) {
             var name = ATTRS[i];
             var value = el.getAttribute(name);
-            if (!value || (memo && memo[name] === value)) continue;
-            var next = swap(value);
-            if (next === null) continue;
-            el.setAttribute(name, next);
-            if (written) {
-                memo = memo || {};
-                memo[name] = next;
-                written.set(el, memo);
+            if (!value) continue;
+            var m = all && all[name];
+            var source = m && m.out === value ? m.src : value;
+            var out = render(source);
+            if (out !== value) el.setAttribute(name, out);
+            if (out !== source || m) {
+                all = all || {};
+                all[name] = { src: source, out: out };
+                memo.set(el, all);
             }
-        }
-        if (el.nodeName === 'INPUT' && (el.type === 'submit' || el.type === 'button') && el.value) {
-            var v = swap(el.value);
-            if (v !== null) el.value = v;
         }
     }
 
@@ -131,8 +130,10 @@
         }
     }
 
-    function start() {
-        walk(document.documentElement);
+    var observing = false;
+    function observe() {
+        if (observing) return;
+        observing = true;
         new MutationObserver(function (records) {
             for (var i = 0; i < records.length; i++) {
                 var r = records[i];
@@ -145,9 +146,21 @@
             childList: true,
             characterData: true,
             attributes: true,
-            attributeFilter: ATTRS.concat(['value'])
+            attributeFilter: ATTRS
         });
         document.addEventListener('DOMContentLoaded', function () { walk(document.documentElement); });
+    }
+
+    function apply(code) {
+        lang = code;
+        api.lang = code;
+        dict = dicts[code];
+        missing = {};
+        document.documentElement.setAttribute('lang', known(code).html);
+        walk(document.documentElement);
+        for (var i = 0; i < listeners.length; i++) {
+            try { listeners[i](code); } catch (e) {}
+        }
     }
 
     var api = {
@@ -155,37 +168,59 @@
         lang: lang,
         /** English text → current language (unchanged when there is no translation). */
         t: function (text) {
-            if (lang === 'en') return text;
-            var next = swap(String(text));
-            return next === null ? text : next;
+            return render(String(text));
         },
+        /** Switches the page in place; the dictionary loads in the background the first time. */
         set: function (code) {
-            if (!known(code) || code === lang) return;
+            if (!known(code)) return;
             try {
                 localStorage.setItem(STORE, code);
             } catch (e) {}
-            var url = new URL(window.location.href);
-            if (url.searchParams.has('lang')) {
-                url.searchParams.delete('lang');
-                window.location.replace(url.toString());
-            } else {
+            try {
+                var url = new URL(window.location.href);
+                if (url.searchParams.has('lang')) {
+                    url.searchParams.delete('lang');
+                    history.replaceState(history.state, '', url.toString());
+                }
+            } catch (e) {}
+            loadingLang = code;
+            if (dicts[code]) return apply(code);
+            var s = document.createElement('script');
+            s.src = 'js/i18n/' + code + '.js?v=' + VERSION;
+            s.onload = function () {
+                if (loadingLang === code && dicts[code]) apply(code);
+            };
+            s.onerror = function () {
                 window.location.reload();
-            }
+            };
+            document.head.appendChild(s);
+        },
+        /** fn(code) runs after every switch. */
+        onChange: function (fn) {
+            listeners.push(fn);
         },
         /** Called by js/i18n/<lang>.js: { exact: {en: text}, patterns: [[RegExp, '$1 text' | fn(match, part)]] }. */
-        register: function (dict) {
-            var e = dict.exact || {};
+        register: function (d) {
+            var code = loadingLang || lang;
+            var exact = {};
+            var e = d.exact || {};
             for (var k in e) if (Object.prototype.hasOwnProperty.call(e, k)) exact[norm(k)] = e[k];
-            patterns = patterns.concat(dict.patterns || []);
-            start();
+            dicts[code] = { exact: exact, patterns: d.patterns || [] };
+            if (!loadingLang) {
+                // First paint: the dictionary was written into the page right after this script.
+                dict = dicts[code];
+                observe();
+                walk(document.documentElement);
+            }
         },
         /** English strings seen on this page without a translation (for checking coverage). */
         missing: function () { return Object.keys(missing); }
     };
     window.RK_I18N = api;
 
-    var info = known(lang);
-    document.documentElement.setAttribute('lang', info.html);
+    // The observer runs in English too, so a later switch finds every node with its English source.
+    observe();
+    document.documentElement.setAttribute('lang', known(lang).html);
     if (lang !== 'en') {
         document.write('<script src="js/i18n/' + lang + '.js?v=' + VERSION + '"><\/script>');
     }

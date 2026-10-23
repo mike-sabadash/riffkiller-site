@@ -12,7 +12,7 @@ function setup(options = {}) {
 }
 test('one clock keeps both cameras aligned after drift and a seek', async () => {
     const {left,right,t} = setup(); await t.play();
-    left.currentTime = 9.2; right.currentTime = 9.5; t.tick();
+    left.currentTime = 9.2; right.currentTime = 9.6; t.tick();
     assert.equal(right.currentTime, 9.2);
     t.seek(13.441); assert.equal(left.currentTime,13.441); assert.equal(right.currentTime,13.441);
     t.seek(99); assert.equal(left.currentTime,left.duration);
@@ -52,4 +52,27 @@ test('only the master camera can finish a loop', async () => {
     let loops=0; const {left,right,t}=setup({onEnded:()=>loops++});await t.play();
     right.dispatchEvent(new Event('ended'));left.dispatchEvent(new Event('ended'));assert.equal(loops,1);
     t.destroy();left.dispatchEvent(new Event('ended'));assert.equal(loops,1);
+});
+test('small drift is pulled in by speed, never by a seek', async () => {
+    const {left,right,t} = setup(); t.setRate(.5); await t.play();
+    left.currentTime = 4; right.currentTime = 4.08; t.tick();
+    assert.equal(right.currentTime, 4.08);
+    assert.ok(right.playbackRate < .5 && right.playbackRate >= .45, String(right.playbackRate));
+    assert.equal(left.playbackRate, .5);
+    right.currentTime = 3.95; t.tick();
+    assert.ok(right.playbackRate > .5 && right.playbackRate <= .55, String(right.playbackRate));
+    right.currentTime = 4.005; t.tick();
+    assert.equal(right.playbackRate, .5);
+    right.currentTime = 4.1; t.tick(); t.pause(); await t.play();
+    assert.equal(right.playbackRate, .5);
+});
+test('a large drift seeks the follower once, then waits instead of seeking in a loop', async () => {
+    const {left,right,t} = setup(); await t.play();
+    let seeks = 0; let time = 0;
+    Object.defineProperty(right, 'currentTime', {get: () => time, set: v => { seeks++; time = v; }});
+    left.currentTime = 6; time = 6.6; t.tick();
+    assert.equal(seeks, 1); assert.equal(time, 6);
+    time = 6.5; t.tick(); t.tick();
+    assert.equal(seeks, 1, 'no second seek inside the cooldown');
+    assert.ok(right.playbackRate < 1);
 });

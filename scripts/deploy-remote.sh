@@ -138,7 +138,7 @@ note "php-fpm ini: ${fpm_ini:-none}; disable_functions: $(grep -hE '^\s*disable_
 
 note "Upload limits: pool $(grep -hE '^\s*php(_admin)?_value\[(upload_max_filesize|post_max_size|max_execution_time)' /etc/php/*/fpm/pool.d/*.conf 2>/dev/null | tr '\n' ' '); user.ini $(cat "$root/.user.ini" 2>/dev/null | tr '\n' ' '); nginx $(grep -rhE 'client_max_body_size|fastcgi_read_timeout' /etc/nginx/nginx.conf /etc/nginx/conf.d /etc/nginx/sites-enabled 2>/dev/null | tr -s ' ' | tr '\n' ' ')"
 web_user="$(ps -eo user=,comm= | awk '$2 ~ /php-fpm/ && $1 != "root" {print $1; exit}')"
-note "Media folders: assets/video $(stat -c '%a %U:%G' "$root/assets/video" 2>/dev/null || echo missing), assets/img $(stat -c '%a %U:%G' "$root/assets/img" 2>/dev/null || echo missing); web user ${web_user:-unknown}"
+note "Media folders: assets/video $(stat -c '%a %U:%G' "$root/assets/video" 2>/dev/null || echo missing), assets/img $(stat -c '%a %U:%G' "$root/assets/img" 2>/dev/null || echo missing), assets/tabs $(stat -c '%a %U:%G' "$root/assets/tabs" 2>/dev/null || echo missing); web user ${web_user:-unknown}"
 [ "$mode" = preflight ] && exit 0
 [ "$mode" = apply ] || fail "Unknown mode $mode"
 repair_root_mode "$root"
@@ -164,7 +164,7 @@ install_release() {
   # The admin uploads and cuts videos as the web user: media folders are group-writable for it
   # (setgid keeps the group on new artist/song folders). Nothing is moved or deleted.
   if [ "$(id -u)" = 0 ] && [ -n "$web_user" ]; then
-    for d in assets/video assets/img; do
+    for d in assets/video assets/img assets/tabs; do
       install -d -m 2775 "$root/$d" || return 1
       chgrp -R "$web_user" "$root/$d" && chmod -R g+rwX "$root/$d" && find "$root/$d" -type d -exec chmod g+s {} + || return 1
     done

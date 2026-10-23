@@ -253,3 +253,12 @@ body.ed-page .btn-secondary.btn-small { background: var(--ed-surface-2); border:
 body.ed-page .btn { font-family: inherit; }
 @media (max-width: 980px) { body.ed-page .dna-atom-row { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 560px) { body.ed-page .dna-atom-row { grid-template-columns: minmax(0, 1fr); } }
+
+/* Tab file block */
+.ed-tab-howto { margin: 0 0 16px; padding-left: 1.3em; color: var(--ed-text-2, inherit); font-size: 14px; line-height: 1.55; }
+.ed-tab-howto li + li { margin-top: 4px; }
+.ed-tab-tex { width: 100%; margin-top: 8px; font: 13px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; resize: vertical; }
+.ed-tab-status { min-height: 1.4em; margin: 12px 0; color: var(--ed-text-3); font-size: 13px; }
+.ed-tab-status.bad { color: #ff8a80; }
+.dna-atom-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.dna-atom-actions .ed-tab-status { margin: 0; }

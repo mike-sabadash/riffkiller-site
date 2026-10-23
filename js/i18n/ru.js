@@ -142,6 +142,7 @@
             "Camera view": "Камера",
             "Show Tabs": "Показать табы",
             "Hide Tabs": "Скрыть табы",
+            "Loading tab…": "Загружаю табы…",
             "Guitar Tabs": "Табулатура",
             "Tab not available": "Табулатуры пока нет",
             "Recording download": "Загрузка записи",
@@ -549,7 +550,9 @@
             "0.75x": "0.75x",
             "1x": "1x",
             "2× XP": "2× XP",
-            "All Riff": "Весь рифф"
+            "All Riff": "Весь рифф",
+            "Left": "Левая",
+            "Right": "Правая"
         },
         patterns: [
         // Russian plural: 1 фрагмент, 2 фрагмента, 5 фрагментов.

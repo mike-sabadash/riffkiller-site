@@ -175,5 +175,13 @@
         new MutationObserver(refreshSegments).observe(document.getElementById('segmentRows'), {childList:true});
         document.getElementById('segmentRows').addEventListener('change', refreshSegments);
     });
-    root.RiffDNAEditor = {load, read, atomTimes};
+    // Technique and time of every atom in the list, to skip suggestions that are already there.
+    function list() {
+        return Array.from(document.querySelectorAll('#dnaAtomsEditor > div')).map(card => ({
+            technique: card.querySelector('[data-field="technique"]').value,
+            time: parseFloat(card.querySelector('[data-field="time"]').value)
+        }));
+    }
+
+    root.RiffDNAEditor = {load, read, atomTimes, add: addAtom, list};
 })(window);

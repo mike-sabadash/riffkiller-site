@@ -151,6 +151,7 @@ T = [
 ("Camera view", "Камера", "Vista de cámara"),
 ("Show Tabs", "Показать табы", "Mostrar tablatura"),
 ("Hide Tabs", "Скрыть табы", "Ocultar tablatura"),
+("Loading tab…", "Загружаю табы…", "Cargando tablatura…"),
 ("Guitar Tabs", "Табулатура", "Tablatura"),
 ("Tab not available", "Табулатуры пока нет", "Tablatura no disponible"),
 ("Recording download", "Загрузка записи", "Descarga de la grabación"),
@@ -582,4 +583,6 @@ T = [
 ("1x", "1x", "1x"),
 ("2× XP", "2× XP", "2× XP"),
 ("All Riff", "Весь рифф", "Riff completo"),
+("Left", "Левая", "Izquierda"),
+("Right", "Правая", "Derecha"),
 ]

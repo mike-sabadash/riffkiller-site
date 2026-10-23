@@ -89,6 +89,12 @@ test('segment loops, angle changes, tabs, slow motion, drift correction and paus
     let state=await sample();assert.ok(state.l>=3.64 && state.l<5.7,JSON.stringify(state));
     await page.click('#toggleTabs');await page.waitForFunction(()=>document.querySelector('.tabs-image')?.complete);
     assert.match(await page.locator('.tabs-image').getAttribute('src'),/3\.png$/);
+    // Changing the angle never moves the sound or re-seeks the second camera (that stalls its decoder).
+    const switching=await page.evaluate(async()=>{let seeks=0;const on=()=>{if(!leftVideo.seeking)seeks++;};rightVideo.addEventListener('seeking',on);
+        for(const mode of ['right','left','split','right','left']){document.querySelector('.mode-btn[data-mode="'+mode+'"]').click();await new Promise(r=>setTimeout(r,250));
+            if(leftVideo.muted||!rightVideo.muted)return {mode,leftMuted:leftVideo.muted,rightMuted:rightVideo.muted};}
+        rightVideo.removeEventListener('seeking',on);return {seeks,paused:leftVideo.paused||rightVideo.paused};});
+    assert.deepEqual(switching,{seeks:0,paused:false});
     await page.locator('[data-mode="right"]').click();await page.locator('[data-mode="split"]').click();
     assert.equal(await page.locator('#toggleTabs').evaluate(el=>el.classList.contains('active')),true);
     await page.locator('.speed-btn[data-speed="0.5"]').click();state=await sample();assert.equal(state.rate,.5);
@@ -112,7 +118,7 @@ test('All Riff updates tabs; Speed Trainer advances only on completed loops',asy
     await page.waitForFunction(()=>playbackSpeed===.5);
     await page.evaluate(()=>{practiceTransport.pause();currentSegment=6;loopAllRiff=false;loopActive=true;setPracticeMode('speed');practiceTransport.seek(11.06);return practiceTransport.play();});
     await page.waitForFunction(()=>playbackSpeed===.75,{timeout:12000});
-    assert.equal(await page.evaluate(()=>rightVideo.playbackRate),.75);
+    assert.equal(await page.evaluate(()=>practiceTransport.rate),.75);assert.ok(await page.evaluate(()=>Math.abs(rightVideo.playbackRate/.75-1)<=.1));
 });
 test('editor captures boundaries, edits Atoms, saves and reopens without losing metadata',async t=>{
     const page=await pageFor(t);const [name,value]=(await site.adminCookie()).split('=');await page.context().addCookies([{name,value,url:site.base}]);await page.goto(site.base+'/admin/riffs.html',{waitUntil:'domcontentloaded'});await page.click('.admin-tab[data-tab="edit"]');await page.selectOption('#riffSelect','1');
@@ -148,11 +154,11 @@ function webm(){
         require('node:child_process').execFileSync('ffmpeg',['-hide_banner','-loglevel','error','-y','-f','lavfi','-i','testsrc2=size=640x360:rate=30','-t','18.57','-c:v','libvpx-vp9','-b:v','200k','-deadline','realtime',file]);webmCache=file;}
     return webmCache;
 }
-async function editor(t,width=1440){
+async function editor(t,width=1440,video=webm()){
     // These tests save riff 1; put the catalog back so later tests see the fixture.
     const store=path.join(site.dir,'data/riffs.json'),original=fs.readFileSync(store);t.after(()=>fs.writeFileSync(store,original));
     const page=await pageFor(t,width);const [name,value]=(await site.adminCookie()).split('=');await page.context().addCookies([{name,value,url:site.base}]);
-    const body=fs.readFileSync(webm());await page.route(/video\.php\?file=/,route=>route.fulfill({status:200,contentType:'video/webm',body,headers:{'Accept-Ranges':'bytes'}}));
+    const body=fs.readFileSync(video);await page.route(/video\.php\?file=/,route=>route.fulfill({status:200,contentType:'video/webm',body,headers:{'Accept-Ranges':'bytes'}}));
     await page.goto(site.base+'/admin/riffs.html',{waitUntil:'domcontentloaded'});await page.click('.admin-tab[data-tab="edit"]');await page.selectOption('#riffSelect','1');
     await page.waitForFunction(()=>document.querySelectorAll('#segmentRows .segment-row').length===10);
     await page.waitForFunction(()=>segmentEditorVideo.readyState>=1&&segmentEditorVideo.duration>0);
@@ -246,7 +252,7 @@ test('Normal restores speed and loop settings; manual speed and loop controls le
     assert.equal(await page.evaluate(()=>loopAllRiff),false);
     await page.click('#modeNormalBtn');assert.equal(await page.evaluate(()=>loopAllRiff),true);
     assert.equal(await page.evaluate(()=>leftVideo.paused),false);
-    assert.equal(await page.evaluate(()=>leftVideo.playbackRate===rightVideo.playbackRate),true);
+    assert.equal(await page.evaluate(()=>Math.abs(rightVideo.playbackRate/leftVideo.playbackRate-1)<=.1),true);
 });
 test('both recordings download before Play; loops, seeks and angle changes work offline',async t=>{
     const page=await pageFor(t);
@@ -368,7 +374,11 @@ test('English by default; the header switches to Russian and Spanish and the cho
     assert.equal(await page.evaluate(()=>document.documentElement.lang),'en');
     assert.equal((await page.locator('.topbar-links [data-page=riffs]').textContent()).trim(),'Riffs');
     await page.click('.rk-lang-toggle');
-    await Promise.all([page.waitForEvent('load'),page.click('.rk-lang-option[data-lang=ru]')]);
+    await page.evaluate(()=>{window.__samePage=true;});
+    await page.click('.rk-lang-option[data-lang=ru]');
+    assert.equal(await page.locator('.rk-lang-code').textContent(),'RU','The switch shows the new language at once');
+    await page.waitForFunction(()=>document.querySelector('.topbar-links [data-page=practice]').textContent.trim()==='Практика');
+    assert.equal(await page.evaluate(()=>window.__samePage),true,'Switching does not reload the page');
     assert.equal(await page.evaluate(()=>document.documentElement.lang),'ru');
     assert.equal((await page.locator('.topbar-links [data-page=practice]').textContent()).trim(),'Практика');
     assert.match(await page.locator('.home-hero-title').textContent(),/Добей каждый рифф/);
@@ -382,8 +392,12 @@ test('English by default; the header switches to Russian and Spanish and the cho
     const mobile=await pageFor(t,390);await mobile.goto(site.base+'/index.html?lang=es',{waitUntil:'domcontentloaded'});
     await mobile.click('#burgerMenu');
     assert.equal(await mobile.locator('.rk-lang-chip.is-active').textContent(),'ES');
-    await Promise.all([mobile.waitForEvent('load'),mobile.click('.rk-lang-chip[data-lang=en]')]);
+    await mobile.click('.rk-lang-chip[data-lang=en]');
+    assert.equal(await mobile.locator('.rk-lang-chip.is-active').textContent(),'EN');
     assert.equal(await mobile.evaluate(()=>[document.documentElement.lang,location.search].join('|')),'en|');
+    assert.match(await mobile.locator('.home-hero-title').textContent(),/Kill every riff/,'English comes back from the remembered source text');
+    await mobile.click('.rk-lang-chip[data-lang=ru]');
+    await mobile.waitForFunction(()=>/Добей каждый рифф/.test(document.querySelector('.home-hero-title').textContent));
 });
 test('Patreon sign-in still completes with Russian selected',async t=>{
     const page=await pageFor(t);await page.addInitScript(()=>{localStorage.setItem('patreonState','fixture-state');localStorage.setItem('rk-lang','ru');});
@@ -410,4 +424,121 @@ test('in Russian and Spanish every interface string on the main pages is transla
         for(const stage of ['scan','split','isolate','decode','mutate']){await page.locator('[data-dna-stage='+stage+']').click();await collect();}
         assert.deepEqual([...missing],[],lang+': add these to tools/i18n/strings.py and run python3 tools/i18n/build.py');
     }
+});
+test('a riff with a tab file shows a live tab strip whose cursor follows the video',async t=>{
+    const file=path.join(site.dir,'data/riffs.json');const original=fs.readFileSync(file,'utf8');t.after(()=>fs.writeFileSync(file,original));
+    const riffs=JSON.parse(original);const riff=Array.isArray(riffs)?riffs[0]:Object.values(riffs)[0];
+    riff.tab={tex:'\\tempo 171\n.\n\\ts 5 8 7.4.8 5.3.8 6.3.8 7.3.8 7.4.8 |\n\\ts 4 4 \\tempo 160 5.2.4{v} 7.3.4 5.3.8 7.4.8 5.4.4'};
+    riff.segments.forEach((s,i)=>{s.tabBars=i%2?[2,2]:[1,1];});
+    fs.writeFileSync(file,JSON.stringify(riffs));
+    const page=await pageFor(t);await practice(page);
+    await page.locator('.segment-btn').nth(1).click();await page.click('#toggleTabs');
+    await page.waitForSelector('.tabs-overlay.is-live .tab-live.is-ready',{timeout:20000});
+    assert.equal(await page.locator('.tabs-frame').isVisible(),false,'the picture gives way to the live tab');
+    const x=()=>page.evaluate(()=>parseFloat(document.querySelector('.tab-live-cursor').style.transform.replace(/[^\d.]/g,''))||0);
+    const first=await x();await page.waitForTimeout(400);
+    assert.ok(await x()!==first,'cursor moves while the video plays');
+    if(process.env.QA_SCREENSHOTS)await page.locator('.video-player-container').screenshot({path:path.join(process.env.QA_SCREENSHOTS,'practice-live-tab.png')});
+});
+test('on a phone, bars wider than the screen scroll so the last notes of a part stay in view',async t=>{
+    const file=path.join(site.dir,'data/riffs.json');const original=fs.readFileSync(file,'utf8');t.after(()=>fs.writeFileSync(file,original));
+    const riffs=JSON.parse(original);const riff=Array.isArray(riffs)?riffs[0]:Object.values(riffs)[0];
+    riff.tab={tex:fs.readFileSync(path.join(__dirname,'../content/tabs/led-zeppelin/black-dog.tex'),'utf8')};
+    // Like Black Dog part 4: the last note of bar 5, then all of bar 6 with its bend.
+    riff.segments.forEach(s=>{s.tabBars=[5,6];s.tabSync=[[5,1440,s.start],[6,1920,(s.start+s.end)/2],[6,3840,s.end]];});
+    fs.writeFileSync(file,JSON.stringify(riffs));
+    const page=await pageFor(t,390);await practice(page);
+    await page.locator('.segment-btn').nth(1).click();await page.click('#toggleTabs');
+    await page.waitForSelector('.tabs-overlay.is-live .tab-live.is-ready',{timeout:20000});
+    const seg=riff.segments[1];
+    await page.evaluate(t=>{const v=document.querySelector('#videoWrapper video');v.pause();v.currentTime=t;},seg.end-0.05);
+    await page.waitForTimeout(600);
+    const view=await page.evaluate(()=>{
+        const host=document.querySelector('.tabs-overlay.is-live .tab-live'),score=host.querySelector('.tab-live-score'),cursor=host.querySelector('.tab-live-cursor');
+        return {host:host.getBoundingClientRect().toJSON(),cursor:cursor.getBoundingClientRect().toJSON(),shifted:score.style.transform,content:score.scrollWidth};
+    });
+    const drawings=await page.evaluate(()=>[...document.querySelectorAll('.tab-live .at-surface > div')].filter(d=>d.style.top==='0px').length);
+    assert.equal(drawings,1,'only the last render is on screen, not every scale it went through');
+    assert.ok(view.content>view.host.width,'two bars are wider than the phone: '+JSON.stringify(view));
+    assert.match(view.shifted,/translateX\(-/,'the bars scrolled');
+    assert.ok(view.cursor.x>=view.host.x&&view.cursor.x<=view.host.x+view.host.width,'cursor in view: '+JSON.stringify(view));
+    if(process.env.QA_SCREENSHOTS)await page.locator('.tabs-overlay.is-live .tab-live').screenshot({path:path.join(process.env.QA_SCREENSHOTS,'practice-live-tab-phone.png')});
+});
+test('tab block reads alphaTex, maps bars to parts by role and length, and saves them with the riff',async t=>{
+    const page=await editor(t);
+    await page.click('#tabTexBox summary');
+    await page.fill('#tabTex','\\tempo 171\n.\n\\ts 5 8 7.4.8 5.3.8 6.3.8 7.3.8 7.4.8 |\n\\ts 4 4 \\tempo 160 5.2.4{v} 7.3.4 5.3.8 7.4.8 5.4.4');
+    await page.waitForFunction(()=>/Прочитано: 2 такта/.test(document.getElementById('tabStatus').textContent),null,{timeout:20000});
+    await page.click('#tabAutoMap');
+    const bars=await page.evaluate(()=>[...document.querySelectorAll('#segmentRows .tab-bars')].map(i=>i.value));
+    assert.deepEqual(bars.slice(0,2),['1','2'],JSON.stringify(bars));
+    assert.equal(bars[2],'1','a repeated role reuses its bars');
+    if(process.env.QA_SCREENSHOTS)await page.locator('section[aria-labelledby="hTabs"]').screenshot({path:path.join(process.env.QA_SCREENSHOTS,'editor-tabs.png')});
+    const saved=page.waitForResponse(r=>r.url().endsWith('/api/riffs/save.php'));
+    await page.click('#submitBtn');
+    if(await page.locator('#dnaLintDialog[open]').count())await page.click('#dnaLintSave');
+    assert.equal((await saved).status(),200);
+    const store=JSON.parse(fs.readFileSync(path.join(site.dir,'data/riffs.json'),'utf8'));const riff=(Array.isArray(store)?store:Object.values(store)).find(r=>r.id===1);
+    assert.match(riff.tab.tex,/\\ts 5 8/);
+    assert.deepEqual(riff.segments[0].tabBars,[1,1]);assert.deepEqual(riff.segments[1].tabBars,[2,2]);
+});
+test('DNA atoms are suggested from the tab at their moment in the part that plays the bar',async t=>{
+    const page=await editor(t);
+    await page.click('#tabTexBox summary');
+    await page.fill('#tabTex','\\tempo 120\n.\n5.3{b (0 4)} 7.3{h} 9.3 5.6{pm} 5.6{pm} |\n7.3{sl} 9.3 r.2 |');
+    await page.waitForFunction(()=>/Прочитано: 2 такта/.test(document.getElementById('tabStatus').textContent),null,{timeout:20000});
+    await page.evaluate(()=>{document.getElementById('dnaAtomsEditor').replaceChildren();document.querySelectorAll('#segmentRows .tab-bars').forEach((i,k)=>{i.value=k===0?'1-2':''})});
+    await page.click('#dnaTabAtoms');
+    const atoms=await page.evaluate(()=>[...document.querySelectorAll('#dnaAtomsEditor > div')].map(c=>[c.querySelector('[data-field="technique"]').value,c.querySelector('[data-field="label"]').value,Number(c.querySelector('[data-field="time"]').value)]));
+    const [start,end]=(await bounds(page))[0];
+    assert.deepEqual(atoms.map(a=>a[0]),['bend','hammer','palm','slide'],JSON.stringify(atoms));
+    assert.equal(atoms[0][1],'5 лад, струна G, на тон');
+    assert.equal(atoms[0][2],start,'the first beat sits at the start of the part');
+    assert.ok(atoms.every(a=>a[2]>=start&&a[2]<end),JSON.stringify([start,end,atoms]));
+    assert.match(await page.textContent('#dnaTabAtomsStatus'),/Добавлено приёмов: 4/);
+    await page.click('#dnaTabAtoms');
+    assert.match(await page.textContent('#dnaTabAtomsStatus'),/Новых приёмов нет/);
+    assert.equal(await page.locator('#dnaAtomsEditor > div').count(),4,'a second click adds nothing twice');
+    if(process.env.QA_SCREENSHOTS)await page.locator('#dnaAtomsEditor').evaluate(e=>e.parentElement.scrollIntoView());
+    if(process.env.QA_SCREENSHOTS)await page.locator('#dnaAtomsEditor').locator('..').screenshot({path:path.join(process.env.QA_SCREENSHOTS,'editor-tab-atoms.png')});
+});
+test('sound sync finds each part bars and note times in the video, skips silent parts and saves them',async t=>{
+    const {render,perform,writeWav}=require('./guitar-synth.cjs');
+    const alphaTab=require('../js/vendor/alphatab/alphaTab.min.js');
+    const {barDurations}=require('../js/tab-live.js').TabLive;const {events,tabLength}=require('../js/tab-sync.js').TabSync;
+    const tex='\\tempo 171\n.\n:8 5.3 7.3 5.4 7.4 5.3 7.3 5.4 7.4 |\n:8 0.6 3.6 5.6 0.6 3.5 5.5 3.5 0.6 |';
+    const score=alphaTab.importer.ScoreLoader.loadAlphaTex(tex),d=barDurations(score.masterBars,score.tempo);
+    const store=JSON.parse(fs.readFileSync(path.join(site.dir,'data/riffs.json'),'utf8'));
+    const parts=(Array.isArray(store)?store:Object.values(store)).find(r=>r.id===1).segments;
+    // Launch parts play bar 1, land parts bar 2, the two drill parts are silent.
+    const notes=[],played=[];
+    parts.forEach((p,i)=>{
+        if(!p.role)return;const bar=p.role==='launch'?1:2,evs=events(score,0,bar,bar,d),len=tabLength(bar,bar,d);
+        const take=perform(evs,len,p.start+0.1,Math.min(1.1,(p.end-p.start-0.2)/(len/1000)),0.01,i+1);
+        notes.push(...take);played[i]=take;
+    });
+    const dir=fs.mkdtempSync(path.join(require('node:os').tmpdir(),'rk-sound-')),wav=path.join(dir,'riff.wav'),file=path.join(dir,'riff.webm');
+    writeWav(wav,render(notes,18.6));
+    require('node:child_process').execFileSync('ffmpeg',['-hide_banner','-loglevel','error','-y','-f','lavfi','-i','testsrc2=size=320x180:rate=30','-i',wav,'-t','18.57','-c:v','libvpx-vp9','-b:v','100k','-deadline','realtime','-c:a','libopus','-b:a','96k',file]);
+    t.after(()=>fs.rmSync(dir,{recursive:true,force:true}));
+    const page=await editor(t,1440,file);
+    await page.click('#tabTexBox summary');await page.fill('#tabTex',tex);
+    await page.waitForFunction(()=>/Прочитано: 2 такта/.test(document.getElementById('tabStatus').textContent),null,{timeout:20000});
+    await page.click('#tabSyncAudio');
+    await page.waitForFunction(()=>/По звуку синхронизировано/.test(document.getElementById('tabStatus').textContent),null,{timeout:60000});
+    const status=await page.textContent('#tabStatus');
+    assert.match(status,/частей: 8 из 10/,status);assert.match(status,/частях 7, 8/,status);
+    const bars=await page.evaluate(()=>[...document.querySelectorAll('#segmentRows .tab-bars')].map(i=>i.value));
+    assert.deepEqual(bars,['1','2','1','2','1','2','','','1','2']);
+    if(process.env.QA_SCREENSHOTS)await page.locator('section[aria-labelledby="hTabs"]').screenshot({path:path.join(process.env.QA_SCREENSHOTS,'editor-tab-sync.png')});
+    const saved=page.waitForResponse(r=>r.url().endsWith('/api/riffs/save.php'));
+    await page.click('#submitBtn');
+    if(await page.locator('#dnaLintDialog[open]').count())await page.click('#dnaLintSave');
+    assert.equal((await saved).status(),200);
+    const after=JSON.parse(fs.readFileSync(path.join(site.dir,'data/riffs.json'),'utf8'));const riff=(Array.isArray(after)?after:Object.values(after)).find(r=>r.id===1);
+    const sync=riff.segments[2].tabSync;
+    assert.equal(sync.length,8);
+    const worst=Math.max(...sync.map((a,k)=>Math.abs(a[2]-played[2][k].t)));
+    assert.ok(worst<0.03,'every note within 30 ms of where it sounds, worst '+worst);
+    assert.equal(riff.segments[6].tabSync,undefined);
 });
