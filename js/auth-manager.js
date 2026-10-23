@@ -6,8 +6,14 @@
 const BILLING_URLS = {
     patreon: 'https://www.patreon.com/cw/MikeSabadash?vanity=MikeSabadash',
     stripe: 'https://billing.stripe.com/p/login/placeholder', // Replace with your Stripe customer portal
-    cryptomus: 'https://cryptomus.com/dashboard'             // Replace with your Cryptomus billing link
+    cryptomus: 'https://cryptomus.com/dashboard',            // Replace with your Cryptomus billing link
+    lava: 'billing.html',
+    robokassa: 'billing.html',
+    yookassa: 'billing.html'
 };
+
+// Where premium can come from; see config/subscription-store.php.
+const PAID_SOURCES = ['patreon', 'stripe', 'cryptomus', 'promo', 'test', 'lava', 'robokassa', 'yookassa'];
 
 function normalizeEpochMs(ts) {
     if (ts == null) return null;
@@ -19,7 +25,7 @@ function normalizeEpochMs(ts) {
 
 function normalizeSubscription(data, source) {
     if (!data || typeof data !== 'object') return null;
-    const src = (source === 'patreon' || source === 'stripe' || source === 'cryptomus' || source === 'promo' || source === 'test') ? source : 'patreon';
+    const src = PAID_SOURCES.includes(source) ? source : 'patreon';
     let status = 'active';
     if (data.status === 'expired' || data.status === 'cancelled') status = data.status;
     else if (data.status === 'inactive') status = 'cancelled';
@@ -32,7 +38,7 @@ function normalizeSubscription(data, source) {
 
 function migrateSubscription(oldSub) {
     if (!oldSub || typeof oldSub !== 'object') return null;
-    const source = (oldSub.source === 'stripe' || oldSub.source === 'cryptomus' || oldSub.source === 'promo' || oldSub.source === 'test') ? oldSub.source : 'patreon';
+    const source = (oldSub.source !== 'patreon' && PAID_SOURCES.includes(oldSub.source)) ? oldSub.source : 'patreon';
     let status = 'active';
     if (oldSub.status === 'expired' || oldSub.status === 'cancelled') status = oldSub.status;
     else if (oldSub.status === 'inactive') status = 'cancelled';
@@ -601,7 +607,7 @@ class AuthManager {
         if (src === 'patreon') {
             return this.token ? this.validateToken() : false;
         }
-        if (src === 'stripe' || src === 'cryptomus' || src === 'promo' || src === 'test') {
+        if (src !== 'patreon' && PAID_SOURCES.includes(src)) {
             return this.hasActiveSubscription();
         }
         return this.hasActiveSubscription();
@@ -629,7 +635,7 @@ class AuthManager {
     }
 
     getBillingUrl(source) {
-        const src = (source === 'patreon' || source === 'stripe' || source === 'cryptomus' || source === 'promo' || source === 'test') ? source : (this.subscription && this.subscription.source) || 'patreon';
+        const src = PAID_SOURCES.includes(source) ? source : (this.subscription && this.subscription.source) || 'patreon';
         return BILLING_URLS[src] || BILLING_URLS.patreon;
     }
 

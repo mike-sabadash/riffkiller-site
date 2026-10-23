@@ -88,6 +88,20 @@
         .method-card:not(.method-card--featured) .method-cta a:hover { background: rgba(255, 255, 255, 0.08); }
         .method-cta a, .method-cta button { min-height: 44px; border-radius: 12px; }
         @media (max-width: 640px) { .plans-row { grid-template-columns: 1fr; } .billing-includes { flex-direction: column; align-items: flex-start; max-width: 320px; margin-left: auto; margin-right: auto; } }
+        .method-card[hidden], .billing-notice[hidden], .billing-email[hidden] { display: none; }
+        .pay-btn .pay-price:empty { display: none; }
+        .method-card:not(.method-card--featured) .method-cta button { background: transparent; border: 1px solid rgba(255, 255, 255, 0.22); }
+        .method-card:not(.method-card--featured) .method-cta button:hover { background: rgba(255, 255, 255, 0.08); }
+        .billing-notice { max-width: 640px; margin: 0 auto 20px; padding: 14px 18px; border-radius: 14px; font-size: 0.9375rem; line-height: 1.5; text-align: center; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--color-border-light); }
+        .billing-notice.is-ok { background: rgba(34, 197, 94, 0.10); border-color: rgba(34, 197, 94, 0.35); color: #bbf7d0; }
+        .billing-notice.is-error { background: rgba(244, 67, 54, 0.10); border-color: rgba(244, 67, 54, 0.35); color: #fecaca; }
+        .billing-email { max-width: 480px; margin: 20px auto 0; }
+        .billing-email label { display: block; font-size: 0.875rem; color: var(--color-text-secondary); margin-bottom: 8px; }
+        .billing-email-row { display: flex; gap: 8px; }
+        .billing-email input { flex: 1; min-width: 0; min-height: 44px; padding: 0 14px; border-radius: 12px; border: 1px solid var(--color-border-light); background: rgba(255, 255, 255, 0.04); color: inherit; font: inherit; }
+        html[data-theme='light'] .billing-notice.is-ok { color: #166534; }
+        html[data-theme='light'] .billing-notice.is-error { color: #991b1b; }
+        .billing-email button { min-height: 44px; padding: 0 18px; border-radius: 12px; border: none; background: #9355E5; color: #fff; font: inherit; font-weight: 500; cursor: pointer; }
     </style>
 </head>
 <body data-rk-header="app" data-logo-href="index.html" data-nav-active="billing">
@@ -126,8 +140,33 @@
 
                 <section class="methods-section">
                     <h2>2. Choose how to pay</h2>
+                    <div class="billing-notice" id="billingNotice" role="status" hidden></div>
                     <div class="methods-grid">
-                        <div class="method-card">
+                        <div class="method-card method-card--featured" id="methodLava" data-provider="lava" hidden>
+                            <h3>Card</h3>
+                            <span class="method-tag">Visa, Mastercard, PayPal · any country</span>
+                            <p class="method-desc">Renews automatically, cancel anytime in your profile. Secure checkout by lava.top.</p>
+                            <div class="method-cta">
+                                <button type="button" class="pay-btn" data-provider="lava"><span class="pay-label">Pay</span> <span class="pay-price" data-usd></span></button>
+                            </div>
+                        </div>
+                        <div class="method-card" id="methodRobokassa" data-provider="robokassa" hidden>
+                            <h3>Russian card or SBP</h3>
+                            <span class="method-tag">Robokassa</span>
+                            <p class="method-desc">Cards of Russian banks, SBP. Renews automatically, cancel anytime in your profile.</p>
+                            <div class="method-cta">
+                                <button type="button" class="pay-btn" data-provider="robokassa"><span class="pay-label">Pay</span> <span class="pay-price" data-rub></span></button>
+                            </div>
+                        </div>
+                        <div class="method-card" id="methodYookassa" data-provider="yookassa" hidden>
+                            <h3>Russian card, SBP, SberPay</h3>
+                            <span class="method-tag">YooKassa</span>
+                            <p class="method-desc">Cards of Russian banks, SBP, SberPay, T-Pay. Renews automatically, cancel anytime in your profile.</p>
+                            <div class="method-cta">
+                                <button type="button" class="pay-btn" data-provider="yookassa"><span class="pay-label">Pay</span> <span class="pay-price" data-rub></span></button>
+                            </div>
+                        </div>
+                        <div class="method-card" id="methodStripe" hidden>
                             <h3>Card</h3>
                             <span class="method-tag">Stripe</span>
                             <p class="method-desc">Pay with credit or debit card. Monthly or yearly plan.</p>
@@ -135,7 +174,7 @@
                                 <a href="billing-stripe.html" id="stripeLink">Subscribe with Card</a>
                             </div>
                         </div>
-                        <div class="method-card">
+                        <div class="method-card" id="methodCryptomus" hidden>
                             <h3>Crypto</h3>
                             <span class="method-tag">Cryptomus</span>
                             <p class="method-desc">Pay with card or USDT via Cryptomus. Automatic activation after payment.</p>
@@ -143,7 +182,7 @@
                                 <a href="billing-cryptomus.html" id="cryptoLink">Subscribe with Cryptomus</a>
                             </div>
                         </div>
-                        <div class="method-card method-card--featured">
+                        <div class="method-card method-card--featured" id="methodPatreon">
                             <h3>Patreon</h3>
                             <span class="method-tag">Riff Killer plan</span>
                             <p class="method-desc">Subscribe on Patreon to get full access. After subscribing, log in with Patreon on this site to activate.</p>
@@ -153,6 +192,13 @@
                             <p class="method-desc" style="margin-top:12px;font-size:12px;color:var(--color-text-tertiary);" id="patreonHint">Not logged in? You will sign in with Patreon first, then open the plan page.</p>
                         </div>
                     </div>
+                    <form class="billing-email" id="billingEmail" hidden>
+                        <label for="billingEmailInput">Email for the receipt and your subscription</label>
+                        <div class="billing-email-row">
+                            <input type="email" id="billingEmailInput" autocomplete="email" required placeholder="you@example.com">
+                            <button type="submit">Continue</button>
+                        </div>
+                    </form>
                 </section>
 
                 <div class="billing-actions">
@@ -240,6 +286,7 @@
                 var q = selectedPlan === 'yearly' ? '?plan=yearly' : '?plan=monthly';
                 if (stripeLink) stripeLink.href = 'billing-stripe.html' + q;
                 if (cryptoLink) cryptoLink.href = 'billing-cryptomus.html' + q;
+                updatePrices();
             }
             function setPlan(plan) {
                 selectedPlan = plan;
@@ -268,6 +315,111 @@
                     window.location.href = 'profile.html';
                 }
             });
+            // Card payments (lava.top, Robokassa, YooKassa): each card shows once its keys are on the server.
+            var notice = document.getElementById('billingNotice');
+            var emailForm = document.getElementById('billingEmail');
+            var emailInput = document.getElementById('billingEmailInput');
+            var billingOptions = null;
+            var pendingProvider = null;
+            function showNotice(text, kind) {
+                notice.textContent = text;
+                notice.className = 'billing-notice' + (kind ? ' is-' + kind : '');
+                notice.hidden = !text;
+            }
+            function formatRub(v) { return v ? Math.round(Number(v)).toLocaleString('ru-RU') + ' \u20bd' : ''; }
+            function updatePrices() {
+                var yearly = selectedPlan === 'yearly';
+                document.querySelectorAll('[data-usd]').forEach(function(el) { el.textContent = yearly ? '$90 / year' : '$9 / month'; });
+                var rub = billingOptions && billingOptions.providers.rub;
+                document.querySelectorAll('[data-rub]').forEach(function(el) {
+                    var price = rub && (yearly ? rub.yearly : rub.monthly);
+                    el.textContent = price ? formatRub(price) + (yearly ? ' / year' : ' / month') : '';
+                });
+            }
+            function applyOptions(opts) {
+                billingOptions = opts;
+                var p = opts.providers || {};
+                var map = { lava: 'methodLava', robokassa: 'methodRobokassa', yookassa: 'methodYookassa', stripe: 'methodStripe', cryptomus: 'methodCryptomus' };
+                Object.keys(map).forEach(function(k) { var el = document.getElementById(map[k]); if (el) el.hidden = !p[k]; });
+                // Only one featured method: the card checkout when it is on, Patreon otherwise.
+                var patreonCard = document.getElementById('methodPatreon');
+                if (patreonCard) patreonCard.classList.toggle('method-card--featured', !p.lava);
+                updatePrices();
+            }
+            function setBusy(provider, busy) {
+                document.querySelectorAll('.pay-btn').forEach(function(b) { b.disabled = busy; });
+                var btn = document.querySelector('.pay-btn[data-provider="' + provider + '"] .pay-label');
+                if (btn) btn.textContent = busy ? 'Opening checkout\u2026' : 'Pay';
+            }
+            function startPayment(provider, email) {
+                var auth = window.patreonAuth;
+                if (!billingOptions || !billingOptions.signedIn) {
+                    showNotice('Sign in first: premium is attached to your account.', '');
+                    if (auth && typeof auth.login === 'function') auth.login();
+                    return;
+                }
+                setBusy(provider, true);
+                showNotice('', '');
+                var lang = (document.documentElement.lang || 'en').slice(0, 2);
+                fetch('api/billing/create.php', {
+                    method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ provider: provider, plan: selectedPlan, email: email || '', lang: lang })
+                }).then(function(r) { return r.json(); }).then(function(data) {
+                    if (data.success && data.paymentUrl) { window.location.href = data.paymentUrl; return; }
+                    setBusy(provider, false);
+                    if (data.needEmail) {
+                        pendingProvider = provider;
+                        emailForm.hidden = false;
+                        emailInput.focus();
+                        return;
+                    }
+                    showNotice(data.error || 'Could not start the payment. Try again.', 'error');
+                }).catch(function() {
+                    setBusy(provider, false);
+                    showNotice('Could not reach the server. Check your connection and try again.', 'error');
+                });
+            }
+            document.querySelectorAll('.pay-btn').forEach(function(btn) {
+                btn.addEventListener('click', function() { startPayment(btn.getAttribute('data-provider')); });
+            });
+            emailForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                if (!pendingProvider || !emailInput.checkValidity()) return;
+                emailForm.hidden = true;
+                startPayment(pendingProvider, emailInput.value.trim());
+            });
+            function loadOptions() {
+                return fetch('api/billing/options.php', { credentials: 'same-origin' })
+                    .then(function(r) { return r.json(); })
+                    .then(function(opts) { if (opts && opts.success) applyOptions(opts); })
+                    .catch(function() {});
+            }
+            loadOptions();
+            if (window.patreonAuth && typeof window.patreonAuth.addListener === 'function') window.patreonAuth.addListener(loadOptions);
+
+            // Back from checkout: wait for the payment notification, then switch premium on in this tab.
+            var params = new URLSearchParams(window.location.search);
+            var paidVia = params.get('paid');
+            if (params.get('failed')) {
+                showNotice('The payment did not go through. No money was taken; you can try again or pick another method.', 'error');
+            } else if (paidVia) {
+                showNotice('Payment received, switching premium on\u2026', '');
+                var tries = 0;
+                (function poll() {
+                    fetch('api/billing/status.php', { credentials: 'same-origin' }).then(function(r) { return r.json(); }).then(function(st) {
+                        var sub = st && st.subscription;
+                        if (sub && sub.status === 'active' && sub.source === paidVia) {
+                            showNotice('Premium is on. Enjoy every riff!', 'ok');
+                            var auth = window.patreonAuth;
+                            if (auth && auth.userData && typeof auth.fetchSubscriptionFromServer === 'function') auth.fetchSubscriptionFromServer(auth.userData.id);
+                            if (profileLink) profileLink.style.display = 'inline-block';
+                            return;
+                        }
+                        if (++tries < 20) { setTimeout(poll, 3000); return; }
+                        showNotice('The payment is still being confirmed. Premium switches on by itself within a few minutes; refresh this page later.', '');
+                    }).catch(function() { if (++tries < 20) setTimeout(poll, 3000); });
+                })();
+            }
         })();
     </script>
 </body>

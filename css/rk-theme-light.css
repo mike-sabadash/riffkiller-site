@@ -1015,12 +1015,20 @@ html[data-theme='light'] .method-card:hover {
     border-color: rgba(147, 85, 229, 0.22) !important;
 }
 
+html[data-theme='light'] .method-card:not(.method-card--featured) .method-cta a,
+html[data-theme='light'] .method-card:not(.method-card--featured) .method-cta button,
 html[data-theme='light'] .method-cta.secondary a {
     background: transparent !important;
-    border-color: rgba(18, 18, 26, 0.16) !important;
+    border: 1px solid rgba(18, 18, 26, 0.16) !important;
     color: #12121a !important;
 }
 
+html[data-theme='light'] .methods-section h2 {
+    color: #12121a;
+}
+
+html[data-theme='light'] .method-card:not(.method-card--featured) .method-cta a:hover,
+html[data-theme='light'] .method-card:not(.method-card--featured) .method-cta button:hover,
 html[data-theme='light'] .method-cta.secondary a:hover {
     background: rgba(147, 85, 229, 0.08) !important;
     border-color: rgba(147, 85, 229, 0.35) !important;

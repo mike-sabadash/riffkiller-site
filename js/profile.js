@@ -270,7 +270,7 @@ function loadUserProfile() {
     }
 
     if (subscriptionMeta && sub) {
-        var sourceLabel = (sub.source === 'stripe') ? 'Stripe' : (sub.source === 'cryptomus') ? 'Cryptomus' : (sub.source === 'promo') ? 'Promo' : (sub.source === 'test') ? 'Test' : 'Patreon';
+        var sourceLabel = paymentSourceLabel(sub.source);
         var nextBilling = '';
         if (subExpiresSec) {
             var d = new Date(subExpiresSec * 1000);
@@ -300,6 +300,9 @@ function loadUserProfile() {
                 manageBtn.removeAttribute('target');
                 manageBtn.onclick = null;
                 if (billingMessage) { billingMessage.style.display = 'none'; }
+            } else if (CARD_BILLING_SOURCES.indexOf(src) !== -1) {
+                manageBtn.removeAttribute('target');
+                setupCardRenewalControls(manageBtn, billingMessage);
             } else if (src === 'cryptomus') {
                 manageBtn.href = '#';
                 manageBtn.onclick = function(e) { e.preventDefault(); };
@@ -431,6 +434,55 @@ function initProfileEditor() {
     }
 }
 
+// Card payments made on billing.html (config/billing.php): auto-renewal is switched off here, not in a portal.
+var CARD_BILLING_SOURCES = ['lava', 'robokassa', 'yookassa'];
+
+function paymentSourceLabel(source) {
+    var labels = { stripe: 'Stripe', cryptomus: 'Cryptomus', promo: 'Promo', test: 'Test', patreon: 'Patreon', lava: 'Card', robokassa: 'Robokassa', yookassa: 'YooKassa' };
+    return labels[source] || 'Patreon';
+}
+
+function formatBillingDate(sec) {
+    return new Date(sec * 1000).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+function setupCardRenewalControls(button, message) {
+    function showMessage(text) {
+        if (!message) return;
+        message.textContent = text;
+        message.style.display = text ? 'block' : 'none';
+    }
+    button.href = '#';
+    button.textContent = 'Cancel auto-renewal';
+    button.onclick = function (e) { e.preventDefault(); };
+    fetch('api/billing/status.php', { credentials: 'same-origin' }).then(function (r) { return r.json(); }).then(function (st) {
+        var renewal = st && st.renewal;
+        var until = renewal && renewal.paidUntil ? formatBillingDate(renewal.paidUntil) : '';
+        if (!renewal || !renewal.auto) {
+            button.textContent = 'Renew subscription';
+            button.href = 'billing.html';
+            button.onclick = null;
+            showMessage(until ? 'Auto-renewal is off. Premium stays on until ' + until + '.' : '');
+            return;
+        }
+        showMessage(until ? 'Renews automatically on ' + until + '.' : '');
+        button.onclick = function (e) {
+            e.preventDefault();
+            var question = 'Turn off auto-renewal? Premium stays on until the end of the paid period.';
+            if (!window.confirm(window.RK_I18N ? window.RK_I18N.t(question) : question)) return;
+            button.textContent = 'Cancelling\u2026';
+            fetch('api/billing/cancel.php', { method: 'POST', credentials: 'same-origin' }).then(function (r) { return r.json(); }).then(function (res) {
+                if (res && res.success) { setupCardRenewalControls(button, message); return; }
+                button.textContent = 'Cancel auto-renewal';
+                showMessage((res && res.error) || 'Could not cancel, try again later.');
+            }).catch(function () {
+                button.textContent = 'Cancel auto-renewal';
+                showMessage('Could not reach the server, try again later.');
+            });
+        };
+    }).catch(function () {});
+}
+
 function updateSubscriptionDetailsCard() {
     var loadingEl = document.getElementById('subscriptionDetailsLoading');
     var contentEl = document.getElementById('subscriptionDetailsContent');
@@ -449,7 +501,7 @@ function updateSubscriptionDetailsCard() {
         var planLabel = (sub.source === 'patreon') ? 'Riff Killer' : ((sub.plan === 'yearly') ? 'Yearly' : 'Monthly');
         var statusLabel = (sub.status === 'active') ? 'Active' : (sub.status === 'expired') ? 'Expired' : (sub.status === 'cancelled') ? 'Cancelled' : sub.status || '—';
         var statusClass = (sub.status === 'active') ? 'status-active' : (sub.status === 'expired' || sub.status === 'cancelled') ? 'status-' + sub.status : '';
-        var sourceLabel = (sub.source === 'stripe') ? 'Stripe' : (sub.source === 'cryptomus') ? 'Cryptomus' : (sub.source === 'patreon') ? 'Patreon' : (sub.source || '—');
+        var sourceLabel = paymentSourceLabel(sub.source);
 
         var nextBillingTs = sub.nextBillingDate != null ? sub.nextBillingDate : (sub.expiresAt != null ? sub.expiresAt : null);
         var nextBillingText = '—';
@@ -460,7 +512,9 @@ function updateSubscriptionDetailsCard() {
         }
 
         var manageHtml = '';
-        if (hasActive && sub.source !== 'cryptomus' && auth.getBillingUrl) {
+        if (hasActive && CARD_BILLING_SOURCES.indexOf(sub.source) !== -1) {
+            manageHtml = '';
+        } else if (hasActive && sub.source !== 'cryptomus' && auth.getBillingUrl) {
             manageHtml = '<a href="' + (auth.getBillingUrl(sub.source) || '#') + '" class="btn btn-primary btn-manage" target="_blank" rel="noopener noreferrer">Manage</a>';
         } else if (!hasActive) {
             manageHtml = '<a href="billing.html" class="btn btn-primary btn-manage">View Plans</a>';

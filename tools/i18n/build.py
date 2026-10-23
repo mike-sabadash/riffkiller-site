@@ -44,6 +44,10 @@ RU_PATTERNS = r"""
         [/^· (.+)$/, function (m, part) { return '· ' + part(m[1]); }],
         [/^Start free: (.+)$/, 'Начать бесплатно: $1'],
         [/^Continue (.+)$/, 'Продолжить: $1'],
+        [/^(\$[\d.]+|[\d\s\u00a0\u202f]+ ₽) \/ month$/, '$1 / мес'],
+        [/^(\$[\d.]+|[\d\s\u00a0\u202f]+ ₽) \/ year$/, '$1 / год'],
+        [/^Auto-renewal is off\. Premium stays on until (.+)\.$/, 'Автопродление отключено. Premium действует до $1.'],
+        [/^Renews automatically on (.+)\.$/, 'Следующее автоматическое продление: $1.'],
         [/^Left hand: (.+) · Right hand: (.+)$/, function (m, part) { return 'Левая рука: ' + part(m[1]).replace('MB', 'МБ') + ' · Правая рука: ' + part(m[2]).replace('MB', 'МБ'); }]
 """
 ES_PATTERNS = r"""
@@ -81,6 +85,10 @@ ES_PATTERNS = r"""
         [/^· (.+)$/, function (m, part) { return '· ' + part(m[1]); }],
         [/^Start free: (.+)$/, 'Empieza gratis: $1'],
         [/^Continue (.+)$/, 'Continuar: $1'],
+        [/^(\$[\d.]+|[\d\s\u00a0\u202f]+ ₽) \/ month$/, '$1 / mes'],
+        [/^(\$[\d.]+|[\d\s\u00a0\u202f]+ ₽) \/ year$/, '$1 / año'],
+        [/^Auto-renewal is off\. Premium stays on until (.+)\.$/, 'Renovación automática cancelada. El premium sigue activo hasta el $1.'],
+        [/^Renews automatically on (.+)\.$/, 'Se renueva automáticamente el $1.'],
         [/^Left hand: (.+) · Right hand: (.+)$/, function (m, part) { return 'Mano izquierda: ' + part(m[1]) + ' · Mano derecha: ' + part(m[2]); }]
 """
 HEAD = """/**
