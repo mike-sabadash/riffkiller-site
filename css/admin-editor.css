@@ -161,6 +161,12 @@ body.ed-page .tab-pane#tabList .form-section { max-width: 760px; }
 .seg-body .ed-field input { padding: 7px 9px; font-size: 13px; }
 .seg-role-help { font-size: 12px; color: var(--ed-text-2); background: var(--ed-surface); border-radius: 6px; padding: 8px 10px; border-left: 3px solid var(--ed-line-strong); }
 .seg-role-help b { color: var(--ed-text); font-weight: 600; }
+.seg-atom-chips { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.seg-atom-chip { display: inline-flex; align-items: center; gap: 4px; padding: 3px 4px 3px 9px; border: 1px solid var(--ed-line-strong); border-radius: 999px; font-size: 12px; color: var(--ed-text-2); }
+.seg-atom-chip button { width: 18px; height: 18px; padding: 0; border: 0; border-radius: 50%; background: transparent; color: var(--ed-text-3); cursor: pointer; font-size: 14px; line-height: 1; }
+.seg-atom-chip button:hover { background: rgba(255, 255, 255, 0.08); color: var(--ed-text); }
+.seg-atoms .seg-atom-add { width: auto; flex: none; padding: 4px 8px; font-size: 12px; background: var(--ed-surface-2); border: 1px solid var(--ed-line-strong); border-radius: 999px; color: var(--ed-text-2); }
+.seg-atom-add option { color: #000; }
 .seg-colors { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
 .seg-colors button { width: 20px; height: 20px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; padding: 0; }
 .seg-colors button.on { border-color: #fff; }
