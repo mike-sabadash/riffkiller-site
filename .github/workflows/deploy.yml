@@ -22,7 +22,16 @@ jobs:
         with:
           node-version: '22'
           cache: npm
-      - run: sudo apt-get update -qq && sudo apt-get install -y php-cli ffmpeg
+      - name: PHP and ffmpeg
+        timeout-minutes: 8
+        # apt on the runners sometimes hangs for good; skip what is installed, skip man pages, retry with a limit.
+        run: |
+          sudo rm -f /var/lib/man-db/auto-update
+          need=""; command -v php >/dev/null || need="$need php-cli"; command -v ffmpeg >/dev/null || need="$need ffmpeg"
+          if [ -n "$need" ]; then
+            for i in 1 2 3; do timeout 150 sh -c "sudo apt-get update -qq && sudo apt-get install -y -qq $need" && break; done
+          fi
+          php -v | head -1 && ffmpeg -version | head -1
       - run: npm ci
       - run: npm test
       - run: find . -name '*.php' -not -path './node_modules/*' -print0 | xargs -0 -n1 php -l

@@ -65,3 +65,14 @@ test('a part cut mid-bar starts and ends the cursor where its anchors say',()=>{
     assert.deepEqual(positionAt(anchors,3,layout,10,11,9.9),{bar:0,tick:1920});
     assert.deepEqual(positionAt(anchors,3,layout,10,11,11),{bar:1,tick:960});
 });
+
+test('notes of bars shared with the neighbouring parts are not this part\'s',()=>{
+    const {playedIn}=require('../js/tab-live.js').TabLive;
+    const anchors=[[5,2321,5.99],[5,2400,6.02],[6,0,6.25],[6,3075,7.42]];
+    assert.equal(playedIn(anchors,5,960),false,'previous part');
+    assert.equal(playedIn(anchors,5,2240),true,'heard a little early');
+    assert.equal(playedIn(anchors,6,2880),true);
+    assert.equal(playedIn(anchors,6,3075),false,'next part starts here');
+    assert.equal(playedIn(anchors,7,0),false);
+    assert.equal(playedIn(null,7,0),true,'without sync every note shows');
+});
