@@ -24,14 +24,16 @@ jobs:
           cache: npm
       - name: PHP and ffmpeg
         timeout-minutes: 8
-        # apt on the runners sometimes hangs for good; skip what is installed, skip man pages, retry with a limit.
+        # apt on the runners sometimes hangs for good: install non-interactively (no recommends, no needrestart
+        # prompt), skip what is installed and man pages, retry with a limit, fail if anything is missing.
         run: |
           sudo rm -f /var/lib/man-db/auto-update
           need=""; command -v php >/dev/null || need="$need php-cli"; command -v ffmpeg >/dev/null || need="$need ffmpeg"
           if [ -n "$need" ]; then
-            for i in 1 2 3; do timeout 150 sh -c "sudo apt-get update -qq && sudo apt-get install -y -qq $need" && break; done
+            for i in 1 2 3; do timeout 150 sudo env DEBIAN_FRONTEND=noninteractive NEEDRESTART_MODE=a sh -c "apt-get update -q -o Acquire::http::Timeout=20 -o Acquire::Retries=2 && apt-get install -y -q --no-install-recommends $need" && break; done
           fi
-          php -v | head -1 && ffmpeg -version | head -1
+          php -v >/dev/null && ffmpeg -version >/dev/null
+          php -v | head -1; ffmpeg -version | head -1
       - run: npm ci
       - run: npm test
       - run: find . -name '*.php' -not -path './node_modules/*' -print0 | xargs -0 -n1 php -l
