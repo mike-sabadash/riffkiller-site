@@ -48,6 +48,10 @@ test('seek-in-progress does not trigger a second boundary check', () => {
     left.seeking=true; t.tick(); assert.equal(ticks,0);
     left.seeking=false; t.tick(); assert.equal(ticks,1);
 });
+test('a catch-up seek of the right camera does not pause the loop check', () => {
+    let ticks=0; const {right,t}=setup({onTick:()=>ticks++});
+    right.seeking=true; t.tick(); assert.equal(ticks,1);
+});
 test('only the master camera can finish a loop', async () => {
     let loops=0; const {left,right,t}=setup({onEnded:()=>loops++});await t.play();
     right.dispatchEvent(new Event('ended'));left.dispatchEvent(new Event('ended'));assert.equal(loops,1);

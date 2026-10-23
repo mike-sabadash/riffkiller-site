@@ -109,8 +109,9 @@
             if (this.options.onState) this.options.onState(false);
         }
         tick() {
-            if (this.pending || this.buffering || this.videos.some(v => v.seeking)) return;
-            if (this.intendedPlaying && !this.left.paused && !this.right.paused) this.follow();
+            // The left camera is the clock: a catch-up seek of the right one must not stop the loop check.
+            if (this.pending || this.buffering || this.left.seeking) return;
+            if (this.intendedPlaying && !this.left.paused && !this.right.paused && !this.right.seeking) this.follow();
             if (this.options.onTick) this.options.onTick(this.time);
         }
         destroy() {

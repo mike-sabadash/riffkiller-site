@@ -975,9 +975,11 @@ function updateCurrentSegmentFromTime() {
 function checkSegmentBoundary() {
     if (!currentRiff || !practiceTransport || !practiceTransport.intendedPlaying ||
         practiceTransport.pending || practiceTransport.buffering ||
-        leftVideo.seeking || rightVideo.seeking || !loopActive || loopAllRiff || currentSegment < 0) return;
+        leftVideo.seeking || !loopActive || loopAllRiff || currentSegment < 0) return;
     const segment = currentRiff.segments[currentSegment];
-    if (segment && leftVideo.currentTime >= getSegmentEndRaw(segment)) {
+    // Checked once a frame: turning back a frame early keeps the next part from sounding before the jump.
+    const lead = 0.02 * (practiceTransport.rate || 1);
+    if (segment && leftVideo.currentTime >= getSegmentEndRaw(segment) - lead) {
         speedTrainerOnLoop(currentSegment);
         practiceTransport.seek(getSegmentStartRaw(segment));
     }
