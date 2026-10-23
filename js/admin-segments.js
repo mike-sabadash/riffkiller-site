@@ -123,7 +123,7 @@
                 '<label class="ed-field"><span>Подпись кнопки в плеере</span><input type="text" class="name"></label>' +
                 '<div class="ed-row2"><label class="ed-field"><span>Такты в файле табов</span><input type="text" class="tab-bars" inputmode="numeric" placeholder="например 1–2"></label>' +
                 '<label class="ed-field"><span>Картинка табов, если нет файла</span><input type="text" class="tab-image" placeholder="assets/tabs/artist/song/1.png"></label></div>' +
-                '<div class="ed-field"><span>Цвет кнопки в плеере</span><div class="seg-colors">' +
+                '<div class="ed-field"><span>Цвет части в плеере, если у неё нет роли (у ролей свой цвет)</span><div class="seg-colors">' +
                     COLORS.map(function (c) { return '<button type="button" data-hex="' + c.hex + '" title="' + c.name + '" style="background:' + c.hex + '"></button>'; }).join('') +
                     '<button type="button" data-hex="custom" title="Свой цвет" style="background:conic-gradient(#f44336,#ffc107,#4caf50,#2196f3,#9355e5,#f44336)"></button>' +
                     '<select class="color-select" tabindex="-1" aria-hidden="true">' + COLORS.map(function (c) { return '<option value="' + c.hex + '">' + c.name + '</option>'; }).join('') + '<option value="custom">Свой</option></select>' +

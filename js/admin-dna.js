@@ -166,7 +166,56 @@
         return dna;
     }
 
+    // Techniques of each part, right in its row: pick one and it is added to the list below for that part
+    // (without a time; a time can be set there later). The list below stays the one place they are kept.
+    function cardsOf(row) {
+        const start = Number(row.querySelector('.start').value), end = Number(row.querySelector('.end').value);
+        return Array.from(document.querySelectorAll('#dnaAtomsEditor > div')).filter(card => {
+            const t = parseFloat(card.querySelector('[data-field="time"]').value);
+            if (Number.isFinite(t)) return t >= start && t < end;
+            return card.querySelector('[data-field="segment"]').value === row.dataset.editorId;
+        });
+    }
+    let drawing = 0;
+    function drawRowAtoms() {
+        cancelAnimationFrame(drawing);
+        drawing = requestAnimationFrame(() => rows().forEach((row, index) => {
+            const body = row.querySelector('.seg-body');
+            if (!body) return;
+            let box = body.querySelector('.seg-atoms');
+            if (!box) {
+                box = document.createElement('div');
+                box.className = 'ed-field seg-atoms';
+                const help = body.querySelector('.seg-role-help');
+                body.insertBefore(box, help ? help.nextSibling : body.firstChild);
+            }
+            box.replaceChildren();
+            const title = document.createElement('span'); title.textContent = 'Приёмы в этой части';
+            const chips = document.createElement('div'); chips.className = 'seg-atom-chips';
+            cardsOf(row).forEach(card => {
+                const tech = V.technique(card.querySelector('[data-field="technique"]').value);
+                const chip = document.createElement('span'); chip.className = 'seg-atom-chip';
+                chip.textContent = tech && tech.key !== 'other' ? tech.label : (card.querySelector('[data-field="type"]').value || 'Other');
+                const x = document.createElement('button'); x.type = 'button'; x.textContent = '×'; x.title = 'Убрать приём';
+                x.onclick = () => { card.remove(); if (typeof root.segmentEditorRenderStrip === 'function') root.segmentEditorRenderStrip(); };
+                chip.appendChild(x); chips.appendChild(chip);
+            });
+            const pick = document.createElement('select'); pick.className = 'seg-atom-add'; pick.setAttribute('aria-label', 'Добавить приём в эту часть');
+            [['', '+ Добавить приём'], ...V.techniques.filter(t => t.key !== 'other').map(t => [t.key, t.label])].forEach(([v, text]) => {
+                const o = document.createElement('option'); o.value = v; o.textContent = text; pick.appendChild(o);
+            });
+            pick.onchange = () => { if (pick.value) addAtom({ technique: pick.value, segmentIndex: index }); };
+            chips.appendChild(pick);
+            box.append(title, chips);
+        }));
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
+        const atomsBox = document.getElementById('dnaAtomsEditor');
+        new MutationObserver(drawRowAtoms).observe(atomsBox, {childList: true});
+        atomsBox.addEventListener('change', drawRowAtoms);
+        new MutationObserver(drawRowAtoms).observe(document.getElementById('segmentRows'), {childList: true});
+        document.getElementById('segmentRows').addEventListener('change', e => { if (!e.target.closest('.seg-atoms')) drawRowAtoms(); });
         document.getElementById('dnaAddAtom').onclick = () => {
             const v = video();
             addAtom(v && v.currentTime ? { time: Math.round(v.currentTime * 100) / 100 } : {});
