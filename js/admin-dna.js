@@ -3,7 +3,9 @@
     'use strict';
     const V = root.RiffDNAVocab;
     const fieldIds = {
-        overview: 'dnaOverviewInput', rule: 'dnaRuleInput', law: 'dnaLawInput', failure: 'dnaFailureInput'
+        overview: 'dnaOverviewInput', rule: 'dnaRuleInput', law: 'dnaLawInput', failure: 'dnaFailureInput',
+        // The author's own words about the riff, kept so the techniques can be checked against them later.
+        authorNotes: 'dnaAiNotes'
     };
     const listIds = { preserve: 'dnaPreserveInput', change: 'dnaChangeInput' };
     const rows = () => Array.from(document.querySelectorAll('#segmentRows .segment-row'));
@@ -180,10 +182,37 @@
             return card.querySelector('[data-field="segment"]').value === row.dataset.editorId;
         });
     }
+    // The techniques on the parts against the author's description: a check, nothing changes by itself.
+    function drawNotesCheck() {
+        const box = document.getElementById('dnaNotesCheck');
+        if (!box || !root.RiffDNALint) return;
+        const text = value('dnaAiNotes');
+        const atoms = Array.from(document.querySelectorAll('#dnaAtomsEditor > div')).map(card => ({ technique: card.querySelector('[data-field="technique"]').value }));
+        if (!text || !atoms.length) { box.hidden = true; return; }
+        const r = root.RiffDNALint.compareNotes(text, atoms);
+        const names = keys => keys.map(k => techName(V.technique(k))).join(', ');
+        const line = (cls, title, keys) => {
+            if (!keys.length) return null;
+            const p = document.createElement('p'); p.className = cls;
+            const b = document.createElement('b'); b.textContent = title;
+            p.append(b, ' ' + names(keys));
+            return p;
+        };
+        const head = document.createElement('span'); head.className = 'dna-notes-check-title'; head.textContent = 'Сверка приёмов с описанием риффа';
+        box.replaceChildren(head, ...[
+            line('ok', 'Совпало:', r.both),
+            line('warn', 'В описании есть, на частях нет:', r.textOnly),
+            line('warn', 'На частях есть, в описании нет:', r.atomsOnly)
+        ].filter(Boolean));
+        if (!r.textOnly.length && !r.atomsOnly.length) {
+            const p = document.createElement('p'); p.className = 'ok'; p.textContent = 'Расхождений нет.'; box.appendChild(p);
+        }
+        box.hidden = false;
+    }
     let drawing = 0;
     function drawRowAtoms() {
         cancelAnimationFrame(drawing);
-        drawing = requestAnimationFrame(() => rows().forEach((row, index) => {
+        drawing = requestAnimationFrame(() => { drawNotesCheck(); rows().forEach((row, index) => {
             const body = row.querySelector('.seg-body');
             if (!body) return;
             let box = body.querySelector('.seg-atoms');
@@ -232,7 +261,7 @@
                 });
                 box.appendChild(help);
             }
-        }));
+        }); });
     }
 
     // Reference for every technique: shorthand on the part buttons, name, how it is played.
@@ -252,6 +281,7 @@
 
     document.addEventListener('DOMContentLoaded', () => {
         drawLegend();
+        document.getElementById('dnaAiNotes').addEventListener('input', drawNotesCheck);
         const atomsBox = document.getElementById('dnaAtomsEditor');
         new MutationObserver(drawRowAtoms).observe(atomsBox, {childList: true});
         atomsBox.addEventListener('change', drawRowAtoms);

@@ -19,7 +19,7 @@ test('agent tool syncs a typed tab to a video sound and writes it into the riff,
     }
     writeWav(path.join(dir,'a.wav'),render(notes,t+1));
     fs.mkdirSync(path.join(root,'data'),{recursive:true});
-    fs.writeFileSync(path.join(root,'data/riffs.json'),JSON.stringify([{id:1,song:'Black Dog',artist:'Led Zeppelin',segments},{id:2,song:'Other',artist:'X',segments:[]}]));
+    fs.writeFileSync(path.join(root,'data/riffs.json'),JSON.stringify([{id:1,song:'Black Dog',artist:'Led Zeppelin',segments,dna:{rule:'kept',atoms:[{technique:'qbend',type:'Quarter-tone bend',time:0.5,segmentIndex:0}]}},{id:2,song:'Other',artist:'X',segments:[]}]));
     const report=execFileSync('node',[path.join(__dirname,'../tools/tab-sync-cli.cjs'),'--riffs',path.join(root,'data/riffs.json'),'--id','1','--tex',texFile,'--wav',path.join(dir,'a.wav'),'--out',path.join(dir,'patch.json')],{encoding:'utf8'});
     assert.match(report,/Synced 4 of 4 parts/,report);
     execFileSync('php',[path.join(__dirname,'../scripts/riff-tab-apply.php'),root,path.join(dir,'patch.json'),path.join(dir,'backups')]);
@@ -29,6 +29,16 @@ test('agent tool syncs a typed tab to a video sound and writes it into the riff,
     assert.equal(riff.segments[0].name,'Shot','other fields stay');
     assert.equal(other.tab,undefined,'other riffs untouched');
     assert.equal(fs.readdirSync(path.join(dir,'backups')).length,1);
+    // Techniques written in the tab land on the parts that play them, next to the ones the author set.
+    assert.match(report,/Techniques from the tab: \d+ new/,report);
+    assert.equal(riff.dna.rule,'kept');
+    const fromTab=riff.dna.atoms.filter(a=>a.source==='tab');
+    assert.ok(fromTab.some(a=>a.technique==='legato')&&fromTab.some(a=>a.technique==='qbend'),JSON.stringify(riff.dna.atoms));
+    assert.ok(fromTab.every(a=>a.segmentIndex>=0&&a.segmentIndex<4&&a.time>=segments[a.segmentIndex].start-0.01&&a.time<=segments[a.segmentIndex].end+0.01));
+    assert.equal(riff.dna.atoms.filter(a=>a.technique==='qbend'&&Math.abs(a.time-0.5)<0.25).length,1,'no second copy of an atom already there');
+    // Writing the same patch again adds nothing.
+    execFileSync('php',[path.join(__dirname,'../scripts/riff-tab-apply.php'),root,path.join(dir,'patch.json'),path.join(dir,'backups')]);
+    assert.equal(JSON.parse(fs.readFileSync(path.join(root,'data/riffs.json'),'utf8'))[0].dna.atoms.length,riff.dna.atoms.length);
     // A patch computed before the parts were moved is refused.
     const store=JSON.parse(fs.readFileSync(path.join(root,'data/riffs.json'),'utf8'));store[0].segments[0].start=0.2;
     fs.writeFileSync(path.join(root,'data/riffs.json'),JSON.stringify(store));

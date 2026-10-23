@@ -52,3 +52,10 @@ test('a button caption that names another role is pointed out',()=>{
     assert.match(w[0].text,/«Answer · Pass 2» называет роль Answer, а выбрана Call/);
     assert.deepEqual(texts({segments:[named('Shot 1','call'),named('Land it','land')],dna:full}),[]);
 });
+test('techniques the author names in a description are checked against the parts, by family', () => {
+    const L = require('../js/riff-dna-lint.js');
+    assert.deepEqual(L.mentions('Четвертьтоновый бенд на 5 ладу, легато 7–5–6–7, PM на E5').sort(), ['bend', 'legato', 'palm', 'qbend']);
+    assert.deepEqual(L.mentions('Simple pm-free riff, palm muted'), ['palm']);
+    const r = L.compareNotes('бенд и хаммеры, вибрато в конце, садится на E', [{ technique: 'qbend' }, { technique: 'legato' }, { technique: 'double' }]);
+    assert.deepEqual(r, { both: ['bend', 'legato'], textOnly: ['vibrato'], atomsOnly: ['double'] });
+});

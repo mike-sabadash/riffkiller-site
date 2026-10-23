@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="../css/reset.css">
     <link rel="stylesheet" href="../css/variables.css">
     <!-- Не подключаем base.css и components.css — там стили заглушки; админка риффов самодостаточна -->
-    <link rel="stylesheet" href="../css/admin-editor.css?v=ed2x">
+    <link rel="stylesheet" href="../css/admin-editor.css?v=ed2y">
     <link rel="icon" type="image/svg+xml" href="../assets/icons/favicon.svg">
     <style>
         html, body { background: #111629 !important; background-image: none !important; color: #fff; font-family: Roboto, sans-serif; min-height: 100vh; min-height: 100dvh; padding: 24px; margin: 0; padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px) + 52px); }
@@ -144,6 +144,7 @@
         <form id="riffForm" novalidate>
             <div class="ed-bar">
                 <select id="riffSelect" aria-label="Какой рифф редактировать"><option value="">— Новый рифф —</option></select>
+                <button type="button" class="ed-id" id="edRiffId" hidden title="Номер риффа. Пришлите его вместе со скрином таба, по нему таб попадёт в этот рифф">ID <b></b><span class="ed-id-copy">скопировать</span></button>
                 <span class="ed-bar-title" id="edTitle">Новый рифф</span>
                 <span class="ed-bar-status" id="edStatus" aria-live="polite"></span>
                 <button type="submit" class="ed-btn primary" id="submitBtn">Сохранить <kbd>⌘S</kbd></button>
@@ -286,7 +287,7 @@
                 <label class="ed-check dna-reference"><input type="checkbox" id="dnaReference"> Эталон для ИИ: разметка этого риффа проверена, ИИ берёт её за образец</label>
                 <div id="dnaAiPanel" class="dna-ai">
                     <label for="dnaAiNotes" class="dna-ai-title">Черновик с ИИ</label>
-                    <p class="coll-pick-hint">Опишите рифф своими словами: что происходит по сегментам, где пауза, куда садится, какие приёмы и примерно когда. ИИ раздаст роли сегментам и заполнит поля ниже по правилам методологии. Ничего не сохраняется, пока вы не проверите черновик и не нажмёте «Сохранить».</p>
+                    <p class="coll-pick-hint">Опишите рифф своими словами: что происходит по сегментам, где пауза, куда садится, какие приёмы и примерно когда. ИИ раздаст роли сегментам и заполнит поля ниже по правилам методологии. Ничего не сохраняется, пока вы не проверите черновик и не нажмёте «Сохранить». Само описание сохраняется с риффом: по нему сверяются приёмы, которые встали из таба.</p>
                     <textarea id="dnaAiNotes" rows="4" placeholder="Вокал поёт фразу и замолкает, гитара врывается не в долю. Сегменты 1, 3, 5, 9 — вход, 2, 4, 6, 10 — разворот и посадка на E5. 7 и 8 — разбор деталей. На ~2 c четвертьтоновый бенд на 5 ладу G, легато 7–5–6–7 в начале."></textarea>
                     <div class="dna-ai-actions">
                         <button type="button" class="ed-btn" id="dnaAiRun">Составить черновик</button>
@@ -296,7 +297,7 @@
                 </div>
                 <div class="dna-admin-grid">
                     <label class="wide">Как рифф звучит целиком (Organism)<textarea id="dnaOverviewInput" placeholder="Голос оставляет паузу, гитара врывается, крутится на коротких клетках и садится на E"></textarea></label>
-                    <div class="wide"><label>Приёмы (Atoms) — бенды, слайды, hammer-on в конкретный момент</label><details class="ed-more atom-legend"><summary>Справочник приёмов: сокращение на кнопке части, название и как играть</summary><p class="atom-legend-note">На сайте ученик видит то же самое: на телефоне на кнопке части стоит сокращение, а значок «Techniques» над частями открывает этот список с объяснениями.</p><div id="atomLegendList" class="atom-legend-list"></div></details><div id="dnaAtomsEditor"></div><div class="dna-atom-actions"><button type="button" class="ed-btn" id="dnaAddAtom">+ Приём в текущий момент видео</button><button type="button" class="ed-btn" id="dnaTabAtoms">Приёмы из табов</button><span id="dnaTabAtomsStatus" class="ed-tab-status" role="status"></span></div></div>
+                    <div class="wide"><label>Приёмы (Atoms) — бенды, слайды, hammer-on в конкретный момент</label><details class="ed-more atom-legend"><summary>Справочник приёмов: сокращение на кнопке части, название и как играть</summary><p class="atom-legend-note">На сайте ученик видит то же самое: на телефоне на кнопке части стоит сокращение, а значок «Techniques» над частями открывает этот список с объяснениями.</p><div id="atomLegendList" class="atom-legend-list"></div></details><div id="dnaNotesCheck" class="dna-notes-check" role="status" hidden></div><div id="dnaAtomsEditor"></div><div class="dna-atom-actions"><button type="button" class="ed-btn" id="dnaAddAtom">+ Приём в текущий момент видео</button><button type="button" class="ed-btn" id="dnaTabAtoms">Приёмы из табов</button><span id="dnaTabAtomsStatus" class="ed-tab-status" role="status"></span></div></div>
                     <label class="wide">Правило риффа одной фразой (DNA Rule)<input type="text" id="dnaRuleInput" placeholder="The cells are simple. The phrase is uneven."></label>
                     <label class="wide">Почему это работает<textarea id="dnaLawInput" placeholder="Коротко: какое правило связывает части"></textarea></label>
                     <label>Что сохранить (по строке)<textarea id="dnaPreserveInput" placeholder="Пауза перед входом&#10;Посадка на E"></textarea></label>
@@ -375,8 +376,8 @@
     <script>window.RK_I18N = window.RK_I18N || { register: function (d) { window.RK_RU = d.exact; } };</script>
     <script src="../js/i18n/ru.js?v=i6"></script>
     <script src="../js/riff-dna-vocab.js?v=dna7"></script>
-    <script src="../js/admin-dna.js?v=dna5"></script>
-    <script src="../js/riff-dna-lint.js?v=lint1"></script>
+    <script src="../js/admin-dna.js?v=dna6"></script>
+    <script src="../js/riff-dna-lint.js?v=lint2"></script>
     <script src="../js/admin-dna-ai.js?v=ai3"></script>
     <script src="../js/tab-live.js?v=8"></script>
     <script src="../js/tab-sync.js?v=3"></script>
@@ -670,7 +671,16 @@
         // The picker already names a saved riff; the title only helps while a new one has no entry yet.
         var isNew = !document.getElementById('riffForm').dataset.editId;
         document.getElementById('edTitle').textContent = isNew ? (song ? song + (artist ? ' — ' + artist : '') : 'Новый рифф') : '';
+        var idBtn = document.getElementById('edRiffId');
+        idBtn.hidden = isNew;
+        idBtn.querySelector('b').textContent = document.getElementById('riffForm').dataset.editId || '';
+        idBtn.querySelector('.ed-id-copy').textContent = 'скопировать';
     }
+    document.getElementById('edRiffId').addEventListener('click', function () {
+        var btn = this, id = btn.querySelector('b').textContent;
+        var done = function () { btn.querySelector('.ed-id-copy').textContent = 'скопировано'; };
+        if (navigator.clipboard) navigator.clipboard.writeText(id).then(done, function () {}); else done();
+    });
     // The DNA assistant reads the riff being edited from window.
     function setEditing(riff) { editingRiff = riff; window.editingRiff = riff; }
     function confirmLeave() { return !isDirty || confirm('Есть несохранённые изменения. Уйти без сохранения?'); }

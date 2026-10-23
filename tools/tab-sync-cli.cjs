@@ -10,6 +10,9 @@ const fs = require('node:fs');
 const alphaTab = require('../js/vendor/alphatab/alphaTab.min.js');
 const { summarize, formatBars } = require('../js/tab-live.js').TabLive;
 const { features, syncPart, syncWhole, RATE } = require('../js/tab-sync.js').TabSync;
+globalThis.TabLive = require('../js/tab-live.js').TabLive; // tab-atoms places a technique at the heard note through it
+const TabAtoms = require('../js/tab-atoms.js').TabAtoms;
+const Vocab = require('../js/riff-dna-vocab.js').RiffDNAVocab;
 
 const SURE = 0.05; // same threshold as the admin (js/admin-tabs.js)
 const ON_ATTACK = 0.8; // share of the tab's notes heard as attacks for the whole take to count as played in one go
@@ -76,12 +79,24 @@ function main() {
         rows.push('| ' + (i + 1) + ' | ' + (p.role || 'drill') + ' | ' + p.start.toFixed(2) + '–' + p.end.toFixed(2) + ' | ' +
             (r ? formatBars(r.bars) : '—') + ' | ' + (r ? r.contrast.toFixed(2) : '—') + ' | ' + (sure ? 'yes' : 'left as is') + ' |');
     });
+    // Techniques written in the tab go onto the parts with the tab, the same as «Приёмы из табов» in the admin.
+    const placedParts = parts.map((p, i) => {
+        const s = segments[i];
+        return { start: p.start, end: p.end, bars: s ? s.tabBars : (Array.isArray(p.tabBars) ? p.tabBars : null), sync: s ? s.tabSync : p.tabSync };
+    });
+    const existing = riff.dna && Array.isArray(riff.dna.atoms) ? riff.dna.atoms : [];
+    const placed = TabAtoms.place(TabAtoms.extract(score, track), bars, placedParts);
+    const atoms = TabAtoms.fresh(placed.atoms, existing).map(a => {
+        const t = Vocab.technique(a.technique);
+        return Object.assign(a, { type: t ? t.label : a.technique, source: 'tab' });
+    });
     const patch = {
         id: riff.id,
         tab: Object.assign({ tex }, track ? { track } : {}),
         // The server refuses the patch if the parts were changed since this was computed.
         expect: parts.map(p => [p.start, p.end]),
-        segments
+        segments,
+        atoms
     };
     fs.writeFileSync(a.out, JSON.stringify(patch));
     // For the workflow's "write only if every part is synced" mode.
@@ -99,7 +114,11 @@ function main() {
         '|---|---|---|---|---|---|',
         ...rows,
         '',
-        'Synced ' + Object.keys(segments).length + ' of ' + parts.length + ' parts (pitch match ≥ ' + SURE + ').'
+        'Synced ' + Object.keys(segments).length + ' of ' + parts.length + ' parts (pitch match ≥ ' + SURE + ').',
+        '',
+        'Techniques from the tab: ' + atoms.length + ' new' + (placed.atoms.length - atoms.length ? ', ' + (placed.atoms.length - atoms.length) + ' already on the parts' : '') +
+            (placed.unplaced ? ', ' + placed.unplaced + ' in bars no part plays' : '') + '.' +
+            (atoms.length ? ' ' + atoms.map(a => a.technique + ' @' + a.time.toFixed(2) + ' (part ' + (a.segmentIndex + 1) + ')').join(', ') : '')
     ].join('\n'));
 }
 

@@ -2,7 +2,8 @@
 /**
  * Agent tool, runs on the server: writes a tab and its sound sync into one riff of data/riffs.json.
  *   php riff-tab-apply.php <document root> <patch.json> <backup dir>
- * patch: { id, tab: { tex, track? }, expect: [[start, end] per part], segments: { index: { tabBars, tabSync } } }
+ * patch: { id, tab: { tex, track? }, expect: [[start, end] per part], segments: { index: { tabBars, tabSync } }, atoms?: [...] }
+ * atoms: Riff DNA techniques read from the tab; added to riff.dna.atoms unless the same technique is already within 0.25 s.
  * Same lock and atomic replace as api/riffs/save.php; the file keeps its owner and mode.
  */
 if (PHP_SAPI !== 'cli') exit(1);
@@ -42,6 +43,27 @@ foreach (($patch['segments'] ?? []) as $i => $s) {
     $segs[$i]['tabSync'] = array_map(function ($a) { return [(int)$a[0], (int)$a[1], round((float)$a[2], 3)]; }, $s['tabSync']);
 }
 $riff['segments'] = $segs;
+$added = 0;
+if (!empty($patch['atoms']) && is_array($patch['atoms'])) {
+    $dna = is_array($riff['dna'] ?? null) ? $riff['dna'] : [];
+    $have = is_array($dna['atoms'] ?? null) ? $dna['atoms'] : [];
+    foreach ($patch['atoms'] as $a) {
+        if (!is_array($a) || !preg_match('/^[a-z]+$/', (string)($a['technique'] ?? '')) || !is_numeric($a['time'] ?? null)) continue;
+        $index = (int)($a['segmentIndex'] ?? -1);
+        if (!isset($segs[$index])) continue;
+        $dup = false;
+        foreach ($have as $e) if (($e['technique'] ?? '') === $a['technique'] && isset($e['time']) && abs((float)$e['time'] - (float)$a['time']) < 0.25) { $dup = true; break; }
+        if ($dup) continue;
+        $have[] = [
+            'technique' => $a['technique'], 'type' => (string)($a['type'] ?? $a['technique']), 'label' => (string)($a['label'] ?? ''),
+            'tip' => '', 'view' => ($a['view'] ?? '') === 'right' ? 'right' : 'left', 'speed' => (float)($a['speed'] ?? 0.5),
+            'segmentIndex' => $index, 'time' => round((float)$a['time'], 2), 'source' => 'tab'
+        ];
+        $added++;
+    }
+    $dna['atoms'] = $have;
+    $riff['dna'] = $dna;
+}
 $list[$idx] = $riff;
 
 $encoded = json_encode($list, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
@@ -52,4 +74,4 @@ chmod($temp, $stat['mode'] & 0777);
 if (function_exists('posix_getuid') && posix_getuid() === 0) { chown($temp, $stat['uid']); chgrp($temp, $stat['gid']); }
 if (!rename($temp, $file)) { @unlink($temp); fail('could not replace riff store'); }
 flock($lock, LOCK_UN);
-echo "::notice::Riff {$patch['id']}: tab saved, " . count($patch['segments'] ?? []) . " parts synced. Backup: $backup\n";
+echo "::notice::Riff {$patch['id']}: tab saved, " . count($patch['segments'] ?? []) . " parts synced, $added techniques added. Backup: $backup\n";
