@@ -87,6 +87,25 @@ if [ "$mode" = verify ]; then
     [ "$(fetch "$chosen" "$p" "$body")" = 200 ] && exposed="$exposed $p"
   done
   [ -n "$exposed" ] && echo "::warning::Publicly readable:$exposed (add deploy/nginx-riffkiller-security.conf to nginx)"
+  # Google sign-in (informational): the start page must send to Google with our callback,
+  # and Google must accept the client id/secret (a made-up code then fails as invalid_grant, not invalid_client).
+  url="${chosen%%|*}" extra="${chosen#*|}"
+  loc="$(curl -s --max-time 15 $extra -o /dev/null -D - "$url/api/auth/google-login.php" | tr -d '\r' | sed -n 's/^[Ll]ocation: //p' | head -n1 || true)"
+  callback="https://$site/api/auth/google-callback.php"
+  if [[ "$loc" == https://accounts.google.com/* && "$loc" == *"redirect_uri=$(printf %s "$callback" | sed 's/:/%3A/g; s#/#%2F#g')"* ]]; then
+    note "Google sign-in: redirects to Google with $callback"
+  else echo "::warning::Google sign-in start does not reach Google: ${loc:-no redirect}" >&2; fi
+  env_value() { sed -n "s/^[[:space:]]*$1[[:space:]]*=[[:space:]]*//p" "$(find_root)/.env" 2>/dev/null | tail -n1 | sed "s/^[\"']//; s/[\"'][[:space:]]*$//; s/[[:space:]]*$//"; }
+  gid="$(env_value GOOGLE_CLIENT_ID || true)" gsec="$(env_value GOOGLE_CLIENT_SECRET || true)"
+  if [ -n "$gid" ] && [ -n "$gsec" ]; then
+    gerr="$(printf 'client_id=%s&client_secret=%s&code=verify&grant_type=authorization_code&redirect_uri=%s' "$gid" "$gsec" "$callback" \
+      | curl -s --max-time 15 -d @- https://oauth2.googleapis.com/token | grep -o '"error": *"[a-z_]*"' | grep -o '[a-z_]*"$' | tr -d '"' || true)"
+    case "$gerr" in
+      invalid_grant) note "Google client: id and secret accepted" ;;
+      *) echo "::warning::Google client check: ${gerr:-no answer} (invalid_client means GOOGLE_CLIENT_ID/SECRET in .env do not match)" >&2 ;;
+    esac
+  else echo "::warning::Google client: GOOGLE_CLIENT_ID or GOOGLE_CLIENT_SECRET is empty in .env" >&2; fi
+  unset gsec
   rm -f "$body"
   [ "$ok" = 1 ]
   exit
