@@ -54,7 +54,7 @@ test('the draft is built from the rules and cleaned to the editor format',async(
         segments:[{index:0,role:'launch',function:'Jumps in off balance'},{index:1,role:'fly',function:'x'},{index:7,role:'land'}],
         dna:{overview:'A conversation.',rule:'Simple cells, uneven phrase.',preserve:'The gap\nThe landing',change:['Register'],failure:'You remove the gap.',
             atoms:[{technique:'qbend',label:'5th fret',tip:'Just a nudge',time:2.5,segmentIndex:0,view:'left',speed:0.5},
-                {technique:'sweep',type:'Sweep',label:'Somewhere',tip:'Fast',segmentIndex:2,view:'top',speed:3},
+                {technique:'warp',type:'Warp',label:'Somewhere',tip:'Fast',segmentIndex:2,view:'top',speed:3},
                 {technique:'bend',label:'Lost',tip:'No segment',time:99}],
             mutation:{title:'Same spirit',steps:['Leave a gap','Land']}},
         notes:['Где вступает вокал?']
@@ -76,7 +76,7 @@ test('the draft is built from the rules and cleaned to the editor format',async(
     assert.deepEqual(d.dna.preserve,['The gap','The landing']);
     assert.equal(d.dna.atoms.length,2,'an atom outside the video with no segment is dropped');
     assert.deepEqual(d.dna.atoms[0],{technique:'qbend',type:'Quarter-tone bend',label:'5th fret',tip:'Just a nudge',view:'left',speed:0.5,segmentIndex:1,time:2.5},'the time decides the segment');
-    assert.equal(d.dna.atoms[1].technique,'other');assert.equal(d.dna.atoms[1].type,'Sweep');
+    assert.equal(d.dna.atoms[1].technique,'other');assert.equal(d.dna.atoms[1].type,'Warp');
     assert.equal(d.dna.atoms[1].view,'split');assert.equal(d.dna.atoms[1].speed,0.5);assert.equal(d.dna.atoms[1].time,undefined);
     assert.deepEqual(d.dna.mutation.steps,['Leave a gap','Land']);
     assert.deepEqual(d.notes,['Где вступает вокал?']);
