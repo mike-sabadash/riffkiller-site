@@ -332,7 +332,8 @@
                 document.querySelectorAll('[data-usd]').forEach(function(el) { el.textContent = yearly ? '$90 / year' : '$9 / month'; });
                 var rub = billingOptions && billingOptions.providers.rub;
                 document.querySelectorAll('[data-rub]').forEach(function(el) {
-                    el.textContent = rub ? formatRub(yearly ? rub.yearly : rub.monthly) + (yearly ? ' / year' : ' / month') : '';
+                    var price = rub && (yearly ? rub.yearly : rub.monthly);
+                    el.textContent = price ? formatRub(price) + (yearly ? ' / year' : ' / month') : '';
                 });
             }
             function applyOptions(opts) {

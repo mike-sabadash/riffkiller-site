@@ -468,7 +468,8 @@ function setupCardRenewalControls(button, message) {
         showMessage(until ? 'Renews automatically on ' + until + '.' : '');
         button.onclick = function (e) {
             e.preventDefault();
-            if (!window.confirm('Turn off auto-renewal? Premium stays on until the end of the paid period.')) return;
+            var question = 'Turn off auto-renewal? Premium stays on until the end of the paid period.';
+            if (!window.confirm(window.RK_I18N ? window.RK_I18N.t(question) : question)) return;
             button.textContent = 'Cancelling\u2026';
             fetch('api/billing/cancel.php', { method: 'POST', credentials: 'same-origin' }).then(function (r) { return r.json(); }).then(function (res) {
                 if (res && res.success) { setupCardRenewalControls(button, message); return; }
