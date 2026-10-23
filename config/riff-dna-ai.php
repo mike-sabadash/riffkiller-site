@@ -24,7 +24,7 @@ function dna_ai_vocab() {
         foreach ($rows as $r) $vocab['roles'][$r[1]] = ['label' => $r[2], 'hint' => $r[3]];
     }
     if (preg_match('/var TECHNIQUES = \[(.*?)\];/s', $js, $m)) {
-        preg_match_all("/key: '([a-z]+)', label: '([^']+)'/", $m[1], $rows, PREG_SET_ORDER);
+        preg_match_all("/key: '([a-z]+)',(?: short: '[^']*',)? label: '([^']+)'/", $m[1], $rows, PREG_SET_ORDER);
         foreach ($rows as $r) $vocab['techniques'][$r[1]] = $r[2];
     }
     return $vocab;
