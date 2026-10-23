@@ -439,6 +439,10 @@
         });
     }
     function getSelectedCollectionIds() {
+        // Checkboxes not drawn yet (list still loading or failed) — keep what the riff already has, never save [].
+        if (!document.querySelector('#collChecks input[type=checkbox]')) {
+            return (editingRiff && Array.isArray(editingRiff.collectionIds)) ? editingRiff.collectionIds.slice() : [];
+        }
         var ids = [];
         document.querySelectorAll('#collChecks input[type=checkbox]:checked').forEach(function (cb) {
             var n = parseInt(cb.value, 10);
