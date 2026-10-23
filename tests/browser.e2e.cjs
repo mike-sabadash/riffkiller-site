@@ -450,7 +450,7 @@ test('on a phone, bars wider than the screen scroll so the last notes of a part 
     const page=await pageFor(t,390);await practice(page);
     await page.locator('.segment-btn').nth(1).click();await page.click('#toggleTabs');
     await page.waitForSelector('.tabs-overlay.is-live .tab-live.is-ready',{timeout:20000});
-    const seg=riff.segments[1];
+    const seg=riff.segments[await page.evaluate(()=>currentSegment)]; // the part that plays, so the loop does not jump back
     await page.evaluate(t=>{const v=document.querySelector('#videoWrapper video');v.pause();v.currentTime=t;},seg.end-0.05);
     await page.waitForTimeout(600);
     const view=await page.evaluate(()=>{
