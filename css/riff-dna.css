@@ -261,9 +261,6 @@ html[data-theme='light'] .segment-btn .dna-segment-role--drill { color: rgba(20,
 
 /* Tabs and their panel stay adjacent at every breakpoint. */
 .practice-workspace .dna-lab { margin: 0; min-width: 0; }
-@media (min-width: 1160px) {
-    .practice-workspace .dna-lab { position: sticky; top: calc(var(--height-header) + 20px); }
-}
 
 @media (max-width: 520px) {
     .dna-lab { padding: 16px 16px 20px; }

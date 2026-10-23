@@ -2064,3 +2064,27 @@
     .practice-workspace .mode-btn[data-short]::after { content: attr(data-short); font-size: 13px; }
     .practice-workspace .tab-toggle-btn .tab-text::after { font-size: 13px; }
 }
+
+/* Между плеером и частями отступ даёт gap сетки */
+.practice-workspace .video-player-container { margin-bottom: 0; }
+.practice-workspace .practice-parts .segment-controls-container { margin-top: 0; }
+
+/* Десктоп: части колонкой справа от видео, всегда под рукой; Riff DNA — под плеером */
+@media (min-width: 1160px) {
+    .practice-workspace { grid-template-columns: minmax(0, 1.65fr) minmax(300px, 1fr); }
+    .practice-player { grid-column: 1; grid-row: 1; }
+    .practice-workspace .dna-lab { grid-column: 1; grid-row: 2; }
+    .practice-parts {
+        grid-column: 2; grid-row: 1 / span 2; align-self: start;
+        position: sticky; top: calc(var(--height-header) + 20px);
+        max-height: calc(100vh - var(--height-header) - 40px); overflow-y: auto; scrollbar-width: thin;
+        padding: 14px 10px 10px; border: 1px solid rgba(255,255,255,.08); border-radius: 16px; background: #121214;
+    }
+    .practice-parts .segment-key { margin-bottom: 8px; padding: 0 10px; }
+    .practice-parts .segment-controls { display: flex; flex-direction: column; gap: 2px; }
+    .practice-parts .segment-btn { min-height: 36px; padding: 7px 10px; border-color: transparent; border-radius: 8px; background: transparent; font-size: 13px; }
+    .practice-parts .segment-btn:hover { border-color: transparent; background: rgba(255,255,255,.05); }
+    .practice-parts .segment-btn.active { border-color: transparent; }
+    .practice-parts .segment-btn.all-riff { position: relative; margin-bottom: 9px; overflow: visible; }
+    .practice-parts .segment-btn.all-riff::after { content: ''; position: absolute; left: 10px; right: 10px; bottom: -6px; height: 1px; background: rgba(255,255,255,.07); pointer-events: none; }
+}
