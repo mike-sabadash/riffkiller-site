@@ -181,6 +181,20 @@
         return anchors[anchors.length - 1][2];
     }
 
+    var EARLY = QUARTER / 8; // a note heard a little before the part's first anchor still belongs to it
+
+    /**
+     * Whether the beat at bar/tick sounds in the part synced with these anchors. Parts are cut by phrase, so
+     * the first and last bar of a part are often shared with its neighbours; their notes are not this part's.
+     */
+    function playedIn(anchors, bar, tick) {
+        if (!anchors || !anchors.length) return true;
+        var lo = anchors[0], hi = anchors[anchors.length - 1];
+        if (bar < lo[0] || bar > hi[0]) return false;
+        if (bar === lo[0] && tick < lo[1] - EARLY) return false;
+        return !(bar === hi[0] && tick >= hi[1]);
+    }
+
     /** A shot's sync anchors when they still fit its bars and its place in the video, otherwise null. */
     function syncOf(segment) {
         var a = segment && segment.tabSync, r = segment && segment.tabBars;
@@ -250,7 +264,7 @@
                 core: { fontDirectory: FONTS, useWorkers: false, engine: 'svg', enableLazyLoading: false, tracks: [track] },
                 display: {
                     layoutMode: at.LayoutMode.Horizontal,
-                    staveProfile: at.StaveProfile.Tab,
+                    staveProfile: at.StaveProfile.TabMixed, // tab only, without time signatures and rests
                     scale: 1,
                     padding: [8, 4, 8, 4],
                     firstSystemPaddingTop: 0,
@@ -361,12 +375,34 @@
                 if (index === current && layout.length) return true;
                 current = index;
                 shift = 0; lastTime = -1; canvas.style.transform = '';
+                hideNeighbours(riff.segments[index], range);
                 api.settings.display.startBar = range.from;
                 api.settings.display.barCount = range.to - range.from + 1;
                 api.updateSettings();
                 render();
                 return true;
             });
+        }
+
+        // Notes of the shared first and last bars that belong to the next or previous part are taken out for
+        // this part's drawing (an empty beat is drawn as nothing) and put back before the next part is drawn.
+        var hidden = [];
+        function hideNeighbours(segment, range) {
+            hidden.forEach(function (h) { h.beat.notes = h.notes; });
+            hidden = [];
+            var staff = trackStaff(), sync = syncOf(segment);
+            if (!staff || !sync) return;
+            for (var n = range.from; n <= range.to; n++) {
+                var bar = staff.bars[n - 1];
+                if (!bar) continue;
+                bar.voices.forEach(function (voice) {
+                    voice.beats.forEach(function (beat) {
+                        if (!beat.notes.length || playedIn(sync, n, beat.playbackStart)) return;
+                        hidden.push({ beat: beat, notes: beat.notes });
+                        beat.notes = [];
+                    });
+                });
+            }
         }
 
         function update(time) {
@@ -393,7 +429,7 @@
                 shift = next;
                 canvas.style.transform = shift ? 'translateX(' + (-shift).toFixed(0) + 'px)' : '';
             }
-            cursor.style.transform = 'translateX(' + (at.x - shift).toFixed(1) + 'px)';
+            cursor.style.transform = 'translateX(' + Math.round(at.x - shift) + 'px)'; // whole pixels: even edges
         }
 
         function destroy() {
@@ -407,6 +443,6 @@
     global.TabLive = {
         barDurations: barDurations, cursorAt: cursorAt, barsOf: barsOf, autoMap: autoMap, parseBars: parseBars, formatBars: formatBars,
         hasTab: hasTab, create: create, preload: preload, readScore: readScore, summarize: summarize,
-        positionAt: positionAt, timeOf: timeOf, syncOf: syncOf, xAtTick: xAtTick
+        positionAt: positionAt, timeOf: timeOf, syncOf: syncOf, playedIn: playedIn, xAtTick: xAtTick
     };
 })(typeof window !== 'undefined' ? window : this);
