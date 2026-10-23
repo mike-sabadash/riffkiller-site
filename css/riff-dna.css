@@ -190,6 +190,9 @@
 .dna-lab--empty #dnaStagePanel { display: none; }
 
 /* Segment buttons: the part's role on the right, explained by the key above the grid */
+/* The part's role colour, the same as its piece of the timeline: a thin stripe, not a frame. */
+.segment-btn.has-role { position: relative; }
+.segment-btn.has-role::after { content: ''; position: absolute; left: 10px; right: 10px; bottom: 0; height: 2px; border-radius: 2px; background: var(--role); opacity: .8; pointer-events: none; }
 .segment-btn .dna-segment-role { margin-left: auto; padding-left: 8px; color: var(--role); font-size: 12px; font-weight: 500; white-space: nowrap; }
 .segment-btn .dna-segment-role--drill { color: rgba(255,255,255,.4); font-weight: 400; }
 .segment-btn.active .dna-segment-role--drill { color: rgba(255,255,255,.6); }

@@ -361,6 +361,11 @@
             if (old) old.remove();
             if (name) name.textContent = role ? nameWithoutRoleWord(segment.displayName || segment.name || name.textContent) : (segment.displayName || name.textContent);
             if (!role) return;
+            // One colour per role on the button (a thin stripe) and on its piece of the timeline.
+            button.classList.add('has-role');
+            button.style.setProperty('--role', role.color);
+            var piece = document.querySelector('.segment[data-index="' + index + '"]');
+            if (piece) piece.style.setProperty('--segment-color', role.color);
             if (used.indexOf(role) < 0 && !used.some(function (r) { return r.key === role.key; })) used.push(role);
             var tag = document.createElement('span');
             tag.className = 'dna-segment-role' + (role.key ? '' : ' dna-segment-role--drill');
