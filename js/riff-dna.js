@@ -88,6 +88,8 @@
                 segment: seg,
                 name: tech && tech.key !== 'other' ? tech.label : (a.type || 'Technique'),
                 known: !!(tech && tech.key !== 'other'),
+                short: tech && tech.short ? tech.short : '',
+                key: tech ? tech.key : '',
                 label: a.label || '',
                 tip: a.tip || '',
                 hint: tech && tech.hint ? tech.hint : '',
@@ -339,14 +341,62 @@
         return segment && segment.role === '' && hasDNA(activeRiff) ? V.practice : null;
     }
 
-    function segmentKey(roles) {
-        if (!roles.length) return '';
+    function segmentKey(roles, techniques) {
+        var guide = techniques ? '<button type="button" class="segment-key-guide" data-dna-guide aria-haspopup="dialog">' +
+            '<svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" focusable="false">' +
+            '<circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" stroke-width="1.3"/>' +
+            '<circle cx="8" cy="4.9" r="0.95" fill="currentColor"/>' +
+            '<path d="M8 7.2v4.6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>' +
+            '<span>Techniques</span></button>' : '';
+        if (!roles.length) return guide;
         return '<span class="segment-key-title">Part roles' +
             hint('The coloured word on a part is its job in the phrase. It is the same set of jobs in every riff.', 'part roles') + '</span>' +
             roles.map(function (role) {
                 return '<span class="segment-key-item" style="--role:' + role.color + '">' + esc(role.label) + hint(role.hint, role.label) + '</span>';
-            }).join('');
+            }).join('') + guide;
     }
+
+    // Every technique explained in one place: a popup on a wide screen, a sheet from the bottom on a phone.
+    // The ones heard in this riff come first, the whole list stays one tap away.
+    function techniqueRow(t) {
+        return '<li class="dna-guide-row"><span class="dna-guide-short" translate="no">' + esc(t.short || '') + '</span>' +
+            '<span class="dna-guide-text"><b>' + esc(t.label) + '</b><span>' + esc(t.hint || '') + '</span></span></li>';
+    }
+    function openTechniqueGuide() {
+        var used = [];
+        atoms().forEach(function (a) {
+            if (a.known && used.indexOf(a.key) < 0) used.push(a.key);
+        });
+        var all = V.techniques.filter(function (t) { return t.key !== 'other'; });
+        var mine = used.map(function (k) { return V.technique(k); });
+        var rest = all.filter(function (t) { return used.indexOf(t.key) < 0; });
+        var dialog = document.getElementById('dnaGuide');
+        if (!dialog) {
+            dialog = document.createElement('dialog');
+            dialog.id = 'dnaGuide';
+            dialog.className = 'dna-guide';
+            dialog.setAttribute('aria-labelledby', 'dnaGuideTitle');
+            document.body.appendChild(dialog);
+            // A tap on the dimmed backdrop closes it, like Esc.
+            dialog.addEventListener('click', function (event) { if (event.target === dialog) dialog.close(); });
+        }
+        dialog.innerHTML =
+            '<div class="dna-guide-head"><h2 id="dnaGuideTitle">Techniques</h2>' +
+            '<button type="button" class="dna-guide-close" aria-label="Close" data-dna-guide-close>' +
+            '<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></button></div>' +
+            '<div class="dna-guide-body">' +
+            (mine.length ? '<h3>In this riff</h3><ul class="dna-guide-list">' + mine.map(techniqueRow).join('') + '</ul>' : '') +
+            (mine.length
+                ? '<details class="dna-guide-all"><summary>All techniques</summary><ul class="dna-guide-list">' + rest.map(techniqueRow).join('') + '</ul></details>'
+                : '<ul class="dna-guide-list">' + all.map(techniqueRow).join('') + '</ul>') +
+            '</div>';
+        dialog.querySelector('[data-dna-guide-close]').onclick = function () { dialog.close(); };
+        if (dialog.showModal) dialog.showModal(); else dialog.setAttribute('open', '');
+    }
+    document.addEventListener('click', function (event) {
+        var button = event.target && event.target.closest ? event.target.closest('[data-dna-guide]') : null;
+        if (button) openTechniqueGuide();
+    });
 
     function decorateSegmentControls() {
         if (!activeRiff || !Array.isArray(activeRiff.segments)) return;
@@ -376,7 +426,9 @@
                 techniques[index].forEach(function (a) {
                     var chip = document.createElement('span');
                     chip.className = 'dna-segment-atom';
-                    chip.textContent = a.name;
+                    // Full name on wide screens, tab shorthand (b, PM, ~) on a phone, where the button is short.
+                    chip.innerHTML = '<span class="dna-atom-full">' + esc(a.name) + '</span>' +
+                        '<span class="dna-atom-short" translate="no">' + esc(a.short || a.name) + '</span>';
                     if (a.hint) chip.setAttribute('data-tip', a.hint);
                     box.appendChild(chip);
                 });
@@ -406,8 +458,9 @@
         // Key in the order roles go in the method (start → tension → turn → home), drill last.
         var order = V.roles.map(function (r) { return r.key; });
         used.sort(function (x, y) { return (x.key ? order.indexOf(x.key) : 99) - (y.key ? order.indexOf(y.key) : 99); });
-        key.innerHTML = segmentKey(used);
-        key.hidden = !used.length;
+        var anyTechnique = Object.keys(techniques).length > 0;
+        key.innerHTML = segmentKey(used, anyTechnique);
+        key.hidden = !used.length && !anyTechnique;
     }
 
     function init(riff) {

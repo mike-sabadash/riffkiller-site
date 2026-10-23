@@ -80,3 +80,18 @@ test('a large drift seeks the follower once, then waits instead of seeking in a 
     assert.equal(seeks, 1, 'no second seek inside the cooldown');
     assert.ok(right.playbackRate < 1);
 });
+test('a loop jump keeps the clock camera silent until the seek lands', () => {
+    const {left,right,t}=setup(); left.muted=false; right.muted=true;
+    t.loopTo(3); assert.equal(left.currentTime,3); assert.equal(right.currentTime,3);
+    assert.equal(left.muted,true);
+    t.loopTo(3); left.dispatchEvent(new Event('seeked'));
+    assert.equal(left.muted,false); assert.equal(right.muted,true);
+    t.destroy();
+});
+test('the loop lead follows how far the clock moves between checks', async () => {
+    const {left,t}=setup(); await t.play();
+    for (let i=0;i<20;i++){ left.currentTime=i*0.033; t.tick(); }
+    assert.ok(Math.abs(t.step-0.033)<0.002);
+    left.currentTime=5; t.tick(); assert.ok(t.step<0.04, 'a jump is not a step');
+    t.destroy();
+});

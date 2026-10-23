@@ -10,6 +10,10 @@
     const value = id => document.getElementById(id).value.trim();
     const splitLines = text => text.split('\n').map(s => s.trim()).filter(Boolean);
     const video = () => document.getElementById('segmentEditorVideo');
+    // Russian names and explanations come from the site's own translation (js/i18n/ru.js), so both say the same.
+    const ru = text => (root.RK_RU && root.RK_RU[text]) || '';
+    const techName = t => t.label + (ru(t.label) && ru(t.label) !== t.label ? ' — ' + ru(t.label) : '');
+    const techOption = t => (t.short ? t.short + '  ·  ' : '') + techName(t);
 
     function input(label, key, data, options) {
         const wrap = document.createElement('label');
@@ -46,7 +50,7 @@
             if (found >= 0) index = found;
         }
         const known = V.technique(atom.technique) ? atom.technique : 'other';
-        card.appendChild(input('Приём (Atom)', 'technique', known, V.techniques.map(t => [t.key, t.label])));
+        card.appendChild(input('Приём (Atom)', 'technique', known, V.techniques.map(t => [t.key, t.key === 'other' ? t.label : techOption(t)])));
         // For "Other" and for older entries the label of the technique itself is kept here.
         card.appendChild(input('Название, если «Other»', 'type', known === 'other' ? (atom.type || '') : ''));
         card.appendChild(input('Где: лад, струна, ноты', 'label', atom.label || ''));
@@ -190,27 +194,64 @@
                 body.insertBefore(box, help ? help.nextSibling : body.firstChild);
             }
             box.replaceChildren();
+            const used = [];
             const title = document.createElement('span'); title.textContent = 'Приёмы в этой части';
             const chips = document.createElement('div'); chips.className = 'seg-atom-chips';
             cardsOf(row).forEach(card => {
                 const tech = V.technique(card.querySelector('[data-field="technique"]').value);
                 const chip = document.createElement('span'); chip.className = 'seg-atom-chip';
-                chip.textContent = tech && tech.key !== 'other' ? tech.label : (card.querySelector('[data-field="type"]').value || 'Other');
+                const isKnown = tech && tech.key !== 'other';
+                if (isKnown && tech.short) {
+                    const abbr = document.createElement('span'); abbr.className = 'seg-atom-short'; abbr.textContent = tech.short;
+                    chip.appendChild(abbr);
+                }
+                chip.appendChild(document.createTextNode(isKnown ? tech.label : (card.querySelector('[data-field="type"]').value || 'Other')));
+                if (isKnown) {
+                    chip.title = ru(tech.hint) || tech.hint;
+                    if (!used.includes(tech)) used.push(tech);
+                }
                 const x = document.createElement('button'); x.type = 'button'; x.textContent = '×'; x.title = 'Убрать приём';
                 x.onclick = () => { card.remove(); if (typeof root.segmentEditorRenderStrip === 'function') root.segmentEditorRenderStrip(); };
                 chip.appendChild(x); chips.appendChild(chip);
             });
             const pick = document.createElement('select'); pick.className = 'seg-atom-add'; pick.setAttribute('aria-label', 'Добавить приём в эту часть');
-            [['', '+ Добавить приём'], ...V.techniques.filter(t => t.key !== 'other').map(t => [t.key, t.label])].forEach(([v, text]) => {
+            [['', '+ Добавить приём'], ...V.techniques.filter(t => t.key !== 'other').map(t => [t.key, techOption(t)])].forEach(([v, text]) => {
                 const o = document.createElement('option'); o.value = v; o.textContent = text; pick.appendChild(o);
             });
             pick.onchange = () => { if (pick.value) addAtom({ technique: pick.value, segmentIndex: index }); };
             chips.appendChild(pick);
             box.append(title, chips);
+            // What each chosen technique means, in the same words the student sees on the site.
+            if (used.length) {
+                const help = document.createElement('div'); help.className = 'seg-atom-help';
+                used.forEach(t => {
+                    const line = document.createElement('p');
+                    const b = document.createElement('b'); b.textContent = techName(t);
+                    line.append(b, ' — ' + (ru(t.hint) || t.hint));
+                    help.appendChild(line);
+                });
+                box.appendChild(help);
+            }
+        }));
+    }
+
+    // Reference for every technique: shorthand on the part buttons, name, how it is played.
+    function drawLegend() {
+        const list = document.getElementById('atomLegendList');
+        if (!list) return;
+        list.replaceChildren(...V.techniques.filter(t => t.key !== 'other').map(t => {
+            const row = document.createElement('div'); row.className = 'atom-legend-row';
+            const abbr = document.createElement('span'); abbr.className = 'seg-atom-short'; abbr.textContent = t.short || '';
+            const text = document.createElement('div');
+            const b = document.createElement('b'); b.textContent = techName(t);
+            const p = document.createElement('p'); p.textContent = ru(t.hint) || t.hint;
+            text.append(b, p); row.append(abbr, text);
+            return row;
         }));
     }
 
     document.addEventListener('DOMContentLoaded', () => {
+        drawLegend();
         const atomsBox = document.getElementById('dnaAtomsEditor');
         new MutationObserver(drawRowAtoms).observe(atomsBox, {childList: true});
         atomsBox.addEventListener('change', drawRowAtoms);

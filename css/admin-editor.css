@@ -167,6 +167,18 @@ body.ed-page .tab-pane#tabList .form-section { max-width: 760px; }
 .seg-atom-chip button:hover { background: rgba(255, 255, 255, 0.08); color: var(--ed-text); }
 .seg-atoms .seg-atom-add { width: auto; flex: none; padding: 4px 8px; font-size: 12px; background: var(--ed-surface-2); border: 1px solid var(--ed-line-strong); border-radius: 999px; color: var(--ed-text-2); }
 .seg-atom-add option { color: #000; }
+.seg-atom-short { display: inline-block; min-width: 14px; margin-right: 5px; color: var(--ed-text-3); font-size: 11px; font-weight: 600; text-align: center; }
+.seg-atom-help { margin-top: 8px; font-size: 12px; color: var(--ed-text-2); background: var(--ed-surface); border-radius: 6px; padding: 8px 10px; }
+.seg-atom-help p { margin: 0; }
+.seg-atom-help p + p { margin-top: 4px; }
+.seg-atom-help b { color: var(--ed-text); font-weight: 600; }
+.atom-legend { margin: 6px 0 12px; }
+.atom-legend-note { margin: 0 0 10px; font-size: 12px; color: var(--ed-text-3); }
+.atom-legend-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 2px 20px; }
+.atom-legend-row { display: grid; grid-template-columns: 36px 1fr; gap: 8px; padding: 7px 0; border-top: 1px solid var(--ed-line); font-size: 12px; }
+.atom-legend-row .seg-atom-short { justify-self: start; align-self: start; margin: 0; padding: 1px 6px; border: 1px solid var(--ed-line-strong); border-radius: 999px; }
+.atom-legend-row b { color: var(--ed-text); font-weight: 600; }
+.atom-legend-row p { margin: 2px 0 0; color: var(--ed-text-2); }
 .seg-colors { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
 .seg-colors button { width: 20px; height: 20px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; padding: 0; }
 .seg-colors button.on { border-color: #fff; }

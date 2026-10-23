@@ -466,6 +466,8 @@
             "Sign in failed. Please try again.": "No se pudo iniciar sesión. Inténtalo de nuevo.",
             "Could not connect. Check your connection and try again.": "No se pudo conectar. Revisa tu conexión e inténtalo de nuevo.",
             "Close": "Cerrar",
+            "In this riff": "En este riff",
+            "All techniques": "Todas las técnicas",
             "Sign in or create an account to save progress and manage subscription.": "Inicia sesión o crea una cuenta para guardar tu progreso y administrar tu suscripción.",
             "Account": "Cuenta",
             "Your name": "Tu nombre",
