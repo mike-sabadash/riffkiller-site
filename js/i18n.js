@@ -17,7 +17,7 @@
         { code: 'es', short: 'ES', name: 'Español', html: 'es-419' }
     ];
     var STORE = 'rk-lang';
-    var VERSION = 'i4';
+    var VERSION = 'i5';
     var ATTRS = ['title', 'alt', 'placeholder', 'aria-label', 'data-tip', 'data-tooltip', 'data-short'];
 
     function known(code) {
