@@ -2053,3 +2053,14 @@
     content: '← ';
 }
 
+
+/* Phones: cameras and Tabs stay on one row in every language (short camera names from data-short). */
+@media (max-width: 560px) {
+    .practice-workspace .video-top-controls { flex-wrap: nowrap; gap: 6px; }
+    .practice-workspace .hand-controls { flex: 0 1 auto; flex-direction: row; align-items: center; min-width: 0; flex-wrap: nowrap; }
+    .practice-workspace .mode-btn,
+    .practice-workspace .tab-toggle-btn { padding: 0 11px !important; font-size: 13px !important; white-space: nowrap; }
+    .practice-workspace .mode-btn[data-short] { font-size: 0 !important; }
+    .practice-workspace .mode-btn[data-short]::after { content: attr(data-short); font-size: 13px; }
+    .practice-workspace .tab-toggle-btn .tab-text::after { font-size: 13px; }
+}

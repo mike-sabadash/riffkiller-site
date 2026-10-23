@@ -374,7 +374,11 @@ test('English by default; the header switches to Russian and Spanish and the cho
     assert.equal(await page.evaluate(()=>document.documentElement.lang),'en');
     assert.equal((await page.locator('.topbar-links [data-page=riffs]').textContent()).trim(),'Riffs');
     await page.click('.rk-lang-toggle');
-    await Promise.all([page.waitForEvent('load'),page.click('.rk-lang-option[data-lang=ru]')]);
+    await page.evaluate(()=>{window.__samePage=true;});
+    await page.click('.rk-lang-option[data-lang=ru]');
+    assert.equal(await page.locator('.rk-lang-code').textContent(),'RU','The switch shows the new language at once');
+    await page.waitForFunction(()=>document.querySelector('.topbar-links [data-page=practice]').textContent.trim()==='Практика');
+    assert.equal(await page.evaluate(()=>window.__samePage),true,'Switching does not reload the page');
     assert.equal(await page.evaluate(()=>document.documentElement.lang),'ru');
     assert.equal((await page.locator('.topbar-links [data-page=practice]').textContent()).trim(),'Практика');
     assert.match(await page.locator('.home-hero-title').textContent(),/Добей каждый рифф/);
@@ -388,8 +392,12 @@ test('English by default; the header switches to Russian and Spanish and the cho
     const mobile=await pageFor(t,390);await mobile.goto(site.base+'/index.html?lang=es',{waitUntil:'domcontentloaded'});
     await mobile.click('#burgerMenu');
     assert.equal(await mobile.locator('.rk-lang-chip.is-active').textContent(),'ES');
-    await Promise.all([mobile.waitForEvent('load'),mobile.click('.rk-lang-chip[data-lang=en]')]);
+    await mobile.click('.rk-lang-chip[data-lang=en]');
+    assert.equal(await mobile.locator('.rk-lang-chip.is-active').textContent(),'EN');
     assert.equal(await mobile.evaluate(()=>[document.documentElement.lang,location.search].join('|')),'en|');
+    assert.match(await mobile.locator('.home-hero-title').textContent(),/Kill every riff/,'English comes back from the remembered source text');
+    await mobile.click('.rk-lang-chip[data-lang=ru]');
+    await mobile.waitForFunction(()=>/Добей каждый рифф/.test(document.querySelector('.home-hero-title').textContent));
 });
 test('Patreon sign-in still completes with Russian selected',async t=>{
     const page=await pageFor(t);await page.addInitScript(()=>{localStorage.setItem('patreonState','fixture-state');localStorage.setItem('rk-lang','ru');});
@@ -397,6 +405,25 @@ test('Patreon sign-in still completes with Russian selected',async t=>{
     await page.route('**/patreon-validate.php',route=>route.fulfill({json:{success:true,user:{id:'fixture-patreon',full_name:'Fixture'},subscription:{status:'active',source:'patreon'}}}));
     await page.goto(site.base+'/patreon-callback.html?code=fixture&state=fixture-state',{waitUntil:'domcontentloaded'});await page.waitForURL('**/app.html',{waitUntil:'domcontentloaded'});
     assert.equal(await page.evaluate(()=>document.documentElement.lang),'ru');
+});
+test('in Russian and Spanish every interface string on the main pages is translated; only riff content stays as typed',async t=>{
+    // Riff content comes from the admin (titles, part names, DNA texts) and is not part of the interface dictionary.
+    const content=new Set();
+    const walk=v=>{if(typeof v==='string')content.add(v.replace(/\s+/g,' ').trim());else if(v&&typeof v==='object')Object.values(v).forEach(walk);};
+    // Read the fixture's data, not the repository's: the editor tests above save riffs there.
+    for(const f of ['riffs.json','collections.json'])walk(JSON.parse(fs.readFileSync(path.join(site.dir,'data',f),'utf8')));
+    // Pages also show pieces of content: "Pass 1" from a part named "Statement · Pass 1".
+    const fromContent=s=>content.has(s)||[...content].some(c=>(c.length>2&&s.includes(c))||(s.length>3&&c.includes(s)));
+    const brands=/^(Riff Killer|Instagram|YouTube|Facebook|Patreon|Stripe|Cryptomus|Mike Sabadash|RK-X+|\S+@\S+)$/;
+    for(const lang of ['ru','es']){
+        const page=await pageFor(t);await page.addInitScript(l=>localStorage.setItem('rk-lang',l),lang);
+        const missing=new Set();
+        const collect=async()=>{for(const s of await page.evaluate(()=>RK_I18N.missing()))if(!brands.test(s)&&!fromContent(s))missing.add(s);};
+        for(const p of ['index.html','landing.html','billing.html','profile.html','favorites.html']){await page.goto(site.base+'/'+p,{waitUntil:'load'});await collect();}
+        await practice(page);
+        for(const stage of ['scan','split','isolate','decode','mutate']){await page.locator('[data-dna-stage='+stage+']').click();await collect();}
+        assert.deepEqual([...missing],[],lang+': add these to tools/i18n/strings.py and run python3 tools/i18n/build.py');
+    }
 });
 test('a riff with a tab file shows a live tab strip whose cursor follows the video',async t=>{
     const file=path.join(site.dir,'data/riffs.json');const original=fs.readFileSync(file,'utf8');t.after(()=>fs.writeFileSync(file,original));
