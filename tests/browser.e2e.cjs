@@ -313,6 +313,25 @@ test('DNA tabs stay beside their content at desktop, tablet and mobile sizes; th
         if(process.env.QA_SCREENSHOTS){await page.waitForTimeout(250);await page.screenshot({path:path.join(process.env.QA_SCREENSHOTS,'workspace-'+width+'.png'),fullPage:true});}
     }
 });
+test('on desktop every part sits beside the video without scrolling; on phones parts stay under the player',async t=>{
+    const page=await pageFor(t);
+    for(const [width,height] of [[1366,768],[1440,900],[1920,1080]]) {
+        await page.setViewportSize({width,height});await practice(page);
+        const g=await page.evaluate(()=>{
+            const video=document.getElementById('videoWrapper').getBoundingClientRect();
+            const parts=[...document.querySelectorAll('#segmentControls .segment-btn')].map(b=>b.getBoundingClientRect());
+            const dna=document.getElementById('dnaLab').getBoundingClientRect();
+            return {left:Math.min(...parts.map(r=>r.left)),videoRight:video.right,bottom:Math.max(...parts.map(r=>r.bottom)),height:innerHeight,dnaTop:dna.top,videoBottom:video.bottom,overflow:document.documentElement.scrollWidth-innerWidth};
+        });
+        assert.ok(g.left>g.videoRight,'parts are to the right of the video '+JSON.stringify(g));
+        assert.ok(g.bottom<=g.height,'all parts are on the first screen '+JSON.stringify(g));
+        assert.ok(g.dnaTop>g.videoBottom,'Riff DNA moves under the player '+JSON.stringify(g));
+        assert.ok(g.overflow<=1,JSON.stringify(g));
+    }
+    await page.setViewportSize({width:390,height:844});
+    const m=await page.evaluate(()=>({video:document.getElementById('videoWrapper').getBoundingClientRect().bottom,parts:document.querySelector('#segmentControls .segment-btn').getBoundingClientRect().top,dna:document.getElementById('dnaLab').getBoundingClientRect().top}));
+    assert.ok(m.video<m.parts && m.parts<m.dna,JSON.stringify(m));
+});
 test('Riff DNA shows the phrase, a live map of roles and techniques that light up with the video',async t=>{
     const page=await pageFor(t);await practice(page);
     assert.match(await page.locator('.dna-phrase').innerText(),/Launch\s*→\s*Land/);

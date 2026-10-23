@@ -148,6 +148,7 @@ T = [
 # --- practice
 ("Back", "Назад", "Atrás"),
 ("Practice player", "Плеер практики", "Reproductor de práctica"),
+("Riff parts", "Части риффа", "Partes del riff"),
 ("Camera view", "Камера", "Vista de cámara"),
 ("Show Tabs", "Показать табы", "Mostrar tablatura"),
 ("Hide Tabs", "Скрыть табы", "Ocultar tablatura"),
