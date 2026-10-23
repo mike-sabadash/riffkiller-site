@@ -977,11 +977,12 @@ function checkSegmentBoundary() {
         practiceTransport.pending || practiceTransport.buffering ||
         leftVideo.seeking || !loopActive || loopAllRiff || currentSegment < 0) return;
     const segment = currentRiff.segments[currentSegment];
-    // Checked once a frame: turning back a frame early keeps the next part from sounding before the jump.
-    const lead = 0.02 * (practiceTransport.rate || 1);
+    // Checked once a frame: turning back one check early keeps the next part from sounding
+    // before the jump. Phones check less often, so the lead follows the measured step.
+    const lead = Math.max(0.02 * (practiceTransport.rate || 1), Math.min(practiceTransport.step || 0, 0.12));
     if (segment && leftVideo.currentTime >= getSegmentEndRaw(segment) - lead) {
         speedTrainerOnLoop(currentSegment);
-        practiceTransport.seek(getSegmentStartRaw(segment));
+        practiceTransport.loopTo(getSegmentStartRaw(segment));
     }
 }
 

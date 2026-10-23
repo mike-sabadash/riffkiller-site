@@ -16,6 +16,9 @@
             this.revision = 0;
             this.rate = 1;
             this.lastSyncSeek = -Infinity;
+            // Media time advanced per check: on a phone checks are sparse (30 fps, throttled rAF).
+            this.step = 0;
+            this.lastTime = null;
             this.listeners = [];
             const listen = (video, event, fn) => {
                 video.addEventListener(event, fn);
@@ -79,6 +82,25 @@
             if (this.options.onTick) this.options.onTick(target);
             return target;
         }
+        // Jumping back to the start of a looped part. Phones keep playing the old audio until
+        // the seek lands, so the clock camera is silent for that moment.
+        loopTo(time) {
+            const left = this.left;
+            if (!left.muted && !this.silenced) {
+                this.silenced = true;
+                left.muted = true;
+                const restore = () => {
+                    left.removeEventListener('seeked', restore);
+                    clearTimeout(timer);
+                    if (this.silenced) { this.silenced = false; left.muted = false; }
+                };
+                const timer = setTimeout(restore, 1000);
+                left.addEventListener('seeked', restore);
+                this.unsilence = restore;
+            }
+            this.lastTime = null;
+            return this.seek(time);
+        }
         async play() {
             const revision = ++this.revision;
             this.intendedPlaying = true;
@@ -111,11 +133,18 @@
         tick() {
             // The left camera is the clock: a catch-up seek of the right one must not stop the loop check.
             if (this.pending || this.buffering || this.left.seeking) return;
+            const now = this.time;
+            if (this.intendedPlaying && !this.left.paused && this.lastTime != null) {
+                const d = now - this.lastTime;
+                if (d > 0 && d < 0.3) this.step = this.step ? this.step * 0.8 + d * 0.2 : d;
+            }
+            this.lastTime = now;
             if (this.intendedPlaying && !this.left.paused && !this.right.paused && !this.right.seeking) this.follow();
             if (this.options.onTick) this.options.onTick(this.time);
         }
         destroy() {
             this.pause();
+            if (this.unsilence) this.unsilence();
             this.listeners.forEach(remove => remove());
             if (this.frame != null) root.cancelAnimationFrame(this.frame);
         }
