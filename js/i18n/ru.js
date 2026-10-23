@@ -139,6 +139,7 @@
             "🚀 This is a demo. In production, you would be redirected to billing or free trial.": "Это демо. На рабочем сайте здесь будет переход к оплате или бесплатному риффу.",
             "Back": "Назад",
             "Practice player": "Плеер практики",
+            "Riff parts": "Части риффа",
             "Camera view": "Камера",
             "Show Tabs": "Показать табы",
             "Hide Tabs": "Скрыть табы",

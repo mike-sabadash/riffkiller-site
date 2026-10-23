@@ -130,6 +130,7 @@
             "🚀 This is a demo. In production, you would be redirected to billing or free trial.": "Esto es una demo. En el sitio real irías al pago o a la prueba gratis.",
             "Back": "Atrás",
             "Practice player": "Reproductor de práctica",
+            "Riff parts": "Partes del riff",
             "Camera view": "Vista de cámara",
             "Show Tabs": "Mostrar tablatura",
             "Hide Tabs": "Ocultar tablatura",
