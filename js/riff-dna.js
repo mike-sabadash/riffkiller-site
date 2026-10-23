@@ -352,6 +352,13 @@
         var container = document.getElementById('segmentControls');
         var used = [];
         var buttons = document.querySelectorAll('.segment-btn:not(.all-riff)');
+        // Techniques heard in each part, once each, in playing order.
+        var techniques = {};
+        atoms().forEach(function (a) {
+            if (!a.segment) return;
+            var list = techniques[a.segment.index] = techniques[a.segment.index] || [];
+            if (!list.some(function (t) { return t.name === a.name; })) list.push(a);
+        });
         buttons.forEach(function (button, index) {
             var segment = activeRiff.segments[index];
             if (!segment) return;
@@ -359,6 +366,20 @@
             var role = segmentRole(segment);
             var old = button.querySelector('.dna-segment-role');
             if (old) old.remove();
+            var oldAtoms = button.querySelector('.dna-segment-atoms');
+            if (oldAtoms) oldAtoms.remove();
+            if (techniques[index]) {
+                var box = document.createElement('span');
+                box.className = 'dna-segment-atoms';
+                techniques[index].forEach(function (a) {
+                    var chip = document.createElement('span');
+                    chip.className = 'dna-segment-atom';
+                    chip.textContent = a.name;
+                    if (a.hint) chip.setAttribute('data-tip', a.hint);
+                    box.appendChild(chip);
+                });
+                button.appendChild(box);
+            }
             if (name) name.textContent = role ? nameWithoutRoleWord(segment.displayName || segment.name || name.textContent) : (segment.displayName || name.textContent);
             if (!role) return;
             // One colour per role on the button (a thin stripe) and on its piece of the timeline.

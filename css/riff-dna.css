@@ -193,6 +193,11 @@
 /* The part's role colour, the same as its piece of the timeline: a thin stripe, not a frame. */
 .segment-btn.has-role { position: relative; }
 .segment-btn.has-role::after { content: ''; position: absolute; left: 10px; right: 10px; bottom: 0; height: 2px; border-radius: 2px; background: var(--role); opacity: .8; pointer-events: none; }
+/* Techniques of the part, between its name and its role: small and quiet, the role stays the accent. */
+.segment-btn .dna-segment-atoms { display: inline-flex; gap: 4px; min-width: 0; overflow: hidden; flex-wrap: nowrap; }
+.segment-btn .dna-segment-atom { flex: none; padding: 1px 6px; border: 1px solid rgba(255,255,255,.16); border-radius: 999px; color: rgba(255,255,255,.32); font-size: 10.5px; font-weight: 500; line-height: 14px; white-space: nowrap; }
+html[data-theme='light'] .segment-btn .dna-segment-atom { border-color: rgba(20,20,30,.16); color: rgba(20,20,30,.4); }
+@media (max-width: 600px) { .segment-btn .dna-segment-atoms { display: none; } }
 .segment-btn .dna-segment-role { margin-left: auto; padding-left: 8px; color: var(--role); font-size: 12px; font-weight: 500; white-space: nowrap; }
 .segment-btn .dna-segment-role--drill { color: rgba(255,255,255,.4); font-weight: 400; }
 .segment-btn.active .dna-segment-role--drill { color: rgba(255,255,255,.6); }
