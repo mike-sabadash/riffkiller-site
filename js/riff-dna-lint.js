@@ -75,7 +75,51 @@
         return out;
     }
 
-    const api = { check };
+    // How the author names techniques in a free description (Russian or English), by the start of the word.
+    const WORDS = {
+        bend: ['бенд', 'подтяж', 'bend'], qbend: ['четвертьтон', 'четверть тона', 'quarter'], release: ['release', 'отпуск'],
+        vibrato: ['вибрато', 'vibrato'], slide: ['слайд', 'slide', 'скольж', 'глиссанд'],
+        hammer: ['хаммер', 'хамер', 'hammer'], pull: ['пулл', 'пул-', 'пулоф', 'pull'], legato: ['легато', 'legato'], trill: ['трел', 'trill'],
+        palm: ['palm', 'палм', 'глушение ладон', 'ладонью глуш', 'pm(?![a-zа-яё])'], rake: ['рейк', 'rake'], accent: ['акцент', 'accent'],
+        ghost: ['призрачн', 'ghost'], double: ['дабл', 'двойн', 'double'], harmonic: ['флажолет', 'harmonic'],
+        open: ['открыт', 'open string'], tremolo: ['тремоло', 'tremolo'], gap: ['пауз', 'тишин', 'pause'],
+        anchor: ['опорн', 'home note', 'возвращается на', 'садится на'], prebend: ['пребенд', 'пре-бенд', 'pre-bend', 'prebend'],
+        unison: ['унисон', 'unison'], grace: ['форшлаг', 'grace'], tap: ['тэппинг', 'теппинг', 'tapping'], sweep: ['свип', 'sweep'],
+        alternate: ['переменн', 'alternate'], economy: ['экономн', 'economy'], hybrid: ['гибридн', 'hybrid'],
+        skip: ['перескок', 'skipping'], pinch: ['искусственн', 'pinch'], mute: ['левой рукой глуш', 'глушение левой', 'fretting-hand mute'],
+        dead: ['мертв', 'мёртв', 'dead note'], power: ['пауэр', 'power chord', 'квинт'], chord: ['аккорд', 'chord'],
+        octave: ['октав', 'octave'], ring: ['let ring', 'дать звучать', 'не глуш'], staccato: ['стаккато', 'staccato'],
+        whammy: ['рычаг', 'whammy']
+    };
+    // Close techniques count as one for the check: "легато" in the text covers a hammer-on in the tab.
+    const FAMILY = { hammer: 'legato', pull: 'legato', trill: 'legato', qbend: 'bend', release: 'bend', prebend: 'bend', unison: 'bend',
+        power: 'double', chord: 'double', octave: 'double', pinch: 'harmonic', dead: 'ghost', mute: 'ghost' };
+    const family = key => FAMILY[key] || key;
+    const PATTERNS = Object.keys(WORDS).map(key => [key, new RegExp('(^|[^a-zа-яё])(' + WORDS[key].join('|') + ')', 'i')]);
+
+    /** Technique keys a free description mentions. */
+    function mentions(text) {
+        text = String(text || '');
+        return PATTERNS.filter(([, re]) => re.test(text)).map(([key]) => key);
+    }
+
+    /**
+     * The author's description against the techniques on the parts, by family.
+     * Returns { both, textOnly, atomsOnly }: lists of technique keys (the family's own key).
+     */
+    function compareNotes(text, atoms) {
+        const said = new Set(mentions(text).map(family));
+        const set = new Set((atoms || []).map(a => a && a.technique).filter(k => k && k !== 'other' && V.technique(k)).map(family));
+        // The home note and pauses are about the phrase; the tab does not mark them, so a description may name them freely.
+        ['anchor', 'gap', 'open'].forEach(k => { if (!set.has(k)) said.delete(k); });
+        return {
+            both: [...said].filter(k => set.has(k)),
+            textOnly: [...said].filter(k => !set.has(k)),
+            atomsOnly: [...set].filter(k => !said.has(k))
+        };
+    }
+
+    const api = { check, mentions, compareNotes };
     global.RiffDNALint = api;
     if (typeof module !== 'undefined') module.exports = api;
 })(typeof window !== 'undefined' ? window : globalThis);

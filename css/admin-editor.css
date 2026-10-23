@@ -27,6 +27,11 @@ body.ed-page .tab-pane#tabList .form-section { max-width: 760px; }
 /* Sticky bar: which riff, unsaved state, save. */
 .ed-bar { position: sticky; top: 0; z-index: 40; display: flex; align-items: center; gap: 12px; margin: 0 -24px 20px; padding: 10px 24px; background: rgba(15, 19, 34, 0.94); backdrop-filter: blur(8px); border-bottom: 1px solid var(--ed-line); }
 .ed-bar select { min-width: 0; max-width: 300px; padding: 8px 10px; background: var(--ed-surface-2); border: 1px solid var(--ed-line-strong); border-radius: 6px; color: var(--ed-text); font: inherit; }
+.ed-id { flex: none; display: inline-flex; align-items: baseline; gap: 6px; padding: 6px 10px; border: 1px solid var(--ed-line-strong); border-radius: 6px; background: var(--ed-surface-2); color: var(--ed-text-2); font: inherit; font-size: 13px; cursor: pointer; }
+.ed-id[hidden] { display: none; }
+.ed-id b { color: var(--ed-text); font-size: 15px; font-weight: 600; }
+.ed-id-copy { color: var(--ed-text-3); font-size: 12px; }
+.ed-id:hover { border-color: var(--ed-text-3); }
 .ed-bar-title { flex: 1; min-width: 0; color: var(--ed-text-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .ed-bar-status { color: var(--ed-text-3); font-size: 13px; white-space: nowrap; }
 .ed-bar-status.dirty { color: #f2c94c; }
@@ -280,3 +285,10 @@ body.ed-page .btn { font-family: inherit; }
 .ed-tab-status.bad { color: #ff8a80; }
 .dna-atom-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
 .dna-atom-actions .ed-tab-status { margin: 0; }
+
+.dna-notes-check { margin: 0 0 12px; padding: 8px 10px; border-radius: 6px; background: var(--ed-surface); font-size: 12px; color: var(--ed-text-2); }
+.dna-notes-check[hidden] { display: none; }
+.dna-notes-check-title { display: block; margin-bottom: 4px; color: var(--ed-text-3); }
+.dna-notes-check p { margin: 2px 0 0; }
+.dna-notes-check b { color: var(--ed-text); font-weight: 600; }
+.dna-notes-check .warn b { color: #f2c94c; }
