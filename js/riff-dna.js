@@ -87,6 +87,7 @@
                 time: hasTime ? a.time : (seg ? seg.start : 0),
                 segment: seg,
                 name: tech && tech.key !== 'other' ? tech.label : (a.type || 'Technique'),
+                known: !!(tech && tech.key !== 'other'),
                 label: a.label || '',
                 tip: a.tip || '',
                 hint: tech && tech.hint ? tech.hint : '',
@@ -352,10 +353,11 @@
         var container = document.getElementById('segmentControls');
         var used = [];
         var buttons = document.querySelectorAll('.segment-btn:not(.all-riff)');
-        // Techniques heard in each part, once each, in playing order.
+        // Techniques heard in each part, once each, in playing order. Only the method's own techniques: their
+        // names are translated, free-form names from the admin are not and would mix languages on the button.
         var techniques = {};
         atoms().forEach(function (a) {
-            if (!a.segment) return;
+            if (!a.segment || !a.known) return;
             var list = techniques[a.segment.index] = techniques[a.segment.index] || [];
             if (!list.some(function (t) { return t.name === a.name; })) list.push(a);
         });
@@ -382,9 +384,7 @@
             }
             if (name) name.textContent = role ? nameWithoutRoleWord(segment.displayName || segment.name || name.textContent) : (segment.displayName || name.textContent);
             if (!role) return;
-            // One colour per role on the button (a thin stripe) and on its piece of the timeline.
-            button.classList.add('has-role');
-            button.style.setProperty('--role', role.color);
+            // The role's colour on the part's piece of the timeline, like the role word on its button.
             var piece = document.querySelector('.segment[data-index="' + index + '"]');
             if (piece) piece.style.setProperty('--segment-color', role.color);
             if (used.indexOf(role) < 0 && !used.some(function (r) { return r.key === role.key; })) used.push(role);
