@@ -19,6 +19,16 @@
             // Media time advanced per check: on a phone checks are sparse (30 fps, throttled rAF).
             this.step = 0;
             this.lastTime = null;
+            // Where the clock camera was at a known moment: the next part's start can then be met by a timer,
+            // not by polling currentTime, which phones update in coarse steps.
+            this.anchor = null;
+            if (left.requestVideoFrameCallback) {
+                const onFrame = (now, meta) => {
+                    if (meta && Number.isFinite(meta.mediaTime)) this.anchor = { media: meta.mediaTime, wall: meta.expectedDisplayTime || now };
+                    this.videoFrame = left.requestVideoFrameCallback(onFrame);
+                };
+                this.videoFrame = left.requestVideoFrameCallback(onFrame);
+            }
             this.listeners = [];
             const listen = (video, event, fn) => {
                 video.addEventListener(event, fn);
@@ -56,6 +66,24 @@
             }
         }
         get time() { return this.left.currentTime || 0; }
+        now() { return root.performance ? root.performance.now() : Date.now(); }
+        // Best guess of the clock camera's time right now, never behind what it reports.
+        estimate() {
+            const t = this.time, a = this.anchor;
+            if (!a || !this.intendedPlaying || this.left.paused || this.left.seeking) return t;
+            const age = (this.now() - a.wall) / 1000;
+            if (age < 0 || age > 0.3) return t;
+            return Math.max(t, a.media + age * this.rate);
+        }
+        // Calls fn when the clock camera reaches media time `time` (once; a later call replaces it).
+        // Only arms within half a second, so a seek or a pause in between cannot fire a stale jump.
+        at(time, fn) {
+            clearTimeout(this.timer);
+            this.timer = null;
+            const wait = (time - this.estimate()) / (this.rate || 1);
+            if (wait > 0.5) return;
+            this.timer = setTimeout(() => { this.timer = null; fn(); }, Math.max(0, wait * 1000));
+        }
         get duration() { return Number.isFinite(this.left.duration) ? this.left.duration : 0; }
         setRate(rate) {
             if (!Number.isFinite(rate) || rate <= 0) return;
@@ -78,13 +106,38 @@
         seek(time) {
             if (!Number.isFinite(time)) return this.time;
             const target = Math.max(0, this.duration ? Math.min(time, this.duration) : time);
+            clearTimeout(this.timer);
+            this.anchor = null;
             this.videos.forEach(v => { v.currentTime = target; });
             if (this.options.onTick) this.options.onTick(target);
             return target;
         }
         // Jumping back to the start of a looped part. Phones keep playing the old audio until
         // the seek lands, so the clock camera is silent for that moment.
-        loopTo(time) {
+        // hard: stop both cameras first, seek, and start again once the seek has landed. Pausing is the one
+        // thing that silences a phone at once (iOS keeps sounding while it seeks); costs a short gap.
+        loopTo(time, hard) {
+            clearTimeout(this.timer);
+            this.anchor = null;
+            if (hard && this.intendedPlaying && !this.pending) {
+                const revision = ++this.revision;
+                this.pending = true;
+                this.videos.forEach(v => v.pause());
+                this.lastTime = null;
+                const target = this.seek(time);
+                const landed = v => new Promise(resolve => {
+                    if (!v.seeking) return resolve();
+                    const done = () => { v.removeEventListener('seeked', done); clearTimeout(timer); resolve(); };
+                    const timer = setTimeout(done, 1500);
+                    v.addEventListener('seeked', done);
+                });
+                Promise.all(this.videos.map(landed)).then(() => {
+                    if (revision !== this.revision) return;
+                    this.pending = false;
+                    this.play();
+                });
+                return target;
+            }
             const left = this.left;
             if (!left.muted && !this.silenced) {
                 this.silenced = true;
@@ -124,6 +177,7 @@
         }
         pause() {
             ++this.revision;
+            clearTimeout(this.timer);
             this.intendedPlaying = false;
             this.pending = false;
             this.buffering = false;
@@ -134,6 +188,10 @@
             // The left camera is the clock: a catch-up seek of the right one must not stop the loop check.
             if (this.pending || this.buffering || this.left.seeking) return;
             const now = this.time;
+            // Without frame callbacks the moment currentTime changes is the best anchor there is.
+            if (now !== this.lastTime && this.intendedPlaying && !this.left.paused && !this.left.requestVideoFrameCallback) {
+                this.anchor = { media: now, wall: this.now() };
+            }
             if (this.intendedPlaying && !this.left.paused && this.lastTime != null) {
                 const d = now - this.lastTime;
                 if (d > 0 && d < 0.3) this.step = this.step ? this.step * 0.8 + d * 0.2 : d;
@@ -145,6 +203,7 @@
         destroy() {
             this.pause();
             if (this.unsilence) this.unsilence();
+            if (this.videoFrame != null && this.left.cancelVideoFrameCallback) this.left.cancelVideoFrameCallback(this.videoFrame);
             this.listeners.forEach(remove => remove());
             if (this.frame != null) root.cancelAnimationFrame(this.frame);
         }
