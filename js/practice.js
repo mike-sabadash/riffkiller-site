@@ -835,7 +835,7 @@ function updatePlayButtonState() {
     
     if (playControl) {
         playControl.setAttribute('aria-label', isPlaying ? 'Pause' : 'Play');
-        playControl.setAttribute('title', isPlaying ? 'Pause' : 'Play');
+        playControl.setAttribute('data-tip', isPlaying ? 'Pause' : 'Play');
         const playIcon = playControl.querySelector('.play-icon');
         const stopIcon = playControl.querySelector('.stop-icon');
         
@@ -1789,3 +1789,41 @@ function createRecentlyPracticedCard(riffData) {
 
 
 window.addEventListener('pagehide', event => { if (!event.persisted && practiceMediaLoader) practiceMediaLoader.destroy(); });
+
+// Пробел — play/pause, как в любом плеере. Иначе браузер «нажимает» последнюю кликнутую кнопку
+// и оставляет на ней focus-ring. Поля ввода, редактируемый текст и открытые окна не трогаем.
+(function bindSpaceToPlay() {
+    function isTyping(el) {
+        if (!el || !el.tagName) return false;
+        if (el.isContentEditable) return true;
+        if (el.tagName === 'TEXTAREA' || el.tagName === 'SELECT') return true;
+        if (el.tagName === 'INPUT') return !/^(button|checkbox|radio|submit|reset|range)$/i.test(el.type);
+        return false;
+    }
+    function modalOpen() {
+        if (document.querySelector('.auth-modal-backdrop')) return true;
+        var intro = document.getElementById('speedTrainerIntroModal');
+        return !!(intro && intro.style.display !== 'none');
+    }
+    function isSpace(e) { return e.code === 'Space' || e.key === ' '; }
+    function keyboardFocused(el) {
+        try { return el && el.tagName === 'BUTTON' && el.matches(':focus-visible'); } catch (err) { return false; }
+    }
+    document.addEventListener('keydown', function (e) {
+        if (!isSpace(e) || e.altKey || e.ctrlKey || e.metaKey || isTyping(e.target) || modalOpen()) return;
+        // Вне плеера и частей кнопка, до которой дошли Tab'ом, пробелом нажимается как обычно; Enter работает везде.
+        if (keyboardFocused(e.target) && !e.target.closest('.practice-player, .practice-parts')) return;
+        var play = document.getElementById('playControl');
+        if (!play || play.disabled || !play.offsetParent) return;
+        e.preventDefault();
+        if (e.repeat) return;
+        var focused = document.activeElement;
+        if (focused && focused.tagName === 'BUTTON') focused.blur();
+        play.click();
+    });
+    // Кнопка срабатывает и по keyup пробела — гасим, чтобы не было второго нажатия.
+    document.addEventListener('keyup', function (e) {
+        if (isSpace(e) && !isTyping(e.target) && !modalOpen() && e.target && e.target.tagName === 'BUTTON'
+            && !(keyboardFocused(e.target) && !e.target.closest('.practice-player, .practice-parts'))) e.preventDefault();
+    });
+})();

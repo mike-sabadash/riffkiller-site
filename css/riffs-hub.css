@@ -985,7 +985,7 @@ body.riffs-hub .home-hero-visual {
     border-radius: 24px;
     background: rgba(255, 255, 255, 0.04);
     border: 1px solid rgba(255, 255, 255, 0.09);
-    box-shadow: 0 40px 80px -32px rgba(147, 85, 229, 0.35), 0 24px 48px -24px rgba(0, 0, 0, 0.6);
+    box-shadow: 0 24px 48px -24px rgba(0, 0, 0, 0.6);
 }
 body.riffs-hub .home-cam {
     position: relative;

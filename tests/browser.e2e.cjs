@@ -105,6 +105,10 @@ test('segment loops, angle changes, tabs, slow motion, drift correction and paus
     assert.ok(samples.some((v,i)=>i && v.l<samples[i-1].l),'Segment actually loops');
     await page.click('#playControl');state=await sample();assert.ok(state.lp && state.rp);const paused=state.l;
     await page.waitForTimeout(250);assert.ok(Math.abs((await sample()).l-paused)<.02);
+    // Space toggles playback like any player and does not leave a focus ring on the clicked Play button.
+    await page.keyboard.press('Space');await page.waitForFunction(()=>!leftVideo.paused && !rightVideo.paused);
+    assert.equal(await page.evaluate(()=>document.activeElement.tagName),'BODY');
+    await page.keyboard.press('Space');await page.waitForFunction(()=>leftVideo.paused && rightVideo.paused);
     await page.locator('.dna-stage[data-dna-stage="isolate"]').click();await page.locator('[data-dna-atom="2"]').click();
     await page.waitForFunction(()=>!leftVideo.paused);state=await sample();assert.equal(state.rate,.5);assert.ok(state.l>=1.7 && state.l<3.6);
     for(const stage of ['scan','split','decode','mutate']){await page.locator('.dna-stage[data-dna-stage="'+stage+'"]').click();assert.ok((await page.locator('#dnaStageContent').innerText()).length>20);}
