@@ -973,9 +973,8 @@ function updateCurrentSegmentFromTime() {
 }
 
 // Проверка границ сегмента для лупа
-// Phones: stop, seek, start again (a seek while playing lets the next part sound on iOS).
-const HARD_LOOP = (window.matchMedia && matchMedia('(pointer: coarse)').matches) ||
-    /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+// Stopping before the seek did not help on iPhone and added a long gap, so every device seeks while playing.
+const HARD_LOOP = false;
 function loopSegmentEnd() {
     if (!currentRiff || !practiceTransport || !practiceTransport.intendedPlaying ||
         practiceTransport.pending || practiceTransport.buffering ||
@@ -984,18 +983,64 @@ function loopSegmentEnd() {
     // One frame early, so the first note of the next part never starts before the jump.
     return segment ? getSegmentEndRaw(segment) - 0.02 * (practiceTransport.rate || 1) : null;
 }
-function loopBack() {
+function loopBack(byTimer) {
     if (loopSegmentEnd() == null) return;
+    const segment = currentRiff.segments[currentSegment];
+    if (loopDebug) loopDebug.jump(segment, byTimer === true);
     speedTrainerOnLoop(currentSegment);
-    practiceTransport.loopTo(getSegmentStartRaw(currentRiff.segments[currentSegment]), HARD_LOOP);
+    practiceTransport.loopTo(getSegmentStartRaw(segment), HARD_LOOP);
+}
+
+// ?debug=loop: what the loop sees on this device, one line per pass, to compare with what is heard.
+const LOOP_DEBUG = new URLSearchParams(location.search).get('debug') === 'loop';
+let loopDebug = null;
+function makeLoopDebug() {
+    const box = document.createElement('pre');
+    box.style.cssText = 'position:fixed;left:0;right:0;top:0;z-index:99999;margin:0;padding:6px 8px;max-height:45vh;overflow:auto;' +
+        'background:rgba(0,0,0,.85);color:#b8f05a;font:11px/1.35 ui-monospace,Menlo,monospace;white-space:pre-wrap;pointer-events:none';
+    document.body.appendChild(box);
+    const lines = [], ticks = [];
+    let last = 0, n = 0, seekAt = 0, pending = null, maxPast = 0;
+    const env = 'rVFC ' + (leftVideo.requestVideoFrameCallback ? 'yes' : 'no') + ' · ' + navigator.userAgent.replace(/^.*?\(([^)]*)\).*$/, '$1').slice(0, 40);
+    const show = () => {
+        const avg = ticks.length ? ticks.reduce((a, b) => a + b, 0) / ticks.length : 0;
+        box.textContent = env + ' · check every ' + avg.toFixed(0) + ' ms · L ' + (leftVideo.muted ? 'muted' : 'sound') + ' R ' + (rightVideo.muted ? 'muted' : 'sound') +
+            ' · rate ' + (practiceTransport ? practiceTransport.rate : 1) + '\n' + lines.join('\n');
+    };
+    setInterval(() => {
+        // Furthest the clock camera got past the part's end while playing: should stay 0.
+        if (!currentRiff || currentSegment < 0 || !loopActive || loopAllRiff || leftVideo.paused || leftVideo.seeking) return;
+        const seg = currentRiff.segments[currentSegment];
+        if (seg) maxPast = Math.max(maxPast, leftVideo.currentTime - seg.end);
+    }, 5);
+    leftVideo.addEventListener('seeking', () => { seekAt = performance.now(); });
+    leftVideo.addEventListener('seeked', () => {
+        if (!pending) return;
+        pending.seek = performance.now() - seekAt;
+        pending.landed = leftVideo.currentTime;
+        setTimeout(() => { if (!pending) return; const p = pending; pending = null;
+            lines.unshift('#' + p.n + ' end ' + p.end.toFixed(3) + ' jump at ' + p.at.toFixed(3) + ' (' + ((p.at - p.end) * 1000).toFixed(0) + ' ms) by ' + p.by +
+                ' · past end ' + (p.past * 1000).toFixed(0) + ' ms · seek ' + p.seek.toFixed(0) + ' ms → ' + p.landed.toFixed(3) + ' (start ' + p.start.toFixed(3) + ')');
+            lines.length = Math.min(lines.length, 12); show(); }, 0);
+    });
+    return {
+        tick() { const now = performance.now(); if (last) { ticks.push(now - last); if (ticks.length > 60) ticks.shift(); } last = now; },
+        jump(seg, byTimer) {
+            pending = { n: ++n, end: seg.end, start: seg.start, at: leftVideo.currentTime, by: byTimer ? 'timer' : 'check', past: Math.max(0, maxPast) };
+            maxPast = 0;
+            show();
+        }
+    };
 }
 function checkSegmentBoundary() {
     const end = loopSegmentEnd();
     if (end == null) return;
     // The check runs once a frame (or once per coarse time update on a phone); between checks a timer
     // set from the last known frame meets the boundary on time.
-    if (practiceTransport.estimate() >= end) loopBack();
-    else practiceTransport.at(end, loopBack);
+    if (LOOP_DEBUG && !loopDebug && leftVideo) loopDebug = makeLoopDebug();
+    if (loopDebug) loopDebug.tick();
+    if (practiceTransport.estimate() >= end) loopBack(false);
+    else practiceTransport.at(end, () => loopBack(true));
 }
 
 // Переключение лупа

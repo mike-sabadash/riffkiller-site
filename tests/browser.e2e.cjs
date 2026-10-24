@@ -503,7 +503,6 @@ test('on a phone a looped part turns back before its end even when the page is c
     }));
     assert.equal(jumps.length,3,'three passes of the loop: '+JSON.stringify(jumps));
     for(const j of jumps){
-        assert.ok(j.hard,'phones stop, seek and start again');
         assert.ok(j.at<=j.end&&j.at>=j.end-0.08,'turned back just before the end, not past it: '+JSON.stringify(jumps));
     }
 });
