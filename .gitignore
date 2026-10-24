@@ -32,3 +32,4 @@ uploads/
 # Python checks
 __pycache__/
 *.pyc
+data/loop-debug.log
