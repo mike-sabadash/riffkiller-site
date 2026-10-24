@@ -939,11 +939,9 @@ body.riffs-hub .home-btn[hidden] {
 body.riffs-hub .home-btn--primary {
     background: #9355e5;
     color: #fff;
-    box-shadow: 0 10px 28px rgba(147, 85, 229, 0.32);
 }
 body.riffs-hub .home-btn--primary:hover {
     background: #7c45c7;
-    transform: translateY(-1px);
 }
 body.riffs-hub .home-btn--ghost {
     color: #eef2ff;

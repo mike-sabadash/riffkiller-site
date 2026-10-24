@@ -169,10 +169,11 @@
     background: rgba(255, 255, 255, 0.055);
 }
 
+/* Выбранное состояние у всех переключателей practice одно: плоская приглушённая заливка, без цветной обводки и свечения */
 .mode-btn.active {
-    color: rgba(244, 247, 255, 0.98);
-    border-color: rgba(147, 85, 229, 0.55);
-    background: rgba(147, 85, 229, 0.14);
+    color: #ffffff;
+    border-color: transparent;
+    background: rgba(147, 85, 229, 0.38);
 }
 
 .tab-toggle-btn {
@@ -206,9 +207,9 @@
 }
 
 .tab-toggle-btn.active {
-    color: rgba(244, 247, 255, 0.98);
-    border-color: rgba(147, 85, 229, 0.5);
-    background: rgba(147, 85, 229, 0.1);
+    color: #ffffff;
+    border-color: transparent;
+    background: rgba(147, 85, 229, 0.38);
 }
 
 .tab-icon {
@@ -812,9 +813,9 @@
 }
 
 .practice-mode-btn.active {
-    background: linear-gradient(180deg, rgba(168, 112, 255, 0.55) 0%, rgba(147, 85, 229, 0.45) 100%);
+    background: rgba(147, 85, 229, 0.38);
     color: #ffffff;
-    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.12), 0 2px 10px rgba(147, 85, 229, 0.35);
+    box-shadow: none;
 }
 
 .practice-mode-btn:hover:not(.active) {
@@ -823,7 +824,7 @@
 }
 
 .practice-mode-btn.active:hover {
-    background: linear-gradient(180deg, rgba(178, 125, 255, 0.62) 0%, rgba(147, 85, 229, 0.52) 100%);
+    background: rgba(147, 85, 229, 0.46);
     color: #ffffff;
 }
 
@@ -904,10 +905,9 @@
     background: var(--color-text-primary);
 }
 
-/* Loop active: лёгкое свечение + pulse */
+/* Loop active: pulse без свечения */
 #loopButton.active {
     animation: loop-pulse 1.8s ease-in-out infinite;
-    box-shadow: 0 0 10px rgba(147, 85, 229, 0.35);
 }
 @keyframes loop-pulse {
     0%, 100% { opacity: 1; }
@@ -1376,8 +1376,8 @@
 .speed-btn.active {
     /* выбранная: × и число полностью белые */
     color: #ffffff;
-    border-color: rgba(147, 85, 229, 0.55);
-    background: rgba(147, 85, 229, 0.14);
+    border-color: transparent;
+    background: rgba(147, 85, 229, 0.38);
 }
 
 .speed-btn.active:hover {
@@ -1946,9 +1946,9 @@
 
 /* Стиль для активного состояния TabToggle (как у mode-btn) */
 .tab-toggle-btn.active {
-    color: var(--color-text-primary) !important;
-    border-color: var(--color-text-primary) !important;
-    background: rgba(255, 255, 255, 0.1) !important;
+    color: #ffffff !important;
+    border-color: transparent !important;
+    background: rgba(147, 85, 229, 0.38) !important;
 }
 
 .tab-toggle-btn.active .tab-icon {
@@ -1983,7 +1983,7 @@
 .practice-workspace .segment-btn .segment-name { flex: 1; min-width: 0; }
 .practice-workspace .segment-btn .dna-segment-meta { display: none; }
 .practice-workspace .segment-btn:hover { border-color: var(--segment-color, #9355e5); }
-.practice-workspace .segment-btn.active { background: rgba(147,85,229,.22) !important; border-color: #9355e5; color: #fff !important; }
+.practice-workspace .segment-btn.active { background: rgba(147,85,229,.38) !important; border-color: transparent; color: #fff !important; }
 .practice-workspace .segment-btn.active .segment-icon { filter: none !important; }
 .practice-workspace button:focus-visible { outline: 2px solid #cfff55; outline-offset: 3px; }
 @media (min-width: 1160px) {

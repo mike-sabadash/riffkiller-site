@@ -136,8 +136,6 @@
     --rk-mobile-nav-border: rgba(255, 255, 255, 0.06);
     --rk-mobile-nav-hover: #c4b5fc;
     --rk-mobile-auth-top-border: rgba(255, 255, 255, 0.08);
-    --rk-topbar-primary-glow: 0 8px 20px rgba(147, 85, 229, 0.28);
-    --rk-topbar-primary-glow-hover: 0 10px 24px rgba(147, 85, 229, 0.35);
     --rk-topbar-outline-border: rgba(255, 255, 255, 0.2);
     --rk-topbar-outline-bg: rgba(255, 255, 255, 0.03);
     --rk-topbar-outline-text: #eef2ff;
@@ -194,9 +192,6 @@ html[data-theme='light'] {
     --rk-mobile-nav-border: rgba(18, 18, 26, 0.08);
     --rk-mobile-nav-hover: #6b3fa8;
     --rk-mobile-auth-top-border: rgba(18, 18, 26, 0.1);
-    /* Акцентное свечение кнопки — тот же пурпур, плотнее (не серая «грязь») */
-    --rk-topbar-primary-glow: 0 8px 28px rgba(147, 85, 229, 0.38);
-    --rk-topbar-primary-glow-hover: 0 12px 32px rgba(124, 69, 199, 0.42);
     --rk-topbar-outline-border: rgba(18, 18, 26, 0.14);
     --rk-topbar-outline-bg: rgba(147, 85, 229, 0.06);
     --rk-topbar-outline-text: #2d1f4a;

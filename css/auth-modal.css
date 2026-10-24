@@ -258,13 +258,11 @@
     background: #9355e5;
     color: #ffffff;
     border-color: #9355e5;
-    box-shadow: 0 8px 20px rgba(147, 85, 229, 0.28);
 }
 
 .auth-btn-email:hover {
     background: #7c45c7;
     border-color: #7c45c7;
-    box-shadow: 0 10px 24px rgba(147, 85, 229, 0.32);
 }
 
 .auth-email-message {
@@ -476,14 +474,6 @@ html[data-theme='light'] .auth-email-input:-webkit-autofill:active {
     caret-color: #12121a;
     box-shadow: 0 0 0 100px #ffffff inset !important;
     border: 1px solid rgba(18, 18, 26, 0.14);
-}
-
-html[data-theme='light'] .auth-btn-email {
-    box-shadow: 0 8px 28px rgba(147, 85, 229, 0.35);
-}
-
-html[data-theme='light'] .auth-btn-email:hover {
-    box-shadow: 0 12px 32px rgba(124, 69, 199, 0.38);
 }
 
 html[data-theme='light'] .auth-btn-outline {
