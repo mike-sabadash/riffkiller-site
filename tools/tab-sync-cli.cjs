@@ -4,7 +4,8 @@
  *   node tools/tab-sync-cli.cjs --riffs riffs.json --id 1 --tex black-dog.tex --wav audio.wav --out patch.json
  * audio.wav: mono 16-bit PCM at 22050 Hz of the riff's video (ffmpeg -vn -ac 1 -ar 22050 -f wav).
  *   --atoms add (default): techniques from the tab are added next to the ones already on the parts.
- *   --atoms replace: on every synced part the techniques become exactly the tab's (a matching one keeps its tip).
+ *   --atoms replace: on every synced part the techniques become exactly the tab's (a matching one keeps its tip;
+ *   free-form "other" notes stay).
  * Writes a patch for scripts/riff-tab-apply.php and prints a report (Markdown).
  */
 'use strict';
@@ -109,8 +110,8 @@ function main() {
         return i >= 0 ? i : (Number.isInteger(at.segmentIndex) ? at.segmentIndex : -1);
     };
     const same = (x, y) => x.technique === y.technique && Math.abs(Number(x.time) - Number(y.time)) < 0.25;
-    const dropped = replace ? existing.filter(e => segments[partOf(e)] && !atoms.some(t => same(t, e))) : [];
-    const atomLine = list => list.length ? list.map(x => x.technique + ' @' + Number(x.time).toFixed(2) + ' (part ' + (partOf(x) + 1) + (x.source ? ', ' + x.source : '') + ')').join(', ') : 'none';
+    const dropped = replace ? existing.filter(e => e.technique !== 'other' && segments[partOf(e)] && !atoms.some(t => same(t, e))) : [];
+    const atomLine = list => list.length ? list.map(x => x.technique + (Number.isFinite(Number(x.time)) && x.time !== null && x.time !== '' ? ' @' + Number(x.time).toFixed(2) : ' (no time)') + ' (part ' + (partOf(x) + 1) + (x.source ? ', ' + x.source : '') + ')').join(', ') : 'none';
     fs.writeFileSync(a.out, JSON.stringify(patch));
     // For the workflow's "write only if every part is synced" mode.
     if (process.env.GITHUB_OUTPUT) fs.appendFileSync(process.env.GITHUB_OUTPUT, 'all_synced=' + (parts.length > 0 && Object.keys(segments).length === parts.length) + '\n');

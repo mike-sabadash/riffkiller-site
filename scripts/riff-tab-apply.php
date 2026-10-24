@@ -5,7 +5,8 @@
  * patch: { id, tab: { tex, track? }, expect: [[start, end] per part], segments: { index: { tabBars, tabSync } }, atoms?: [...] }
  * atoms: Riff DNA techniques read from the tab; added to riff.dna.atoms unless the same technique is already within 0.25 s.
  * atomsMode "replace": on the synced parts (keys of segments) the atoms become exactly the tab's; one already there
- * with the same technique within 0.25 s keeps its tip and wording and only moves to the tab's place.
+ * with the same technique within 0.25 s keeps its tip and wording and only moves to the tab's place. Free-form
+ * "other" notes stay.
  * Same lock and atomic replace as api/riffs/save.php; the file keeps its owner and mode.
  */
 if (PHP_SAPI !== 'cli') exit(1);
@@ -62,7 +63,7 @@ if ($replace || (!empty($patch['atoms']) && is_array($patch['atoms']))) {
         $synced = array_map('intval', array_keys($patch['segments'] ?? []));
         $keep = [];
         foreach ($have as $e) {
-            if (is_array($e) && in_array($partOf($e), $synced, true)) $old[] = $e; else $keep[] = $e;
+            if (is_array($e) && ($e['technique'] ?? '') !== 'other' && in_array($partOf($e), $synced, true)) $old[] = $e; else $keep[] = $e;
         }
         $have = $keep;
     }
