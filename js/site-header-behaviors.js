@@ -319,10 +319,74 @@
         });
     }
 
+    // Not every page loads rk-header.css, so the reminder brings its own styles.
+    function addReminderStyles() {
+        if (document.getElementById('rk-renew-reminder-css')) return;
+        var css = document.createElement('style');
+        css.id = 'rk-renew-reminder-css';
+        css.textContent =
+            '.rk-renew-reminder{position:fixed;left:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:900;max-width:340px;display:flex;align-items:center;flex-wrap:wrap;gap:6px 14px;' +
+            'padding:14px 44px 14px 18px;border-radius:14px;background:#1b1b24;border:1px solid rgba(255,255,255,.12);box-shadow:0 12px 32px -12px rgba(0,0,0,.6);color:rgba(230,232,240,.95);font-size:.875rem;line-height:1.4}' +
+            '.rk-renew-reminder p{margin:0}' +
+            '.rk-renew-reminder a{color:#c4b5fc;font-weight:600;text-decoration:none}' +
+            '.rk-renew-reminder a:hover{text-decoration:underline}' +
+            '.rk-renew-reminder-close{position:absolute;top:6px;right:6px;width:32px;height:32px;border:none;background:none;color:inherit;font-size:20px;line-height:1;cursor:pointer;opacity:.6}' +
+            '.rk-renew-reminder-close:hover{opacity:1}' +
+            "html[data-theme='light'] .rk-renew-reminder{background:#fff;border-color:rgba(18,18,26,.12);color:#12121a;box-shadow:0 12px 32px -16px rgba(18,18,26,.3)}" +
+            "html[data-theme='light'] .rk-renew-reminder a{color:#6b2fc0}" +
+            '@media (max-width:480px){.rk-renew-reminder{right:16px;max-width:none}}';
+        document.head.appendChild(css);
+    }
+
+    /** USDT premium does not renew by itself: three days before it ends, a small note links to billing. */
+    function initRenewalReminder() {
+        var kind = currentPageKind();
+        if (kind === 'billing' || kind === 'practice') return;
+        var auth = window.patreonAuth || window.authManager;
+        if (!auth || typeof auth.addListener !== 'function') return;
+        var shown = null;
+        function t(text) { return window.RK_I18N ? window.RK_I18N.t(text) : text; }
+        function check() {
+            var sub = auth.subscription;
+            var ends = sub && sub.source === 'usdt' && sub.expiresAt;
+            var left = ends ? ends - Date.now() : -1;
+            if (!ends || left <= 0 || left > 3 * 86400000) return;
+            var key = 'rkRenewReminder:' + new Date(ends).toISOString().slice(0, 10);
+            try { if (localStorage.getItem(key)) return; } catch (e) {}
+            if (shown) return;
+            addReminderStyles();
+            var date = new Date(ends).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+            shown = document.createElement('div');
+            shown.className = 'rk-renew-reminder';
+            shown.setAttribute('role', 'status');
+            var text = document.createElement('p');
+            text.textContent = t('Your premium ends on ' + date + '.');
+            var link = document.createElement('a');
+            link.href = 'billing.html';
+            link.textContent = t('Extend premium');
+            var close = document.createElement('button');
+            close.type = 'button';
+            close.className = 'rk-renew-reminder-close';
+            close.setAttribute('aria-label', t('Close'));
+            close.textContent = '\u00d7';
+            close.addEventListener('click', function () {
+                try { localStorage.setItem(key, '1'); } catch (e) {}
+                shown.remove();
+            });
+            shown.appendChild(text);
+            shown.appendChild(link);
+            shown.appendChild(close);
+            document.body.appendChild(shown);
+        }
+        auth.addListener(check);
+        check();
+    }
+
     function run() {
         initNavigation();
         initMobileMenu();
         initLandingAuth();
+        initRenewalReminder();
     }
 
     if (document.readyState === 'loading') {

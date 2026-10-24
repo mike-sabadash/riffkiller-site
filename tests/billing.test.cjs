@@ -4,8 +4,9 @@ const fs=require('node:fs');const path=require('node:path');const http=require('
 const {execFile}=require('node:child_process');const {promisify}=require('node:util');
 const {startSite}=require('./site-fixture.cjs');
 
-// One fake server stands in for lava.top, the YooKassa API and Robokassa's recurring endpoint.
-const calls=[];const lavaInvoices={};const ykPayments={};let ykSeq=0;
+// One fake server stands in for lava.top, the YooKassa API, Robokassa's recurring endpoint and TronGrid.
+const calls=[];const lavaInvoices={};const ykPayments={};let ykSeq=0;const tronTransfers=[];
+const WALLET='T'+'A'.repeat(33);const USDT='TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t';
 const fake=http.createServer((req,res)=>{
     const url=new URL(req.url,'http://fake');let body='';req.on('data',c=>body+=c);req.on('end',()=>{
         const call={method:req.method,path:url.pathname,query:url.searchParams,headers:req.headers,body};calls.push(call);
@@ -24,6 +25,11 @@ const fake=http.createServer((req,res)=>{
             return json(200,{...ykPayments[id],confirmation:{type:'redirect',confirmation_url:'https://yoomoney.ru/checkout/'+id}});
         }
         if(url.pathname.startsWith('/v3/payments/')){const p=ykPayments[url.pathname.split('/').pop()];return p?json(200,p):json(404,{});}
+        if(url.pathname==='/v1/accounts/'+WALLET+'/transactions/trc20'){
+            const since=Number(url.searchParams.get('min_timestamp'));
+            assert.equal(url.searchParams.get('only_to'),'true');assert.equal(url.searchParams.get('only_confirmed'),'true');
+            return json(200,{success:true,data:tronTransfers.filter(t=>t.block_timestamp>=since)});
+        }
         if(url.pathname==='/Merchant/Recurring'){res.end('OK'+new URLSearchParams(body).get('InvoiceID'));return;}
         json(404,{});
     });
@@ -36,7 +42,8 @@ before(async()=>{
         'LAVA_API_KEY=lava-key','LAVA_OFFER_ID=11111111-2222-3333-4444-555555555555','LAVA_WEBHOOK_SECRET=lava-hook','LAVA_API_BASE='+base,
         'BILLING_RUB_MONTHLY=900','BILLING_RUB_YEARLY=9000',
         'ROBOKASSA_LOGIN=riffkiller','ROBOKASSA_PASSWORD1=pass-one','ROBOKASSA_PASSWORD2=pass-two','ROBOKASSA_RECURRING_URL='+base+'/Merchant/Recurring',
-        'YOOKASSA_SHOP_ID=12345','YOOKASSA_SECRET_KEY=yk-secret','YOOKASSA_API_BASE='+base,'',
+        'YOOKASSA_SHOP_ID=12345','YOOKASSA_SECRET_KEY=yk-secret','YOOKASSA_API_BASE='+base,
+        'USDT_TRC20_ADDRESS='+WALLET,'TRONGRID_API_BASE='+base,'',
     ].join('\n')});
 });
 after(()=>{site?.stop();fake.close()});
@@ -160,4 +167,60 @@ test('renewal stops after three unpaid attempts',async()=>{
 
 test('the renewal script only runs from cron',async()=>{
     assert.equal((await fetch(site.base+'/config/billing-renew.php')).status,404);
+});
+
+const transfer=(amount,extra={})=>{const t={transaction_id:crypto.randomBytes(32).toString('hex'),block_timestamp:Date.now(),from:'TBuyer'+'B'.repeat(28),to:WALLET,
+    value:String(Math.round(Number(amount)*1e6)),token_info:{address:USDT,symbol:'USDT',decimals:6},type:'Transfer',...extra};tronTransfers.push(t);return t;};
+const tronCalls=()=>calls.filter(c=>c.path.includes('/transactions/trc20')).length;
+
+test('USDT: unique amount per order, matched to the transfer, one-off premium that extends',async()=>{
+    const {body:opts}=await api(null,'options.php');
+    assert.equal(opts.providers.usdt,true);assert.deepEqual(opts.providers.usdtPrice,{monthly:9,yearly:90});
+    const user=await signUp();const other=await signUp();
+    const order=(await api(user,'create.php',{provider:'usdt',plan:'monthly'})).body.usdt;
+    assert.match(order.amount,/^9\.(0[1-9]|[1-9]\d)$/);assert.equal(order.address,WALLET);assert.equal(order.state,'pending');
+    assert.ok(order.expiresAt>now()+3000);
+    assert.equal((await api(user,'create.php',{provider:'usdt',plan:'monthly'})).body.usdt.orderId,order.orderId,'the same open order is shown again');
+    const theirs=(await api(other,'create.php',{provider:'usdt',plan:'monthly'})).body.usdt;
+    assert.notEqual(theirs.amount,order.amount,'two open orders never share an amount');
+    assert.equal((await api(other,'status.php?order='+order.orderId)).body.usdt,null,'an order is visible only to its owner');
+
+    // Near misses do not count: a different amount, another token, another wallet, a transfer from before the order.
+    transfer(Number(order.amount)+0.01);transfer(order.amount,{token_info:{address:'TFakeToken'+'C'.repeat(24)}});
+    transfer(order.amount,{to:'T'+'D'.repeat(33)});transfer(order.amount,{block_timestamp:(order.expiresAt-3600-600)*1000});
+    await runRenewals();
+    assert.equal((await api(user,'status.php?order='+order.orderId)).body.usdt.state,'pending');
+
+    // Polls within 15 s of the last check wait for the cron.
+    const tx=transfer(order.amount);await runRenewals();
+    const st=(await api(user,'status.php?order='+order.orderId)).body;
+    assert.equal(st.usdt.state,'paid');
+    const sub=subOf(user.id);assert.equal(sub.source,'usdt');assert.equal(sub.status,'active');
+    assert.ok(Math.abs(sub.expires-(now()+30*day))<60,'a month, no grace days for a one-off payment');
+    assert.equal(renewals()[user.id].auto,false);
+    const orders=JSON.parse(fs.readFileSync(path.join(site.dir,'data/billing/orders.json'),'utf8'));
+    assert.equal(orders[order.orderId].txid,tx.transaction_id);
+    assert.equal((await api(other,'status.php?order='+theirs.orderId)).body.usdt.state,'pending','the other buyer still waits');
+
+    // The same transaction never pays twice; paying again for a year adds to the month already paid.
+    await runRenewals();assert.equal(subOf(user.id).expires,sub.expires);
+    const yearly=(await api(user,'create.php',{provider:'usdt',plan:'yearly'})).body.usdt;
+    assert.match(yearly.amount,/^90\.\d\d$/);
+    transfer(yearly.amount);assert.match(await runRenewals(),/usdt paid/);
+    assert.ok(Math.abs(subOf(user.id).expires-(sub.expires+365*day))<5);
+});
+
+test('USDT: the page polls at most every 15 s, the cron checks only while an order is open',async()=>{
+    const user=await signUp();
+    const order=(await api(user,'create.php',{provider:'usdt',plan:'monthly'})).body.usdt;
+    const before=tronCalls();
+    await api(user,'status.php?order='+order.orderId);await api(user,'status.php?order='+order.orderId);
+    assert.ok(tronCalls()-before<=1,'two quick polls ask TronGrid once at most');
+    transfer(order.amount);await runRenewals();
+    assert.equal((await api(user,'status.php?order='+order.orderId)).body.usdt.state,'paid');
+    // Leave no open orders behind (the first test's other buyer still has one): expire them.
+    const f=path.join(site.dir,'data/billing/orders.json');const all=JSON.parse(fs.readFileSync(f,'utf8'));
+    for(const o of Object.values(all))if(o.provider==='usdt'&&!o.paid)o.expires=now()-3*3600;
+    fs.writeFileSync(f,JSON.stringify(all));
+    const idle=tronCalls();await runRenewals();assert.equal(tronCalls(),idle,'no open orders, no TronGrid calls');
 });

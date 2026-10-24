@@ -146,7 +146,7 @@ note "Changed ${#changed[@]}: ${changed[*]:-none}"
 note "Added ${#added[@]}: ${added[*]:-none}"
 note "Retired ${#retired[@]}: ${retired[*]:-none}"
 env_set=(); env_missing=()
-for key in PATREON_CLIENT_ID PATREON_CLIENT_SECRET PATREON_CAMPAIGN_ID PATREON_TIER_IDS PATREON_WEBHOOK_SECRET PATREON_PROXY_URL GOOGLE_CLIENT_ID GOOGLE_CLIENT_SECRET ADMIN_PASSWORD SITE_URL OPENROUTER_API_KEY LAVA_API_KEY LAVA_OFFER_ID LAVA_WEBHOOK_SECRET ROBOKASSA_LOGIN ROBOKASSA_PASSWORD1 ROBOKASSA_PASSWORD2 YOOKASSA_SHOP_ID YOOKASSA_SECRET_KEY BILLING_RUB_MONTHLY BILLING_RUB_YEARLY; do
+for key in PATREON_CLIENT_ID PATREON_CLIENT_SECRET PATREON_CAMPAIGN_ID PATREON_TIER_IDS PATREON_WEBHOOK_SECRET PATREON_PROXY_URL GOOGLE_CLIENT_ID GOOGLE_CLIENT_SECRET ADMIN_PASSWORD SITE_URL OPENROUTER_API_KEY LAVA_API_KEY LAVA_OFFER_ID LAVA_WEBHOOK_SECRET ROBOKASSA_LOGIN ROBOKASSA_PASSWORD1 ROBOKASSA_PASSWORD2 YOOKASSA_SHOP_ID YOOKASSA_SECRET_KEY BILLING_RUB_MONTHLY BILLING_RUB_YEARLY USDT_TRC20_ADDRESS TRONGRID_API_KEY; do
   if grep -Eq "^\s*${key}\s*=\s*\S" "$root/.env" 2>/dev/null; then env_set+=("$key"); else env_missing+=("$key"); fi
 done
 note ".env set: ${env_set[*]:-none}; missing: ${env_missing[*]:-none}"
@@ -195,13 +195,13 @@ install_release() {
 }
 install_release || { restore "$root" "$backup"; fail "Install failed; restored previous files"; }
 
-# Robokassa and YooKassa renewals are charged by the site itself, as the web user that writes data/.
+# USDT payments are checked and Robokassa/YooKassa renewals charged by the site itself, as the web user that writes data/.
 php_bin="$(command -v php || true)"
 if [ "$(id -u)" = 0 ] && [ -n "$web_user" ] && [ -n "$php_bin" ] && [ -f "$root/config/billing-renew.php" ]; then
-  printf '# Installed by riffkiller deploy-remote.sh\n*/30 * * * * %s %s %s/config/billing-renew.php 2>&1 | logger -t riffkiller-billing\n' \
+  printf '# Installed by riffkiller deploy-remote.sh\n* * * * * %s %s %s/config/billing-renew.php 2>&1 | logger -t riffkiller-billing\n' \
     "$web_user" "$php_bin" "$root" > /etc/cron.d/riffkiller-billing
   chmod 644 /etc/cron.d/riffkiller-billing
-  note "Billing renewals: /etc/cron.d/riffkiller-billing (every 30 min as $web_user)"
+  note "Billing cron (USDT check, renewals): /etc/cron.d/riffkiller-billing (every minute as $web_user)"
 else
   echo "::warning::Billing renewals cron not installed (uid $(id -u), web user ${web_user:-unknown}, php ${php_bin:-missing})"
 fi

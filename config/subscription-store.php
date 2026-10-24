@@ -31,7 +31,7 @@ function save_subscription($userId, $data) {
     $out = [
         'status' => isset($data['status']) ? (string) $data['status'] : 'active',
         'plan' => isset($data['plan']) && $data['plan'] === 'yearly' ? 'yearly' : 'monthly',
-        'source' => isset($data['source']) && in_array($data['source'], ['stripe', 'cryptomus', 'patreon', 'promo', 'test', 'lava', 'robokassa', 'yookassa'], true) ? $data['source'] : 'stripe',
+        'source' => isset($data['source']) && in_array($data['source'], ['stripe', 'cryptomus', 'patreon', 'promo', 'test', 'lava', 'robokassa', 'yookassa', 'usdt'], true) ? $data['source'] : 'stripe',
         'expires' => isset($data['expires']) ? (int) $data['expires'] : (isset($data['expires_at']) ? (int) $data['expires_at'] : null),
     ];
     return @file_put_contents($path, json_encode($out, JSON_PRETTY_PRINT), LOCK_EX) !== false;
