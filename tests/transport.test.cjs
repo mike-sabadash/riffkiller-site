@@ -122,7 +122,7 @@ test('a hard loop waits for a seek in progress and a pause meanwhile wins', asyn
     t.destroy();
 });
 test('the boundary is met by a timer from the last frame, not by the next coarse time update', async () => {
-    const {left,t}=setup(); await t.play();
+    const {left,t}=setup(); await t.play(); left.currentTime=2.95; // a coarse update behind the last frame
     t.anchor={media:3, wall:t.now()};
     assert.ok(t.estimate()>=3);
     let fired=0; t.at(3.05, ()=>fired++);
@@ -162,4 +162,9 @@ test('the part file holds exactly the part, sample-exact', async () => {
     assert.equal(view.getUint16(22,true),2); assert.equal(view.getUint32(24,true),rate);
     assert.equal(view.getInt16(44,true),0); // faded in, no click
     assert.ok(view.getInt16(44+4*1000,true)>16000 && view.getInt16(46+4*1000,true)<-16000);
+});
+test('a frame from before a loop jump does not make the clock look past the part end', async () => {
+    const {left,t}=setup(); await t.play();
+    left.currentTime=1.74; t.anchor={media:3.42, wall:t.now()-50};
+    assert.equal(t.estimate(), 1.74);
 });

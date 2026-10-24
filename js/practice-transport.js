@@ -74,6 +74,8 @@
             if (!a || !this.intendedPlaying || this.left.paused || this.left.seeking) return t;
             const age = (this.now() - a.wall) / 1000;
             if (age < 0 || age > 0.3) return t;
+            // A frame from before a seek (Safari can report one after the seek lands) says nothing about now.
+            if (Math.abs(a.media - t) > 0.5) return t;
             return Math.max(t, a.media + age * this.rate);
         }
         // Calls fn when the clock camera reaches media time `time` (once; a later call replaces it).
