@@ -327,6 +327,7 @@
                 var fd = new FormData();
                 fd.append('file', f);
                 fd.append('path', path);
+                fd.append('variants', o.kind);
                 return fetch(uploadUrl, { method: 'POST', body: fd })
                     .then(function (r) { return r.json(); })
                     .then(function (d) {

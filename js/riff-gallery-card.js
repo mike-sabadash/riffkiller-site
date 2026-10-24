@@ -55,6 +55,10 @@
             '</div>' +
             '<img src="' +
             String(riff.thumbnail || '').replace(/"/g, '') +
+            // Light WebP copies from the API: a 220 px card downloads ~400–800 px, not the full upload.
+            (riff.thumbnailSrcset
+                ? '" srcset="' + String(riff.thumbnailSrcset).replace(/"/g, '') + '" sizes="(max-width: 600px) 50vw, 240px'
+                : '') +
             '" alt="' +
             esc(riff.song) +
             '" class="riff-image" style="opacity:0; transition:opacity 0.3s ease; width:100%; height:100%; object-fit:cover; position:absolute; top:0; left:0;" ' +

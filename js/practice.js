@@ -469,6 +469,7 @@ function addToRecentlyPracticed(riff) {
         song: riff.song,
         artist: riff.artist,
         thumbnail: riff.thumbnail,
+        thumbnailSrcset: riff.thumbnailSrcset || '',
         difficulty: riff.difficulty,
         lastPracticed: new Date().toISOString().split('T')[0]
     });

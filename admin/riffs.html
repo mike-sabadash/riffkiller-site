@@ -404,7 +404,7 @@
     <script src="../js/admin-cutter.js?v=ed1"></script>
     <script>
 (function() {
-    var listUrl = '/api/riffs/list.php';
+    var listUrl = '/api/riffs/list.php?raw=1';
     var saveUrl = '/api/riffs/save.php';
     var reorderUrl = '/api/riffs/reorder.php';
     var uploadUrl = '/api/upload.php';
@@ -760,8 +760,9 @@
             }).catch(function(){ showMsg('Ошибка', true); });
     };
     function showMsg(t, err) { var m = document.getElementById('msg'); m.textContent = t; m.className = 'msg '+(err?'error':'success'); }
-    function uploadImage(file, path) {
+    function uploadImage(file, path, variants) {
         var fd = new FormData(); fd.append('file', file, file.name || path.split('/').pop()); fd.append('path', path);
+        if (variants) fd.append('variants', variants);
         return fetch(uploadUrl, { method: 'POST', body: fd }).then(function(r){return r.json();}).then(function(d){ return d.success&&d.path ? d.path : Promise.reject(new Error(d.error||'Upload failed')); });
     }
     // Videos go up in chunks: the server takes at most 2 MB per request.
@@ -877,7 +878,7 @@
         Promise.all([
             uL ? uploadVideo(uL, basePath + songSlug + '-left.mp4', 'videoFileProgress') : Promise.resolve(vL),
             uR ? uploadVideo(uR, basePath + songSlug + '-right.mp4', 'videoFileRightProgress') : Promise.resolve(vR),
-            coverBlob ? uploadImage(coverBlob, coverPath(coverBlob)) : Promise.resolve(th),
+            coverBlob ? uploadImage(coverBlob, coverPath(coverBlob), 'card') : Promise.resolve(th),
             uLesson ? uploadVideo(uLesson, basePath + songSlug + '-lesson.mp4', 'lessonVideoProgress') : Promise.resolve(vLesson),
             TabEditor.collect(uploadImage, basePath.replace(/^assets\/video\//, 'assets/tabs/'))
         ]).then(function(r){

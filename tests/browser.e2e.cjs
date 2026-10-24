@@ -236,14 +236,23 @@ test('cover: a frame from the markup video becomes the riff card picture after s
     assert.equal((await save).status(),200);
     const saved=JSON.parse(fs.readFileSync(path.join(site.dir,'data/riffs.json')))[0];
     assert.match(saved.thumbnail,/^assets\/img\/riffs\/led-zeppelin-black-dog-[a-z0-9]+\.jpg$/);
-    const file=path.join(site.dir,saved.thumbnail);t.after(()=>fs.rmSync(file,{force:true}));
+    const file=path.join(site.dir,saved.thumbnail),stem=file.replace(/\.jpg$/,'');
+    const copies=()=>fs.readdirSync(path.dirname(file)).filter(n=>n.startsWith(path.basename(stem)+'.w')).map(n=>path.join(path.dirname(file),n));
+    t.after(()=>{for(const f of [file,...copies()])fs.rmSync(f,{force:true})});
     const jpg=fs.readFileSync(file);assert.equal(jpg.readUInt16BE(0),0xffd8,'JPEG');
+    // Light WebP copies for the cards (400/800/1200, never wider than the frame itself).
+    const widths=copies().map(f=>Number(f.match(/\.w(\d+)\.webp$/)[1]));assert.ok(widths.length&&widths.every(w=>w<=1200),String(widths));
+    for(const f of copies())assert.equal(fs.readFileSync(f).toString('latin1',8,12),'WEBP',f);
+    assert.equal(JSON.parse(fs.readFileSync(path.join(site.dir,'data/riffs.json')))[0].thumbnailSrcset,undefined,'srcset is not stored');
     assert.ok(fs.existsSync(path.join(site.dir,'assets/img/riff-1.png')),'the old shared cover is left alone');
     await page.waitForFunction(()=>/Сохранено/.test(document.getElementById('edStatus').textContent));
     assert.equal(await page.inputValue('#thumbnail'),saved.thumbnail);
     await page.goto(site.base+'/',{waitUntil:'domcontentloaded'});
     await page.waitForSelector('#riffsGrid .riff-card[data-id="1"] img.riff-image');
     assert.equal(await page.getAttribute('#riffsGrid .riff-card[data-id="1"] img.riff-image','src'),saved.thumbnail);
+    assert.match(await page.getAttribute('#riffsGrid .riff-card[data-id="1"] img.riff-image','srcset'),/^assets\/img\/riffs\/.+\.w\d+\.webp \d+w/);
+    await page.waitForFunction(()=>document.querySelector('#riffsGrid .riff-card[data-id="1"] img.riff-image').complete);
+    assert.match(await page.$eval('#riffsGrid .riff-card[data-id="1"] img.riff-image',img=>img.currentSrc),/\.w\d+\.webp$/,'the card loads a WebP copy');
 });
 test('collection banner: a wide picture fills the header, a small one is flagged, none shows the card picture whole',async t=>{
     const store=path.join(site.dir,'data/collections.json'),original=fs.readFileSync(store);t.after(()=>fs.writeFileSync(store,original));
@@ -251,7 +260,7 @@ test('collection banner: a wide picture fills the header, a small one is flagged
     require('node:child_process').execFileSync('ffmpeg',['-hide_banner','-loglevel','error','-y','-f','lavfi','-i','color=c=0x335577:s=2400x400','-frames:v','1',wide]);
     const page=await pageFor(t);const [name,value]=(await site.adminCookie()).split('=');await page.context().addCookies([{name,value,url:site.base}]);
     const uploaded=[];page.on('response',r=>{if(r.url().endsWith('/api/upload.php'))uploaded.push(r.json().then(d=>d.path,()=>null))});
-    t.after(async()=>{for(const f of await Promise.all(uploaded))if(f)fs.rmSync(path.join(site.dir,f),{force:true})});
+    t.after(async()=>{for(const f of await Promise.all(uploaded))if(f){const stem=path.join(site.dir,f).replace(/\.\w+$/,'');for(const v of [path.join(site.dir,f),...[400,428,600,800,1200,2400].map(w=>stem+'.w'+w+'.webp')])fs.rmSync(v,{force:true})}});
     await page.goto(site.base+'/admin/collections.html',{waitUntil:'domcontentloaded'});await page.click('.admin-tab[data-tab="edit"]');
     await page.waitForFunction(()=>document.querySelectorAll('#colSelect option').length>1);await page.selectOption('#colSelect','1');
     assert.ok(await page.locator('#colImagePreview').isVisible(),'card picture preview');
@@ -267,6 +276,7 @@ test('collection banner: a wide picture fills the header, a small one is flagged
     const view=await pageFor(t);await view.goto(site.base+'/collection.html?id=1',{waitUntil:'domcontentloaded'});
     await view.waitForSelector('#collectionBanner .collection-banner-image');
     assert.equal(await view.getAttribute('#collectionBanner .collection-banner-image','src'),banner);
+    assert.match(await view.getAttribute('#collectionBanner .collection-banner-image','srcset'),/\.w800\.webp 800w, .*\.w2400\.webp 2400w$/);
     assert.equal(await view.locator('#collectionBanner.collection-banner--fit').count(),0);
     await page.click('#colBannerClear');save=page.waitForResponse(r=>r.url().endsWith('/api/collections/save.php'));await page.click('#colSubmit');await save;
     assert.equal(JSON.parse(fs.readFileSync(store)).find(c=>c.id===1).bannerUrl,undefined);

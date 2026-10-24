@@ -195,6 +195,17 @@ install_release() {
 }
 install_release || { restore "$root" "$backup"; fail "Install failed; restored previous files"; }
 
+# Light WebP copies of the cover pictures (config/image-variants.php), written as the web user like admin uploads.
+# Only adds files next to the originals; a failure here never fails the deploy.
+if [ -f "$root/config/image-variants-cli.php" ] && command -v php >/dev/null; then
+  if [ "$(id -u)" = 0 ] && [ -n "$web_user" ]; then
+    covers="$(timeout 300 runuser -u "$web_user" -- php "$root/config/image-variants-cli.php" --all 2>&1 | tail -1 || true)"
+  else
+    covers="$(timeout 300 php "$root/config/image-variants-cli.php" --all 2>&1 | tail -1 || true)"
+  fi
+  note "${covers:-Cover pictures: no output}"
+fi
+
 # USDT payments are checked and Robokassa/YooKassa renewals charged by the site itself, as the web user that writes data/.
 php_bin="$(command -v php || true)"
 if [ "$(id -u)" = 0 ] && [ -n "$web_user" ] && [ -n "$php_bin" ] && [ -f "$root/config/billing-renew.php" ]; then
