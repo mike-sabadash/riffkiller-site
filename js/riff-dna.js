@@ -157,23 +157,50 @@
             '<button type="button" class="dna-action" data-dna-action="play-all">Play full riff</button>';
     }
 
+    // Map layout: blocks follow each other with one fixed gap, width by duration (short parts get a minimum).
+    // Time between parts is not drawn, so dots and the playhead go through toMapPercent().
+    var mapLayout = [];
+    function layoutMap(segs) {
+        var durs = segs.map(function (s) { return Math.max(0, s.end - s.start); });
+        var sum = durs.reduce(function (a, b) { return a + b; }, 0) || 1;
+        var weights = durs.map(function (d) { return Math.max(d, sum * 0.012); });
+        var wsum = weights.reduce(function (a, b) { return a + b; }, 0) || 1;
+        var at = 0;
+        return segs.map(function (s, i) {
+            var from = at;
+            at += weights[i] / wsum * 100;
+            return { start: s.start, end: s.end, from: from, to: at };
+        });
+    }
+    function toMapPercent(t) {
+        var p = 0;
+        for (var i = 0; i < mapLayout.length; i++) {
+            var b = mapLayout[i];
+            if (t < b.start) break;
+            p = t >= b.end || b.end <= b.start ? b.to : b.from + (t - b.start) / (b.end - b.start) * (b.to - b.from);
+        }
+        return Math.min(100, p);
+    }
+
     function renderMap() {
         var segs = segments();
         if (!segs.length) return '';
         var total = segs[segs.length - 1].end || 1;
-        var blocks = segs.map(function (s) {
-            var left = (s.start / total) * 100;
-            var width = Math.max(((s.end - s.start) / total) * 100, 1.2);
+        mapLayout = layoutMap(segs);
+        var blocks = segs.map(function (s, i) {
+            var left = mapLayout[i].from;
+            var width = mapLayout[i].to - mapLayout[i].from;
+            var last = i === segs.length - 1;
             var color = s.role ? s.role.color : 'transparent';
             var label = s.role ? s.role.label : '';
             return '<button type="button" class="dna-map-block' + (s.role ? '' : ' dna-map-block--plain') + '" data-dna-segment="' + s.index + '"' +
-                ' style="left:' + left + '%;width:' + width + '%;--role:' + color + '"' +
+                ' style="left:' + left + '%;width:' + (last ? width + '%' : 'calc(' + width + '% - 4px)') + ';--role:' + color + '"' +
                 ' title="' + esc((label ? label + ' · ' : '') + s.name + ' · ' + fmtTime(s.start) + '–' + fmtTime(s.end)) + '"' +
                 ' aria-label="Loop ' + esc(s.name + (label ? ', ' + label : '')) + '"><span>' + (width >= 14 ? esc(label) : '') + '</span></button>';
         }).join('');
         // Dots are the techniques on the part buttons; free-form notes ("other") are only in the Techniques tab.
         var marks = atoms().filter(function (a) { return a.known; }).map(function (a) {
-            return '<button type="button" class="dna-map-atom" data-dna-atom="' + a.index + '" style="left:' + (a.time / total) * 100 + '%"' +
+            return '<button type="button" class="dna-map-atom" data-dna-atom="' + a.index + '" style="left:' + toMapPercent(a.time) + '%"' +
                 ' title="' + esc(a.name + ' · ' + fmtTime(a.time)) + '" aria-label="' + esc(a.name + ' at ' + fmtTime(a.time)) + '"></button>';
         }).join('');
         return '<div class="dna-map" id="dnaMap" data-total="' + total + '">' +
@@ -296,9 +323,8 @@
         var seg = segmentAt(segs, state.time);
         var map = document.getElementById('dnaMap');
         if (map) {
-            var total = Number(map.dataset.total) || 1;
             var head = document.getElementById('dnaMapPlayhead');
-            if (head) head.style.left = Math.min(100, (state.time / total) * 100) + '%';
+            if (head) head.style.left = toMapPercent(state.time) + '%';
             map.querySelectorAll('.dna-map-block').forEach(function (el) {
                 el.classList.toggle('active', !!seg && Number(el.dataset.dnaSegment) === seg.index);
             });

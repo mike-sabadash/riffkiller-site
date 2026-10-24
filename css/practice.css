@@ -2179,3 +2179,11 @@
 @media (min-width: 1160px) {
     .practice-workspace .practice-parts .segment-controls:not(:has(button)) { min-height: 216px; }
 }
+
+/* Tabs: линейный глаз (как Lucide); пока табы скрыты — перечёркнутый */
+.tab-toggle-btn .tab-icon { flex-shrink: 0; color: currentColor; opacity: 0.72; }
+.tab-toggle-btn .tab-icon-on { display: none; }
+.tab-toggle-btn.active .tab-icon-on { display: inline; }
+.tab-toggle-btn.active .tab-icon-off { display: none; }
+.tab-toggle-btn:hover .tab-icon,
+.tab-toggle-btn.active .tab-icon { opacity: 1 !important; }
