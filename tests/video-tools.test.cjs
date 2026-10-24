@@ -60,3 +60,20 @@ test('one recording becomes two synchronized camera videos with the chosen frame
     for(let i=0;i<200;i++){state=await (await fetch(site.base+'/api/admin/crop-video.php?job='+again.job,{headers:{Cookie:admin}})).json();if(state.state!=='running')break;await new Promise(r=>setTimeout(r,100));}
     assert.equal(state.outputs.left,'assets/video/crop-artist/crop-song/crop-song-left-2.mp4');
 });
+
+test('a riff video is re-encoded with a keyframe at every part start, once per set of starts, original kept',()=>{
+    const video='assets/video/rekey-artist/rekey-song/left.mp4', file=path.join(site.dir,video);
+    fs.mkdirSync(path.dirname(file),{recursive:true});fs.copyFileSync(source,file);
+    const run=starts=>execFileSync('php',[path.join(site.dir,'scripts/video-rekey.php'),video,starts],{encoding:'utf8'});
+    assert.match(run('0,1.7,2.35'),/keyframes at part starts 0,1\.7,2\.35/);
+    const keys=execFileSync('ffprobe',['-v','error','-select_streams','v:0','-skip_frame','nokey','-show_entries','frame=pts_time','-of','csv=p=0',file],{encoding:'utf8'})
+        .trim().split('\n').map(parseFloat);
+    for(const t of [0,1.7,2.35]) assert.ok(keys.some(k=>k>=t-1e-6&&k<t+0.034),'keyframe at '+t+': '+keys);
+    assert.ok(keys.every((k,i)=>!i||k-keys[i-1]<0.21),'keyframes at most 0.2 s apart');
+    assert.ok(Math.abs(probe(file).format.duration-probe(source).format.duration)<0.1);
+    assert.equal(fs.readFileSync(path.join(site.dir,'data/video-work/originals',video)).equals(fs.readFileSync(source)),true);
+    assert.match(run('0,1.7,2.35'),/already keyed/);
+    assert.match(run('0,1.5'),/keyframes at part starts 0,1\.5/);
+    assert.equal(fs.readFileSync(path.join(site.dir,'data/video-work/originals',video)).equals(fs.readFileSync(source)),true,'the first original stays');
+    fs.rmSync(path.dirname(path.dirname(file)),{recursive:true,force:true});
+});

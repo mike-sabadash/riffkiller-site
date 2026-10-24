@@ -5,8 +5,8 @@
 #   riff-tab-remote.sh apply <patch.json> → writes the tab and sync into the riff (backup first)
 #   riff-tab-remote.sh loopdebug           → last lines of data/loop-debug.log (practice.html?debug=loop)
 #   riff-tab-remote.sh probe <video path>  → stream timing of a video (start times, durations, edit lists)
-#   riff-tab-remote.sh rekey <riff id>      → re-encodes the riff's videos with a keyframe at every part start and
-#                                             every 0.2 s (sound copied as is), originals backed up first
+#   riff-tab-remote.sh rekey <riff id|all>  → re-encodes the riff's videos with a keyframe at every part start and
+#                                             every 0.2 s (sound copied as is), first original kept in data/video-work
 set -euo pipefail
 here="$(cd "$(dirname "$0")" && pwd)"
 fail() { echo "::error::$*" >&2; exit 1; }
@@ -39,35 +39,13 @@ case "${1:-}" in
     # Keyframes in the first seconds (seek precision).
     ffprobe -v error -select_streams v:0 -skip_frame nokey -show_entries frame=pts_time -of csv=p=0 -read_intervals "%+20" "$root/$video" | tr '\n' ' ' | head -c 600; echo ;;
   rekey)
-    id="${2:-}"; [[ "$id" =~ ^[0-9]+$ ]] || fail "bad riff id: $id"
+    # Same code as saving a riff in the admin (config/video-rekey.php); "all" does every riff.
+    id="${2:-}"; [[ "$id" =~ ^([0-9]+|all)$ ]] || fail "bad riff id: $id"
     command -v ffmpeg >/dev/null || fail "ffmpeg is not installed on the server"
-    # Videos of the riff and its part starts, from data/riffs.json.
-    plan="$(php -r '$l=json_decode(file_get_contents($argv[1]),true); $l=isset($l["riffs"])?$l["riffs"]:$l;
-      foreach($l as $r){ if((string)($r["id"]??"")!==$argv[2]) continue;
-        $t=[]; foreach(($r["segments"]??[]) as $s){ if(is_numeric($s["start"]??null)) $t[]=round((float)$s["start"],3); }
-        echo implode(",",array_unique($t)),"\n";
-        foreach(array_unique(array_filter([$r["videoFile"]??"",$r["videoFileRight"]??""])) as $v) echo $v,"\n"; exit(0);} exit(2);' "$root/data/riffs.json" "$id")" || fail "riff $id not found"
-    starts="$(printf '%s\n' "$plan" | head -1)"
-    backup="${RIFFKILLER_VIDEO_BACKUPS:-/var/backups/riffkiller-video}/$(date -u +%Y%m%d-%H%M%S)-riff$id"
-    install -d -m 750 "$backup"
-    printf '%s\n' "$plan" | tail -n +2 | while read -r video; do
-      [[ "$video" =~ ^assets/video/[A-Za-z0-9._/-]+$ && "$video" != *..* ]] || fail "bad video path: $video"
-      src="$root/$video"; [ -f "$src" ] || fail "video not found: $video"
-      duration="$(ffprobe -v error -show_entries format=duration -of csv=p=0 "$src")"
-      # Keyframes: every part start, and every 0.2 s so any other seek decodes at most 6 frames. No B-frames:
-      # they add an edit list (picture shifted by two frames) and make a phone decode more per seek.
-      keys="$(php -r '$k=array_filter(explode(",",$argv[1]),"strlen"); for($t=0;$t<(float)$argv[2];$t+=0.2) $k[]=round($t,3); $k=array_unique(array_map("floatval",$k)); sort($k); echo implode(",",$k);' "$starts" "$duration")"
-      tmp="$(dirname "$src")/.rekey-$$-$(basename "$src")"
-      ffmpeg -nostdin -v error -y -i "$src" -map 0:v:0 -map '0:a?' -c:v libx264 -preset slow -crf 16 -bf 0 -pix_fmt yuv420p \
-        -force_key_frames "$keys" -c:a copy -movflags +faststart "$tmp"
-      newdur="$(ffprobe -v error -show_entries format=duration -of csv=p=0 "$tmp")"
-      php -r 'exit(abs((float)$argv[1]-(float)$argv[2])<0.1?0:1);' "$duration" "$newdur" || { rm -f "$tmp"; fail "duration changed for $video: $duration → $newdur"; }
-      install -d "$backup/$(dirname "$video")"; cp -p "$src" "$backup/$video"
-      chown --reference="$src" "$tmp"; chmod --reference="$src" "$tmp"; mv -f "$tmp" "$src"
-      echo "$video: $(stat -c %s "$backup/$video") → $(stat -c %s "$src") bytes, keyframes at part starts: $starts"
-    done
-    echo "backup: $backup" ;;
+    if [ "$id" = all ]; then php "$root/scripts/video-rekey.php" --all; else php "$root/scripts/video-rekey.php" --riff "$id"; fi
+    # Run over SSH as another user than the web server: let the site keep writing its work files.
+    chown -R --reference="$root/data" "$root/data/video-work" 2>/dev/null || true ;;
   apply)
     php "$here/riff-tab-apply.php" "$root" "${2:?patch}" "${RIFFKILLER_DATA_BACKUPS:-/var/backups/riffkiller-data}" ;;
-  *) fail "usage: riff-tab-remote.sh riffs|audio <video>|apply <patch>|loopdebug [lines]|probe <video>|rekey <riff id>" ;;
+  *) fail "usage: riff-tab-remote.sh riffs|audio <video>|apply <patch>|loopdebug [lines]|probe <video>|rekey <riff id|all>" ;;
 esac
