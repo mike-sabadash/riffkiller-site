@@ -49,6 +49,8 @@ jobs:
           ssh prod "install -d -m 700 '$dir'"
           scp -q scripts/riff-tab-remote.sh scripts/riff-tab-apply.php "prod:$dir/"
           echo "REMOTE_DIR=$dir" >> "$GITHUB_ENV"
+      - name: Site health
+        run: ssh prod "RIFFKILLER_ROOT='$RIFFKILLER_ROOT' bash '$REMOTE_DIR/riff-tab-remote.sh' health" || true
       - name: Loop log from devices
         run: ssh prod "RIFFKILLER_ROOT='$RIFFKILLER_ROOT' bash '$REMOTE_DIR/riff-tab-remote.sh' loopdebug '$LINES'"
       - name: Video timing
