@@ -862,8 +862,55 @@ function rewindVideo(seconds) {
     updateCurrentSegmentFromTime();
 }
 
+// A looped part sounds from its own short file cut from the riff's sound (js/part-audio.js), so Safari,
+// which keeps playing a video's sound for a moment after a seek, cannot let the next part through.
+const partAudio = typeof PartAudio !== 'undefined' ? new PartAudio() : null;
+let partVoice = null, partVoiceKey = '', partVoiceTransport = null, partVoiceUnlocked = false;
+function syncPartVoice() {
+    if (!partAudio || !practiceTransport || !leftVideo || !leftVideo.src) return;
+    if (partVoiceTransport !== practiceTransport) { partVoiceTransport = practiceTransport; partVoiceKey = ''; }
+    const segment = currentRiff && currentSegment >= 0 ? currentRiff.segments[currentSegment] : null;
+    if (!segment || !loopActive || loopAllRiff || lessonModeActive) {
+        if (partVoiceKey) { partVoiceKey = ''; practiceTransport.clearVoice(); }
+        return;
+    }
+    const start = getSegmentStartRaw(segment), end = getSegmentEndRaw(segment);
+    const key = leftVideo.src + '|' + start + '|' + end;
+    if (key === partVoiceKey) return;
+    partVoiceKey = key;
+    // The video carries the sound until the part's file is ready (a few ms once the riff is decoded).
+    practiceTransport.clearVoice();
+    partAudio.clip(leftVideo.src, start, end).then(url => {
+        if (partVoiceKey !== key || !url) return;
+        if (!partVoice) partVoice = makePartVoice();
+        partVoice.src = url;
+        practiceTransport.setVoice(partVoice, start, end);
+    });
+}
+function makePartVoice() {
+    const audio = new Audio();
+    audio.preload = 'auto';
+    audio.setAttribute('playsinline', '');
+    return audio;
+}
+// Safari lets an element play sound on its own only after it has played once from a tap or a key.
+function unlockPartVoice() {
+    if (!partAudio) return;
+    // A refused start (the voice was dropped) is tried again after this gesture.
+    if (practiceTransport && !practiceTransport.voice) partVoiceKey = '';
+    if (partVoiceUnlocked) return;
+    if (!partVoice) partVoice = makePartVoice();
+    if (partVoice.src) { partVoiceUnlocked = true; return; }
+    const silent = PartAudio.wav({ sampleRate: 8000, numberOfChannels: 1, length: 80, getChannelData: () => new Float32Array(80) }, 0, 0.01);
+    partVoice.src = URL.createObjectURL(silent);
+    const p = partVoice.play();
+    if (p && p.then) p.then(() => { partVoiceUnlocked = true; if (!practiceTransport || !practiceTransport.voice) partVoice.pause(); }, () => {});
+}
+['pointerdown', 'touchend', 'keydown'].forEach(type => document.addEventListener(type, unlockPartVoice, true));
+
 // Left camera is the clock in every display mode; tabs follow it in All Riff too.
 function updateVideoProgress() {
+    syncPartVoice();
     if (!leftVideo || !rightVideo || !currentRiff || lessonModeActive) return;
     const time = leftVideo.currentTime;
     updateTimelineProgress(time);

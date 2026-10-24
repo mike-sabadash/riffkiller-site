@@ -133,3 +133,33 @@ test('the boundary is met by a timer from the last frame, not by the next coarse
     assert.equal(fired,1, 'a seek cancels the jump');
     t.destroy();
 });
+class Sound { currentTime = 0; paused = true; ended = false; playbackRate = 1; loop = true;
+    play() { this.paused = false; return this.result || Promise.resolve(); } pause() { this.paused = true; } }
+test('a looped part sounds from its own file: the clock camera is silent and the file restarts at every jump', async () => {
+    const {left,t}=setup(); const a=new Sound();
+    t.setVoice(a, 3.64, 5.56); assert.equal(left.muted,true); assert.equal(a.loop,false);
+    left.currentTime=3.64; await t.play(); assert.equal(a.paused,false);
+    left.currentTime=5; a.currentTime=1.36; t.tick(); assert.equal(a.currentTime,1.36);
+    a.ended=true; a.paused=true; left.currentTime=5.6; t.tick(); assert.equal(a.paused,true); // past the end: silent
+    t.loopTo(3.64); assert.equal(a.currentTime,0); assert.equal(a.paused,false); assert.equal(left.muted,true);
+    t.setRate(.5); assert.equal(a.playbackRate,.5);
+    t.pause(); assert.equal(a.paused,true);
+    t.clearVoice(); assert.equal(left.muted,false);
+});
+test('a refused part sound hands the sound back to the clock camera', async () => {
+    const {left,t}=setup(); const a=new Sound(); a.result=Promise.reject(new Error('NotAllowedError'));
+    t.setVoice(a, 0, 1.6); await t.play(); await new Promise(setImmediate);
+    assert.equal(t.voice,null); assert.equal(left.muted,false);
+});
+test('the part file holds exactly the part, sample-exact', async () => {
+    globalThis.Blob ??= require('node:buffer').Blob;
+    const PartAudio = require('../js/part-audio.js');
+    const rate=44100, len=rate*4, ch=[new Float32Array(len).fill(.5), new Float32Array(len).fill(-.5)];
+    const buffer={sampleRate:rate, numberOfChannels:2, length:len, getChannelData:c=>ch[c]};
+    const blob=PartAudio.wav(buffer, 1.7, 3.44), view=new DataView(await blob.arrayBuffer());
+    const frames=Math.round(3.44*rate)-Math.round(1.7*rate);
+    assert.equal(blob.size, 44+frames*4); assert.equal(view.getUint32(40,true), frames*4);
+    assert.equal(view.getUint16(22,true),2); assert.equal(view.getUint32(24,true),rate);
+    assert.equal(view.getInt16(44,true),0); // faded in, no click
+    assert.ok(view.getInt16(44+4*1000,true)>16000 && view.getInt16(46+4*1000,true)<-16000);
+});
