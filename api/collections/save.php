@@ -1,6 +1,6 @@
 <?php
 /**
- * POST JSON: { "collection": { id?, name, imageUrl, isFavorite? } }
+ * POST JSON: { "collection": { id?, name, imageUrl, bannerUrl?, isFavorite? } }
  * Состав риффов задаётся в админке риффа (collectionIds), не здесь.
  */
 error_reporting(0);
@@ -53,6 +53,11 @@ $out = [
     'imageUrl' => $imageUrl,
     'isFavorite' => !empty($collection['isFavorite']),
 ];
+// Wide picture for the collection page header; without it the page shows the card picture whole.
+$bannerUrl = trim((string)($collection['bannerUrl'] ?? ''));
+if ($bannerUrl !== '') {
+    $out['bannerUrl'] = $bannerUrl;
+}
 
 $id = isset($collection['id']) ? (int) $collection['id'] : 0;
 if ($id > 0) {

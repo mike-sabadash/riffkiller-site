@@ -245,6 +245,35 @@ test('cover: a frame from the markup video becomes the riff card picture after s
     await page.waitForSelector('#riffsGrid .riff-card[data-id="1"] img.riff-image');
     assert.equal(await page.getAttribute('#riffsGrid .riff-card[data-id="1"] img.riff-image','src'),saved.thumbnail);
 });
+test('collection banner: a wide picture fills the header, a small one is flagged, none shows the card picture whole',async t=>{
+    const store=path.join(site.dir,'data/collections.json'),original=fs.readFileSync(store);t.after(()=>fs.writeFileSync(store,original));
+    const tmp=fs.mkdtempSync(path.join(require('node:os').tmpdir(),'banner-'));const wide=path.join(tmp,'wide.png');
+    require('node:child_process').execFileSync('ffmpeg',['-hide_banner','-loglevel','error','-y','-f','lavfi','-i','color=c=0x335577:s=2400x400','-frames:v','1',wide]);
+    const page=await pageFor(t);const [name,value]=(await site.adminCookie()).split('=');await page.context().addCookies([{name,value,url:site.base}]);
+    const uploaded=[];page.on('response',r=>{if(r.url().endsWith('/api/upload.php'))uploaded.push(r.json().then(d=>d.path,()=>null))});
+    t.after(async()=>{for(const f of await Promise.all(uploaded))if(f)fs.rmSync(path.join(site.dir,f),{force:true})});
+    await page.goto(site.base+'/admin/collections.html',{waitUntil:'domcontentloaded'});await page.click('.admin-tab[data-tab="edit"]');
+    await page.waitForFunction(()=>document.querySelectorAll('#colSelect option').length>1);await page.selectOption('#colSelect','1');
+    assert.ok(await page.locator('#colImagePreview').isVisible(),'card picture preview');
+    await page.setInputFiles('#colBannerUpload',path.join(site.dir,'assets/img/collections-2.png'));
+    await page.waitForFunction(()=>/600×360/.test(document.getElementById('colBannerNote').textContent));
+    assert.match(await page.locator('#colBannerNote').getAttribute('class'),/warn/);
+    await page.setInputFiles('#colBannerUpload',wide);
+    await page.waitForFunction(()=>/Загружено 2400×400/.test(document.getElementById('colBannerNote').textContent));
+    assert.doesNotMatch(await page.locator('#colBannerNote').getAttribute('class'),/warn/);
+    const banner=await page.inputValue('#colBannerUrl');assert.match(banner,/^assets\/img\/collections\/led-zeppelin-banner-[a-z0-9]+\.png$/);
+    let save=page.waitForResponse(r=>r.url().endsWith('/api/collections/save.php'));await page.click('#colSubmit');assert.equal((await save).status(),200);
+    assert.equal(JSON.parse(fs.readFileSync(store)).find(c=>c.id===1).bannerUrl,banner);
+    const view=await pageFor(t);await view.goto(site.base+'/collection.html?id=1',{waitUntil:'domcontentloaded'});
+    await view.waitForSelector('#collectionBanner .collection-banner-image');
+    assert.equal(await view.getAttribute('#collectionBanner .collection-banner-image','src'),banner);
+    assert.equal(await view.locator('#collectionBanner.collection-banner--fit').count(),0);
+    await page.click('#colBannerClear');save=page.waitForResponse(r=>r.url().endsWith('/api/collections/save.php'));await page.click('#colSubmit');await save;
+    assert.equal(JSON.parse(fs.readFileSync(store)).find(c=>c.id===1).bannerUrl,undefined);
+    await view.reload({waitUntil:'domcontentloaded'});await view.waitForSelector('#collectionBanner.collection-banner--fit .collection-banner-backdrop');
+    const img=await view.locator('#collectionBanner .collection-banner-image').boundingBox(),box=await view.locator('#collectionBanner').boundingBox();
+    assert.ok(Math.abs(img.width/img.height-600/360)<0.02&&img.width<box.width,'card picture keeps its shape: '+JSON.stringify(img));
+});
 test('riff editor fits a phone screen without horizontal scrolling',async t=>{
     const page=await editor(t,390);
     const sizes=await page.evaluate(()=>({screen:innerWidth,page:document.documentElement.scrollWidth}));assert.ok(sizes.page<=sizes.screen+1,JSON.stringify(sizes));

@@ -36,7 +36,7 @@ function rk_riffs_load(): array
 }
 
 /**
- * Список коллекций для API/фронта: id, name, imageUrl, isFavorite, riffs[], videoCount.
+ * Список коллекций для API/фронта: id, name, imageUrl, bannerUrl, isFavorite, riffs[], videoCount.
  *
  * @return array<int, array<string,mixed>>
  */
@@ -69,6 +69,7 @@ function rk_collections_build_list(): array
             'id' => $cid,
             'name' => (string) ($c['name'] ?? ''),
             'imageUrl' => (string) ($c['imageUrl'] ?? 'assets/img/collections-1.png'),
+            'bannerUrl' => (string) ($c['bannerUrl'] ?? ''),
             'isFavorite' => !empty($c['isFavorite']),
             'riffs' => $riffIds,
             'videoCount' => count($riffIds),

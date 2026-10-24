@@ -77,12 +77,14 @@ body.ed-page .tab-pane#tabList .form-section { max-width: 760px; }
 .ed-cutter-cta { display: flex; align-items: center; gap: 16px; margin-top: 14px; padding: 12px 14px; border: 1px dashed var(--ed-line-strong); border-radius: var(--ed-radius); }
 .ed-cutter-cta p { margin: 0; flex: 1; color: var(--ed-text-2); }
 /* Cover */
-.ed-cover { display: grid; grid-template-columns: 214px 1fr; gap: 20px; align-items: start; }
-.ed-cover-frame { position: relative; aspect-ratio: 214 / 180; border-radius: var(--ed-radius); overflow: hidden; background: var(--ed-bg); border: 1px solid var(--ed-line); display: flex; align-items: center; justify-content: center; color: var(--ed-text-3); font-size: 13px; }
+.ed-cover { display: grid; grid-template-columns: 240px 1fr; gap: 20px; align-items: start; }
+.ed-cover-frame { position: relative; aspect-ratio: 5 / 3; border-radius: var(--ed-radius); overflow: hidden; background: var(--ed-bg); border: 1px solid var(--ed-line); display: flex; align-items: center; justify-content: center; color: var(--ed-text-3); font-size: 13px; }
 .ed-cover-frame img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .ed-cover-side { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
 .ed-cover-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 .ed-cover-side .ed-help { margin: 0; }
+.ed-cover-size b { color: var(--ed-text); font-weight: 600; }
+.ed-cover-side .ed-help.warn { color: #FFB74D; }
 .ed-more { margin-top: 14px; }
 .ed-more summary { cursor: pointer; color: var(--ed-text-3); font-size: 13px; }
 .ed-more[open] summary { margin-bottom: 12px; }

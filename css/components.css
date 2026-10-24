@@ -1172,6 +1172,14 @@
     object-fit: cover;
 }
 
+/* No wide banner: the card picture whole, centred over a blurred, dimmed copy of itself */
+.collection-banner--fit { background: #0b0c12; }
+.collection-banner--fit .collection-banner-backdrop {
+    position: absolute; inset: -24px; width: calc(100% + 48px); height: calc(100% + 48px);
+    object-fit: cover; filter: blur(28px) brightness(0.45); transform: scale(1.05);
+}
+.collection-banner--fit .collection-banner-image { position: relative; display: block; width: auto; max-width: 100%; margin: 0 auto; object-fit: contain; }
+
 .collection-banner-overlay {
     position: absolute;
     bottom: 0;

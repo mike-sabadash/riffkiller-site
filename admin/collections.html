@@ -45,6 +45,24 @@
         .col-card-sub { font-size: 12px; color: rgba(255,255,255,0.45); margin-top: 4px; }
         .col-card-actions { display: flex; gap: 8px; flex-shrink: 0; }
         .empty { text-align: center; padding: 40px; color: rgba(255,255,255,0.45); }
+        [hidden] { display: none !important; }
+        .cover-box { display: grid; grid-template-columns: 240px 1fr; gap: 16px; align-items: start; }
+        .cover-frame { position: relative; border-radius: 10px; overflow: hidden; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; text-align: center; padding: 8px; box-sizing: border-box; font-size: 12px; color: rgba(255,255,255,0.4); }
+        .cover-frame.card { aspect-ratio: 5 / 3; }
+        .cover-frame.banner { aspect-ratio: 6 / 1; }
+        .cover-box.wide { grid-template-columns: 1fr; }
+        .cover-frame img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+        .cover-side { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; min-width: 0; }
+        .cover-side p, .cover-side input[type="text"] { flex-basis: 100%; margin: 0; }
+        .cover-size { font-size: 13px; line-height: 1.5; color: rgba(255,255,255,0.6); }
+        .cover-size b { color: #fff; font-weight: 600; }
+        .cover-note { font-size: 13px; line-height: 1.5; color: rgba(255,255,255,0.6); }
+        .cover-note:empty { display: none; }
+        .cover-note.warn { color: #FFB74D; }
+        .btn-ghost { background: rgba(255,255,255,0.08); color: #fff; border: 1px solid rgba(255,255,255,0.16); display: inline-block; }
+        .btn-ghost:hover { background: rgba(255,255,255,0.14); }
+        .form-row .cover-side .btn-ghost { display: inline-block; margin: 0; color: #fff; font-size: 12px; line-height: 1.2; }
+        @media (max-width: 600px) { .cover-box { grid-template-columns: 1fr; } }
         select#colSelect { width: 100%; max-width: 480px; padding: 10px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.06); color: #fff; font-size: 14px; }
     </style>
 </head>
@@ -87,10 +105,32 @@
                         <label>Название</label>
                         <input type="text" id="colName" required placeholder="Classic Rock">
                     </div>
-                    <div class="form-row">
-                        <label>URL обложки (assets/…)</label>
-                        <input type="text" id="colImageUrl" placeholder="assets/img/collections-1.png">
-                        <input type="file" id="colImageUpload" accept="image/*">
+                    <div class="form-row cover-row">
+                        <label>Карточка коллекции</label>
+                        <div class="cover-box">
+                            <div class="cover-frame card"><img id="colImagePreview" alt="" hidden></div>
+                            <div class="cover-side">
+                                <p class="cover-size">Лучше <b>1200×720</b> (5:3), JPG или PNG. На главной карточка 300×180, картинка нужна вдвое больше для чётких экранов.</p>
+                                <label class="btn btn-small btn-ghost" for="colImageUpload">Загрузить картинку</label>
+                                <input type="file" id="colImageUpload" accept="image/png,image/jpeg,image/webp" hidden>
+                                <p class="cover-note" id="colImageNote" role="status"></p>
+                                <input type="text" id="colImageUrl" placeholder="assets/img/collections-1.png" aria-label="Путь к картинке карточки">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-row cover-row">
+                        <label>Баннер на странице коллекции</label>
+                        <div class="cover-box wide">
+                            <div class="cover-frame banner"><img id="colBannerPreview" alt="" hidden><span id="colBannerEmpty">Без баннера страница покажет картинку карточки целиком, без растягивания</span></div>
+                            <div class="cover-side">
+                                <p class="cover-size">Лучше <b>2400×400</b> (6:1). На компьютере баннер 1184×200, на телефоне от него видна середина, примерно 1120×400. Главное держите в центре.</p>
+                                <label class="btn btn-small btn-ghost" for="colBannerUpload">Загрузить баннер</label>
+                                <input type="file" id="colBannerUpload" accept="image/png,image/jpeg,image/webp" hidden>
+                                <button type="button" class="btn btn-small btn-ghost" id="colBannerClear">Убрать баннер</button>
+                                <p class="cover-note" id="colBannerNote" role="status"></p>
+                                <input type="text" id="colBannerUrl" placeholder="assets/img/collections/banner.jpg" aria-label="Путь к баннеру">
+                            </div>
+                        </div>
                     </div>
                     <div class="form-row">
                         <label><input type="checkbox" id="colIsFavorite"> По умолчанию в избранном (флаг в JSON)</label>
@@ -215,6 +255,10 @@
     function loadFormFromCollection(c) {
         document.getElementById('colName').value = c.name || '';
         document.getElementById('colImageUrl').value = c.imageUrl || '';
+        document.getElementById('colBannerUrl').value = c.bannerUrl || '';
+        showPreview('colImagePreview', c.imageUrl || '');
+        showPreview('colBannerPreview', c.bannerUrl || '');
+        ['colImageNote', 'colBannerNote'].forEach(function (id) { document.getElementById(id).textContent = ''; });
         document.getElementById('colIsFavorite').checked = !!c.isFavorite;
         document.getElementById('colDelete').style.display = '';
     }
@@ -222,6 +266,10 @@
     function resetFormNew() {
         document.getElementById('colName').value = '';
         document.getElementById('colImageUrl').value = '';
+        document.getElementById('colBannerUrl').value = '';
+        showPreview('colImagePreview', '');
+        showPreview('colBannerPreview', '');
+        ['colImageNote', 'colBannerNote'].forEach(function (id) { document.getElementById(id).textContent = ''; });
         document.getElementById('colIsFavorite').checked = false;
         document.getElementById('colDelete').style.display = 'none';
     }
@@ -242,30 +290,63 @@
         document.getElementById('colSelect').dispatchEvent(new Event('change'));
     });
 
-    document.getElementById('colImageUpload').addEventListener('change', function () {
-        var f = this.files && this.files[0];
-        if (!f) return;
-        var name = (document.getElementById('colName').value || 'collection').toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9\-]/g, '').slice(0, 40) || 'collection';
-        var ext = (f.name.split('.').pop() || 'png').toLowerCase();
-        if (ext.length > 5) ext = 'png';
-        var path = 'assets/img/collection-' + name + '-' + Date.now() + '.' + ext;
-        var fd = new FormData();
-        fd.append('file', f);
-        fd.append('path', path);
-        fetch(uploadUrl, { method: 'POST', body: fd })
-            .then(function (r) { return r.json(); })
-            .then(function (d) {
-                if (d.success && d.path) {
-                    document.getElementById('colImageUrl').value = d.path;
-                    showMsg(document.getElementById('colMsg'), 'Файл загружен: ' + d.path, true);
-                } else {
-                    showMsg(document.getElementById('colMsg'), d.error || 'Ошибка загрузки', false);
-                }
-            })
-            .catch(function () {
-                showMsg(document.getElementById('colMsg'), 'Сеть / сервер', false);
+    // Cover pictures go up as soon as they are picked; the size check warns before a soft picture lands on the site.
+    function slugName() {
+        return (document.getElementById('colName').value || 'collection').toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9\-]/g, '').slice(0, 40) || 'collection';
+    }
+    function showPreview(imgId, path) {
+        var img = document.getElementById(imgId), empty = imgId === 'colBannerPreview' ? document.getElementById('colBannerEmpty') : null;
+        img.hidden = !path;
+        if (empty) { empty.hidden = !!path; document.getElementById('colBannerClear').hidden = !path; }
+        if (path) img.src = /^(https?:|\/)/.test(path) ? path : '../' + path; else img.removeAttribute('src');
+    }
+    function imageSize(file) {
+        return new Promise(function (resolve) {
+            var url = URL.createObjectURL(file), img = new Image();
+            img.onload = function () { resolve({ w: img.naturalWidth, h: img.naturalHeight }); URL.revokeObjectURL(url); };
+            img.onerror = function () { resolve(null); URL.revokeObjectURL(url); };
+            img.src = url;
+        });
+    }
+    function bindCoverUpload(o) {
+        var input = document.getElementById(o.input), field = document.getElementById(o.field), note = document.getElementById(o.note);
+        field.addEventListener('input', function () { showPreview(o.preview, field.value.trim()); note.textContent = ''; });
+        input.addEventListener('change', function () {
+            var f = this.files && this.files[0];
+            this.value = '';
+            if (!f) return;
+            var ext = (f.name.split('.').pop() || 'png').toLowerCase();
+            if (!/^(png|jpe?g|webp)$/.test(ext)) ext = 'jpg';
+            var path = 'assets/img/collections/' + slugName() + '-' + o.kind + '-' + Date.now().toString(36) + '.' + ext;
+            imageSize(f).then(function (size) {
+                var small = size && (size.w < o.minW || size.h < o.minH);
+                var ratio = size ? size.w / size.h : 0, off = size && Math.abs(ratio / o.ratio - 1) > 0.25;
+                var text = size ? 'Загружено ' + size.w + '×' + size.h + '.' : 'Загружено.';
+                if (small) text += ' Это меньше ' + o.minW + '×' + o.minH + ': на сайте картинка будет мыльной. Лучше ' + o.best + '.';
+                else if (off) text += ' Пропорции не ' + o.ratioLabel + ': края обрежутся, проверьте превью.';
+                var fd = new FormData();
+                fd.append('file', f);
+                fd.append('path', path);
+                return fetch(uploadUrl, { method: 'POST', body: fd })
+                    .then(function (r) { return r.json(); })
+                    .then(function (d) {
+                        if (!d.success || !d.path) throw new Error(d.error || 'Ошибка загрузки');
+                        field.value = d.path;
+                        showPreview(o.preview, d.path);
+                        note.textContent = text + ' Нажмите «Сохранить».';
+                        note.className = 'cover-note' + (small || off ? ' warn' : '');
+                    });
+            }).catch(function (err) {
+                showMsg(document.getElementById('colMsg'), (err && err.message) || 'Сеть / сервер', false);
             });
-        this.value = '';
+        });
+    }
+    bindCoverUpload({ kind: 'card', input: 'colImageUpload', field: 'colImageUrl', preview: 'colImagePreview', note: 'colImageNote', minW: 600, minH: 360, ratio: 5 / 3, ratioLabel: '5:3', best: '1200×720' });
+    bindCoverUpload({ kind: 'banner', input: 'colBannerUpload', field: 'colBannerUrl', preview: 'colBannerPreview', note: 'colBannerNote', minW: 1200, minH: 200, ratio: 6, ratioLabel: '6:1', best: '2400×400' });
+    document.getElementById('colBannerClear').addEventListener('click', function () {
+        document.getElementById('colBannerUrl').value = '';
+        document.getElementById('colBannerNote').textContent = '';
+        showPreview('colBannerPreview', '');
     });
 
     document.getElementById('colForm').addEventListener('submit', function (e) {
@@ -274,6 +355,7 @@
         var payload = {
             name: document.getElementById('colName').value.trim(),
             imageUrl: document.getElementById('colImageUrl').value.trim(),
+            bannerUrl: document.getElementById('colBannerUrl').value.trim(),
             isFavorite: document.getElementById('colIsFavorite').checked
         };
         if (sel) payload.id = parseInt(sel, 10);

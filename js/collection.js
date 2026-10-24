@@ -275,6 +275,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     id: parseInt(c.id, 10),
                     name: c.name || 'Collection',
                     imageUrl: c.imageUrl || c.image || 'assets/img/collections-1.png',
+                    bannerUrl: c.bannerUrl || '',
                     riffs,
                     videoCount: riffs.length,
                     isFavorite: !!c.isFavorite
@@ -314,8 +315,13 @@ function loadCollection(collectionId) {
     if (title) title.textContent = collection.name;
     
     if (banner) {
-        banner.innerHTML = `
-            <img src="${collection.imageUrl}" alt="${collection.name}" class="collection-banner-image" 
+        // A wide banner fills the header. Without one the card picture is shown whole over a blurred copy
+        // of itself: stretched to 1184x200 a 600x360 card picture loses its edges and goes soft.
+        const wide = !!collection.bannerUrl;
+        const src = String(wide ? collection.bannerUrl : collection.imageUrl).replace(/"/g, '');
+        banner.classList.toggle('collection-banner--fit', !wide);
+        banner.innerHTML = (wide ? '' : `<img src="${src}" alt="" aria-hidden="true" class="collection-banner-backdrop">`) + `
+            <img src="${src}" alt="${collection.name}" class="collection-banner-image"
                  onerror="this.onerror=null; this.style.visibility='hidden'">
             <div class="collection-banner-overlay"></div>
         `;
