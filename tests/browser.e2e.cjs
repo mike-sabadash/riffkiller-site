@@ -222,6 +222,29 @@ test('two cameras from one recording: upload, frame both hands, cut and fill bot
     assert.equal(saved.videoFile,left);assert.match(saved.videoSource.file,/black-dog-source\.webm$/);
     assert.ok(saved.videoSource.right.w<320&&Math.abs(saved.videoSource.right.w/saved.videoSource.right.h-16/9)<0.02,JSON.stringify(saved.videoSource));
 });
+test('cover: a frame from the markup video becomes the riff card picture after save',async t=>{
+    const page=await editor(t);
+    assert.ok(await page.locator('#hCover').isVisible(),'cover section is visible without opening anything');
+    assert.ok(await page.locator('#coverPreview').isVisible(),'current cover is shown');
+    await page.evaluate(()=>{segmentEditorVideo.currentTime=2});await page.waitForFunction(()=>!segmentEditorVideo.seeking&&segmentEditorVideo.readyState>=2);
+    await page.click('#segmentCoverFrame');
+    await page.waitForFunction(()=>/Взят кадр 0:02/.test(document.getElementById('coverStatus').textContent));
+    assert.match(await page.getAttribute('#coverPreview','src'),/^blob:/);
+    assert.match(await page.locator('#edStatus').innerText(),/несохранённые/);
+    const save=page.waitForResponse(r=>r.url().endsWith('/api/riffs/save.php'));await page.click('#submitBtn');
+    await page.waitForSelector('#dnaLintDialog[open]',{timeout:1500}).then(()=>page.click('#dnaLintSave'),()=>{});
+    assert.equal((await save).status(),200);
+    const saved=JSON.parse(fs.readFileSync(path.join(site.dir,'data/riffs.json')))[0];
+    assert.match(saved.thumbnail,/^assets\/img\/riffs\/led-zeppelin-black-dog-[a-z0-9]+\.jpg$/);
+    const file=path.join(site.dir,saved.thumbnail);t.after(()=>fs.rmSync(file,{force:true}));
+    const jpg=fs.readFileSync(file);assert.equal(jpg.readUInt16BE(0),0xffd8,'JPEG');
+    assert.ok(fs.existsSync(path.join(site.dir,'assets/img/riff-1.png')),'the old shared cover is left alone');
+    await page.waitForFunction(()=>/Сохранено/.test(document.getElementById('edStatus').textContent));
+    assert.equal(await page.inputValue('#thumbnail'),saved.thumbnail);
+    await page.goto(site.base+'/',{waitUntil:'domcontentloaded'});
+    await page.waitForSelector('#riffsGrid .riff-card[data-id="1"] img.riff-image');
+    assert.equal(await page.getAttribute('#riffsGrid .riff-card[data-id="1"] img.riff-image','src'),saved.thumbnail);
+});
 test('riff editor fits a phone screen without horizontal scrolling',async t=>{
     const page=await editor(t,390);
     const sizes=await page.evaluate(()=>({screen:innerWidth,page:document.documentElement.scrollWidth}));assert.ok(sizes.page<=sizes.screen+1,JSON.stringify(sizes));

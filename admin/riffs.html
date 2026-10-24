@@ -184,12 +184,27 @@
                     <button type="button" class="ed-btn" id="openCutter">Нарезать из одного видео</button>
                 </div>
                 <details class="ed-more">
-                    <summary>Обложка и видео-разбор</summary>
+                    <summary>Видео-разбор</summary>
                     <div class="ed-grid">
-                        <div class="ed-field span-2"><span>Обложка</span><input type="text" id="thumbnail" class="ed-input" placeholder="assets/img/riff-1.png"><input type="file" id="thumbnailUpload" accept="image/*"></div>
                         <div class="ed-field span-2"><span>Видео-разбор, одно на весь урок (необязательно)</span><input type="text" id="lessonVideo" class="ed-input" placeholder="assets/video/artist/song/lesson.mp4"><input type="file" id="lessonVideoUpload" accept="video/mp4,.mp4"><div class="ed-upload-progress" id="lessonVideoProgress"><i></i></div></div>
                     </div>
                 </details>
+            </section>
+
+            <section class="ed-section" aria-labelledby="hCover">
+                <header><h2 id="hCover">Обложка</h2><p>Картинка на карточке риффа: в библиотеке, коллекциях и профиле.</p></header>
+                <div class="ed-cover">
+                    <div class="ed-cover-frame"><img id="coverPreview" alt="Обложка риффа" hidden><span id="coverEmpty">Обложки пока нет</span></div>
+                    <div class="ed-cover-side">
+                        <div class="ed-cover-actions">
+                            <button type="button" class="ed-btn" id="coverFromVideo">Взять кадр из видео</button>
+                            <label class="ed-btn" for="thumbnailUpload">Загрузить картинку</label>
+                            <input type="file" id="thumbnailUpload" accept="image/png,image/jpeg,image/webp" hidden>
+                        </div>
+                        <p class="ed-help" id="coverStatus" role="status">Кадр берётся из видео в разметке ниже, с того места, где оно стоит. Под видео есть такая же кнопка «В обложку». На карточке картинка обрезается по центру до пропорций 214×180.</p>
+                        <label class="ed-field"><span>Файл на сайте</span><input type="text" id="thumbnail" class="ed-input" placeholder="assets/img/riffs/artist-song.jpg"></label>
+                    </div>
+                </div>
             </section>
 
             <section class="ed-section" aria-labelledby="hTabs">
@@ -249,6 +264,7 @@
                             <button type="button" class="ed-btn" id="segmentSetEnd" title="Конец выбранной части — сюда">Конец сюда <kbd>O</kbd></button>
                             <button type="button" class="ed-btn" id="segmentEditorLoop" title="Повторять выбранную часть">Повтор части <kbd>L</kbd></button>
                             <button type="button" class="ed-btn" id="segmentAddAtom" title="Приём в текущий момент">Приём <kbd>A</kbd></button>
+                            <button type="button" class="ed-btn" id="segmentCoverFrame" title="Текущий кадр — на обложку карточки">В обложку</button>
                         </div>
                         <div class="tl">
                             <div class="tl-scroll" id="tlScroll">
@@ -701,6 +717,7 @@
         document.getElementById('videoFile').value = riff.videoFile || '';
         document.getElementById('videoFileRight').value = riff.videoFileRight || '';
         document.getElementById('thumbnail').value = riff.thumbnail || '';
+        setCover(null, riff.thumbnail || '');
         document.getElementById('lessonVideo').value = riff.lessonVideo || '';
         ['videoFileUpload', 'videoFileRightUpload', 'thumbnailUpload', 'lessonVideoUpload'].forEach(function (id) { document.getElementById(id).value = ''; });
         SegmentEditor.load(riff);
@@ -743,7 +760,7 @@
     };
     function showMsg(t, err) { var m = document.getElementById('msg'); m.textContent = t; m.className = 'msg '+(err?'error':'success'); }
     function uploadImage(file, path) {
-        var fd = new FormData(); fd.append('file', file); fd.append('path', path);
+        var fd = new FormData(); fd.append('file', file, file.name || path.split('/').pop()); fd.append('path', path);
         return fetch(uploadUrl, { method: 'POST', body: fd }).then(function(r){return r.json();}).then(function(d){ return d.success&&d.path ? d.path : Promise.reject(new Error(d.error||'Upload failed')); });
     }
     // Videos go up in chunks: the server takes at most 2 MB per request.
@@ -753,6 +770,54 @@
         return RiffCutter.upload(file, path, function (p) { if (bar) bar.firstElementChild.style.width = Math.round(p * 100) + '%'; })
             .then(function (saved) { if (bar) bar.classList.remove('on'); return saved; }, function (err) { if (bar) bar.classList.remove('on'); throw err; });
     }
+    // Cover: a picked image or a frame from the markup video waits here and goes up on save.
+    // Each upload gets its own file name, so a shared default cover is never overwritten and cards skip stale caches.
+    var coverBlob = null, coverObjectUrl = null;
+    function setCover(blob, path) {
+        coverBlob = blob;
+        if (coverObjectUrl) { URL.revokeObjectURL(coverObjectUrl); coverObjectUrl = null; }
+        var img = document.getElementById('coverPreview'), src = '';
+        if (blob) src = coverObjectUrl = URL.createObjectURL(blob);
+        else if (path) src = /^(https?:|\/)/.test(path) ? path : '../' + path;
+        img.hidden = !src;
+        document.getElementById('coverEmpty').hidden = !!src;
+        if (src) img.src = src; else img.removeAttribute('src');
+    }
+    function coverPath(blob) {
+        var ext = { 'image/png': '.png', 'image/webp': '.webp', 'image/gif': '.gif' }[blob.type] || '.jpg';
+        var name = (slugOf(document.getElementById('artist').value) || 'artist') + '-' + (slugOf(document.getElementById('song').value) || 'song');
+        return 'assets/img/riffs/' + name + '-' + Date.now().toString(36) + ext;
+    }
+    function coverFromVideo() {
+        var v = document.getElementById('segmentEditorVideo'), status = document.getElementById('coverStatus');
+        if (!v.videoWidth || v.readyState < 2) { status.textContent = 'Видео ещё не загружено: укажите или загрузите видео левой руки, дождитесь кадра в разметке и нажмите снова.'; return; }
+        // The card is 214×180; crop the middle of the frame to that shape.
+        var ratio = 214 / 180, sw = v.videoWidth, sh = v.videoHeight;
+        if (sw / sh > ratio) sw = Math.round(sh * ratio); else sh = Math.round(sw / ratio);
+        var canvas = document.createElement('canvas'), h = Math.min(720, sh);
+        canvas.height = h; canvas.width = Math.round(h * ratio);
+        canvas.getContext('2d').drawImage(v, (v.videoWidth - sw) / 2, (v.videoHeight - sh) / 2, sw, sh, 0, 0, canvas.width, canvas.height);
+        var t = v.currentTime, stamp = Math.floor(t / 60) + ':' + ('0' + (t % 60).toFixed(2)).slice(-5);
+        try {
+            canvas.toBlob(function (blob) {
+                if (!blob) { status.textContent = 'Не получилось взять кадр. Загрузите картинку файлом.'; return; }
+                document.getElementById('thumbnailUpload').value = '';
+                setCover(blob, '');
+                markDirty();
+                status.textContent = 'Взят кадр ' + stamp + '. Нажмите «Сохранить», чтобы он стал обложкой.';
+                showMsg('Кадр ' + stamp + ' взят в обложку. Сохраните рифф.');
+            }, 'image/jpeg', 0.86);
+        } catch (err) { status.textContent = 'Браузер не дал взять кадр из этого видео. Загрузите картинку файлом.'; }
+    }
+    document.getElementById('coverFromVideo').addEventListener('click', coverFromVideo);
+    document.getElementById('segmentCoverFrame').addEventListener('click', coverFromVideo);
+    document.getElementById('thumbnailUpload').addEventListener('change', function () {
+        var f = this.files[0];
+        if (!f) return;
+        setCover(f, '');
+        document.getElementById('coverStatus').textContent = 'Картинка «' + f.name + '» выбрана. Нажмите «Сохранить», чтобы она стала обложкой.';
+    });
+    document.getElementById('thumbnail').addEventListener('input', function () { setCover(null, this.value.trim()); });
     function slugOf(text) { return (''+text).toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9\-]/g,''); }
     function videoBase() {
         return 'assets/video/' + (slugOf(document.getElementById('artist').value) || 'artist') + '/' + (slugOf(document.getElementById('song').value) || 'song') + '/';
@@ -783,7 +848,7 @@
         if(!song||!artist){ showMsg('Укажите песню и исполнителя', true); document.getElementById(song ? 'artist' : 'song').focus(); return; }
         var songSlug = slugOf(song), basePath = videoBase();
         var vL = document.getElementById('videoFile').value.trim(), vR = document.getElementById('videoFileRight').value.trim(), th = document.getElementById('thumbnail').value.trim(), vLesson = document.getElementById('lessonVideo').value.trim();
-        var uL = document.getElementById('videoFileUpload').files[0], uR = document.getElementById('videoFileRightUpload').files[0], uT = document.getElementById('thumbnailUpload').files[0], uLesson = document.getElementById('lessonVideoUpload').files[0];
+        var uL = document.getElementById('videoFileUpload').files[0], uR = document.getElementById('videoFileRightUpload').files[0], uLesson = document.getElementById('lessonVideoUpload').files[0];
         var bad = SegmentEditor.validate();
         if (bad >= 0) { SegmentEditor.select(bad, true); showMsg('Часть ' + (bad + 1) + ': проверьте начало и конец — они пересекаются с соседней или выходят за видео.', true); return; }
         var segs = SegmentEditor.collect();
@@ -797,7 +862,7 @@
         Promise.all([
             uL ? uploadVideo(uL, basePath + songSlug + '-left.mp4', 'videoFileProgress') : Promise.resolve(vL),
             uR ? uploadVideo(uR, basePath + songSlug + '-right.mp4', 'videoFileRightProgress') : Promise.resolve(vR),
-            uT ? uploadImage(uT, th||'assets/img/'+(uT.name||'riff-'+(editId||'new')+'.png')) : Promise.resolve(th),
+            coverBlob ? uploadImage(coverBlob, coverPath(coverBlob)) : Promise.resolve(th),
             uLesson ? uploadVideo(uLesson, basePath + songSlug + '-lesson.mp4', 'lessonVideoProgress') : Promise.resolve(vLesson),
             TabEditor.collect(uploadImage, basePath.replace(/^assets\/video\//, 'assets/tabs/'))
         ]).then(function(r){
