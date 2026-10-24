@@ -8,7 +8,7 @@
     src: url('../fonts/TT_Travels_Next_Trial_Medium.ttf') format('truetype');
     font-weight: 500;
     font-style: normal;
-    font-display: swap;
+    font-display: optional;
 }
 
 @font-face {
@@ -16,7 +16,7 @@
     src: url('../fonts/TT_Travels_Next_Trial_Bold.ttf') format('truetype');
     font-weight: 700;
     font-style: normal;
-    font-display: swap;
+    font-display: optional;
 }
 
 body.riffs-hub {
@@ -114,7 +114,7 @@ body.riffs-hub .riffs-hero-eyebrow {
 
 /* Единственный крупный display — TT (как hero на landing) */
 body.riffs-hub .riffs-hero-title {
-    font-family: 'TT Travels Next', 'Space Grotesk', 'Inter', system-ui, sans-serif;
+    font-family: 'TT Travels Next', 'Inter', system-ui, sans-serif;
     font-weight: 600;
     font-size: clamp(1.75rem, 4vw, 2.35rem);
     line-height: 1.15;
@@ -882,7 +882,7 @@ body.riffs-hub .collection-overlay {
 
 /* Страница коллекции: заголовок как на главной (TT Travels, слева), а не Inter по центру — одна вертикаль с сеткой риффов. */
 body.riffs-hub .collection-header-section .collection-title {
-    font-family: 'TT Travels Next', 'Space Grotesk', 'Inter', system-ui, sans-serif;
+    font-family: 'TT Travels Next', 'Inter', system-ui, sans-serif;
     font-weight: 600;
     font-size: clamp(1.75rem, 4vw, 2.35rem);
     line-height: 1.15;

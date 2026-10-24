@@ -4,9 +4,9 @@
 
 /* Inter подключается в <head> страниц приложения + переменная --font-header-ui в variables.css */
 
-/* === HEADER — единая шапка (разметка: js/site-header.js) === */
-@import url('rk-header.css?v=i1');
-@import url('rk-site-footer.css');
+/* === HEADER — единая шапка (разметка: js/site-header.js) ===
+   rk-header.css и rk-site-footer.css подключаются <link> в каждой странице: @import здесь ждал
+   загрузки components.css и на медленной сети добавлял целый круг запросов до первого кадра. */
 
 /* === COLLECTIONS SECTION === */
 
@@ -1278,4 +1278,52 @@
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
+}
+/* === ЗАГРУЗКА: заглушки на месте контента, который приходит из API ===
+   Те же размеры, что у настоящих карточек, поэтому при подмене ничего не прыгает. */
+@keyframes rk-skel-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.55; }
+}
+.rk-skel,
+.rk-skel-line,
+.breadcrumb-current:empty::before,
+.profile-name:empty::before {
+    background: rgba(255, 255, 255, 0.05);
+    animation: rk-skel-pulse 1.6s ease-in-out infinite;
+}
+.rk-skel {
+    pointer-events: none;
+    border-color: transparent !important;
+    box-shadow: none !important;
+    transform: none !important;
+}
+.rk-skel-line {
+    display: block;
+    height: 12px;
+    width: 70%;
+    margin-top: 12px;
+    border-radius: 6px;
+}
+.rk-skel-line--short { width: 40%; margin-top: 8px; }
+.breadcrumb-current:empty::before,
+.profile-name:empty::before {
+    content: '';
+    display: inline-block;
+    vertical-align: middle;
+    width: 12em;
+    max-width: 60vw;
+    height: 0.8em;
+    border-radius: 6px;
+}
+html[data-theme='light'] .rk-skel,
+html[data-theme='light'] .rk-skel-line,
+html[data-theme='light'] .breadcrumb-current:empty::before,
+html[data-theme='light'] .profile-name:empty::before {
+    background: rgba(18, 18, 26, 0.07);
+}
+@media (prefers-reduced-motion: reduce) {
+    .rk-skel, .rk-skel-line,
+    .breadcrumb-current:empty::before,
+    .profile-name:empty::before { animation: none; }
 }

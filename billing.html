@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <script src="js/rk-theme-init.js"></script>
+    <style>html{background:#0a0a0a;color:#fff}html[data-theme="light"]{background:#f4f4f8;color:#12121a}</style>
     <script src="js/i18n.js?v=i10"></script>
     <meta name="theme-color" content="#0a0a0a" id="rk-theme-color">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -10,12 +11,14 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <!-- Inter = тот же variable-шрифт, что на landing.html (opsz) -->
+    <link rel="preload" href="fonts/TT_Travels_Next_Trial_Bold.ttf" as="font" type="font/ttf" crossorigin fetchpriority="low">
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&family=Zen+Dots&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/reset.css">
     <link rel="stylesheet" href="css/variables.css?v=d20261021">
     <link rel="stylesheet" href="css/base.css">
-    <link rel="stylesheet" href="css/components.css?v=i1">
+    <link rel="stylesheet" href="css/components.css?v=s1">
     <link rel="stylesheet" href="css/rk-header.css?v=i1">
+    <link rel="stylesheet" href="css/rk-site-footer.css">
     <link rel="stylesheet" href="css/rk-theme-light.css">
     <link rel="icon" type="image/svg+xml" href="assets/icons/favicon.svg">
     <style>
@@ -63,11 +66,11 @@
             .methods-grid { grid-template-columns: 1fr; }
         }
         /* Редизайн 2026-10: заголовок в фирменном шрифте, шаги 1/2, крупные планы, одна выделенная карта способа */
-        @font-face { font-family: 'TT Travels Next'; src: url('fonts/TT_Travels_Next_Trial_Bold.ttf') format('truetype'); font-weight: 700; font-display: swap; }
+        @font-face { font-family: 'TT Travels Next'; src: url('fonts/TT_Travels_Next_Trial_Bold.ttf') format('truetype'); font-weight: 700; font-display: optional; }
         .billing-main { max-width: 1040px; padding-top: 40px; }
         .billing-header { margin-bottom: 48px; }
         .billing-eyebrow { font-family: 'Inter', system-ui, sans-serif; font-size: 0.6875rem !important; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(196, 181, 252, 0.98) !important; margin-bottom: 12px; }
-        .billing-header h1 { font-family: 'TT Travels Next', 'Space Grotesk', 'Inter', system-ui, sans-serif; font-weight: 700; font-size: clamp(2rem, 4vw, 2.75rem); line-height: 1.1; margin-bottom: 12px; }
+        .billing-header h1 { font-family: 'TT Travels Next', 'Inter', system-ui, sans-serif; font-weight: 700; font-size: clamp(2rem, 4vw, 2.75rem); line-height: 1.1; margin-bottom: 12px; }
         .billing-header > p:not(.billing-eyebrow) { font-size: 1rem; color: rgba(196, 200, 214, 0.9); }
         .billing-includes { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px 24px; list-style: none; padding: 0; margin: 24px 0 0; font-size: 0.875rem; color: rgba(230, 232, 240, 0.92); }
         .billing-includes li { display: inline-flex; align-items: center; gap: 8px; }
@@ -122,7 +125,7 @@
 </head>
 <body data-rk-header="app" data-logo-href="index.html" data-nav-active="billing">
     <div id="site-header-mount"></div>
-    <script src="js/site-header.js?v=i3"></script>
+    <script src="js/site-header.js?v=s1"></script>
     <div class="page-container">
         <main class="main-content">
             <div class="billing-main">

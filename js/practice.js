@@ -705,7 +705,8 @@ function updateTitle() {
     const currentElement = titleElement.querySelector('.breadcrumb-current');
     if (!currentElement) return;
     if (!currentRiff) {
-        currentElement.textContent = 'Loading...';
+        // Пустой span показывает заглушку-полоску (components.css), а не текст «Loading...»
+        currentElement.textContent = '';
         return;
     }
     var song = (currentRiff.song != null && currentRiff.song !== '') ? currentRiff.song : (currentRiff.title || currentRiff.name || 'Song');

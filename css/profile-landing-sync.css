@@ -9,7 +9,7 @@
     src: url('../fonts/TT_Travels_Next_Trial_Medium.ttf') format('truetype');
     font-weight: 500;
     font-style: normal;
-    font-display: swap;
+    font-display: optional;
 }
 
 @font-face {
@@ -17,7 +17,7 @@
     src: url('../fonts/TT_Travels_Next_Trial_Bold.ttf') format('truetype');
     font-weight: 700;
     font-style: normal;
-    font-display: swap;
+    font-display: optional;
 }
 
 /* --- Страница: как landing body + .ambient-bg --- */
@@ -64,7 +64,7 @@ body.profile-page .page-container > footer {
 
 /* Имя — как крупные заголовки на лендинге (TT Travels) */
 body.profile-page .profile-name {
-    font-family: 'TT Travels Next', 'Space Grotesk', 'Inter', system-ui, sans-serif;
+    font-family: 'TT Travels Next', 'Inter', system-ui, sans-serif;
     font-weight: 600;
     letter-spacing: 0.01em;
     color: rgba(244, 247, 255, 0.98);
