@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <script src="js/rk-theme-init.js"></script>
+    <style>html{background:#0a0a0a;color:#fff}html[data-theme="light"]{background:#f4f4f8;color:#12121a}</style>
     <script src="js/i18n.js?v=i10"></script>
     <meta name="theme-color" content="#0a0a0a" id="rk-theme-color">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -12,18 +13,20 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <!-- Inter = тот же variable-шрифт, что на landing.html (opsz) -->
+    <link rel="preload" href="fonts/TT_Travels_Next_Trial_Bold.ttf" as="font" type="font/ttf" crossorigin fetchpriority="low">
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&family=Zen+Dots&display=swap" rel="stylesheet">
 
     <!-- CSS файлы -->
     <link rel="stylesheet" href="css/reset.css">
     <link rel="stylesheet" href="css/variables.css?v=d20261021">
     <link rel="stylesheet" href="css/base.css">
-    <link rel="stylesheet" href="css/components.css?v=i1">
+    <link rel="stylesheet" href="css/components.css?v=s1">
     <link rel="stylesheet" href="css/rk-header.css?v=i1">
-    <link rel="stylesheet" href="css/practice.css?v=p1">
+    <link rel="stylesheet" href="css/rk-site-footer.css">
+    <link rel="stylesheet" href="css/practice.css?v=s1">
     <link rel="stylesheet" href="css/riff-dna.css?v=dna13">
     <link rel="stylesheet" href="css/rk-hint.css?v=1">
-    <link rel="stylesheet" href="css/riffs-hub.css?v=i1">
+    <link rel="stylesheet" href="css/riffs-hub.css?v=s1">
     <link rel="stylesheet" href="css/rk-theme-light.css">
 
     <!-- Favicon -->
@@ -31,7 +34,7 @@
 </head>
 <body class="practice-page" data-rk-header="app" data-logo-href="index.html" data-nav-active="practice">
     <div id="site-header-mount"></div>
-    <script src="js/site-header.js?v=i3"></script>
+    <script src="js/site-header.js?v=s1"></script>
     <div class="page-container">
         <!-- Онбординг для Practice (первый визит) -->
         <div class="practice-onboarding-backdrop" id="practiceOnboarding" style="display:none;">
@@ -79,7 +82,7 @@
                     <h1 class="practice-title" id="practiceTitle">
                         <a href="index.html" class="breadcrumb-link">Riffs</a>
                         <span class="breadcrumb-separator">/</span>
-                        <span class="breadcrumb-current">Loading...</span>
+                        <span class="breadcrumb-current"></span>
                     </h1>
                 </div>
             </div>
@@ -306,7 +309,7 @@
 <script src="js/riff-dna.js?v=dna6"></script>
 <script src="js/tab-strip.js?v=1"></script>
 <script src="js/tab-live.js?v=8"></script>
-<script src="js/practice.js?v=12"></script>
+<script src="js/practice.js?v=s1"></script>
 </body>
 </html>
 

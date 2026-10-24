@@ -2005,7 +2005,7 @@
     font-family: 'TT Travels Next';
     src: url('../fonts/TT_Travels_Next_Trial_Bold.ttf') format('truetype');
     font-weight: 700;
-    font-display: swap;
+    font-display: optional;
 }
 .practice-header .breadcrumbs {
     gap: 12px;
@@ -2037,7 +2037,7 @@
 .practice-header .breadcrumb-current {
     flex-basis: 100%;
     opacity: 1;
-    font-family: 'TT Travels Next', 'Space Grotesk', 'Inter', system-ui, sans-serif;
+    font-family: 'TT Travels Next', 'Inter', system-ui, sans-serif;
     font-weight: 700;
     font-size: clamp(1.5rem, 3vw, 2.25rem);
     letter-spacing: 0.01em;

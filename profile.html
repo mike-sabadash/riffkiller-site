@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <script src="js/rk-theme-init.js"></script>
+    <style>html{background:#0a0a0a;color:#fff}html[data-theme="light"]{background:#f4f4f8;color:#12121a}</style>
     <script src="js/i18n.js?v=i10"></script>
     <meta name="theme-color" content="#0a0a0a" id="rk-theme-color">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -12,17 +13,19 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <!-- Inter = тот же variable-шрифт, что на landing.html (opsz), иначе меню визуально другое -->
-    <!-- Inter + Space Grotesk (fallback как на landing для TT Travels) -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+    <!-- Inter (fallback для TT Travels) -->
+    <link rel="preload" href="fonts/TT_Travels_Next_Trial_Bold.ttf" as="font" type="font/ttf" crossorigin fetchpriority="low">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
     
     <!-- CSS файлы -->
     <link rel="stylesheet" href="css/reset.css">
     <link rel="stylesheet" href="css/variables.css?v=d20261021">
     <link rel="stylesheet" href="css/base.css">
-    <link rel="stylesheet" href="css/components.css?v=i1">
+    <link rel="stylesheet" href="css/components.css?v=s1">
     <link rel="stylesheet" href="css/rk-header.css?v=i1">
+    <link rel="stylesheet" href="css/rk-site-footer.css">
     <link rel="stylesheet" href="css/profile.css?v=d20261021">
-    <link rel="stylesheet" href="css/riffs-hub.css?v=i1">
+    <link rel="stylesheet" href="css/riffs-hub.css?v=s1">
     <link rel="stylesheet" href="css/rk-theme-light.css?v=2">
     
     <!-- Favicon -->
@@ -846,12 +849,12 @@
         }
     </style>
     <!-- Единый визуальный язык с landing.html (после инлайна — переопределяет устаревшие токены) -->
-    <link rel="stylesheet" href="css/profile-landing-sync.css?v=d20261021">
+    <link rel="stylesheet" href="css/profile-landing-sync.css?v=s1">
     <link rel="stylesheet" href="css/profile-human.css?v=h20261021">
 </head>
 <body class="profile-page" data-rk-header="app" data-logo-href="index.html" data-nav-active="profile">
     <div id="site-header-mount"></div>
-    <script src="js/site-header.js?v=i3"></script>
+    <script src="js/site-header.js?v=s1"></script>
     <div class="page-container">
         <!-- Основной контент -->
         <main class="main-content profile-content">
@@ -879,13 +882,11 @@
                         <div class="profile-header-body" id="profileInfo">
                             <div class="profile-header-top">
                                 <div class="profile-name-block">
-                                    <h1 class="profile-name" id="profileName">Mike Sabadash</h1>
-                                    <div class="subscription-status" id="subscriptionStatus">
-                                        <div class="status-badge status-active">Active premium</div>
-                                    </div>
+                                    <h1 class="profile-name" id="profileName"></h1>
+                                    <div class="subscription-status" id="subscriptionStatus"></div>
                                 </div>
                             </div>
-                            <p class="profile-email" id="profileEmail">lostvoxmusic@gmail.com</p>
+                            <p class="profile-email" id="profileEmail"><span class="rk-skel-line" style="width:16em;max-width:60vw;margin-top:4px"></span></p>
                         </div>
                     </div>
                 </div>
