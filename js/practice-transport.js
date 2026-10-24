@@ -37,11 +37,13 @@
             this.videos.forEach(video => {
                 listen(video, 'waiting', () => {
                     if (!this.intendedPlaying || video.readyState >= 3) return;
+                    // The part's own sound leads: a camera catching up after a seek must not stop it
+                    // (on a phone every loop jump would cut the sound for half a second).
+                    if (this.voice) return;
                     ++this.revision;
                     this.pending = false;
                     this.buffering = true;
                     this.videos.forEach(v => v.pause());
-                    if (this.voice) this.voice.audio.pause();
                 });
                 const resume = () => {
                     if (this.buffering && this.intendedPlaying &&
@@ -95,12 +97,14 @@
             if (this.voice) this.voice.audio.playbackRate = rate;
         }
         // The sound of a looped part from its own file (js/part-audio.js): it ends exactly where the part
-        // ends, so nothing of the next part can sound however late the jump back is. The cameras stay silent.
+        // ends, so nothing of the next part can sound however late the jump back is. The file loops on its own
+        // and is the clock while it plays: the cameras (silent) follow it. A phone needs half a second to seek
+        // a video; re-seeking the sound to wherever the picture is would chop it into pieces.
         setVoice(audio, start, end) {
             this.clearVoice(true);
-            this.voice = { audio, start, end };
+            this.voice = { audio, start, end, lastFix: -Infinity };
             this.left.muted = true;
-            audio.loop = false;
+            audio.loop = true;
             audio.playbackRate = this.rate;
             if (this.intendedPlaying) this.syncVoice(true);
         }
@@ -111,20 +115,43 @@
             v.audio.pause();
             if (!keepMuted) this.left.muted = false;
         }
-        // Keeps the part's sound at the clock camera's place; silent outside the part.
+        // Where the picture should be inside the part, by the sound.
+        voiceOffset() {
+            const v = this.voice, len = v.end - v.start, at = v.audio.currentTime || 0;
+            return Math.max(0, Math.min(len, at));
+        }
+        // starting: place the sound where the picture is and start it (play, a user seek).
+        // Otherwise only the picture is corrected, and only when it is clearly off.
         syncVoice(starting) {
             const v = this.voice;
             if (!v) return;
-            const a = v.audio, t = this.time - v.start, len = v.end - v.start;
-            if (t < -0.05 || t >= len) { if (!a.paused) a.pause(); return; }
-            // Played to its end before the picture jumped back: stay silent until the jump.
-            if (a.ended && t > len - 0.25) return;
-            if (a.ended || Math.abs(a.currentTime - Math.max(0, t)) > 0.12) a.currentTime = Math.max(0, t);
-            if (this.intendedPlaying && (starting || !this.left.paused) && a.paused) {
-                const p = a.play();
-                // Sound refused (autoplay rules): the clock camera carries it again.
-                if (p && p.catch) p.catch(() => { if (this.voice === v) this.clearVoice(); });
+            const a = v.audio, len = v.end - v.start, t = this.time - v.start;
+            if (starting) {
+                if (t >= 0 && t < len) a.currentTime = t;
+                else a.currentTime = 0;
+                if (this.intendedPlaying && a.paused) {
+                    const p = a.play();
+                    // Sound refused (autoplay rules): the clock camera carries it again.
+                    if (p && p.catch) p.catch(() => { if (this.voice === v) this.clearVoice(); });
+                }
+                return;
             }
+            if (a.paused || this.left.seeking || this.pending) return;
+            let drift = t - this.voiceOffset();
+            if (drift > len / 2) drift -= len;
+            if (drift < -len / 2) drift += len;
+            const now = this.now();
+            if (Math.abs(drift) < 0.25 || now - v.lastFix < 1500) return;
+            v.lastFix = now;
+            this.seekVideos(v.start + this.voiceOffset());
+        }
+        seekVideos(target) {
+            clearTimeout(this.timer);
+            this.anchor = null;
+            this.lastTime = null;
+            this.videos.forEach(video => { video.currentTime = target; });
+            if (this.options.onTick) this.options.onTick(target);
+            return target;
         }
         follow() {
             const drift = this.right.currentTime - this.time;
@@ -148,6 +175,7 @@
             if (this.voice) {
                 const t = target - this.voice.start;
                 if (t >= 0 && t < this.voice.end - this.voice.start) this.voice.audio.currentTime = t;
+                this.voice.lastFix = this.now();
             }
             if (this.options.onTick) this.options.onTick(target);
             return target;
@@ -179,10 +207,10 @@
                 return target;
             }
             if (this.voice) {
-                this.lastTime = null;
-                const target = this.seek(time);
-                this.syncVoice(true);
-                return target;
+                // The sound has looped by itself (or is about to): the picture goes to where the sound is.
+                const v = this.voice, len = v.end - v.start, at = this.voiceOffset();
+                v.lastFix = this.now();
+                return this.seekVideos(time + (at < len / 2 ? at : 0));
             }
             const left = this.left;
             if (!left.muted && !this.silenced) {
