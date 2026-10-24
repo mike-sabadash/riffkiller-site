@@ -118,7 +118,7 @@ test('All Riff updates tabs; Speed Trainer advances only on completed loops',asy
     const page=await pageFor(t);await practice(page);await page.click('#toggleTabs');await page.locator('.segment-btn.all-riff').click();
     await page.evaluate(()=>practiceTransport.seek(6.3));await page.waitForFunction(()=>document.querySelector('.tabs-image')?.getAttribute('src')?.endsWith('/4.png'));
     await page.locator('.segment-btn').nth(1).click();await page.click('#modeSpeedBtn');
-    const intro=page.locator('#speedTrainerIntroModal');if(await intro.isVisible())await page.locator('#speedTrainerIntroBtn').click();
+    const intro=page.locator('#speedTrainerGuide');if(await intro.isVisible())await page.locator('#speedTrainerGuideStart').click();
     await page.waitForFunction(()=>playbackSpeed===.5);
     await page.evaluate(()=>{practiceTransport.pause();currentSegment=6;loopAllRiff=false;loopActive=true;setPracticeMode('speed');practiceTransport.seek(11.06);return practiceTransport.play();});
     await page.waitForFunction(()=>playbackSpeed===.75,{timeout:12000});
@@ -263,6 +263,26 @@ test('mobile practice has all stages and usable segment controls without horizon
 });
 
 
+test('Speed Trainer guide: shown once on the first tap, the i reopens it; a sheet from the bottom on a phone',async t=>{
+    const page=await pageFor(t);await practice(page);
+    await page.click('#modeSpeedBtn');await page.waitForSelector('#speedTrainerGuide[open]');
+    assert.equal(await page.evaluate(()=>practiceMode),'normal','the guide comes first');
+    assert.equal(await page.locator('#speedTrainerGuide .st-step').count(),3);
+    await page.click('#speedTrainerGuideStart');
+    assert.equal(await page.locator('#speedTrainerGuide[open]').count(),0);
+    assert.equal(await page.evaluate(()=>practiceMode),'speed');
+    await page.click('#modeNormalBtn');await page.click('#modeSpeedBtn');
+    assert.equal(await page.locator('#speedTrainerGuide[open]').count(),0,'shown only once');
+    await page.click('#speedTrainerInfo');await page.waitForSelector('#speedTrainerGuide[open]');
+    assert.equal(await page.locator('#speedTrainerGuideStart').innerText(),'Got it');
+    await page.keyboard.press('Escape');assert.equal(await page.locator('#speedTrainerGuide[open]').count(),0);
+    assert.equal(await page.evaluate(()=>practiceMode),'speed','closing the guide keeps the mode');
+    const phone=await pageFor(t,390);await practice(phone);
+    await phone.click('#speedTrainerInfo');await phone.waitForSelector('#speedTrainerGuide[open]');await phone.waitForFunction(()=>!document.getElementById('speedTrainerGuide').getAnimations().length);
+    const box=await phone.locator('#speedTrainerGuide').boundingBox();const vh=await phone.evaluate(()=>innerHeight);
+    assert.ok(Math.abs(box.y+box.height-vh)<2&&box.width>=389,JSON.stringify(box));
+    await phone.click('#speedTrainerGuideStart');assert.equal(await phone.evaluate(()=>practiceMode),'speed');
+});
 test('Normal restores speed and loop settings; manual speed and loop controls leave the ladder cleanly',async t=>{
     const page=await pageFor(t);await page.addInitScript(()=>localStorage.setItem('rkSpeedTrainerIntroSeen','1'));await practice(page);
     await page.locator('[data-speed="0.75"]').click();
