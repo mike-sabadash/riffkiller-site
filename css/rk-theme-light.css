@@ -816,9 +816,8 @@ html[data-theme='light'] body.practice-page .segment.active .segment-trainer-spe
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
 }
 
-/* Онбординг / Speed Trainer intro */
-html[data-theme='light'] body.practice-page .practice-onboarding-backdrop,
-html[data-theme='light'] body.practice-page .speed-trainer-intro-backdrop {
+/* Онбординг */
+html[data-theme='light'] body.practice-page .practice-onboarding-backdrop {
     background: rgba(245, 246, 250, 0.88);
 }
 
@@ -835,30 +834,6 @@ html[data-theme='light'] body.practice-page .onboarding-btn.secondary {
 
 html[data-theme='light'] body.practice-page .onboarding-btn.secondary:hover {
     background: rgba(18, 18, 26, 0.04);
-}
-
-html[data-theme='light'] body.practice-page .speed-trainer-intro-card {
-    background: linear-gradient(165deg, #ffffff 0%, #f4f4f6 55%, #ececee 100%);
-    border-color: rgba(18, 18, 26, 0.1);
-    box-shadow: 0 20px 48px rgba(0, 0, 0, 0.1);
-}
-
-html[data-theme='light'] body.practice-page .speed-trainer-intro-title {
-    color: #12121a;
-}
-
-html[data-theme='light'] body.practice-page .speed-trainer-intro-body,
-html[data-theme='light'] body.practice-page .speed-trainer-intro-list li {
-    color: rgba(18, 18, 26, 0.72);
-}
-
-html[data-theme='light'] body.practice-page .speed-trainer-intro-lead strong,
-html[data-theme='light'] body.practice-page .speed-trainer-intro-kicker {
-    color: #12121a;
-}
-
-html[data-theme='light'] body.practice-page .speed-trainer-intro-note {
-    color: rgba(18, 18, 26, 0.52);
 }
 
 /* --------------------------------------------------------------------------

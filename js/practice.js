@@ -621,61 +621,43 @@ function initPracticePage() {
     }).catch(function() { runWithRiffs(fallbackRiffs); });
 }
 
-function openSpeedTrainerIntroModal() {
-    const m = document.getElementById('speedTrainerIntroModal');
-    if (!m) {
+// Speed Trainer guide: the "i" next to the mode opens it any time; the first tap on Speed Trainer shows it once.
+function openSpeedTrainerGuide() {
+    const d = document.getElementById('speedTrainerGuide');
+    if (!d) {
         setPracticeMode('speed');
         return;
     }
-    m.style.display = 'flex';
-    document.body.style.overflow = 'hidden';
-    const cta = document.getElementById('speedTrainerIntroBtn');
-    if (cta) cta.focus();
+    const start = document.getElementById('speedTrainerGuideStart');
+    if (start) start.textContent = practiceMode === 'speed' ? 'Got it' : 'Start Speed Trainer';
+    if (d.showModal) d.showModal(); else d.setAttribute('open', '');
+    if (start) start.focus();
 }
 
-function closeSpeedTrainerIntroModal() {
-    const m = document.getElementById('speedTrainerIntroModal');
-    if (m) m.style.display = 'none';
-    document.body.style.overflow = '';
+function closeSpeedTrainerGuide() {
+    const d = document.getElementById('speedTrainerGuide');
+    if (!d) return;
+    if (d.close) d.close(); else d.removeAttribute('open');
 }
 
-function refreshSpeedTrainerIntroCopy() {
-    const ul = document.querySelector('#speedTrainerIntroModal .speed-trainer-intro-list');
-    if (!ul) return;
-    const n = SPEED_TRAINER_LOOPS_PER_SPEED;
-    ul.innerHTML =
-        '<li><span class="speed-trainer-intro-kicker">×0.5</span> — ' +
-        n +
-        ' full loops at half speed</li>' +
-        '<li><span class="speed-trainer-intro-kicker">×0.75</span> — ' +
-        n +
-        ' loops</li>' +
-        '<li><span class="speed-trainer-intro-kicker">×1</span> — then the segment keeps looping at ×1 (no automatic slow-down). Pick another segment to run the ladder again from ×0.5.</li>';
-}
-
-function initSpeedTrainerIntroModal() {
-    refreshSpeedTrainerIntroCopy();
-    const m = document.getElementById('speedTrainerIntroModal');
-    const cta = document.getElementById('speedTrainerIntroBtn');
-    if (cta) {
-        cta.addEventListener('click', function () {
-            try {
-                localStorage.setItem(RK_SPEED_TRAINER_INTRO_KEY, '1');
-            } catch (e) {}
-            closeSpeedTrainerIntroModal();
+function initSpeedTrainerGuide() {
+    const d = document.getElementById('speedTrainerGuide');
+    if (!d) return;
+    const markSeen = function () {
+        try { localStorage.setItem(RK_SPEED_TRAINER_INTRO_KEY, '1'); } catch (e) {}
+    };
+    d.addEventListener('close', markSeen);
+    d.addEventListener('click', function (e) { if (e.target === d) closeSpeedTrainerGuide(); });
+    d.querySelectorAll('[data-st-close]').forEach(function (b) { b.addEventListener('click', closeSpeedTrainerGuide); });
+    const start = document.getElementById('speedTrainerGuideStart');
+    if (start) {
+        start.addEventListener('click', function () {
+            closeSpeedTrainerGuide();
             setPracticeMode('speed');
         });
     }
-    if (m) {
-        m.addEventListener('click', function (e) {
-            if (e.target === m) closeSpeedTrainerIntroModal();
-        });
-    }
-    document.addEventListener('keydown', function speedIntroEsc(e) {
-        if (e.key !== 'Escape') return;
-        if (!m || m.style.display !== 'flex') return;
-        closeSpeedTrainerIntroModal();
-    });
+    const info = document.getElementById('speedTrainerInfo');
+    if (info) info.addEventListener('click', openSpeedTrainerGuide);
 }
 
 function initPracticeTools() {
@@ -688,14 +670,14 @@ function initPracticeTools() {
                 if (localStorage.getItem(RK_SPEED_TRAINER_INTRO_KEY) === '1') {
                     setPracticeMode('speed');
                 } else {
-                    openSpeedTrainerIntroModal();
+                    openSpeedTrainerGuide();
                 }
             } catch (e) {
                 setPracticeMode('speed');
             }
         });
     }
-    initSpeedTrainerIntroModal();
+    initSpeedTrainerGuide();
 }
 
 // Обновление заголовка (устойчиво к отсутствующим полям и разным именам в API)
@@ -1804,8 +1786,7 @@ window.addEventListener('pagehide', event => { if (!event.persisted && practiceM
     }
     function modalOpen() {
         if (document.querySelector('.auth-modal-backdrop')) return true;
-        var intro = document.getElementById('speedTrainerIntroModal');
-        return !!(intro && intro.style.display !== 'none');
+        return !!document.querySelector('dialog[open]');
     }
     function isSpace(e) { return e.code === 'Space' || e.key === ' '; }
     function keyboardFocused(el) {

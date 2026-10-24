@@ -1061,129 +1061,66 @@
     background: #7B3FC7;
 }
 
-/* === SPEED TRAINER INTRO (один раз, localStorage) === */
-.speed-trainer-intro-backdrop {
-    position: fixed;
-    inset: 0;
-    z-index: 1250;
-    display: none;
-    align-items: center;
-    justify-content: center;
-    box-sizing: border-box;
-    padding: max(24px, env(safe-area-inset-top, 0px)) 22px
-        calc(max(28px, env(safe-area-inset-bottom, 0px)) + var(--rk-mobile-browser-chrome-bottom, 52px));
-    background: rgba(4, 6, 20, 0.88);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    /* сами кликабельны даже если предок когда‑то задавал pointer-events: none */
-    pointer-events: auto;
+/* === Speed Trainer guide (dialog.dna-guide from riff-dna.css; "i" next to the mode) === */
+.practice-speed-mode .st-info {
+    display: inline-flex; align-items: center; justify-content: center; flex: none;
+    width: 32px; height: 32px; margin-left: -6px; padding: 0; border: 0; border-radius: 8px;
+    background: none; color: rgba(255, 255, 255, 0.45); cursor: pointer; -webkit-tap-highlight-color: transparent;
 }
-
-.speed-trainer-intro-card {
-    width: 100%;
-    max-width: 440px;
-    margin: 0 auto;
-    padding: 32px 28px 28px;
-    border-radius: 22px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    background: linear-gradient(165deg, #12152a 0%, #080a14 55%, #05060f 100%);
-    box-shadow:
-        0 24px 64px rgba(0, 0, 0, 0.65),
-        inset 0 1px 0 rgba(255, 255, 255, 0.06);
-    box-sizing: border-box;
-    pointer-events: auto;
+.practice-speed-mode .st-info:hover { color: rgba(255, 255, 255, 0.92); }
+.practice-speed-mode .st-info:focus-visible { outline: 2px solid #cfff55; outline-offset: 0; }
+.st-guide { width: min(460px, calc(100vw - 32px)); }
+.st-lead { margin: 0 0 4px; color: rgba(255, 255, 255, 0.78); }
+.st-step { padding: 16px 0; border-top: 1px solid rgba(255, 255, 255, 0.06); }
+.st-step:first-of-type { border-top: 0; }
+.st-guide .st-step h3 { margin: 14px 0 4px; color: rgba(255, 255, 255, 0.92); font-size: 15px; font-weight: 600; }
+.st-step p { margin: 0; line-height: 1.5; color: rgba(255, 255, 255, 0.62); font-size: 13px; }
+/* Pieces of the real controls, drawn small and inert */
+.st-demo { display: grid; gap: 14px; padding: 14px; border-radius: 12px; background: rgba(255, 255, 255, 0.035); }
+.st-parts { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+.st-parts span, .st-chip, .st-track span {
+    display: flex; align-items: center; justify-content: center; height: 30px; border-radius: 9px;
+    color: rgba(230, 234, 248, 0.72); font-size: 12.5px; font-weight: 500; white-space: nowrap;
 }
-
-.speed-trainer-intro-title {
-    font-family: var(--font-family-accent, 'Zen Dots', system-ui);
-    font-size: 20px;
-    font-weight: 400;
-    line-height: 1.25;
-    letter-spacing: 0.03em;
-    color: #ffffff;
-    margin: 0 0 22px 0;
+.st-parts span { background: rgba(255, 255, 255, 0.05); }
+.st-parts span.on, .st-chip.on, .st-track span.on { background: rgba(147, 85, 229, 0.38); color: #fff; }
+.st-timeline { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 3px; margin-top: 30px; }
+.st-timeline i { position: relative; height: 6px; border-radius: 3px; background: rgba(255, 255, 255, 0.12); }
+.st-timeline i.on { background: #9355E5; }
+.st-timeline b {
+    position: absolute; left: 50%; bottom: calc(100% + 8px); transform: translateX(-50%);
+    padding: 3px 9px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.14); background: rgba(6, 8, 18, 0.78);
+    color: #fff; font-size: 11px; font-weight: 700; letter-spacing: 0.07em; white-space: nowrap;
 }
-
-.speed-trainer-intro-body {
-    font-family: 'Inter', system-ui, sans-serif;
-    font-size: 15px;
-    line-height: 1.65;
-    color: rgba(230, 234, 248, 0.88);
-    margin-bottom: 28px;
+.st-ladder { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; padding: 3px; border: 1px solid rgba(255, 255, 255, 0.09); border-radius: 12px; }
+.st-ladder div { display: grid; gap: 6px; text-align: center; }
+.st-ladder small { padding-bottom: 4px; color: rgba(255, 255, 255, 0.45); font-size: 11.5px; }
+.st-track { display: inline-flex; gap: 2px; justify-self: start; padding: 3px; border: 1px solid rgba(255, 255, 255, 0.09); border-radius: 12px; }
+.st-track span { padding: 0 12px; }
+.st-foot { padding: 12px 20px 20px; border-top: 1px solid rgba(255, 255, 255, 0.06); }
+.st-start {
+    width: 100%; height: 40px; border: 0; border-radius: 10px; background: #9355E5; color: #fff;
+    font: 600 14px/1 'Inter', system-ui, sans-serif; cursor: pointer;
 }
-
-.speed-trainer-intro-lead {
-    margin: 0 0 18px 0;
+.st-start:hover { background: #7B3FC7; }
+.st-start:focus-visible { outline: 2px solid #cfff55; outline-offset: 2px; }
+@media (max-width: 600px) {
+    .st-guide { width: 100vw; }
+    .st-foot { padding-bottom: calc(16px + env(safe-area-inset-bottom)); }
 }
-
-.speed-trainer-intro-lead strong {
-    color: #ffffff;
-    font-weight: 600;
-}
-
-.speed-trainer-intro-list {
-    list-style: none;
-    padding: 0;
-    margin: 0 0 18px 0;
-}
-
-.speed-trainer-intro-list li {
-    position: relative;
-    padding-left: 0;
-    margin-bottom: 12px;
-    color: rgba(220, 225, 240, 0.9);
-}
-
-.speed-trainer-intro-list li:last-child {
-    margin-bottom: 0;
-}
-
-.speed-trainer-intro-kicker {
-    display: inline-block;
-    min-width: 2.75em;
-    font-weight: 700;
-    font-size: 15px;
-    letter-spacing: 0.02em;
-    color: #ffffff;
-}
-
-.speed-trainer-intro-note {
-    margin: 0;
-    font-size: 13px;
-    line-height: 1.55;
-    color: rgba(180, 188, 210, 0.82);
-}
-
-/* Та же кнопка, что «Got it» в онбординге Practice (.onboarding-btn.primary) */
-.speed-trainer-intro-submit {
-    width: 100%;
-    box-sizing: border-box;
-    display: block;
-    margin: 0;
-    padding: 12px 22px;
-    font-family: 'Inter', system-ui, sans-serif;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    text-align: center;
-}
-
-@media (max-width: 480px) {
-    .speed-trainer-intro-card {
-        padding: 26px 20px 22px;
-        border-radius: 18px;
-    }
-
-    .speed-trainer-intro-title {
-        font-size: 17px;
-        margin-bottom: 18px;
-    }
-
-    .speed-trainer-intro-body {
-        font-size: 14px;
-        margin-bottom: 22px;
-    }
-}
+html[data-theme='light'] .practice-speed-mode .st-info { color: rgba(20, 20, 30, 0.45); }
+html[data-theme='light'] .practice-speed-mode .st-info:hover { color: rgba(20, 20, 30, 0.9); }
+html[data-theme='light'] .st-lead { color: rgba(20, 20, 30, 0.78); }
+html[data-theme='light'] .st-step, html[data-theme='light'] .st-foot { border-color: rgba(20, 20, 30, 0.08); }
+html[data-theme='light'] .st-guide .st-step h3 { color: #15151c; }
+html[data-theme='light'] .st-step p, html[data-theme='light'] .st-ladder small { color: rgba(20, 20, 30, 0.6); }
+html[data-theme='light'] .st-demo { background: rgba(20, 20, 30, 0.04); }
+html[data-theme='light'] .st-parts span, html[data-theme='light'] .st-chip, html[data-theme='light'] .st-track span { color: rgba(20, 20, 30, 0.7); }
+html[data-theme='light'] .st-parts span { background: rgba(20, 20, 30, 0.05); }
+html[data-theme='light'] .st-parts span.on, html[data-theme='light'] .st-chip.on, html[data-theme='light'] .st-track span.on { background: rgba(147, 85, 229, 0.16); color: #15151c; }
+html[data-theme='light'] .st-timeline i { background: rgba(20, 20, 30, 0.12); }
+html[data-theme='light'] .st-timeline i.on { background: #9355E5; }
+html[data-theme='light'] .st-ladder, html[data-theme='light'] .st-track { border-color: rgba(20, 20, 30, 0.1); }
 
 .segment-btn {
     height: 44px;
