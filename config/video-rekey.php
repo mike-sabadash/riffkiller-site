@@ -2,15 +2,16 @@
 /**
  * Keyframes at part starts. A looped part jumps back to its start on every pass; a phone (iPhone) decodes
  * from the keyframe before the target, and with keyframes 0.5 s or more apart the picture stalls for half a
- * second each time. A riff's two camera videos are re-encoded with a keyframe at every part start and every
- * 0.2 s; sound is copied unchanged, so the part sound cut from it stays the same.
+ * second each time. A riff's two camera videos are re-encoded with a keyframe at every part start (what a loop
+ * jumps to) and every 0.5 s; sound is copied unchanged, so the part sound cut from it stays the same.
  *
  * Saving a riff schedules this in the background when its part starts changed (config/video-rekey-cli.php; scripts/ is not deployed).
  * The first original of each video is kept in data/video-work/originals (never served).
  */
 require_once __DIR__ . '/video-tools.php';
 
-const VIDEO_REKEY_VERSION = 1;
+// 2: keyframes every 0.5 s besides the part starts and crf 18 (1: every 0.2 s, crf 16 made files 1.5-3x larger).
+const VIDEO_REKEY_VERSION = 2;
 
 /** Part starts of a riff, rounded to milliseconds, sorted and unique. */
 function video_rekey_starts($riff) {
@@ -79,17 +80,21 @@ function video_rekey_run($path, $starts) {
         if (!video_rekey_needed($path, $starts)) return $path . ': already keyed at ' . implode(',', $starts);
         $ffmpeg = video_binary('ffmpeg');
         $src = $root . '/' . $path;
-        $info = video_probe($src);
+        // Encode from the kept original when the file is still our own output: no loss from encoding twice.
+        $original = video_work_dir('originals') . '/' . $path;
+        $marker = is_file(video_rekey_marker($path)) ? json_decode((string)file_get_contents(video_rekey_marker($path)), true) : null;
+        $input = is_file($original) && is_array($marker) && ($marker['size'] ?? null) === filesize($src) ? $original : $src;
+        $info = video_probe($input);
         if (!$ffmpeg || !$info || $info['duration'] <= 0) throw new RuntimeException('cannot read ' . $path);
-        // Every part start, and every 0.2 s so any other seek decodes at most 6 frames.
+        // Every part start, and every 0.5 s so any other seek (timeline, camera re-sync) stays short too.
         $keys = $starts;
-        for ($t = 0; $t < $info['duration']; $t += 0.2) $keys[] = round($t, 3);
+        for ($t = 0; $t < $info['duration']; $t += 0.5) $keys[] = round($t, 3);
         $keys = array_values(array_unique(array_map('floatval', $keys)));
         sort($keys);
         $tmp = dirname($src) . '/.rekey-' . getmypid() . '-' . basename($src);
         // No B-frames: they add an edit list (picture shifted by two frames) and make a phone decode more per seek.
-        $cmd = escapeshellarg($ffmpeg) . ' -nostdin -v error -y -i ' . escapeshellarg($src)
-            . ' -map 0:v:0 -map "0:a?" -c:v libx264 -preset slow -crf 16 -bf 0 -pix_fmt yuv420p -force_key_frames '
+        $cmd = escapeshellarg($ffmpeg) . ' -nostdin -v error -y -i ' . escapeshellarg($input)
+            . ' -map 0:v:0 -map "0:a?" -c:v libx264 -preset slow -crf 18 -bf 0 -pix_fmt yuv420p -force_key_frames '
             . escapeshellarg(implode(',', $keys)) . ' -c:a copy -movflags +faststart ' . escapeshellarg($tmp) . ' 2>&1';
         exec($cmd, $out, $code);
         $after = $code === 0 ? video_probe($tmp) : null;
@@ -97,7 +102,6 @@ function video_rekey_run($path, $starts) {
             @unlink($tmp);
             throw new RuntimeException('re-encode failed for ' . $path . ': ' . implode(' ', array_slice($out, -3)));
         }
-        $original = video_work_dir('originals') . '/' . $path;
         if (!is_file($original)) {
             if (!is_dir(dirname($original))) mkdir(dirname($original), 0750, true);
             copy($src, $original);
