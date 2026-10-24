@@ -1685,6 +1685,8 @@ function updateTabsForCurrentSegment() {
         const toggleBtn = document.getElementById('toggleTabs');
         if (toggleBtn) {
             toggleBtn.classList.remove('active');
+            var label = toggleBtn.querySelector('.tab-text');
+            if (label) label.textContent = 'Show Tabs';
         }
         if (tabsOverlay) {
             tabsOverlay.classList.add('hidden');
