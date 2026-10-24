@@ -1,7 +1,8 @@
 <?php
 /**
- * POST {provider: lava|robokassa|yookassa, plan: monthly|yearly, email?, lang?}
- * Creates a payment for the signed-in user and returns {paymentUrl} to redirect to.
+ * POST {provider: lava|robokassa|yookassa|usdt, plan: monthly|yearly, email?, lang?}
+ * Creates a payment for the signed-in user and returns {paymentUrl} to redirect to,
+ * or for USDT {usdt: {orderId, address, amount, expiresAt}} to show on the page.
  */
 require __DIR__ . '/_common.php';
 
@@ -16,17 +17,24 @@ if (!in_array($provider, BILLING_PROVIDERS, true) || !billing_enabled($provider)
     billing_reply(400, ['success' => false, 'error' => 'This payment method is not available']);
 }
 
+$current = get_subscription($user['id']);
+$renewal = billing_renewal_get($user['id']);
+if ($current && subscription_is_effectively_active($current) && $renewal && !empty($renewal['auto'])) {
+    billing_reply(409, ['success' => false, 'error' => 'You already have an active subscription']);
+}
+
+if ($provider === 'usdt') {
+    $order = usdt_create_order($user['id'], $plan);
+    if (!empty($order['error'])) billing_reply(503, ['success' => false, 'error' => 'Too many payments at once, try again in a few minutes']);
+    payments_log_write('usdt.created', ['source' => 'usdt', 'user_id' => $user['id'], 'plan' => $plan, 'amount' => $order['amount'], 'currency' => 'USDT', 'reference' => $order['orderId']]);
+    billing_reply(200, ['success' => true, 'usdt' => usdt_order_state($order['orderId'], $user['id'])]);
+}
+
 $email = trim((string)($user['email'] ?? ''));
 if (!filter_var($email, FILTER_VALIDATE_EMAIL)) $email = trim((string)($input['email'] ?? ''));
 if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
     // lava.top needs an email for the receipt and subscription; the others send the receipt there too.
     billing_reply(400, ['success' => false, 'error' => 'Email required', 'needEmail' => true]);
-}
-
-$current = get_subscription($user['id']);
-$renewal = billing_renewal_get($user['id']);
-if ($current && subscription_is_effectively_active($current) && $renewal && !empty($renewal['auto'])) {
-    billing_reply(409, ['success' => false, 'error' => 'You already have an active subscription']);
 }
 
 $lang = (string)($input['lang'] ?? 'en');

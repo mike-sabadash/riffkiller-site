@@ -9,11 +9,12 @@ const BILLING_URLS = {
     cryptomus: 'https://cryptomus.com/dashboard',            // Replace with your Cryptomus billing link
     lava: 'billing.html',
     robokassa: 'billing.html',
-    yookassa: 'billing.html'
+    yookassa: 'billing.html',
+    usdt: 'billing.html'
 };
 
 // Where premium can come from; see config/subscription-store.php.
-const PAID_SOURCES = ['patreon', 'stripe', 'cryptomus', 'promo', 'test', 'lava', 'robokassa', 'yookassa'];
+const PAID_SOURCES = ['patreon', 'stripe', 'cryptomus', 'promo', 'test', 'lava', 'robokassa', 'yookassa', 'usdt'];
 
 function normalizeEpochMs(ts) {
     if (ts == null) return null;

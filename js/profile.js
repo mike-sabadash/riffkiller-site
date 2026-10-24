@@ -274,7 +274,7 @@ function loadUserProfile() {
         var nextBilling = '';
         if (subExpiresSec) {
             var d = new Date(subExpiresSec * 1000);
-            nextBilling = ' · Next billing: ' + d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+            nextBilling = (sub.source === 'usdt' ? ' · Paid until: ' : ' · Next billing: ') + d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
         }
         subscriptionMeta.textContent = 'Payment: ' + sourceLabel + (nextBilling || '');
         subscriptionMeta.style.display = '';
@@ -434,11 +434,12 @@ function initProfileEditor() {
     }
 }
 
-// Card payments made on billing.html (config/billing.php): auto-renewal is switched off here, not in a portal.
-var CARD_BILLING_SOURCES = ['lava', 'robokassa', 'yookassa'];
+// Payments made on billing.html (config/billing.php): auto-renewal is switched off here, not in a portal.
+// USDT is a one-off transfer, so it only gets an "Extend premium" link.
+var CARD_BILLING_SOURCES = ['lava', 'robokassa', 'yookassa', 'usdt'];
 
 function paymentSourceLabel(source) {
-    var labels = { stripe: 'Stripe', cryptomus: 'Cryptomus', promo: 'Promo', test: 'Test', patreon: 'Patreon', lava: 'Card', robokassa: 'Robokassa', yookassa: 'YooKassa' };
+    var labels = { stripe: 'Stripe', cryptomus: 'Cryptomus', promo: 'Promo', test: 'Test', patreon: 'Patreon', lava: 'Card', robokassa: 'Robokassa', yookassa: 'YooKassa', usdt: 'USDT' };
     return labels[source] || 'Patreon';
 }
 
@@ -458,6 +459,13 @@ function setupCardRenewalControls(button, message) {
     fetch('api/billing/status.php', { credentials: 'same-origin' }).then(function (r) { return r.json(); }).then(function (st) {
         var renewal = st && st.renewal;
         var until = renewal && renewal.paidUntil ? formatBillingDate(renewal.paidUntil) : '';
+        if (renewal && renewal.provider === 'usdt' && !renewal.auto) {
+            button.textContent = 'Extend premium';
+            button.href = 'billing.html';
+            button.onclick = null;
+            showMessage(until ? 'Paid until ' + until + '. USDT payments do not renew by themselves.' : '');
+            return;
+        }
         if (!renewal || !renewal.auto) {
             button.textContent = 'Renew subscription';
             button.href = 'billing.html';
@@ -523,7 +531,7 @@ function updateSubscriptionDetailsCard() {
             '<div class="subscription-detail-row"><span class="subscription-detail-label">Plan</span><span class="subscription-detail-value">' + planLabel + '</span></div>' +
             '<div class="subscription-detail-row"><span class="subscription-detail-label">Status</span><span class="subscription-detail-value ' + statusClass + '">' + statusLabel + '</span></div>' +
             '<div class="subscription-detail-row"><span class="subscription-detail-label">Payment method</span><span class="subscription-detail-value">' + sourceLabel + '</span></div>' +
-            '<div class="subscription-detail-row"><span class="subscription-detail-label">Next billing date</span><span class="subscription-detail-value">' + nextBillingText + '</span></div>' +
+            '<div class="subscription-detail-row"><span class="subscription-detail-label">' + (sub.source === 'usdt' ? 'Paid until' : 'Next billing date') + '</span><span class="subscription-detail-value">' + nextBillingText + '</span></div>' +
             (manageHtml ? '<div class="subscription-details-actions">' + manageHtml + '</div>' : '');
         contentEl.style.display = 'block';
     } else {

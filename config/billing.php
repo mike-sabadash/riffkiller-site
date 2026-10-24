@@ -6,12 +6,14 @@
  * data/billing/orders.json; the user's auto-renewal state lives in data/billing/renewals.json.
  * lava.top renews subscriptions on its side and reports each charge by webhook;
  * Robokassa and YooKassa are charged by us from config/billing-renew.php (cron).
+ * USDT (TRC20) goes straight to the owner's wallet: each order gets a unique amount and is
+ * matched to an incoming transfer via TronGrid. It does not renew; the user pays again.
  */
 require_once __DIR__ . '/load-env.php';
 require_once __DIR__ . '/subscription-store.php';
 require_once __DIR__ . '/payments-log.php';
 
-const BILLING_PROVIDERS = ['lava', 'robokassa', 'yookassa'];
+const BILLING_PROVIDERS = ['lava', 'robokassa', 'yookassa', 'usdt'];
 const BILLING_PERIOD_DAYS = ['monthly' => 30, 'yearly' => 365];
 // Premium stays on this long past the paid period while a renewal is retried.
 const BILLING_GRACE_DAYS = 3;
@@ -43,6 +45,8 @@ function billing_enabled($provider) {
         case 'yookassa':
             return billing_env('YOOKASSA_SHOP_ID') !== '' && billing_env('YOOKASSA_SECRET_KEY') !== ''
                 && billing_rub_price('monthly') !== null && billing_rub_price('yearly') !== null;
+        case 'usdt':
+            return usdt_address() !== '';
     }
     return false;
 }
@@ -54,6 +58,7 @@ function billing_public_options() {
     $out['stripe'] = (bool)preg_match('/^sk_(live|test)_(?!xxxx$)/', billing_env('STRIPE_SECRET_KEY'));
     $out['cryptomus'] = billing_env('CRYPTOMUS_MERCHANT_ID') !== '' && billing_env('CRYPTOMUS_API_KEY') !== '';
     $out['rub'] = ['monthly' => billing_rub_price('monthly'), 'yearly' => billing_rub_price('yearly')];
+    $out['usdtPrice'] = ['monthly' => usdt_price('monthly'), 'yearly' => usdt_price('yearly')];
     return $out;
 }
 
@@ -157,16 +162,19 @@ function billing_apply_payment($orderId, $note = '') {
     // Extend from the end of the paid period, not from today, so early renewals are not lost.
     $base = time();
     $previous = billing_renewal_get($userId);
-    if ($previous && ($previous['provider'] ?? '') === $order['provider'] && (int)($previous['paid_until'] ?? 0) > $base) {
+    // A period that no longer renews (e.g. paid in USDT) is extended too, whatever paid for it.
+    if ($previous && (($previous['provider'] ?? '') === $order['provider'] || empty($previous['auto'])) && (int)($previous['paid_until'] ?? 0) > $base) {
         $base = (int)$previous['paid_until'];
     }
     $paidUntil = $base + BILLING_PERIOD_DAYS[$plan] * 86400;
-    $expires = $paidUntil + BILLING_GRACE_DAYS * 86400;
+    // Grace days cover a renewal being retried; a one-off USDT period simply ends.
+    $expires = $paidUntil + ($order['provider'] === 'usdt' ? 0 : BILLING_GRACE_DAYS * 86400);
     save_subscription($userId, ['status' => 'active', 'plan' => $plan, 'source' => $order['provider'], 'expires' => $expires]);
     billing_renewal_save($userId, array_filter([
         'provider' => $order['provider'],
         'plan' => $plan,
-        'auto' => true,
+        // A USDT transfer is a one-off payment: nothing renews by itself.
+        'auto' => $order['provider'] !== 'usdt',
         'paid_until' => $paidUntil,
         'attempts' => 0,
         'last_error' => null,
@@ -533,4 +541,157 @@ function billing_run_renewals($now = null) {
         $done[] = [(string)$userId, $r['provider'], $ok ? 'charged' : 'failed'];
     }
     return $done;
+}
+
+// --------------------------------------------------------------------------
+// USDT TRC20 — direct transfer to USDT_TRC20_ADDRESS, checked via TronGrid
+// --------------------------------------------------------------------------
+
+const USDT_TRC20_CONTRACT = 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t';
+// How long an order waits for the transfer, and how late a transfer still counts.
+const USDT_ORDER_TTL = 3600;
+const USDT_LATE_GRACE = 900;
+
+function usdt_address() {
+    $a = billing_env('USDT_TRC20_ADDRESS');
+    return preg_match('/^T[1-9A-HJ-NP-Za-km-z]{33}$/', $a) ? $a : '';
+}
+
+/** Base price in USDT: USDT_PRICE_MONTHLY / USDT_PRICE_YEARLY, defaults 9 and 90. */
+function usdt_price($plan) {
+    $yearly = billing_plan($plan) === 'yearly';
+    $v = billing_env($yearly ? 'USDT_PRICE_YEARLY' : 'USDT_PRICE_MONTHLY', $yearly ? '90' : '9');
+    return preg_match('/^\d+$/', $v) && (int)$v > 0 ? (int)$v : ($yearly ? 90 : 9);
+}
+
+function usdt_is_open(array $o, $now) {
+    return ($o['provider'] ?? '') === 'usdt' && empty($o['paid']) && (int)($o['expires'] ?? 0) + USDT_LATE_GRACE > $now;
+}
+
+/**
+ * Creates (or reuses) an order whose amount is the plan price plus unique cents, so the
+ * transfer can be matched by amount alone: $9 becomes e.g. 9.37 USDT.
+ */
+function usdt_create_order($userId, $plan, $now = null) {
+    $now = $now === null ? time() : (int)$now;
+    $address = usdt_address();
+    $base = usdt_price($plan);
+    $result = null;
+    billing_update_json('orders.json', function ($orders) use ($userId, $plan, $now, $address, $base, &$result) {
+        $taken = [];
+        foreach ($orders as $id => $o) {
+            if (!usdt_is_open($o, $now)) continue;
+            // An unpaid order of the same plan with time left is shown again instead of a new amount.
+            if ((string)$o['user_id'] === (string)$userId && $o['plan'] === $plan && (int)$o['expires'] > $now + 900 && ($o['address'] ?? '') === $address) {
+                $result = ['orderId' => $id] + $o;
+                return null;
+            }
+            $taken[(int)$o['amount_micro']] = true;
+        }
+        $free = [];
+        for ($c = 1; $c <= 99; $c++) {
+            if (empty($taken[$base * 1000000 + $c * 10000])) $free[] = $c;
+        }
+        if (!$free) return null;
+        $cents = $free[random_int(0, count($free) - 1)];
+        $id = 'usdt-' . bin2hex(random_bytes(8));
+        $orders[$id] = [
+            'provider' => 'usdt', 'user_id' => (string)$userId, 'plan' => $plan,
+            'amount' => sprintf('%d.%02d', $base, $cents), 'amount_micro' => $base * 1000000 + $cents * 10000,
+            'currency' => 'USDT', 'address' => $address, 'created' => $now, 'expires' => $now + USDT_ORDER_TTL,
+        ];
+        $result = ['orderId' => $id] + $orders[$id];
+        return $orders;
+    });
+    if (!$result) return ['error' => 'no free amount, try again in a few minutes'];
+    return $result;
+}
+
+/** Confirmed incoming USDT transfers to the wallet since $since (unix seconds). */
+function usdt_fetch_transfers($since) {
+    $base = rtrim(billing_env('TRONGRID_API_BASE', 'https://api.trongrid.io'), '/');
+    $url = $base . '/v1/accounts/' . rawurlencode(usdt_address()) . '/transactions/trc20?' . http_build_query([
+        'only_to' => 'true', 'only_confirmed' => 'true', 'limit' => 200,
+        'contract_address' => USDT_TRC20_CONTRACT, 'min_timestamp' => $since * 1000,
+    ]);
+    $headers = [];
+    if (billing_env('TRONGRID_API_KEY') !== '') $headers[] = 'TRON-PRO-API-KEY: ' . billing_env('TRONGRID_API_KEY');
+    list($code, $data) = billing_http('GET', $url, $headers);
+    if ($code !== 200 || !isset($data['data']) || !is_array($data['data'])) return null;
+    return $data['data'];
+}
+
+/** Claims a transaction id for an order; false if it was already used. */
+function usdt_claim_txid($txid, $orderId) {
+    $claimed = false;
+    billing_update_json('usdt-txids.json', function ($used) use ($txid, $orderId, &$claimed) {
+        if (isset($used[$txid])) return null;
+        $used[$txid] = $orderId;
+        $claimed = true;
+        return $used;
+    });
+    return $claimed;
+}
+
+/**
+ * Matches open USDT orders to incoming transfers and applies the paid ones.
+ * $minInterval > 0 skips the check if another one ran that recently (status polling).
+ * Returns a list of [userId, 'usdt', result].
+ */
+function usdt_check_payments($now = null, $minInterval = 0) {
+    $now = $now === null ? time() : (int)$now;
+    if (!billing_enabled('usdt')) return [];
+    $open = [];
+    foreach (billing_read_json('orders.json') as $id => $o) {
+        if (usdt_is_open($o, $now)) $open[$id] = $o;
+    }
+    if (!$open) return [];
+    if ($minInterval > 0) {
+        $run = false;
+        billing_update_json('usdt-check.json', function ($s) use ($now, $minInterval, &$run) {
+            if ((int)($s['last'] ?? 0) > $now - $minInterval) return null;
+            $run = true;
+            return ['last' => $now];
+        });
+        if (!$run) return [];
+    }
+    $since = min(array_map(function ($o) { return (int)$o['created']; }, $open)) - 60;
+    $transfers = usdt_fetch_transfers($since);
+    if ($transfers === null) {
+        payments_log_write('usdt.check.failed', ['source' => 'usdt', 'note' => 'TronGrid did not answer']);
+        return [];
+    }
+    $address = usdt_address();
+    $done = [];
+    foreach ($transfers as $t) {
+        $txid = (string)($t['transaction_id'] ?? '');
+        $to = (string)($t['to'] ?? '');
+        $token = (string)($t['token_info']['address'] ?? '');
+        $value = (string)($t['value'] ?? '');
+        $ts = (int)floor((int)($t['block_timestamp'] ?? 0) / 1000);
+        if ($txid === '' || $to !== $address || $token !== USDT_TRC20_CONTRACT || !ctype_digit($value)) continue;
+        foreach ($open as $id => $o) {
+            if ((int)$value !== (int)$o['amount_micro']) continue;
+            if ($ts < (int)$o['created'] - 60 || $ts > (int)$o['expires'] + USDT_LATE_GRACE) continue;
+            if (!usdt_claim_txid($txid, $id)) continue 2;
+            billing_order_save($id, ['txid' => $txid, 'from' => (string)($t['from'] ?? '')]);
+            $applied = billing_apply_payment($id, 'tx ' . $txid);
+            $done[] = [(string)$o['user_id'], 'usdt', $applied ? 'paid' : 'already'];
+            unset($open[$id]);
+            continue 2;
+        }
+    }
+    return $done;
+}
+
+/** The state of a user's USDT order for the payment page: pending, paid or expired. */
+function usdt_order_state($orderId, $userId, $now = null) {
+    $now = $now === null ? time() : (int)$now;
+    $o = billing_order_get($orderId);
+    if (!$o || ($o['provider'] ?? '') !== 'usdt' || (string)$o['user_id'] !== (string)$userId) return null;
+    if (!empty($o['paid'])) $state = 'paid';
+    elseif (usdt_is_open($o, $now)) $state = 'pending';
+    else $state = 'expired';
+    return ['orderId' => $orderId, 'state' => $state, 'amount' => $o['amount'], 'address' => $o['address'],
+        'plan' => $o['plan'], 'expiresAt' => (int)$o['expires']];
 }

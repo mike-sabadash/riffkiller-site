@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <script src="js/rk-theme-init.js"></script>
-    <script src="js/i18n.js?v=i6"></script>
+    <script src="js/i18n.js?v=i7"></script>
     <meta name="theme-color" content="#0a0a0a" id="rk-theme-color">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Riff Killer - Premium Billing</title>
@@ -102,6 +102,22 @@
         html[data-theme='light'] .billing-notice.is-ok { color: #166534; }
         html[data-theme='light'] .billing-notice.is-error { color: #991b1b; }
         .billing-email button { min-height: 44px; padding: 0 18px; border-radius: 12px; border: none; background: #9355E5; color: #fff; font: inherit; font-weight: 500; cursor: pointer; }
+        .usdt-pay[hidden] { display: none; }
+        .usdt-pay { max-width: 560px; margin: 24px auto 0; padding: 24px; border-radius: 20px; border: 1px solid var(--color-border-light); background: rgba(255, 255, 255, 0.03); }
+        .usdt-pay h3 { font-size: 1.125rem; font-weight: 600; margin-bottom: 4px; }
+        .usdt-pay-lead { font-size: 0.875rem; color: var(--color-text-secondary); margin-bottom: 20px; line-height: 1.5; }
+        .usdt-field { margin-bottom: 16px; }
+        .usdt-field-label { display: block; font-size: 0.75rem; color: var(--color-text-tertiary); margin-bottom: 6px; }
+        .usdt-field-row { display: flex; align-items: center; gap: 8px; }
+        .usdt-field-value { flex: 1; min-width: 0; padding: 10px 14px; border-radius: 12px; background: rgba(255, 255, 255, 0.05); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.9375rem; overflow-wrap: anywhere; }
+        .usdt-amount .usdt-field-value { font-size: 1.375rem; font-weight: 700; font-family: 'Inter', system-ui, sans-serif; }
+        .usdt-copy { flex: none; min-height: 44px; padding: 0 14px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.22); background: transparent; color: inherit; font: inherit; font-size: 0.875rem; cursor: pointer; }
+        .usdt-copy:hover { background: rgba(255, 255, 255, 0.08); }
+        .usdt-warning { font-size: 0.8125rem; color: var(--color-text-secondary); line-height: 1.5; margin: 4px 0 16px; padding-left: 18px; }
+        .usdt-warning li { margin-bottom: 4px; }
+        .usdt-status { font-size: 0.875rem; color: var(--color-text-tertiary); }
+        html[data-theme='light'] .usdt-field-value { background: rgba(18, 18, 26, 0.05); }
+        html[data-theme='light'] .usdt-copy { border-color: rgba(18, 18, 26, 0.2); }
     </style>
 </head>
 <body data-rk-header="app" data-logo-href="index.html" data-nav-active="billing">
@@ -166,6 +182,14 @@
                                 <button type="button" class="pay-btn" data-provider="yookassa"><span class="pay-label">Pay</span> <span class="pay-price" data-rub></span></button>
                             </div>
                         </div>
+                        <div class="method-card" id="methodUsdt" data-provider="usdt" hidden>
+                            <h3>USDT</h3>
+                            <span class="method-tag">TRON network (TRC20)</span>
+                            <p class="method-desc">Send USDT from any wallet or exchange. Premium switches on by itself within a few minutes after the transfer. Does not renew automatically.</p>
+                            <div class="method-cta">
+                                <button type="button" class="pay-btn" data-provider="usdt"><span class="pay-label">Pay</span> <span class="pay-price" data-usdt></span></button>
+                            </div>
+                        </div>
                         <div class="method-card" id="methodStripe" hidden>
                             <h3>Card</h3>
                             <span class="method-tag">Stripe</span>
@@ -191,6 +215,29 @@
                             </div>
                             <p class="method-desc" style="margin-top:12px;font-size:12px;color:var(--color-text-tertiary);" id="patreonHint">Not logged in? You will sign in with Patreon first, then open the plan page.</p>
                         </div>
+                    </div>
+                    <div class="usdt-pay" id="usdtPay" hidden>
+                        <h3>Send USDT on the TRON network</h3>
+                        <p class="usdt-pay-lead">Send exactly this amount: it tells us the payment is yours. Premium switches on by itself once the transfer is confirmed, usually within a few minutes.</p>
+                        <div class="usdt-field usdt-amount">
+                            <span class="usdt-field-label">Amount, USDT</span>
+                            <div class="usdt-field-row">
+                                <span class="usdt-field-value" id="usdtAmount"></span>
+                                <button type="button" class="usdt-copy" data-copy="usdtAmount">Copy</button>
+                            </div>
+                        </div>
+                        <div class="usdt-field">
+                            <span class="usdt-field-label">Wallet address (TRC20)</span>
+                            <div class="usdt-field-row">
+                                <span class="usdt-field-value" id="usdtAddress"></span>
+                                <button type="button" class="usdt-copy" data-copy="usdtAddress">Copy</button>
+                            </div>
+                        </div>
+                        <ul class="usdt-warning">
+                            <li>Only USDT and only the TRON (TRC20) network. Other coins or networks will be lost.</li>
+                            <li>If your exchange takes a withdrawal fee, the amount that arrives must still be exactly this.</li>
+                        </ul>
+                        <p class="usdt-status" id="usdtStatus" role="status"></p>
                     </div>
                     <form class="billing-email" id="billingEmail" hidden>
                         <label for="billingEmailInput">Email for the receipt and your subscription</label>
@@ -245,8 +292,8 @@
 
     <script src="config/env-config.php"></script>
     <script src="js/patreon-config.js"></script>
-    <script src="js/auth-manager.js?v=d20261021"></script>
-    <script src="js/site-header-behaviors.js"></script>
+    <script src="js/auth-manager.js?v=d20261024"></script>
+    <script src="js/site-header-behaviors.js?v=u1"></script>
     <script src="js/rk-theme.js"></script>
     <script>
         (function() {
@@ -330,6 +377,11 @@
             function updatePrices() {
                 var yearly = selectedPlan === 'yearly';
                 document.querySelectorAll('[data-usd]').forEach(function(el) { el.textContent = yearly ? '$90 / year' : '$9 / month'; });
+                var usdt = billingOptions && billingOptions.providers.usdtPrice;
+                document.querySelectorAll('[data-usdt]').forEach(function(el) {
+                    var price = usdt && (yearly ? usdt.yearly : usdt.monthly);
+                    el.textContent = price ? '~' + price + ' USDT' : '';
+                });
                 var rub = billingOptions && billingOptions.providers.rub;
                 document.querySelectorAll('[data-rub]').forEach(function(el) {
                     var price = rub && (yearly ? rub.yearly : rub.monthly);
@@ -339,7 +391,7 @@
             function applyOptions(opts) {
                 billingOptions = opts;
                 var p = opts.providers || {};
-                var map = { lava: 'methodLava', robokassa: 'methodRobokassa', yookassa: 'methodYookassa', stripe: 'methodStripe', cryptomus: 'methodCryptomus' };
+                var map = { lava: 'methodLava', robokassa: 'methodRobokassa', yookassa: 'methodYookassa', usdt: 'methodUsdt', stripe: 'methodStripe', cryptomus: 'methodCryptomus' };
                 Object.keys(map).forEach(function(k) { var el = document.getElementById(map[k]); if (el) el.hidden = !p[k]; });
                 // Only one featured method: the card checkout when it is on, Patreon otherwise.
                 var patreonCard = document.getElementById('methodPatreon');
@@ -349,7 +401,7 @@
             function setBusy(provider, busy) {
                 document.querySelectorAll('.pay-btn').forEach(function(b) { b.disabled = busy; });
                 var btn = document.querySelector('.pay-btn[data-provider="' + provider + '"] .pay-label');
-                if (btn) btn.textContent = busy ? 'Opening checkout\u2026' : 'Pay';
+                if (btn) btn.textContent = busy ? (provider === 'usdt' ? 'Preparing\u2026' : 'Opening checkout\u2026') : 'Pay';
             }
             function startPayment(provider, email) {
                 var auth = window.patreonAuth;
@@ -366,6 +418,7 @@
                     body: JSON.stringify({ provider: provider, plan: selectedPlan, email: email || '', lang: lang })
                 }).then(function(r) { return r.json(); }).then(function(data) {
                     if (data.success && data.paymentUrl) { window.location.href = data.paymentUrl; return; }
+                    if (data.success && data.usdt) { setBusy(provider, false); showUsdtOrder(data.usdt); return; }
                     setBusy(provider, false);
                     if (data.needEmail) {
                         pendingProvider = provider;
@@ -387,6 +440,54 @@
                 if (!pendingProvider || !emailInput.checkValidity()) return;
                 emailForm.hidden = true;
                 startPayment(pendingProvider, emailInput.value.trim());
+            });
+            // USDT: show the unique amount and the wallet, then wait until the transfer is found.
+            var usdtPay = document.getElementById('usdtPay');
+            var usdtStatus = document.getElementById('usdtStatus');
+            var usdtTimer = null;
+            function premiumOn() {
+                var auth = window.patreonAuth;
+                if (auth && auth.userData && typeof auth.fetchSubscriptionFromServer === 'function') auth.fetchSubscriptionFromServer(auth.userData.id);
+                if (profileLink) profileLink.style.display = 'inline-block';
+            }
+            function showUsdtOrder(order) {
+                clearTimeout(usdtTimer);
+                document.getElementById('usdtAmount').textContent = order.amount;
+                document.getElementById('usdtAddress').textContent = order.address;
+                usdtPay.hidden = false;
+                usdtPay.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                (function tick() {
+                    var left = Math.max(0, Math.round(order.expiresAt - Date.now() / 1000));
+                    var min = Math.ceil(left / 60);
+                    usdtStatus.textContent = left > 0
+                        ? 'Waiting for the transfer. This amount is reserved for ' + min + ' min.'
+                        : 'Still checking for your transfer\u2026';
+                    fetch('api/billing/status.php?order=' + encodeURIComponent(order.orderId), { credentials: 'same-origin' })
+                        .then(function(r) { return r.json(); })
+                        .then(function(st) {
+                            var o = st && st.usdt;
+                            if (o && o.state === 'paid') {
+                                usdtPay.hidden = true;
+                                showNotice('Payment received. Premium is on. Enjoy every riff!', 'ok');
+                                premiumOn();
+                                return;
+                            }
+                            if (o && o.state === 'expired') {
+                                usdtStatus.textContent = 'This amount has expired. If you have not sent it yet, press Pay again for a new one. If you already did, write to us.';
+                                return;
+                            }
+                            usdtTimer = setTimeout(tick, 15000);
+                        })
+                        .catch(function() { usdtTimer = setTimeout(tick, 15000); });
+                })();
+            }
+            document.querySelectorAll('.usdt-copy').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    var text = document.getElementById(btn.getAttribute('data-copy')).textContent;
+                    var label = btn.textContent;
+                    var done = function() { btn.textContent = 'Copied'; setTimeout(function() { btn.textContent = label; }, 1500); };
+                    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, function() {});
+                });
             });
             function loadOptions() {
                 return fetch('api/billing/options.php', { credentials: 'same-origin' })
