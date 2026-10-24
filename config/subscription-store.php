@@ -30,7 +30,7 @@ function save_subscription($userId, $data) {
     $path = $dir . '/' . $userId . '.json';
     $out = [
         'status' => isset($data['status']) ? (string) $data['status'] : 'active',
-        'plan' => isset($data['plan']) && $data['plan'] === 'yearly' ? 'yearly' : 'monthly',
+        'plan' => isset($data['plan']) && in_array($data['plan'], ['quarterly', 'yearly'], true) ? $data['plan'] : 'monthly',
         'source' => isset($data['source']) && in_array($data['source'], ['stripe', 'cryptomus', 'patreon', 'promo', 'test', 'lava', 'robokassa', 'yookassa', 'usdt'], true) ? $data['source'] : 'stripe',
         'expires' => isset($data['expires']) ? (int) $data['expires'] : (isset($data['expires_at']) ? (int) $data['expires_at'] : null),
     ];
@@ -75,7 +75,7 @@ function get_subscription($userId) {
     }
     return [
         'status' => $status,
-        'plan' => isset($data['plan']) && $data['plan'] === 'yearly' ? 'yearly' : 'monthly',
+        'plan' => isset($data['plan']) && in_array($data['plan'], ['quarterly', 'yearly'], true) ? $data['plan'] : 'monthly',
         'source' => isset($data['source']) ? $data['source'] : 'stripe',
         'expires' => $expires,
     ];

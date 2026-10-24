@@ -628,7 +628,10 @@
             "This amount has expired. If you have not sent it yet, press Pay again for a new one. If you already did, write to us.": "Este monto ha caducado. Si aún no lo enviaste, pulsa Pagar otra vez para obtener uno nuevo. Si ya lo enviaste, escríbenos.",
             "Too many payments at once, try again in a few minutes": "Hay demasiados pagos a la vez, inténtalo en unos minutos",
             "Extend premium": "Extender premium",
-            "Paid until": "Pagado hasta"
+            "Paid until": "Pagado hasta",
+            "3 months": "3 meses",
+            "per 3 months": "cada 3 meses",
+            "save $5": "ahorras $5"
         },
         patterns: [
         [/^1 shots$/, '1 toma'],
@@ -672,6 +675,7 @@
         [/^Continue (.+)$/, 'Continuar: $1'],
         [/^(\$[\d.]+|[\d\s\u00a0\u202f]+ ₽) \/ month$/, '$1 / mes'],
         [/^(\$[\d.]+|[\d\s\u00a0\u202f]+ ₽) \/ year$/, '$1 / año'],
+        [/^(\$[\d.]+|[\d\s\u00a0\u202f]+ ₽) \/ 3 months$/, '$1 / 3 meses'],
         [/^Auto-renewal is off\. Premium stays on until (.+)\.$/, 'Renovación automática cancelada. El premium sigue activo hasta el $1.'],
         [/^Renews automatically on (.+)\.$/, 'Se renueva automáticamente el $1.'],
         [/^Left hand: (.+) · Right hand: (.+)$/, function (m, part) { return 'Mano izquierda: ' + part(m[1]) + ' · Mano derecha: ' + part(m[2]); }]

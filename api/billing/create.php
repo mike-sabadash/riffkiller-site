@@ -1,6 +1,6 @@
 <?php
 /**
- * POST {provider: lava|robokassa|yookassa|usdt, plan: monthly|yearly, email?, lang?}
+ * POST {provider: lava|robokassa|yookassa|usdt, plan: monthly|quarterly|yearly, email?, lang?}
  * Creates a payment for the signed-in user and returns {paymentUrl} to redirect to,
  * or for USDT {usdt: {orderId, address, amount, expiresAt}} to show on the page.
  */
@@ -14,6 +14,10 @@ $input = json_decode((string)file_get_contents('php://input'), true) ?: [];
 $provider = (string)($input['provider'] ?? '');
 $plan = billing_plan((string)($input['plan'] ?? 'monthly'));
 if (!in_array($provider, BILLING_PROVIDERS, true) || !billing_enabled($provider)) {
+    billing_reply(400, ['success' => false, 'error' => 'This payment method is not available']);
+}
+// Robokassa and YooKassa sell a plan only when its RUB price is set.
+if (in_array($provider, ['robokassa', 'yookassa'], true) && billing_rub_price($plan) === null) {
     billing_reply(400, ['success' => false, 'error' => 'This payment method is not available']);
 }
 

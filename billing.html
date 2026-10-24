@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <script src="js/rk-theme-init.js"></script>
-    <script src="js/i18n.js?v=i7"></script>
+    <script src="js/i18n.js?v=i8"></script>
     <meta name="theme-color" content="#0a0a0a" id="rk-theme-color">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Riff Killer - Premium Billing</title>
@@ -73,7 +73,7 @@
         .billing-includes li { display: inline-flex; align-items: center; gap: 8px; }
         .billing-includes li::before { content: ''; width: 16px; height: 16px; border-radius: 50%; background: rgba(147, 85, 229, 0.18) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M4.5 8.2l2.2 2.2 4.8-4.8' fill='none' stroke='%23c4b5fc' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / 16px no-repeat; }
         .plan-section h2, .methods-section h2 { font-size: 1rem; font-weight: 600; letter-spacing: 0; text-transform: none; color: #fff; margin-bottom: 16px; }
-        .plans-row { display: grid; grid-template-columns: repeat(2, minmax(0, 260px)); justify-content: center; gap: 16px; }
+        .plans-row { display: grid; grid-template-columns: repeat(3, minmax(0, 290px)); justify-content: center; gap: 16px; }
         .plan-card { padding: 24px; border-radius: 20px; text-align: left; position: relative; }
         .plan-card.selected { box-shadow: 0 0 0 1px #9355e5, 0 16px 40px -16px rgba(147, 85, 229, 0.45); }
         .plan-card.selected::after { content: ''; position: absolute; top: 20px; right: 20px; width: 20px; height: 20px; border-radius: 50%; background: #9355e5 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M4.5 8.2l2.2 2.2 4.8-4.8' fill='none' stroke='white' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / 16px no-repeat; }
@@ -144,6 +144,12 @@
                             <div class="plan-name">Monthly</div>
                             <div class="plan-price">$9</div>
                             <div class="plan-period">per month</div>
+                        </div>
+                        <div class="plan-card" id="planQuarterly" data-plan="quarterly">
+                            <div class="plan-name">3 months</div>
+                            <div class="plan-price">$22</div>
+                            <div class="plan-period">per 3 months</div>
+                            <div class="plan-save">save $5</div>
                         </div>
                         <div class="plan-card" id="planYearly" data-plan="yearly">
                             <div class="plan-name">Yearly</div>
@@ -292,7 +298,7 @@
 
     <script src="config/env-config.php"></script>
     <script src="js/patreon-config.js"></script>
-    <script src="js/auth-manager.js?v=d20261024"></script>
+    <script src="js/auth-manager.js?v=d20261024b"></script>
     <script src="js/site-header-behaviors.js?v=u1"></script>
     <script src="js/rk-theme.js"></script>
     <script>
@@ -326,11 +332,14 @@
             });
             var planMonthly = document.getElementById('planMonthly');
             var planYearly = document.getElementById('planYearly');
+            var planQuarterly = document.getElementById('planQuarterly');
             var stripeLink = document.getElementById('stripeLink');
             var cryptoLink = document.getElementById('cryptoLink');
             var selectedPlan = 'monthly';
+            var PERIOD_LABEL = { monthly: ' / month', quarterly: ' / 3 months', yearly: ' / year' };
+            var USD_PRICE = { monthly: 9, quarterly: 22, yearly: 90 };
             function updatePlanLinks() {
-                var q = selectedPlan === 'yearly' ? '?plan=yearly' : '?plan=monthly';
+                var q = '?plan=' + selectedPlan;
                 if (stripeLink) stripeLink.href = 'billing-stripe.html' + q;
                 if (cryptoLink) cryptoLink.href = 'billing-cryptomus.html' + q;
                 updatePrices();
@@ -338,13 +347,15 @@
             function setPlan(plan) {
                 selectedPlan = plan;
                 if (planMonthly) { planMonthly.classList.toggle('selected', plan === 'monthly'); }
+                if (planQuarterly) { planQuarterly.classList.toggle('selected', plan === 'quarterly'); }
                 if (planYearly) { planYearly.classList.toggle('selected', plan === 'yearly'); }
                 updatePlanLinks();
             }
             if (planMonthly) planMonthly.addEventListener('click', function() { setPlan('monthly'); });
+            if (planQuarterly) planQuarterly.addEventListener('click', function() { setPlan('quarterly'); });
             if (planYearly) planYearly.addEventListener('click', function() { setPlan('yearly'); });
             var planParam = (typeof URLSearchParams !== 'undefined' && window.location.search) ? new URLSearchParams(window.location.search).get('plan') : null;
-            if (planParam === 'yearly') setPlan('yearly');
+            if (planParam === 'yearly' || planParam === 'quarterly') setPlan(planParam);
             else updatePlanLinks();
 
             if (patreonBtn) patreonBtn.addEventListener('click', function() {
@@ -375,17 +386,21 @@
             }
             function formatRub(v) { return v ? Math.round(Number(v)).toLocaleString('ru-RU') + ' \u20bd' : ''; }
             function updatePrices() {
-                var yearly = selectedPlan === 'yearly';
-                document.querySelectorAll('[data-usd]').forEach(function(el) { el.textContent = yearly ? '$90 / year' : '$9 / month'; });
+                var period = PERIOD_LABEL[selectedPlan];
+                document.querySelectorAll('[data-usd]').forEach(function(el) { el.textContent = '$' + USD_PRICE[selectedPlan] + period; });
                 var usdt = billingOptions && billingOptions.providers.usdtPrice;
                 document.querySelectorAll('[data-usdt]').forEach(function(el) {
-                    var price = usdt && (yearly ? usdt.yearly : usdt.monthly);
+                    var price = usdt && usdt[selectedPlan];
                     el.textContent = price ? '~' + price + ' USDT' : '';
                 });
-                var rub = billingOptions && billingOptions.providers.rub;
+                var p = (billingOptions && billingOptions.providers) || {};
+                var rub = p.rub;
                 document.querySelectorAll('[data-rub]').forEach(function(el) {
-                    var price = rub && (yearly ? rub.yearly : rub.monthly);
-                    el.textContent = price ? formatRub(price) + (yearly ? ' / year' : ' / month') : '';
+                    var price = rub && rub[selectedPlan];
+                    el.textContent = price ? formatRub(price) + period : '';
+                    // Robokassa and YooKassa sell a plan only when its RUB price is set.
+                    var card = el.closest('.method-card');
+                    if (card && p[card.getAttribute('data-provider')]) card.hidden = !price;
                 });
             }
             function applyOptions(opts) {
