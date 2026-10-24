@@ -78,14 +78,14 @@
             if (age < 0 || age > 0.3) return t;
             // A frame from before a seek (Safari can report one after the seek lands) says nothing about now.
             if (Math.abs(a.media - t) > 0.5) return t;
-            return Math.max(t, a.media + age * this.rate);
+            return Math.max(t, a.media + age * (this.left.playbackRate || this.rate));
         }
         // Calls fn when the clock camera reaches media time `time` (once; a later call replaces it).
         // Only arms within half a second, so a seek or a pause in between cannot fire a stale jump.
         at(time, fn) {
             clearTimeout(this.timer);
             this.timer = null;
-            const wait = (time - this.estimate()) / (this.rate || 1);
+            const wait = (time - this.estimate()) / (this.left.playbackRate || this.rate || 1);
             if (wait > 0.5) return;
             this.timer = setTimeout(() => { this.timer = null; fn(); }, Math.max(0, wait * 1000));
         }
@@ -113,6 +113,7 @@
             if (!v) return;
             this.voice = null;
             v.audio.pause();
+            this.left.playbackRate = this.rate;
             if (!keepMuted) this.left.muted = false;
         }
         // Where the picture should be inside the part, by the sound.
@@ -136,13 +137,29 @@
                 }
                 return;
             }
-            if (a.paused || this.left.seeking || this.pending) return;
+            if (this.left.seeking || this.pending) return;
+            // Stopped by the system (another sound, a route change): it is the clock, so it starts again.
+            if (a.paused) {
+                if (this.intendedPlaying && !this.left.paused) {
+                    const p = a.play();
+                    if (p && p.catch) p.catch(() => {});
+                    if (this.options.onVoice) this.options.onVoice('restart');
+                }
+                return;
+            }
             let drift = t - this.voiceOffset();
             if (drift > len / 2) drift -= len;
             if (drift < -len / 2) drift += len;
+            // Small drift: the clock camera runs a little faster or slower (no seek: a phone stalls the
+            // picture for half a second on every seek). Only a big gap is closed by a seek.
+            const nudge = Math.abs(drift) < 0.04 ? 0 : Math.max(-0.08, Math.min(0.08, drift));
+            const rate = Math.round(this.rate * (1 - nudge) * 1000) / 1000;
+            if (this.left.playbackRate !== rate) this.left.playbackRate = rate;
             const now = this.now();
-            if (Math.abs(drift) < 0.25 || now - v.lastFix < 1500) return;
+            if (Math.abs(drift) < 0.8 || now - v.lastFix < 3000) return;
             v.lastFix = now;
+            if (this.options.onVoice) this.options.onVoice('resync', drift);
+            this.left.playbackRate = this.rate;
             this.seekVideos(v.start + this.voiceOffset());
         }
         seekVideos(target) {

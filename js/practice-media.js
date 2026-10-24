@@ -30,7 +30,7 @@
                     try {
                         item.loaded = 0; item.total = 0; item.done = false;
                         touch();
-                        const response = await fetch(url, {signal: controller.signal, cache: 'default'});
+                        const response = await fetch(url, {signal: controller.signal, cache: 'no-cache'});
                         if (!response.ok) throw new Error('HTTP ' + response.status);
                         const length = Number(response.headers.get('Content-Length'));
                         // Compressed responses count decoded bytes; do not invent a percentage.

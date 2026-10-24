@@ -180,3 +180,12 @@ test('a camera catching up after a loop jump does not stop the part sound', asyn
     t.loopTo(1.7); left.readyState=2; left.dispatchEvent(new Event('waiting'));
     assert.equal(a.paused,false); assert.ok(!left.paused && !right.paused); assert.equal(t.buffering,false);
 });
+test('small drift from the part sound is closed by camera speed, not by a seek', async () => {
+    const {left,t}=setup(); const a=new Sound();
+    t.setVoice(a, 1.7, 3.44); left.currentTime=2; await t.play();
+    a.currentTime=.1; left.currentTime=2; t.tick(); // picture 0.2 s ahead of the sound
+    assert.equal(left.currentTime,2); assert.ok(left.playbackRate<1 && left.playbackRate>=.92);
+    a.currentTime=.5; left.currentTime=2; t.tick(); assert.ok(left.playbackRate>1); // behind: faster
+    a.paused=true; t.tick(); assert.equal(a.paused,false, 'a sound stopped by the system starts again');
+    t.clearVoice(); assert.equal(left.playbackRate,1);
+});

@@ -1,0 +1,62 @@
+name: Video rekey
+
+# Agent tool: re-encodes a riff's two camera videos with a keyframe at every part start and every 0.2 s,
+# so a looped part's jump back is a cheap seek on a phone. Sound is copied unchanged; originals are backed up
+# on the server (path printed). Run again after the riff's parts are changed in the admin.
+on:
+  workflow_dispatch:
+    inputs:
+      riff_id:
+        description: Riff id whose videos to re-encode
+        required: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: video-rekey
+  cancel-in-progress: false
+
+jobs:
+  rekey:
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://riffkiller.fun
+    env:
+      DEPLOY_HOST: ${{ secrets.CLAUDE_DEPLOY_HOST }}
+      DEPLOY_USER: ${{ secrets.CLAUDE_DEPLOY_USER }}
+      DEPLOY_PORT: ${{ secrets.CLAUDE_DEPLOY_PORT || '22' }}
+      RIFFKILLER_ROOT: ${{ vars.RIFFKILLER_ROOT }}
+      RIFF_ID: ${{ inputs.riff_id }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check inputs
+        run: '[[ "$RIFF_ID" =~ ^[0-9]+$ ]] || { echo "::error::riff_id must be a number"; exit 1; }'
+      - name: Configure SSH
+        env:
+          SSH_KEY: ${{ secrets.CLAUDE_DEPLOY_SSH_KEY }}
+          KNOWN_HOSTS: ${{ secrets.CLAUDE_DEPLOY_KNOWN_HOSTS }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/deploy_key
+          printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/deploy_key ~/.ssh/known_hosts
+          printf 'Host prod\n  HostName %s\n  User %s\n  Port %s\n  IdentityFile ~/.ssh/deploy_key\n  IdentitiesOnly yes\n  StrictHostKeyChecking yes\n' \
+            "$DEPLOY_HOST" "$DEPLOY_USER" "$DEPLOY_PORT" > ~/.ssh/config
+          dir="/tmp/riffkiller-rekey-$GITHUB_RUN_ID"
+          ssh prod "install -d -m 700 '$dir'"
+          scp -q scripts/riff-tab-remote.sh scripts/riff-tab-apply.php "prod:$dir/"
+          echo "REMOTE_DIR=$dir" >> "$GITHUB_ENV"
+      - name: Re-encode with keyframes at part starts
+        run: ssh prod "RIFFKILLER_ROOT='$RIFFKILLER_ROOT' bash '$REMOTE_DIR/riff-tab-remote.sh' rekey '$RIFF_ID'"
+      - name: Keyframes now
+        run: |
+          ssh prod "RIFFKILLER_ROOT='$RIFFKILLER_ROOT' bash '$REMOTE_DIR/riff-tab-remote.sh' riffs" > riffs.json
+          node -e 'const l=require("./riffs.json");const r=(Array.isArray(l)?l:(l.riffs||Object.values(l))).find(x=>String(x.id)===process.argv[1]);console.log([r.videoFile,r.videoFileRight].filter(Boolean).join("\n"))' "$RIFF_ID" > videos.txt
+          while read -r v; do echo "== $v"; ssh -n prod "RIFFKILLER_ROOT='$RIFFKILLER_ROOT' bash '$REMOTE_DIR/riff-tab-remote.sh' probe '$v'" || true; done < videos.txt
+      - name: Clean up
+        if: always()
+        run: |
+          rm -f riffs.json videos.txt
+          [ -z "${REMOTE_DIR:-}" ] || ssh prod "rm -rf '$REMOTE_DIR'" || true
