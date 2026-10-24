@@ -1,0 +1,63 @@
+name: Loop debug
+
+# Agent tool: reads what practice.html?debug=loop sent from a device (data/loop-debug.log on the server)
+# and how the riff's video files are timed (ffprobe), to find why a looped part sounds past its end.
+on:
+  workflow_dispatch:
+    inputs:
+      riff_id:
+        description: Riff id whose videos to probe
+        default: '1'
+      lines:
+        description: Last lines of the log to print
+        default: '200'
+
+permissions:
+  contents: read
+
+jobs:
+  read:
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://riffkiller.fun
+    env:
+      DEPLOY_HOST: ${{ secrets.CLAUDE_DEPLOY_HOST }}
+      DEPLOY_USER: ${{ secrets.CLAUDE_DEPLOY_USER }}
+      DEPLOY_PORT: ${{ secrets.CLAUDE_DEPLOY_PORT || '22' }}
+      RIFFKILLER_ROOT: ${{ vars.RIFFKILLER_ROOT }}
+      RIFF_ID: ${{ inputs.riff_id }}
+      LINES: ${{ inputs.lines }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check inputs
+        run: |
+          [[ "$RIFF_ID" =~ ^[0-9]+$ ]] || { echo "::error::riff_id must be a number"; exit 1; }
+          [[ "$LINES" =~ ^[0-9]+$ ]] || { echo "::error::lines must be a number"; exit 1; }
+      - name: Configure SSH
+        env:
+          SSH_KEY: ${{ secrets.CLAUDE_DEPLOY_SSH_KEY }}
+          KNOWN_HOSTS: ${{ secrets.CLAUDE_DEPLOY_KNOWN_HOSTS }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/deploy_key
+          printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/deploy_key ~/.ssh/known_hosts
+          printf 'Host prod\n  HostName %s\n  User %s\n  Port %s\n  IdentityFile ~/.ssh/deploy_key\n  IdentitiesOnly yes\n  StrictHostKeyChecking yes\n' \
+            "$DEPLOY_HOST" "$DEPLOY_USER" "$DEPLOY_PORT" > ~/.ssh/config
+          dir="/tmp/riffkiller-loop-$GITHUB_RUN_ID"
+          ssh prod "install -d -m 700 '$dir'"
+          scp -q scripts/riff-tab-remote.sh scripts/riff-tab-apply.php "prod:$dir/"
+          echo "REMOTE_DIR=$dir" >> "$GITHUB_ENV"
+      - name: Loop log from devices
+        run: ssh prod "RIFFKILLER_ROOT='$RIFFKILLER_ROOT' bash '$REMOTE_DIR/riff-tab-remote.sh' loopdebug '$LINES'"
+      - name: Video timing
+        run: |
+          ssh prod "RIFFKILLER_ROOT='$RIFFKILLER_ROOT' bash '$REMOTE_DIR/riff-tab-remote.sh' riffs" > riffs.json
+          node -e 'const l=require("./riffs.json");const r=(Array.isArray(l)?l:Object.values(l)).find(x=>String(x.id)===process.argv[1]);if(!r)process.exit(2);console.log([r.videoFile,r.videoFileRight,r.videoSource&&r.videoSource.file].filter(Boolean).join("\n"));console.error(JSON.stringify((r.segments||[]).map(s=>[s.start,s.end])))' "$RIFF_ID" > videos.txt
+          while read -r v; do echo "== $v"; ssh prod "RIFFKILLER_ROOT='$RIFFKILLER_ROOT' bash '$REMOTE_DIR/riff-tab-remote.sh' probe '$v'" || true; done < videos.txt
+      - name: Clean up
+        if: always()
+        run: |
+          rm -f riffs.json videos.txt
+          [ -z "${REMOTE_DIR:-}" ] || ssh prod "rm -rf '$REMOTE_DIR'" || true

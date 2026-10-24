@@ -1001,6 +1001,24 @@ function makeLoopDebug() {
     document.body.appendChild(box);
     const lines = [], ticks = [];
     let last = 0, n = 0, seekAt = 0, pending = null, maxPast = 0;
+    // How often currentTime itself moves on this device (wall ms between changes).
+    let seenTime = -1, seenAt = 0;
+    const gaps = [];
+    const session = Math.random().toString(36).slice(2, 8);
+    const send = (kind, data) => {
+        const body = JSON.stringify(Object.assign({ debug: 'loop', kind, session, riff: currentRiff && currentRiff.id, part: currentSegment }, data));
+        try {
+            if (!(navigator.sendBeacon && navigator.sendBeacon('api/debug/loop-log.php', new Blob([body], { type: 'application/json' }))))
+                fetch('api/debug/loop-log.php', { method: 'POST', body, headers: { 'Content-Type': 'application/json' }, keepalive: true }).catch(() => {});
+        } catch (e) {}
+    };
+    const stats = () => {
+        const avg = list => list.length ? Math.round(list.reduce((a, b) => a + b, 0) / list.length) : 0;
+        return { checkMs: avg(ticks), timeStepMs: avg(gaps), timeStepMaxMs: gaps.length ? Math.round(Math.max(...gaps)) : 0,
+            rVFC: !!leftVideo.requestVideoFrameCallback, rate: practiceTransport ? practiceTransport.rate : 1,
+            leftMuted: leftVideo.muted, rightMuted: rightVideo.muted, mode: currentMode,
+            video: currentRiff ? [currentRiff.videoFile, currentRiff.videoFileRight] : [], duration: [leftVideo.duration, rightVideo.duration] };
+    };
     const env = 'rVFC ' + (leftVideo.requestVideoFrameCallback ? 'yes' : 'no') + ' · ' + navigator.userAgent.replace(/^.*?\(([^)]*)\).*$/, '$1').slice(0, 40);
     const show = () => {
         const avg = ticks.length ? ticks.reduce((a, b) => a + b, 0) / ticks.length : 0;
@@ -1012,12 +1030,20 @@ function makeLoopDebug() {
         if (!currentRiff || currentSegment < 0 || !loopActive || loopAllRiff || leftVideo.paused || leftVideo.seeking) return;
         const seg = currentRiff.segments[currentSegment];
         if (seg) maxPast = Math.max(maxPast, leftVideo.currentTime - seg.end);
+        const t = leftVideo.currentTime, now = performance.now();
+        if (t !== seenTime) {
+            if (seenAt && t > seenTime && t - seenTime < 0.5) { gaps.push(now - seenAt); if (gaps.length > 60) gaps.shift(); }
+            seenTime = t; seenAt = now;
+        }
     }, 5);
+    send('start', stats());
     leftVideo.addEventListener('seeking', () => { seekAt = performance.now(); });
     leftVideo.addEventListener('seeked', () => {
         if (!pending) return;
         pending.seek = performance.now() - seekAt;
         pending.landed = leftVideo.currentTime;
+        send('pass', Object.assign({ n: pending.n, end: pending.end, start: pending.start, jumpAt: pending.at, estimate: pending.est, by: pending.by,
+            pastEnd: pending.past, seekMs: Math.round(pending.seek), landed: pending.landed, rightAt: rightVideo.currentTime }, stats()));
         setTimeout(() => { if (!pending) return; const p = pending; pending = null;
             lines.unshift('#' + p.n + ' end ' + p.end.toFixed(3) + ' jump at ' + p.at.toFixed(3) + ' (' + ((p.at - p.end) * 1000).toFixed(0) + ' ms) by ' + p.by +
                 ' · past end ' + (p.past * 1000).toFixed(0) + ' ms · seek ' + p.seek.toFixed(0) + ' ms → ' + p.landed.toFixed(3) + ' (start ' + p.start.toFixed(3) + ')');
@@ -1026,7 +1052,7 @@ function makeLoopDebug() {
     return {
         tick() { const now = performance.now(); if (last) { ticks.push(now - last); if (ticks.length > 60) ticks.shift(); } last = now; },
         jump(seg, byTimer) {
-            pending = { n: ++n, end: seg.end, start: seg.start, at: leftVideo.currentTime, by: byTimer ? 'timer' : 'check', past: Math.max(0, maxPast) };
+            pending = { n: ++n, end: seg.end, start: seg.start, at: leftVideo.currentTime, est: practiceTransport.estimate(), by: byTimer ? 'timer' : 'check', past: Math.max(0, maxPast) };
             maxPast = 0;
             show();
         }
