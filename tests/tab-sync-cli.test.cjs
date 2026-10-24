@@ -45,3 +45,24 @@ test('agent tool syncs a typed tab to a video sound and writes it into the riff,
     assert.throws(()=>execFileSync('php',[path.join(__dirname,'../scripts/riff-tab-apply.php'),root,path.join(dir,'patch.json'),path.join(dir,'backups')],{stdio:'pipe'}));
     fs.rmSync(dir,{recursive:true,force:true});
 });
+test('replace mode leaves on a synced part exactly the tab techniques, keeping a matching tip',()=>{
+    const dir=fs.mkdtempSync(path.join(os.tmpdir(),'rk-tabrep-')),root=path.join(dir,'root');
+    fs.mkdirSync(path.join(root,'data'),{recursive:true});
+    const segments=[{start:0,end:1.6},{start:1.7,end:3.4},{start:3.6,end:5}];
+    fs.writeFileSync(path.join(root,'data/riffs.json'),JSON.stringify([{id:1,song:'S',artist:'A',segments,dna:{atoms:[
+        {technique:'bend',time:0.3,segmentIndex:0},
+        {technique:'qbend',time:1.0,segmentIndex:0,tip:'just a nudge',source:'tab'},
+        {technique:'legato',time:1.6,segmentIndex:0,source:'tab'},
+        {technique:'vibrato',time:4,segmentIndex:2},
+        {technique:'other',type:'Groove',segmentIndex:0}
+    ]}}]));
+    fs.writeFileSync(path.join(dir,'patch.json'),JSON.stringify({id:1,tab:{tex:'x'},expect:segments.map(s=>[s.start,s.end]),
+        segments:{0:{tabBars:[1,2],tabSync:[[1,0,0.1]]},1:{tabBars:[2,3],tabSync:[[2,0,1.8]]}},atomsMode:'replace',
+        atoms:[{technique:'qbend',time:1.05,segmentIndex:0},{technique:'legato',time:1.9,segmentIndex:1}]}));
+    const out=execFileSync('php',[path.join(__dirname,'../scripts/riff-tab-apply.php'),root,path.join(dir,'patch.json'),path.join(dir,'backups')],{encoding:'utf8'});
+    assert.match(out,/1 techniques added, 2 removed/);
+    const atoms=JSON.parse(fs.readFileSync(path.join(root,'data/riffs.json'),'utf8'))[0].dna.atoms;
+    assert.deepEqual(atoms.map(a=>[a.technique,a.time,a.segmentIndex]).sort(),[['legato',1.9,1],['other',undefined,0],['qbend',1.05,0],['vibrato',4,2]]);
+    assert.equal(atoms.find(a=>a.technique==='qbend').tip,'just a nudge');
+    fs.rmSync(dir,{recursive:true,force:true});
+});
