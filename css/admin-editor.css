@@ -76,6 +76,13 @@ body.ed-page .tab-pane#tabList .form-section { max-width: 760px; }
 .ed-cam input[type="file"] { font-size: 12px; color: var(--ed-text-3); }
 .ed-cutter-cta { display: flex; align-items: center; gap: 16px; margin-top: 14px; padding: 12px 14px; border: 1px dashed var(--ed-line-strong); border-radius: var(--ed-radius); }
 .ed-cutter-cta p { margin: 0; flex: 1; color: var(--ed-text-2); }
+/* Cover */
+.ed-cover { display: grid; grid-template-columns: 214px 1fr; gap: 20px; align-items: start; }
+.ed-cover-frame { position: relative; aspect-ratio: 214 / 180; border-radius: var(--ed-radius); overflow: hidden; background: var(--ed-bg); border: 1px solid var(--ed-line); display: flex; align-items: center; justify-content: center; color: var(--ed-text-3); font-size: 13px; }
+.ed-cover-frame img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.ed-cover-side { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.ed-cover-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.ed-cover-side .ed-help { margin: 0; }
 .ed-more { margin-top: 14px; }
 .ed-more summary { cursor: pointer; color: var(--ed-text-3); font-size: 13px; }
 .ed-more[open] summary { margin-bottom: 12px; }
@@ -259,6 +266,8 @@ body.ed-page .tab-pane#tabList .form-section { max-width: 760px; }
     .ed-bar-title { order: 3; flex-basis: 100%; }
     .ed-section { padding: 16px 14px; }
     .ed-cutter-cta { flex-direction: column; align-items: flex-start; }
+    .ed-cover { grid-template-columns: 1fr; }
+    .ed-cover-frame { max-width: 320px; }
 }
 .ed-guide-roles { grid-column: 1 / -1; padding-top: 12px; border-top: 1px solid var(--ed-line); }
 .ed-keys .grow { flex: 1; }
