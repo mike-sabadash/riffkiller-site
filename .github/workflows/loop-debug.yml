@@ -55,7 +55,7 @@ jobs:
         run: |
           ssh prod "RIFFKILLER_ROOT='$RIFFKILLER_ROOT' bash '$REMOTE_DIR/riff-tab-remote.sh' riffs" > riffs.json
           node -e 'const l=require("./riffs.json");const r=(Array.isArray(l)?l:Object.values(l)).find(x=>String(x.id)===process.argv[1]);if(!r)process.exit(2);console.log([r.videoFile,r.videoFileRight,r.videoSource&&r.videoSource.file].filter(Boolean).join("\n"));console.error(JSON.stringify((r.segments||[]).map(s=>[s.start,s.end])))' "$RIFF_ID" > videos.txt
-          while read -r v; do echo "== $v"; ssh prod "RIFFKILLER_ROOT='$RIFFKILLER_ROOT' bash '$REMOTE_DIR/riff-tab-remote.sh' probe '$v'" || true; done < videos.txt
+          while read -r v; do echo "== $v"; ssh -n prod "RIFFKILLER_ROOT='$RIFFKILLER_ROOT' bash '$REMOTE_DIR/riff-tab-remote.sh' probe '$v'" || true; done < videos.txt
       - name: Clean up
         if: always()
         run: |
