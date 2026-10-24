@@ -1063,13 +1063,19 @@ function makeLoopDebug() {
         const avg = list => list.length ? Math.round(list.reduce((a, b) => a + b, 0) / list.length) : 0;
         return { checkMs: avg(ticks), timeStepMs: avg(gaps), timeStepMaxMs: gaps.length ? Math.round(Math.max(...gaps)) : 0,
             rVFC: !!leftVideo.requestVideoFrameCallback, rate: practiceTransport ? practiceTransport.rate : 1,
-            leftMuted: leftVideo.muted, rightMuted: rightVideo.muted, mode: currentMode,
+            leftMuted: leftVideo.muted, rightMuted: rightVideo.muted, mode: currentMode, sound: soundSource(),
             video: currentRiff ? [currentRiff.videoFile, currentRiff.videoFileRight] : [], duration: [leftVideo.duration, rightVideo.duration] };
+    };
+    // Where the sound comes from: the part's own file, the video, or nowhere (file not ready, play refused).
+    const soundSource = () => {
+        const v = practiceTransport && practiceTransport.voice;
+        if (v) return v.audio.paused ? 'part file (paused)' : 'part file';
+        return leftVideo.muted ? 'none' : 'video';
     };
     const env = 'rVFC ' + (leftVideo.requestVideoFrameCallback ? 'yes' : 'no') + ' · ' + navigator.userAgent.replace(/^.*?\(([^)]*)\).*$/, '$1').slice(0, 40);
     const show = () => {
         const avg = ticks.length ? ticks.reduce((a, b) => a + b, 0) / ticks.length : 0;
-        box.textContent = env + ' · check every ' + avg.toFixed(0) + ' ms · L ' + (leftVideo.muted ? 'muted' : 'sound') + ' R ' + (rightVideo.muted ? 'muted' : 'sound') +
+        box.textContent = env + ' · check every ' + avg.toFixed(0) + ' ms · sound: ' + soundSource() +
             ' · rate ' + (practiceTransport ? practiceTransport.rate : 1) + '\n' + lines.join('\n');
     };
     setInterval(() => {
