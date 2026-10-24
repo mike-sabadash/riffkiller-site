@@ -54,10 +54,11 @@ case "${1:-}" in
       [[ "$video" =~ ^assets/video/[A-Za-z0-9._/-]+$ && "$video" != *..* ]] || fail "bad video path: $video"
       src="$root/$video"; [ -f "$src" ] || fail "video not found: $video"
       duration="$(ffprobe -v error -show_entries format=duration -of csv=p=0 "$src")"
-      # Keyframes: every part start, and every 0.2 s so any other seek decodes at most 6 frames.
+      # Keyframes: every part start, and every 0.2 s so any other seek decodes at most 6 frames. No B-frames:
+      # they add an edit list (picture shifted by two frames) and make a phone decode more per seek.
       keys="$(php -r '$k=array_filter(explode(",",$argv[1]),"strlen"); for($t=0;$t<(float)$argv[2];$t+=0.2) $k[]=round($t,3); $k=array_unique(array_map("floatval",$k)); sort($k); echo implode(",",$k);' "$starts" "$duration")"
       tmp="$(dirname "$src")/.rekey-$$-$(basename "$src")"
-      ffmpeg -nostdin -v error -y -i "$src" -map 0:v:0 -map '0:a?' -c:v libx264 -preset slow -crf 16 -pix_fmt yuv420p \
+      ffmpeg -nostdin -v error -y -i "$src" -map 0:v:0 -map '0:a?' -c:v libx264 -preset slow -crf 16 -bf 0 -pix_fmt yuv420p \
         -force_key_frames "$keys" -c:a copy -movflags +faststart "$tmp"
       newdur="$(ffprobe -v error -show_entries format=duration -of csv=p=0 "$tmp")"
       php -r 'exit(abs((float)$argv[1]-(float)$argv[2])<0.1?0:1);' "$duration" "$newdur" || { rm -f "$tmp"; fail "duration changed for $video: $duration → $newdur"; }
