@@ -483,6 +483,30 @@ test('on a phone, bars wider than the screen scroll so the last notes of a part 
     assert.ok(view.cursor.x>=view.host.x&&view.cursor.x<=view.host.x+view.host.width,'cursor in view: '+JSON.stringify(view));
     if(process.env.QA_SCREENSHOTS)await page.locator('.tabs-overlay.is-live .tab-live').screenshot({path:path.join(process.env.QA_SCREENSHOTS,'practice-live-tab-phone.png')});
 });
+test('on a phone a looped part turns back before its end even when the page is checked only every 250 ms',async t=>{
+    const context=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true});t.after(()=>context.close());
+    const page=await context.newPage();
+    await page.route(/fonts\.(googleapis|gstatic)\.com/,route=>route.abort());
+    // iPhone Safari at its worst: no frame callbacks, coarse time checks. The jump must not depend on catching the end.
+    await page.addInitScript(()=>{
+        localStorage.setItem('riffKillerOnboardingSeen','1');
+        window.requestAnimationFrame=fn=>setTimeout(()=>fn(performance.now()),250);
+        delete HTMLVideoElement.prototype.requestVideoFrameCallback;
+    });
+    await practice(page);
+    await page.locator('.segment-btn').nth(2).tap();
+    await page.waitForFunction(()=>practiceTransport.intendedPlaying&&loopActive);
+    const jumps=await page.evaluate(()=>new Promise(resolve=>{
+        const seg=currentRiff.segments[currentSegment],out=[],loopTo=practiceTransport.loopTo.bind(practiceTransport);
+        practiceTransport.loopTo=(time,hard)=>{out.push({at:leftVideo.currentTime,end:seg.end,hard});if(out.length===3)resolve(out);return loopTo(time,hard);};
+        setTimeout(()=>resolve(out),15000);
+    }));
+    assert.equal(jumps.length,3,'three passes of the loop: '+JSON.stringify(jumps));
+    for(const j of jumps){
+        assert.ok(j.hard,'phones stop, seek and start again');
+        assert.ok(j.at<=j.end&&j.at>=j.end-0.08,'turned back just before the end, not past it: '+JSON.stringify(jumps));
+    }
+});
 test('tab block reads alphaTex, maps bars to parts by role and length, and saves them with the riff',async t=>{
     const page=await editor(t);
     await page.click('#tabTexBox summary');

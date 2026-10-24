@@ -973,18 +973,29 @@ function updateCurrentSegmentFromTime() {
 }
 
 // Проверка границ сегмента для лупа
-function checkSegmentBoundary() {
+// Phones: stop, seek, start again (a seek while playing lets the next part sound on iOS).
+const HARD_LOOP = (window.matchMedia && matchMedia('(pointer: coarse)').matches) ||
+    /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+function loopSegmentEnd() {
     if (!currentRiff || !practiceTransport || !practiceTransport.intendedPlaying ||
         practiceTransport.pending || practiceTransport.buffering ||
-        leftVideo.seeking || leftVideo.paused || !loopActive || loopAllRiff || currentSegment < 0) return;
+        leftVideo.seeking || leftVideo.paused || !loopActive || loopAllRiff || currentSegment < 0) return null;
     const segment = currentRiff.segments[currentSegment];
-    // Checked once a frame: turning back one check early keeps the next part from sounding
-    // before the jump. Phones check less often, so the lead follows the measured step.
-    const lead = Math.max(0.02 * (practiceTransport.rate || 1), Math.min(practiceTransport.step || 0, 0.05));
-    if (segment && leftVideo.currentTime >= getSegmentEndRaw(segment) - lead) {
-        speedTrainerOnLoop(currentSegment);
-        practiceTransport.loopTo(getSegmentStartRaw(segment));
-    }
+    // One frame early, so the first note of the next part never starts before the jump.
+    return segment ? getSegmentEndRaw(segment) - 0.02 * (practiceTransport.rate || 1) : null;
+}
+function loopBack() {
+    if (loopSegmentEnd() == null) return;
+    speedTrainerOnLoop(currentSegment);
+    practiceTransport.loopTo(getSegmentStartRaw(currentRiff.segments[currentSegment]), HARD_LOOP);
+}
+function checkSegmentBoundary() {
+    const end = loopSegmentEnd();
+    if (end == null) return;
+    // The check runs once a frame (or once per coarse time update on a phone); between checks a timer
+    // set from the last known frame meets the boundary on time.
+    if (practiceTransport.estimate() >= end) loopBack();
+    else practiceTransport.at(end, loopBack);
 }
 
 // Переключение лупа

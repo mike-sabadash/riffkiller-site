@@ -95,3 +95,41 @@ test('the loop lead follows how far the clock moves between checks', async () =>
     left.currentTime=5; t.tick(); assert.ok(t.step<0.04, 'a jump is not a step');
     t.destroy();
 });
+test('a hard loop jump stops both cameras, seeks, and starts again only after the seek lands', async () => {
+    const {left,right,t}=setup(); await t.play();
+    left.currentTime=4.9; right.currentTime=4.9;
+    left.play=function(){ this.paused=false; return Promise.resolve(); };
+    const seeking=v=>{ v.seeking=true; };
+    left.seeking=false;
+    t.loopTo(2, true);
+    assert.ok(left.paused && right.paused, 'silent at once');
+    assert.equal(left.currentTime,2); assert.equal(right.currentTime,2);
+    assert.equal(t.intendedPlaying,true, 'still playing as far as the page knows');
+    await new Promise(setImmediate);
+    assert.ok(!left.paused && !right.paused, 'started again');
+    assert.equal(t.pending,false);
+    t.destroy();
+});
+test('a hard loop waits for a seek in progress and a pause meanwhile wins', async () => {
+    const {left,right,t}=setup(); await t.play();
+    left.seeking=true; right.seeking=true;
+    t.loopTo(1, true); left.seeking=true;
+    t.pause();
+    left.seeking=false; right.seeking=false;
+    left.dispatchEvent(new Event('seeked')); right.dispatchEvent(new Event('seeked'));
+    await new Promise(setImmediate);
+    assert.ok(left.paused && right.paused); assert.equal(t.intendedPlaying,false);
+    t.destroy();
+});
+test('the boundary is met by a timer from the last frame, not by the next coarse time update', async () => {
+    const {left,t}=setup(); await t.play();
+    t.anchor={media:3, wall:t.now()};
+    assert.ok(t.estimate()>=3);
+    let fired=0; t.at(3.05, ()=>fired++);
+    await new Promise(r=>setTimeout(r,120));
+    assert.equal(fired,1);
+    t.at(10, ()=>fired++); await new Promise(r=>setTimeout(r,20)); assert.equal(fired,1, 'too far ahead to arm');
+    t.at(3.05, ()=>fired++); t.seek(0); await new Promise(r=>setTimeout(r,120));
+    assert.equal(fired,1, 'a seek cancels the jump');
+    t.destroy();
+});
