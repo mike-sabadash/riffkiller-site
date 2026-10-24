@@ -41,6 +41,7 @@
                     this.pending = false;
                     this.buffering = true;
                     this.videos.forEach(v => v.pause());
+                    if (this.voice) this.voice.audio.pause();
                 });
                 const resume = () => {
                     if (this.buffering && this.intendedPlaying &&
@@ -89,6 +90,39 @@
             if (!Number.isFinite(rate) || rate <= 0) return;
             this.rate = rate;
             this.videos.forEach(v => { v.playbackRate = rate; });
+            if (this.voice) this.voice.audio.playbackRate = rate;
+        }
+        // The sound of a looped part from its own file (js/part-audio.js): it ends exactly where the part
+        // ends, so nothing of the next part can sound however late the jump back is. The cameras stay silent.
+        setVoice(audio, start, end) {
+            this.clearVoice(true);
+            this.voice = { audio, start, end };
+            this.left.muted = true;
+            audio.loop = false;
+            audio.playbackRate = this.rate;
+            if (this.intendedPlaying) this.syncVoice(true);
+        }
+        clearVoice(keepMuted) {
+            const v = this.voice;
+            if (!v) return;
+            this.voice = null;
+            v.audio.pause();
+            if (!keepMuted) this.left.muted = false;
+        }
+        // Keeps the part's sound at the clock camera's place; silent outside the part.
+        syncVoice(starting) {
+            const v = this.voice;
+            if (!v) return;
+            const a = v.audio, t = this.time - v.start, len = v.end - v.start;
+            if (t < -0.05 || t >= len) { if (!a.paused) a.pause(); return; }
+            // Played to its end before the picture jumped back: stay silent until the jump.
+            if (a.ended && t > len - 0.25) return;
+            if (a.ended || Math.abs(a.currentTime - Math.max(0, t)) > 0.12) a.currentTime = Math.max(0, t);
+            if (this.intendedPlaying && (starting || !this.left.paused) && a.paused) {
+                const p = a.play();
+                // Sound refused (autoplay rules): the clock camera carries it again.
+                if (p && p.catch) p.catch(() => { if (this.voice === v) this.clearVoice(); });
+            }
         }
         follow() {
             const drift = this.right.currentTime - this.time;
@@ -109,6 +143,10 @@
             clearTimeout(this.timer);
             this.anchor = null;
             this.videos.forEach(v => { v.currentTime = target; });
+            if (this.voice) {
+                const t = target - this.voice.start;
+                if (t >= 0 && t < this.voice.end - this.voice.start) this.voice.audio.currentTime = t;
+            }
             if (this.options.onTick) this.options.onTick(target);
             return target;
         }
@@ -138,6 +176,12 @@
                 });
                 return target;
             }
+            if (this.voice) {
+                this.lastTime = null;
+                const target = this.seek(time);
+                this.syncVoice(true);
+                return target;
+            }
             const left = this.left;
             if (!left.muted && !this.silenced) {
                 this.silenced = true;
@@ -145,7 +189,7 @@
                 const restore = () => {
                     left.removeEventListener('seeked', restore);
                     clearTimeout(timer);
-                    if (this.silenced) { this.silenced = false; left.muted = false; }
+                    if (this.silenced) { this.silenced = false; if (!this.voice) left.muted = false; }
                 };
                 const timer = setTimeout(restore, 1000);
                 left.addEventListener('seeked', restore);
@@ -161,6 +205,8 @@
             this.pending = true;
             if (Math.abs(this.right.currentTime - this.time) > 0.04) this.right.currentTime = this.time;
             this.setRate(this.rate);
+            // Inside the same user activation as the cameras, so Safari lets the part's sound start.
+            if (this.voice) this.syncVoice(true);
             try {
                 // Call both play() methods within the same user activation (mobile browsers).
                 await Promise.all(this.videos.map(v => v.play()));
@@ -182,6 +228,7 @@
             this.pending = false;
             this.buffering = false;
             this.videos.forEach(v => v.pause());
+            if (this.voice) this.voice.audio.pause();
             if (this.options.onState) this.options.onState(false);
         }
         tick() {
@@ -198,11 +245,13 @@
             }
             this.lastTime = now;
             if (this.intendedPlaying && !this.left.paused && !this.right.paused && !this.right.seeking) this.follow();
+            if (this.voice && this.intendedPlaying && !this.left.paused) this.syncVoice();
             if (this.options.onTick) this.options.onTick(this.time);
         }
         destroy() {
             this.pause();
             if (this.unsilence) this.unsilence();
+            this.clearVoice(true);
             if (this.videoFrame != null && this.left.cancelVideoFrameCallback) this.left.cancelVideoFrameCallback(this.videoFrame);
             this.listeners.forEach(remove => remove());
             if (this.frame != null) root.cancelAnimationFrame(this.frame);
