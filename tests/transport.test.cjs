@@ -135,13 +135,19 @@ test('the boundary is met by a timer from the last frame, not by the next coarse
 });
 class Sound { currentTime = 0; paused = true; ended = false; playbackRate = 1; loop = true;
     play() { this.paused = false; return this.result || Promise.resolve(); } pause() { this.paused = true; } }
-test('a looped part sounds from its own file: the clock camera is silent and the file restarts at every jump', async () => {
-    const {left,t}=setup(); const a=new Sound();
-    t.setVoice(a, 3.64, 5.56); assert.equal(left.muted,true); assert.equal(a.loop,false);
-    left.currentTime=3.64; await t.play(); assert.equal(a.paused,false);
-    left.currentTime=5; a.currentTime=1.36; t.tick(); assert.equal(a.currentTime,1.36);
-    a.ended=true; a.paused=true; left.currentTime=5.6; t.tick(); assert.equal(a.paused,true); // past the end: silent
-    t.loopTo(3.64); assert.equal(a.currentTime,0); assert.equal(a.paused,false); assert.equal(left.muted,true);
+test('a looped part sounds from its own file, which loops by itself and leads the silent cameras', async () => {
+    const {left,right,t}=setup(); const a=new Sound();
+    t.setVoice(a, 3.64, 5.56); assert.equal(left.muted,true); assert.equal(a.loop,true);
+    left.currentTime=4; await t.play(); assert.equal(a.paused,false); assert.ok(Math.abs(a.currentTime-.36)<1e-9);
+    // the picture lags a little: the sound is never re-seeked to it
+    a.currentTime=1.3; left.currentTime=4.8; t.voice.lastFix=-Infinity; t.tick(); assert.equal(a.currentTime,1.3); assert.equal(left.currentTime,4.8);
+    // the jump back before the sound wrapped goes to the part start; the sound is left alone
+    a.currentTime=1.9; t.loopTo(3.64); assert.equal(left.currentTime,3.64); assert.equal(right.currentTime,3.64); assert.equal(a.currentTime,1.9);
+    // the sound already wrapped: the picture goes to where the sound is
+    a.currentTime=.1; t.loopTo(3.64); assert.ok(Math.abs(left.currentTime-3.74)<1e-9);
+    // the picture clearly off (a slow phone seek): it is moved to the sound, once per cooldown
+    a.currentTime=1; left.currentTime=3.7; t.voice.lastFix=-Infinity; t.tick(); assert.ok(Math.abs(left.currentTime-4.64)<1e-9);
+    left.currentTime=3.7; t.tick(); assert.equal(left.currentTime,3.7);
     t.setRate(.5); assert.equal(a.playbackRate,.5);
     t.pause(); assert.equal(a.paused,true);
     t.clearVoice(); assert.equal(left.muted,false);
@@ -167,4 +173,10 @@ test('a frame from before a loop jump does not make the clock look past the part
     const {left,t}=setup(); await t.play();
     left.currentTime=1.74; t.anchor={media:3.42, wall:t.now()-50};
     assert.equal(t.estimate(), 1.74);
+});
+test('a camera catching up after a loop jump does not stop the part sound', async () => {
+    const {left,right,t}=setup(); const a=new Sound();
+    t.setVoice(a, 1.7, 3.44); left.currentTime=2; await t.play();
+    t.loopTo(1.7); left.readyState=2; left.dispatchEvent(new Event('waiting'));
+    assert.equal(a.paused,false); assert.ok(!left.paused && !right.paused); assert.equal(t.buffering,false);
 });
