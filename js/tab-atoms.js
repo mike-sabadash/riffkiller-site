@@ -102,8 +102,9 @@
     }
 
     /**
-     * Places techniques in the video. A bar can be played by several parts (repeated roles share bars);
-     * the technique goes to the first of them. Time inside the part is the bar's place in the part's bars,
+     * Places techniques in the video. A bar can be played by several parts (repeated roles share bars, and a
+     * part cut by phrase shares its first and last bar with its neighbours); the technique goes to the synced
+     * part that plays its note, else to the first part with the bar. Time inside the part is the bar's place in the part's bars,
      * stretched over the part the same way the practice cursor moves.
      * events: from extract(); bars: [{ ms, ticks }]; parts: [{ start, end, bars: [from, to], sync? }] (1-based).
      * A part synced to the sound (sync = its anchors) places techniques at the heard note instead.
@@ -112,10 +113,14 @@
     function place(events, bars, parts) {
         var atoms = [], unplaced = 0;
         events.forEach(function (ev) {
-            var bar = ev.bar + 1, index = -1;
+            var bar = ev.bar + 1, index = -1, live = typeof TabLive !== 'undefined';
+            // A bar at a part's edge is shared with its neighbour: the part synced to the sound that actually
+            // plays the note gets it; the first part with the bar only when none of them is synced there.
             for (var i = 0; i < parts.length; i++) {
                 var r = parts[i].bars;
-                if (r && bar >= r[0] && bar <= r[1]) { index = i; break; }
+                if (!r || bar < r[0] || bar > r[1]) continue;
+                if (index < 0) index = i;
+                if (live && parts[i].sync && TabLive.playedIn(parts[i].sync, bar, ev.tick)) { index = i; break; }
             }
             if (index < 0 || !bars[ev.bar]) { unplaced++; return; }
             var part = parts[index], r2 = part.bars, total = 0, before = 0;

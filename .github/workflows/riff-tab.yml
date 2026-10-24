@@ -19,6 +19,11 @@ on:
         type: choice
         options: ['no', 'if-all-synced', 'yes']
         default: 'no'
+      atoms:
+        description: 'Techniques from the tab: add (next to the ones on the parts) or replace (synced parts get exactly the tab''s)'
+        type: choice
+        options: ['add', 'replace']
+        default: 'add'
       keep_audio:
         description: Print the notes heard in the riff's sound and keep it as a run artifact for a day (to look into a poor sync)
         type: boolean
@@ -45,6 +50,7 @@ jobs:
       RIFF_ID: ${{ inputs.riff_id }}
       TEX: ${{ inputs.tex }}
       TRACK: ${{ inputs.track }}
+      ATOMS: ${{ inputs.atoms }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -84,7 +90,7 @@ jobs:
 
       - name: Sync the tab to the sound
         id: sync
-        run: node tools/tab-sync-cli.cjs --riffs riffs.json --id "$RIFF_ID" --tex "$TEX" --track "$TRACK" --wav audio.wav --out patch.json | tee -a "$GITHUB_STEP_SUMMARY"
+        run: node tools/tab-sync-cli.cjs --riffs riffs.json --id "$RIFF_ID" --tex "$TEX" --track "$TRACK" --atoms "$ATOMS" --wav audio.wav --out patch.json | tee -a "$GITHUB_STEP_SUMMARY"
 
       - name: Notes heard in the sound
         if: inputs.keep_audio

@@ -53,3 +53,11 @@ test('in a part synced to the sound a technique goes to the heard note',()=>{
     const r=place([{bar:0,tick:1920,technique:'bend',label:'a'}],bars,parts);
     assert.equal(r.atoms[0].time,12.6);
 });
+test('a bar shared by two synced parts gives each note to the part that plays it',()=>{
+    globalThis.TabLive=require('../js/tab-live.js').TabLive;
+    const bars=[{ms:2000,ticks:3840},{ms:2000,ticks:3840}];
+    // Part 1 plays bar 1 and the first half of bar 2; part 2 the rest of bar 2 (cut by phrase, as Black Dog).
+    const parts=[{start:0,end:1.6,bars:[1,2],sync:[[1,0,0.1],[2,0,1.0],[2,1920,1.55]]},{start:1.7,end:3.4,bars:[2,2],sync:[[2,1920,1.75],[2,3840,3.3]]}];
+    const r=place([{bar:1,tick:0,technique:'qbend',label:'a'},{bar:1,tick:2880,technique:'legato',label:'b'}],bars,parts);
+    assert.deepEqual(r.atoms.map(a=>[a.technique,a.segmentIndex]),[['qbend',0],['legato',1]]);
+});
