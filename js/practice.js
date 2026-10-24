@@ -769,7 +769,8 @@ function initVideoPlayers() {
             updatePlayButtonState();
             updateSegmentButtons();
         },
-        onError: function() { showNotification('Playback could not start. Please press Play again.'); }
+        onError: function() { showNotification('Playback could not start. Please press Play again.'); },
+        onVoice: function(kind, drift) { if (loopDebug) loopDebug.voice(kind, drift); }
     });
     practiceTransport.setRate(playbackSpeed);
 
@@ -891,6 +892,10 @@ function makePartVoice() {
     const audio = new Audio();
     audio.preload = 'auto';
     audio.setAttribute('playsinline', '');
+    // With ?debug=loop: when the part's sound stops or stalls, and when it plays again.
+    ['pause', 'playing', 'waiting', 'stalled'].forEach(type => audio.addEventListener(type, () => {
+        if (loopDebug && practiceTransport && practiceTransport.voice && practiceTransport.voice.audio === audio) loopDebug.voice(type);
+    }));
     return audio;
 }
 // Safari lets an element play sound on its own only after it has played once from a tap or a key.
@@ -1096,7 +1101,8 @@ function makeLoopDebug() {
         pending.seek = performance.now() - seekAt;
         pending.landed = leftVideo.currentTime;
         send('pass', Object.assign({ n: pending.n, end: pending.end, start: pending.start, jumpAt: pending.at, estimate: pending.est, by: pending.by,
-            pastEnd: pending.past, seekMs: Math.round(pending.seek), landed: pending.landed, rightAt: rightVideo.currentTime }, stats()));
+            pastEnd: pending.past, seekMs: Math.round(pending.seek), landed: pending.landed, rightAt: rightVideo.currentTime,
+            soundAt: practiceTransport && practiceTransport.voice ? practiceTransport.voice.audio.currentTime : null }, stats()));
         setTimeout(() => { if (!pending) return; const p = pending; pending = null;
             lines.unshift('#' + p.n + ' end ' + p.end.toFixed(3) + ' jump at ' + p.at.toFixed(3) + ' (' + ((p.at - p.end) * 1000).toFixed(0) + ' ms) by ' + p.by +
                 ' · past end ' + (p.past * 1000).toFixed(0) + ' ms · seek ' + p.seek.toFixed(0) + ' ms → ' + p.landed.toFixed(3) + ' (start ' + p.start.toFixed(3) + ')');
@@ -1108,6 +1114,13 @@ function makeLoopDebug() {
             pending = { n: ++n, end: seg.end, start: seg.start, at: leftVideo.currentTime, est: practiceTransport.estimate(), by: byTimer ? 'timer' : 'check', past: Math.max(0, maxPast) };
             maxPast = 0;
             show();
+        },
+        voice(kind, drift) {
+            const v = practiceTransport && practiceTransport.voice;
+            send('voice', Object.assign({ event: kind, drift: drift == null ? null : Math.round(drift * 1000),
+                soundAt: v ? v.audio.currentTime : null, videoAt: leftVideo.currentTime }, stats()));
+            lines.unshift('sound ' + kind + (drift == null ? '' : ' · drift ' + Math.round(drift * 1000) + ' ms') + ' · video ' + leftVideo.currentTime.toFixed(3));
+            lines.length = Math.min(lines.length, 12); show();
         }
     };
 }

@@ -83,8 +83,9 @@ $job = [
 file_put_contents($dir . '/job.json', json_encode($job));
 
 $crop = function ($b) { return 'crop=' . $b['w'] . ':' . $b['h'] . ':' . $b['x'] . ':' . $b['y']; };
-// A keyframe every half second: loops, segment jumps and camera re-sync seek without decoding seconds of video.
-$encode = '-c:v libx264 -preset veryfast -crf 18 -pix_fmt yuv420p -force_key_frames ' . escapeshellarg('expr:gte(t,n_forced*0.5)')
+// A keyframe every 0.2 s: a phone decodes from the keyframe before the target on every loop jump, part jump
+// and camera re-sync, and at 0.5 s or more that stalls the picture for half a second (iPhone).
+$encode = '-c:v libx264 -preset veryfast -crf 18 -pix_fmt yuv420p -force_key_frames ' . escapeshellarg('expr:gte(t,n_forced*0.2)')
     . ' -c:a aac -b:a 160k -movflags +faststart';
 $cmd = escapeshellarg($ffmpeg) . ' -y -hide_banner -nostdin -nostats -i ' . escapeshellarg($root . '/' . $source)
     . ' -filter_complex ' . escapeshellarg('[0:v]split=2[a][b];[a]' . $crop($boxes['left']) . '[l];[b]' . $crop($boxes['right']) . '[r]')
