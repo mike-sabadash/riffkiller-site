@@ -50,8 +50,15 @@
                 const ctx = new Ctx();
                 return new Promise((resolve, reject) => {
                     // Callback form: older Safari has no promise from decodeAudioData.
-                    const done = buffer => { if (ctx.close) ctx.close(); resolve(buffer); };
-                    const fail = error => { if (ctx.close) ctx.close(); reject(error || new Error('decode failed')); };
+                    let closed = false;
+                    const close = () => {
+                        if (closed || !ctx.close) return;
+                        closed = true;
+                        const p = ctx.close();
+                        if (p && p.catch) p.catch(() => {});
+                    };
+                    const done = buffer => { close(); resolve(buffer); };
+                    const fail = error => { close(); reject(error || new Error('decode failed')); };
                     const p = ctx.decodeAudioData(data, done, fail);
                     if (p && p.catch) p.catch(fail);
                 });
