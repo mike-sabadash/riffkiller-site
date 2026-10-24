@@ -1985,7 +1985,6 @@
 .practice-workspace .segment-btn:hover { border-color: var(--segment-color, #9355e5); }
 .practice-workspace .segment-btn.active { background: rgba(147,85,229,.38) !important; border-color: transparent; color: #fff !important; }
 .practice-workspace .segment-btn.active .segment-icon { filter: none !important; }
-.practice-workspace button:focus-visible { outline: 2px solid #cfff55; outline-offset: 3px; }
 @media (min-width: 1160px) {
     .practice-workspace { grid-template-columns: minmax(0, 1.65fr) minmax(340px, 1fr); }
 }
@@ -2087,4 +2086,96 @@
     .practice-parts .segment-btn.active { border-color: transparent; }
     .practice-parts .segment-btn.all-riff { position: relative; margin-bottom: 9px; overflow: visible; }
     .practice-parts .segment-btn.all-riff::after { content: ''; position: absolute; left: 10px; right: 10px; bottom: -6px; height: 1px; background: rgba(255,255,255,.07); pointer-events: none; }
+}
+
+/*
+ * Практика: одна система кнопок плеера (шаг 4/8, как в Radix Themes size 3).
+ * Высота любого контрола 40, шрифт 14/500 (13 на телефоне), радиус кнопки 10, дорожки 12, сегмента 9.
+ * Выбор одного из нескольких (камера, режим, скорость) — сегментированная дорожка;
+ * отдельные действия (иконки плеера, Tabs) — самостоятельные кнопки с зазором 8.
+ */
+.practice-workspace .hand-controls,
+.practice-workspace .speed-controls,
+.practice-workspace .practice-modes {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    height: 40px;
+    padding: 3px;
+    box-sizing: border-box;
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.035);
+    box-shadow: none;
+    overflow: visible;
+}
+.practice-workspace .hand-controls .mode-btn,
+.practice-workspace .speed-controls .speed-btn,
+.practice-workspace .practice-modes .practice-mode-btn {
+    height: 32px !important;
+    min-height: 32px;
+    min-width: 0;
+    padding: 0 12px !important;
+    border: 0;
+    border-radius: 9px !important;
+    background: transparent;
+    box-shadow: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    color: rgba(230, 234, 248, 0.72);
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 14px !important;
+    font-weight: 500;
+    line-height: 1;
+}
+.practice-workspace .hand-controls .mode-btn:hover:not(.active),
+.practice-workspace .speed-controls .speed-btn:hover:not(.active),
+.practice-workspace .practice-modes .practice-mode-btn:hover:not(.active) {
+    background: transparent;
+    color: rgba(255, 255, 255, 0.92);
+}
+.practice-workspace .hand-controls .mode-btn.active,
+.practice-workspace .speed-controls .speed-btn.active,
+.practice-workspace .practice-modes .practice-mode-btn.active {
+    background: rgba(147, 85, 229, 0.38);
+    color: #ffffff;
+}
+.practice-workspace .hand-controls .mode-btn.active:hover,
+.practice-workspace .speed-controls .speed-btn.active:hover,
+.practice-workspace .practice-modes .practice-mode-btn.active:hover {
+    background: rgba(147, 85, 229, 0.46);
+}
+.practice-workspace .tab-toggle-btn {
+    height: 40px !important;
+    padding: 0 14px !important;
+    font-size: 14px !important;
+    font-weight: 500;
+}
+.practice-workspace .control-buttons { gap: 8px; }
+.practice-workspace .controls-below-container { gap: 12px 16px; align-items: center; }
+/* Фокус только с клавиатуры, мягкий и в цвет акцента */
+.practice-workspace button:focus-visible { outline: 2px solid rgba(179, 139, 255, 0.9); outline-offset: 2px; }
+
+@media (max-width: 560px) {
+    .practice-workspace .hand-controls .mode-btn,
+    .practice-workspace .speed-controls .speed-btn,
+    .practice-workspace .practice-modes .practice-mode-btn {
+        padding: 0 10px !important;
+        font-size: 13px !important;
+    }
+    .practice-workspace .hand-controls .mode-btn[data-short] { font-size: 0 !important; }
+    .practice-workspace .tab-toggle-btn { padding: 0 12px !important; font-size: 13px !important; }
+    .practice-workspace .control-buttons { gap: 6px; }
+    .practice-workspace .control-btn { width: 40px; min-width: 40px; padding: 10px; }
+    .practice-workspace .practice-modes { display: flex; width: 100%; }
+    .practice-workspace .practice-modes .practice-mode-btn { flex: 1; }
+}
+
+/* Части риффа: пока кнопки не пришли, вместо пустой рамки — спокойный skeleton из строк */
+.practice-workspace .segment-controls:not(:has(button)) {
+    min-height: 196px;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100%25' height='44'%3E%3Crect width='100%25' height='36' rx='8' fill='white' fill-opacity='.05'/%3E%3C/svg%3E") 0 0 / 100% 44px repeat-y;
+}
+@media (min-width: 1160px) {
+    .practice-workspace .practice-parts .segment-controls:not(:has(button)) { min-height: 216px; }
 }

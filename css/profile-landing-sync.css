@@ -416,12 +416,12 @@ body.profile-page .game-dashboard .card-icon {
 
 body.profile-page .challenge-icon-duo .challenge-sword-mirrored,
 body.profile-page .challenge-icon-duo .challenge-guitar-normal {
-    text-shadow: 0 0 14px rgba(147, 85, 229, 0.5);
+    text-shadow: none;
 }
 
 body.profile-page .challenge-fill {
-    background: linear-gradient(90deg, #9355e5, #b38bff);
-    box-shadow: 0 0 12px rgba(147, 85, 229, 0.45);
+    background: #9355e5;
+    box-shadow: none;
 }
 
 body.profile-page .row-label {

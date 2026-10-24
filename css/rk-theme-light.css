@@ -1073,3 +1073,32 @@ html[data-theme='light'] #planSummary {
     background: rgba(255, 255, 255, 0.92) !important;
     border: 1px solid rgba(18, 18, 26, 0.1) !important;
 }
+
+/* Practice: сегментированные дорожки (камера, скорость, режим) в светлой теме */
+html[data-theme='light'] body.practice-page .practice-workspace .hand-controls,
+html[data-theme='light'] body.practice-page .practice-workspace .speed-controls,
+html[data-theme='light'] body.practice-page .practice-workspace .practice-modes {
+    background: rgba(255, 255, 255, 0.92);
+    border-color: rgba(18, 18, 26, 0.1);
+}
+html[data-theme='light'] body.practice-page .practice-workspace .hand-controls .mode-btn,
+html[data-theme='light'] body.practice-page .practice-workspace .speed-controls .speed-btn,
+html[data-theme='light'] body.practice-page .practice-workspace .practice-modes .practice-mode-btn {
+    background: transparent !important;
+    border-color: transparent !important;
+    color: rgba(18, 18, 26, 0.62) !important;
+}
+html[data-theme='light'] body.practice-page .practice-workspace .hand-controls .mode-btn:hover:not(.active),
+html[data-theme='light'] body.practice-page .practice-workspace .speed-controls .speed-btn:hover:not(.active),
+html[data-theme='light'] body.practice-page .practice-workspace .practice-modes .practice-mode-btn:hover:not(.active) {
+    color: #12121a !important;
+}
+html[data-theme='light'] body.practice-page .practice-workspace .hand-controls .mode-btn.active,
+html[data-theme='light'] body.practice-page .practice-workspace .speed-controls .speed-btn.active,
+html[data-theme='light'] body.practice-page .practice-workspace .practice-modes .practice-mode-btn.active {
+    background: rgba(147, 85, 229, 0.16) !important;
+    color: #12121a !important;
+}
+html[data-theme='light'] body.practice-page .practice-workspace .segment-controls:not(:has(button)) {
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100%25' height='44'%3E%3Crect width='100%25' height='36' rx='8' fill='%2312121a' fill-opacity='.06'/%3E%3C/svg%3E") 0 0 / 100% 44px repeat-y;
+}
