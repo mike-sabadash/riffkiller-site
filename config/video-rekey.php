@@ -5,7 +5,7 @@
  * second each time. A riff's two camera videos are re-encoded with a keyframe at every part start and every
  * 0.2 s; sound is copied unchanged, so the part sound cut from it stays the same.
  *
- * Saving a riff schedules this in the background when its part starts changed (scripts/video-rekey.php).
+ * Saving a riff schedules this in the background when its part starts changed (config/video-rekey-cli.php; scripts/ is not deployed).
  * The first original of each video is kept in data/video-work/originals (never served).
  */
 require_once __DIR__ . '/video-tools.php';
@@ -57,7 +57,7 @@ function video_rekey_schedule($riff) {
     foreach (video_rekey_videos($riff) as $path) {
         if (!is_file(video_root() . '/' . $path) || !video_rekey_needed($path, $starts)) continue;
         $log = video_work_dir('rekey') . '/' . sha1($path) . '.log';
-        $cmd = escapeshellarg($php) . ' ' . escapeshellarg(video_root() . '/scripts/video-rekey.php') . ' '
+        $cmd = escapeshellarg($php) . ' ' . escapeshellarg(video_root() . '/config/video-rekey-cli.php') . ' '
             . escapeshellarg($path) . ' ' . escapeshellarg(implode(',', $starts));
         exec('nohup ' . $cmd . ' >> ' . escapeshellarg($log) . ' 2>&1 &');
         $scheduled[] = $path;

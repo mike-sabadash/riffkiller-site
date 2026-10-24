@@ -42,7 +42,7 @@ case "${1:-}" in
     # Same code as saving a riff in the admin (config/video-rekey.php); "all" does every riff.
     id="${2:-}"; [[ "$id" =~ ^([0-9]+|all)$ ]] || fail "bad riff id: $id"
     command -v ffmpeg >/dev/null || fail "ffmpeg is not installed on the server"
-    if [ "$id" = all ]; then php "$root/scripts/video-rekey.php" --all; else php "$root/scripts/video-rekey.php" --riff "$id"; fi
+    if [ "$id" = all ]; then php "$root/config/video-rekey-cli.php" --all; else php "$root/config/video-rekey-cli.php" --riff "$id"; fi
     # Run over SSH as another user than the web server: let the site keep writing its work files.
     chown -R --reference="$root/data" "$root/data/video-work" 2>/dev/null || true ;;
   apply)

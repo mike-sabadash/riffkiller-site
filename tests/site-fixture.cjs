@@ -6,7 +6,7 @@ const net = require('node:net');
 const root = path.resolve(__dirname,'..');
 async function startSite(options = {}) {
     const dir=fs.mkdtempSync(path.join(os.tmpdir(),'riffkiller-test-'));
-    for (const name of ['api','admin','config','js','css','scripts']) fs.cpSync(path.join(root,name),path.join(dir,name),{recursive:true});
+    for (const name of ['api','admin','config','js','css']) fs.cpSync(path.join(root,name),path.join(dir,name),{recursive:true});
     for (const name of fs.readdirSync(root).filter(n=>/\.(html|php)$/.test(n))) fs.copyFileSync(path.join(root,name),path.join(dir,name));
     fs.mkdirSync(path.join(dir,'data'));fs.mkdirSync(path.join(dir,'sessions'));
     let env='ADMIN_PASSWORD=fixture-admin\nVIDEO_REKEY=off\n'+(options.env||'');

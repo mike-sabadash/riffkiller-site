@@ -1,12 +1,12 @@
 <?php
 /**
  * Keyframes at part starts (config/video-rekey.php), from the command line.
- *   php scripts/video-rekey.php <video path> <start,start,...>   one video (what saving a riff starts)
- *   php scripts/video-rekey.php --riff <id>                        both videos of a riff
- *   php scripts/video-rekey.php --all                              every riff
+ *   php config/video-rekey-cli.php <video path> <start,start,...>   one video (what saving a riff starts)
+ *   php config/video-rekey-cli.php --riff <id>                        both videos of a riff
+ *   php config/video-rekey-cli.php --all                              every riff
  */
 if (PHP_SAPI !== 'cli') exit(1);
-require_once dirname(__DIR__) . '/config/video-rekey.php';
+require_once __DIR__ . '/video-rekey.php';
 
 $args = array_slice($argv, 1);
 $jobs = [];
@@ -24,7 +24,7 @@ if (($args[0] ?? '') === '--riff' || ($args[0] ?? '') === '--all') {
     $starts = array_map(function ($t) { return round((float)$t, 3); }, array_filter(explode(',', $args[1]), 'is_numeric'));
     $jobs[] = [$args[0], $starts];
 } else {
-    fwrite(STDERR, "usage: video-rekey.php <video> <starts> | --riff <id> | --all\n");
+    fwrite(STDERR, "usage: video-rekey-cli.php <video> <starts> | --riff <id> | --all\n");
     exit(1);
 }
 
