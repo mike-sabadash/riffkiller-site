@@ -64,7 +64,7 @@ test('one recording becomes two synchronized camera videos with the chosen frame
 test('a riff video is re-encoded with a keyframe at every part start, once per set of starts, original kept',()=>{
     const video='assets/video/rekey-artist/rekey-song/left.mp4', file=path.join(site.dir,video);
     fs.mkdirSync(path.dirname(file),{recursive:true});fs.copyFileSync(source,file);
-    const run=starts=>execFileSync('php',[path.join(site.dir,'scripts/video-rekey.php'),video,starts],{encoding:'utf8'});
+    const run=starts=>execFileSync('php',[path.join(site.dir,'config/video-rekey-cli.php'),video,starts],{encoding:'utf8'});
     assert.match(run('0,1.7,2.35'),/keyframes at part starts 0,1\.7,2\.35/);
     const keys=execFileSync('ffprobe',['-v','error','-select_streams','v:0','-skip_frame','nokey','-show_entries','frame=pts_time','-of','csv=p=0',file],{encoding:'utf8'})
         .trim().split('\n').map(parseFloat);
