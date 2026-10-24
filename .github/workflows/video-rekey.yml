@@ -2,12 +2,12 @@ name: Video rekey
 
 # Agent tool: re-encodes a riff's two camera videos with a keyframe at every part start and every 0.2 s,
 # so a looped part's jump back is a cheap seek on a phone. Sound is copied unchanged; originals are backed up
-# on the server (path printed). Run again after the riff's parts are changed in the admin.
+# in data/video-work/originals. Saving a riff in the admin does the same by itself when its part starts change.
 on:
   workflow_dispatch:
     inputs:
       riff_id:
-        description: Riff id whose videos to re-encode
+        description: Riff id whose videos to re-encode, or "all"
         required: true
 
 permissions:
@@ -32,7 +32,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Check inputs
-        run: '[[ "$RIFF_ID" =~ ^[0-9]+$ ]] || { echo "::error::riff_id must be a number"; exit 1; }'
+        run: '[[ "$RIFF_ID" =~ ^([0-9]+|all)$ ]] || { echo "::error::riff_id must be a number or all"; exit 1; }'
       - name: Configure SSH
         env:
           SSH_KEY: ${{ secrets.CLAUDE_DEPLOY_SSH_KEY }}
@@ -51,6 +51,7 @@ jobs:
       - name: Re-encode with keyframes at part starts
         run: ssh prod "RIFFKILLER_ROOT='$RIFFKILLER_ROOT' bash '$REMOTE_DIR/riff-tab-remote.sh' rekey '$RIFF_ID'"
       - name: Keyframes now
+        if: inputs.riff_id != 'all'
         run: |
           ssh prod "RIFFKILLER_ROOT='$RIFFKILLER_ROOT' bash '$REMOTE_DIR/riff-tab-remote.sh' riffs" > riffs.json
           node -e 'const l=require("./riffs.json");const r=(Array.isArray(l)?l:(l.riffs||Object.values(l))).find(x=>String(x.id)===process.argv[1]);console.log([r.videoFile,r.videoFileRight].filter(Boolean).join("\n"))' "$RIFF_ID" > videos.txt

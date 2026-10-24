@@ -92,4 +92,11 @@ if ($encoded === false || file_put_contents($temp, $encoded) === false || !renam
 }
 flock($lock, LOCK_UN);
 fclose($lock);
-echo json_encode(['success' => true, 'riff' => $riff]);
+// Keyframes at the (new) part starts, in the background, so a looped part jumps back without a stall on a phone.
+$rekey = [];
+try {
+    require_once $base . '/config/video-rekey.php';
+    $rekey = video_rekey_schedule($riff);
+} catch (Throwable $e) {
+}
+echo json_encode(['success' => true, 'riff' => $riff, 'rekey' => $rekey]);
