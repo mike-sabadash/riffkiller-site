@@ -171,7 +171,8 @@
                 ' title="' + esc((label ? label + ' · ' : '') + s.name + ' · ' + fmtTime(s.start) + '–' + fmtTime(s.end)) + '"' +
                 ' aria-label="Loop ' + esc(s.name + (label ? ', ' + label : '')) + '"><span>' + (width >= 14 ? esc(label) : '') + '</span></button>';
         }).join('');
-        var marks = atoms().map(function (a) {
+        // Dots are the techniques on the part buttons; free-form notes ("other") are only in the Techniques tab.
+        var marks = atoms().filter(function (a) { return a.known; }).map(function (a) {
             return '<button type="button" class="dna-map-atom" data-dna-atom="' + a.index + '" style="left:' + (a.time / total) * 100 + '%"' +
                 ' title="' + esc(a.name + ' · ' + fmtTime(a.time)) + '" aria-label="' + esc(a.name + ' at ' + fmtTime(a.time)) + '"></button>';
         }).join('');
