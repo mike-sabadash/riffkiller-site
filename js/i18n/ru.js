@@ -640,7 +640,8 @@
             "Paid until": "Оплачено до",
             "3 months": "3 месяца",
             "per 3 months": "за 3 месяца",
-            "save $7": "экономия $7"
+            "save $7": "экономия $7",
+            "The payment service did not accept this email. Enter another one.": "Платёжный сервис не принял этот email. Введи другой."
         },
         patterns: [
         // Russian plural: 1 фрагмент, 2 фрагмента, 5 фрагментов.

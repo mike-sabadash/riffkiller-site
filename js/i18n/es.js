@@ -631,7 +631,8 @@
             "Paid until": "Pagado hasta",
             "3 months": "3 meses",
             "per 3 months": "cada 3 meses",
-            "save $7": "ahorras $7"
+            "save $7": "ahorras $7",
+            "The payment service did not accept this email. Enter another one.": "El servicio de pago no aceptó este email. Introduce otro."
         },
         patterns: [
         [/^1 shots$/, '1 toma'],

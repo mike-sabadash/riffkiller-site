@@ -674,4 +674,5 @@ T = [
 ("3 months", "3 месяца", "3 meses"),
 ("per 3 months", "за 3 месяца", "cada 3 meses"),
 ("save $7", "экономия $7", "ahorras $7"),
+("The payment service did not accept this email. Enter another one.", "Платёжный сервис не принял этот email. Введи другой.", "El servicio de pago no aceptó este email. Introduce otro."),
 ]

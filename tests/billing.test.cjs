@@ -13,6 +13,7 @@ const fake=http.createServer((req,res)=>{
         const json=(code,obj)=>{res.statusCode=code;res.setHeader('Content-Type','application/json');res.end(JSON.stringify(obj));};
         if(url.pathname==='/api/v3/invoice'){
             if(req.headers['x-api-key']!=='lava-key')return json(401,{error:'bad key'});
+            if(JSON.parse(body).email==='seller@example.com')return json(400,{error:'Incorrect email to purchase'});
             const id=crypto.randomUUID();lavaInvoices[id]='NEW';
             return json(201,{id,status:'NEW',amountTotal:{currency:'USD',amount:9},paymentUrl:'https://app.lava.top/pay/'+id});
         }
@@ -238,4 +239,14 @@ test('3 months: lava.top bills every 90 days, USDT asks 20.xx, rouble checkouts 
     assert.equal((await api(user,'status.php')).body.renewal.plan,'quarterly');
     const buyer=await signUp();
     assert.match((await api(buyer,'create.php',{provider:'usdt',plan:'quarterly'})).body.usdt.amount,/^20\.\d\d$/);
+});
+
+test('lava.top refuses an email: the page asks for another one and it is used',async()=>{
+    const user=await signUp();
+    const refused=await api(user,'create.php',{provider:'lava',plan:'monthly',email:'seller@example.com'});
+    assert.equal(refused.status,400);assert.equal(refused.body.needEmail,true);
+    assert.match(refused.body.error,/did not accept this email/);
+    const ok=await api(user,'create.php',{provider:'lava',plan:'monthly',email:'other@example.com'});
+    assert.equal(ok.status,200);
+    assert.equal(JSON.parse(calls.filter(c=>c.path==='/api/v3/invoice').at(-1).body).email,'other@example.com','the typed email wins over the account one');
 });

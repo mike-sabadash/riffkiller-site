@@ -34,8 +34,9 @@ if ($provider === 'usdt') {
     billing_reply(200, ['success' => true, 'usdt' => usdt_order_state($order['orderId'], $user['id'])]);
 }
 
-$email = trim((string)($user['email'] ?? ''));
-if (!filter_var($email, FILTER_VALIDATE_EMAIL)) $email = trim((string)($input['email'] ?? ''));
+// An email typed on the billing page wins: it is how a buyer gets past an address lava.top refused.
+$email = trim((string)($input['email'] ?? ''));
+if (!filter_var($email, FILTER_VALIDATE_EMAIL)) $email = trim((string)($user['email'] ?? ''));
 if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
     // lava.top needs an email for the receipt and subscription; the others send the receipt there too.
     billing_reply(400, ['success' => false, 'error' => 'Email required', 'needEmail' => true]);
@@ -48,6 +49,10 @@ else $result = yookassa_create_payment($user['id'], $plan, $email);
 
 if (!empty($result['error'])) {
     payments_log_write($provider . '.create.failed', ['source' => $provider, 'user_id' => $user['id'], 'plan' => $plan, 'note' => $result['error']]);
+    // lava.top refuses some addresses, e.g. the seller's own email: ask the buyer for another one.
+    if ($provider === 'lava' && stripos($result['error'], 'email') !== false) {
+        billing_reply(400, ['success' => false, 'error' => 'The payment service did not accept this email. Enter another one.', 'needEmail' => true]);
+    }
     billing_reply(502, ['success' => false, 'error' => 'Payment service is not responding, try again later']);
 }
 payments_log_write($provider . '.created', ['source' => $provider, 'user_id' => $user['id'], 'plan' => $plan, 'reference' => $result['orderId']]);
