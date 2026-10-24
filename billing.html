@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <script src="js/rk-theme-init.js"></script>
-    <script src="js/i18n.js?v=i8"></script>
+    <script src="js/i18n.js?v=i9"></script>
     <meta name="theme-color" content="#0a0a0a" id="rk-theme-color">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Riff Killer - Premium Billing</title>
@@ -147,9 +147,9 @@
                         </div>
                         <div class="plan-card" id="planQuarterly" data-plan="quarterly">
                             <div class="plan-name">3 months</div>
-                            <div class="plan-price">$22</div>
+                            <div class="plan-price">$20</div>
                             <div class="plan-period">per 3 months</div>
-                            <div class="plan-save">save $5</div>
+                            <div class="plan-save">save $7</div>
                         </div>
                         <div class="plan-card" id="planYearly" data-plan="yearly">
                             <div class="plan-name">Yearly</div>
@@ -337,7 +337,7 @@
             var cryptoLink = document.getElementById('cryptoLink');
             var selectedPlan = 'monthly';
             var PERIOD_LABEL = { monthly: ' / month', quarterly: ' / 3 months', yearly: ' / year' };
-            var USD_PRICE = { monthly: 9, quarterly: 22, yearly: 90 };
+            var USD_PRICE = { monthly: 9, quarterly: 20, yearly: 90 };
             function updatePlanLinks() {
                 var q = '?plan=' + selectedPlan;
                 if (stripeLink) stripeLink.href = 'billing-stripe.html' + q;

@@ -631,7 +631,7 @@
             "Paid until": "Pagado hasta",
             "3 months": "3 meses",
             "per 3 months": "cada 3 meses",
-            "save $5": "ahorras $5"
+            "save $7": "ahorras $7"
         },
         patterns: [
         [/^1 shots$/, '1 toma'],
