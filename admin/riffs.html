@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="../css/reset.css">
     <link rel="stylesheet" href="../css/variables.css?v=flat1">
     <!-- Не подключаем base.css и components.css — там стили заглушки; админка риффов самодостаточна -->
-    <link rel="stylesheet" href="../css/admin-editor.css?v=ed2y">
+    <link rel="stylesheet" href="../css/admin-editor.css?v=cov1">
     <link rel="icon" type="image/svg+xml" href="../assets/icons/favicon.svg">
     <style>
         html, body { background: #111629 !important; background-image: none !important; color: #fff; font-family: Roboto, sans-serif; min-height: 100vh; min-height: 100dvh; padding: 24px; margin: 0; padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px) + 52px); }
@@ -201,7 +201,8 @@
                             <label class="ed-btn" for="thumbnailUpload">Загрузить картинку</label>
                             <input type="file" id="thumbnailUpload" accept="image/png,image/jpeg,image/webp" hidden>
                         </div>
-                        <p class="ed-help" id="coverStatus" role="status">Кадр берётся из видео в разметке ниже, с того места, где оно стоит. Под видео есть такая же кнопка «В обложку». На карточке картинка обрезается по центру до пропорций 214×180.</p>
+                        <p class="ed-help ed-cover-size">Лучше <b>1200×720</b> (5:3), JPG или PNG. В библиотеке карточка 5:3, в профиле она уже, края обрезаются: главное держите в центре.</p>
+                        <p class="ed-help" id="coverStatus" role="status">Кадр берётся из видео в разметке ниже, с того места, где оно стоит. Под видео есть такая же кнопка «В обложку».</p>
                         <label class="ed-field"><span>Файл на сайте</span><input type="text" id="thumbnail" class="ed-input" placeholder="assets/img/riffs/artist-song.jpg"></label>
                     </div>
                 </div>
@@ -791,8 +792,8 @@
     function coverFromVideo() {
         var v = document.getElementById('segmentEditorVideo'), status = document.getElementById('coverStatus');
         if (!v.videoWidth || v.readyState < 2) { status.textContent = 'Видео ещё не загружено: укажите или загрузите видео левой руки, дождитесь кадра в разметке и нажмите снова.'; return; }
-        // The card is 214×180; crop the middle of the frame to that shape.
-        var ratio = 214 / 180, sw = v.videoWidth, sh = v.videoHeight;
+        // Library cards are 5:3 (the profile crops them narrower); take the middle of the frame in that shape.
+        var ratio = 5 / 3, sw = v.videoWidth, sh = v.videoHeight;
         if (sw / sh > ratio) sw = Math.round(sh * ratio); else sh = Math.round(sw / ratio);
         var canvas = document.createElement('canvas'), h = Math.min(720, sh);
         canvas.height = h; canvas.width = Math.round(h * ratio);
@@ -804,7 +805,8 @@
                 document.getElementById('thumbnailUpload').value = '';
                 setCover(blob, '');
                 markDirty();
-                status.textContent = 'Взят кадр ' + stamp + '. Нажмите «Сохранить», чтобы он стал обложкой.';
+                status.textContent = 'Взят кадр ' + stamp + ' (' + canvas.width + '×' + canvas.height + '). Нажмите «Сохранить», чтобы он стал обложкой.';
+                status.classList.toggle('warn', canvas.height < 360);
                 showMsg('Кадр ' + stamp + ' взят в обложку. Сохраните рифф.');
             }, 'image/jpeg', 0.86);
         } catch (err) { status.textContent = 'Браузер не дал взять кадр из этого видео. Загрузите картинку файлом.'; }
@@ -815,7 +817,20 @@
         var f = this.files[0];
         if (!f) return;
         setCover(f, '');
-        document.getElementById('coverStatus').textContent = 'Картинка «' + f.name + '» выбрана. Нажмите «Сохранить», чтобы она стала обложкой.';
+        var status = document.getElementById('coverStatus'), url = URL.createObjectURL(f), probe = new Image();
+        status.textContent = 'Картинка «' + f.name + '» выбрана. Нажмите «Сохранить», чтобы она стала обложкой.';
+        status.classList.remove('warn');
+        probe.onload = function () {
+            URL.revokeObjectURL(url);
+            if (coverBlob !== f) return;
+            var w = probe.naturalWidth, h = probe.naturalHeight, text = 'Картинка ' + w + '×' + h + ' выбрана.';
+            if (w < 600 || h < 360) text += ' Это меньше 600×360: на карточке будет мыльно. Лучше 1200×720.';
+            else if (Math.abs(w / h / (5 / 3) - 1) > 0.25) text += ' Пропорции не 5:3: края обрежутся, проверьте превью.';
+            status.textContent = text + ' Нажмите «Сохранить», чтобы она стала обложкой.';
+            status.classList.toggle('warn', w < 600 || h < 360 || Math.abs(w / h / (5 / 3) - 1) > 0.25);
+        };
+        probe.onerror = function () { URL.revokeObjectURL(url); };
+        probe.src = url;
     });
     document.getElementById('thumbnail').addEventListener('input', function () { setCover(null, this.value.trim()); });
     function slugOf(text) { return (''+text).toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9\-]/g,''); }

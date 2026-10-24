@@ -34,7 +34,7 @@ function buildCollectionsList() {
         const cid = Number(c.id);
         const riffIds = riffs.filter(r => r && r.id && Array.isArray(r.collectionIds) && r.collectionIds.includes(cid)).map(r => Number(r.id));
         riffIds.sort((a, b) => a - b);
-        return { id: cid, name: String(c.name || ''), imageUrl: String(c.imageUrl || 'assets/img/collections-1.png'), isFavorite: !!c.isFavorite, riffs: riffIds, videoCount: riffIds.length };
+        return { id: cid, name: String(c.name || ''), imageUrl: String(c.imageUrl || 'assets/img/collections-1.png'), bannerUrl: String(c.bannerUrl || ''), isFavorite: !!c.isFavorite, riffs: riffIds, videoCount: riffIds.length };
     });
 }
 
@@ -108,6 +108,8 @@ app.post('/api/collections/save.php', (req, res) => {
     const list = readJSON(COLLECTIONS_FILE);
     const id = Number(collection.id) || 0;
     const out = { name: String(collection.name).trim(), imageUrl, isFavorite: !!collection.isFavorite };
+    const bannerUrl = String(collection.bannerUrl || '').trim();
+    if (bannerUrl) out.bannerUrl = bannerUrl;
     if (id > 0) {
         const idx = list.findIndex(c => c && Number(c.id) === id);
         out.id = id;
