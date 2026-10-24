@@ -293,7 +293,7 @@ body.profile-page .subscription-view-plans-btn {
     border-color: #9355e5;
     color: #fff;
     font-weight: 500;
-    box-shadow: 0 8px 20px rgba(147, 85, 229, 0.28);
+    box-shadow: none;
 }
 
 body.profile-page .subscription-details-actions .btn-primary:hover,

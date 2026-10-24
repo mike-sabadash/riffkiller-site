@@ -506,7 +506,7 @@ class AuthManager {
             const link = document.createElement('link');
             link.id = 'auth-modal-styles';
             link.rel = 'stylesheet';
-            link.href = resolveRkStaticAsset('css/auth-modal.css');
+            link.href = resolveRkStaticAsset('css/auth-modal.css?v=flat1');
             document.head.appendChild(link);
         }
     }
@@ -715,11 +715,11 @@ class AuthManager {
         style.id = 'profile-mini-styles';
         style.textContent = `
             .auth-buttons { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; justify-content: flex-end; font-family: Inter, system-ui, sans-serif; }
-            .btn-plans-nav { display: inline-flex; align-items: center; justify-content: center; background: #9355E5; color: #fff; border-radius: 12px; padding: 12px 24px; min-height: 44px; text-decoration: none; font-size: 0.875rem; font-weight: 500; line-height: 1.25rem; transition: background 0.2s, border-color 0.2s, box-shadow 0.2s; border: none; box-sizing: border-box; box-shadow: 0 8px 20px rgba(147, 85, 229, 0.28); font-family: Inter, system-ui, sans-serif; }
-            .btn-plans-nav:hover { background: #7c45c7; color: #fff; box-shadow: 0 10px 24px rgba(147, 85, 229, 0.35); }
+            .btn-plans-nav { display: inline-flex; align-items: center; justify-content: center; background: #9355E5; color: #fff; border-radius: 12px; padding: 12px 24px; min-height: 44px; text-decoration: none; font-size: 0.875rem; font-weight: 500; line-height: 1.25rem; transition: background 0.2s, border-color 0.2s, box-shadow 0.2s; border: none; box-sizing: border-box; font-family: Inter, system-ui, sans-serif; }
+            .btn-plans-nav:hover { background: #7c45c7; color: #fff; }
             .auth-header-btn, .auth-buttons .btn { min-height: 44px; padding: 12px 24px; border-radius: 12px; font-size: 0.875rem; font-weight: 500; line-height: 1.25rem; box-sizing: border-box; font-family: Inter, system-ui, sans-serif; }
-            .auth-buttons .btn-primary { background: #9355E5; color: #fff; border: none; box-shadow: 0 8px 20px rgba(147, 85, 229, 0.28); }
-            .auth-buttons .btn-primary:hover { background: #7c45c7; color: #fff; transform: translateY(-2px); box-shadow: 0 10px 24px rgba(147, 85, 229, 0.35); }
+            .auth-buttons .btn-primary { background: #9355E5; color: #fff; border: none; box-shadow: none; }
+            .auth-buttons .btn-primary:hover { background: #7c45c7; color: #fff; }
             .auth-buttons .btn-outline { background: rgba(255,255,255,0.03); color: #eef2ff; border: 1px solid rgba(255,255,255,0.2); }
             .auth-buttons .btn-outline:hover { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.4); color: #fff; }
             .mobile-plans-btn { display: block; width: 100%; text-align: center; margin-bottom: 8px; box-sizing: border-box; min-height: 38px; padding: 10px 20px; }

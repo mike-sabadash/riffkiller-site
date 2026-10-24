@@ -106,13 +106,7 @@ a:hover:not(.btn) {
 }
 
 .btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
-}
-
-.btn-primary:active {
-    transform: translateY(0);
-    box-shadow: var(--shadow-sm);
+    filter: brightness(0.9);
 }
 
 /* === ФОРМЫ === */

@@ -313,14 +313,12 @@ html[data-theme='light'] .profile-mini-name {
 .topbar .btn-primary {
     background: #9355e5;
     color: #ffffff;
-    box-shadow: var(--rk-topbar-primary-glow, 0 8px 20px rgba(147, 85, 229, 0.28));
+    box-shadow: none;
 }
 
 .topbar .btn-primary:hover {
     background: #7c45c7;
     color: #ffffff;
-    transform: translateY(-2px);
-    box-shadow: var(--rk-topbar-primary-glow-hover, 0 10px 24px rgba(147, 85, 229, 0.35));
 }
 
 /* Та же специфичность, что у блока .btn шапки — иначе border остаётся transparent */
