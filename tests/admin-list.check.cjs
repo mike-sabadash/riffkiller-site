@@ -1,9 +1,10 @@
 // Opens the admin riff list with the riff store in data/riffs.json and prints page errors, the cards drawn
 // and whether "+ Новый рифф" opens the editor. Prints no riff data. Used by the Loop debug workflow.
 const {startSite}=require('./site-fixture.cjs');
-const {chromium}=require('playwright');
-(async()=>{
-    const site=await startSite();const browser=await chromium.launch();
+const playwright=require('playwright');
+(async()=>{for(const kind of (process.env.BROWSERS||'chromium').split(',')){
+    console.log('== '+kind);
+    const site=await startSite();const browser=await playwright[kind].launch();
     try {
         const ctx=await browser.newContext();const [name,value]=(await site.adminCookie()).split('=');
         await ctx.addCookies([{name,value,url:site.base}]);
@@ -16,4 +17,4 @@ const {chromium}=require('playwright');
         await page.click('#btnNewRiff');await page.waitForTimeout(500);
         console.log('edit tab active after "+ Новый рифф":',await page.evaluate(()=>document.getElementById('tabEdit').classList.contains('active')));
     } finally {await browser.close();site.stop();}
-})().catch(e=>{console.error(e);process.exit(1);});
+}})().catch(e=>{console.error(e);process.exit(1);});
