@@ -671,4 +671,7 @@ T = [
 ("Too many payments at once, try again in a few minutes", "Сейчас слишком много оплат, попробуй через несколько минут", "Hay demasiados pagos a la vez, inténtalo en unos minutos"),
 ("Extend premium", "Продлить premium", "Extender premium"),
 ("Paid until", "Оплачено до", "Pagado hasta"),
+("3 months", "3 месяца", "3 meses"),
+("per 3 months", "за 3 месяца", "cada 3 meses"),
+("save $5", "экономия $5", "ahorras $5"),
 ]

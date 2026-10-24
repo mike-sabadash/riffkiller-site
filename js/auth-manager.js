@@ -33,7 +33,7 @@ function normalizeSubscription(data, source) {
     else if (data.status === 'active') status = 'active';
     const expiresAt = normalizeEpochMs(data.expiresAt);
     const nextBillingDate = normalizeEpochMs(data.nextBillingDate);
-    const plan = (data.plan === 'yearly') ? 'yearly' : 'monthly';
+    const plan = (data.plan === 'yearly' || data.plan === 'quarterly') ? data.plan : 'monthly';
     return { source: src, status, expiresAt: expiresAt || null, nextBillingDate: nextBillingDate || null, plan };
 }
 
@@ -46,7 +46,7 @@ function migrateSubscription(oldSub) {
     else if (oldSub.status === 'active') status = 'active';
     const expiresAt = normalizeEpochMs(oldSub.expiresAt);
     const nextBillingDate = normalizeEpochMs(oldSub.nextBillingDate);
-    const plan = oldSub.plan === 'yearly' ? 'yearly' : 'monthly';
+    const plan = (oldSub.plan === 'yearly' || oldSub.plan === 'quarterly') ? oldSub.plan : 'monthly';
     return { source, status, expiresAt: expiresAt || null, nextBillingDate: nextBillingDate || null, plan };
 }
 

@@ -506,7 +506,7 @@ function updateSubscriptionDetailsCard() {
     emptyEl.style.display = 'none';
 
     if (sub && (sub.plan || sub.source || sub.status)) {
-        var planLabel = (sub.source === 'patreon') ? 'Riff Killer' : ((sub.plan === 'yearly') ? 'Yearly' : 'Monthly');
+        var planLabel = (sub.source === 'patreon') ? 'Riff Killer' : ((sub.plan === 'yearly') ? 'Yearly' : (sub.plan === 'quarterly') ? '3 months' : 'Monthly');
         var statusLabel = (sub.status === 'active') ? 'Active' : (sub.status === 'expired') ? 'Expired' : (sub.status === 'cancelled') ? 'Cancelled' : sub.status || '—';
         var statusClass = (sub.status === 'active') ? 'status-active' : (sub.status === 'expired' || sub.status === 'cancelled') ? 'status-' + sub.status : '';
         var sourceLabel = paymentSourceLabel(sub.source);

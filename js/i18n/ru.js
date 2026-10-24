@@ -637,7 +637,10 @@
             "This amount has expired. If you have not sent it yet, press Pay again for a new one. If you already did, write to us.": "Время на эту сумму вышло. Если ещё не отправлял, нажми «Оплатить» снова и получи новую. Если уже отправил, напиши нам.",
             "Too many payments at once, try again in a few minutes": "Сейчас слишком много оплат, попробуй через несколько минут",
             "Extend premium": "Продлить premium",
-            "Paid until": "Оплачено до"
+            "Paid until": "Оплачено до",
+            "3 months": "3 месяца",
+            "per 3 months": "за 3 месяца",
+            "save $5": "экономия $5"
         },
         patterns: [
         // Russian plural: 1 фрагмент, 2 фрагмента, 5 фрагментов.
@@ -679,6 +682,7 @@
         [/^Continue (.+)$/, 'Продолжить: $1'],
         [/^(\$[\d.]+|[\d\s\u00a0\u202f]+ ₽) \/ month$/, '$1 / мес'],
         [/^(\$[\d.]+|[\d\s\u00a0\u202f]+ ₽) \/ year$/, '$1 / год'],
+        [/^(\$[\d.]+|[\d\s\u00a0\u202f]+ ₽) \/ 3 months$/, '$1 / 3 мес'],
         [/^Auto-renewal is off\. Premium stays on until (.+)\.$/, 'Автопродление отключено. Premium действует до $1.'],
         [/^Renews automatically on (.+)\.$/, 'Следующее автоматическое продление: $1.'],
         [/^Left hand: (.+) · Right hand: (.+)$/, function (m, part) { return 'Левая рука: ' + part(m[1]).replace('MB', 'МБ') + ' · Правая рука: ' + part(m[2]).replace('MB', 'МБ'); }]

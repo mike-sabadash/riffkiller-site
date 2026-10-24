@@ -14,7 +14,7 @@ require_once __DIR__ . '/subscription-store.php';
 require_once __DIR__ . '/payments-log.php';
 
 const BILLING_PROVIDERS = ['lava', 'robokassa', 'yookassa', 'usdt'];
-const BILLING_PERIOD_DAYS = ['monthly' => 30, 'yearly' => 365];
+const BILLING_PERIOD_DAYS = ['monthly' => 30, 'quarterly' => 90, 'yearly' => 365];
 // Premium stays on this long past the paid period while a renewal is retried.
 const BILLING_GRACE_DAYS = 3;
 
@@ -26,13 +26,18 @@ function billing_env($key, $default = '') {
 }
 
 function billing_plan($plan) {
-    return $plan === 'yearly' ? 'yearly' : 'monthly';
+    return isset(BILLING_PERIOD_DAYS[$plan]) ? $plan : 'monthly';
 }
 
-/** Price in RUB for Robokassa and YooKassa: BILLING_RUB_MONTHLY / BILLING_RUB_YEARLY. */
+/** Price in RUB for Robokassa and YooKassa: BILLING_RUB_MONTHLY / _QUARTERLY / _YEARLY (quarterly is optional). */
 function billing_rub_price($plan) {
-    $v = billing_env(billing_plan($plan) === 'yearly' ? 'BILLING_RUB_YEARLY' : 'BILLING_RUB_MONTHLY');
+    $v = billing_env('BILLING_RUB_' . strtoupper(billing_plan($plan)));
     return preg_match('/^\d+(\.\d{1,2})?$/', $v) && (float)$v > 0 ? number_format((float)$v, 2, '.', '') : null;
+}
+
+function billing_plan_description($plan) {
+    $names = ['monthly' => '1 month', 'quarterly' => '3 months', 'yearly' => '1 year'];
+    return 'Riff Killer Premium, ' . $names[billing_plan($plan)];
 }
 
 function billing_enabled($provider) {
@@ -57,8 +62,12 @@ function billing_public_options() {
     // Older integrations, shown only while their keys are configured.
     $out['stripe'] = (bool)preg_match('/^sk_(live|test)_(?!xxxx$)/', billing_env('STRIPE_SECRET_KEY'));
     $out['cryptomus'] = billing_env('CRYPTOMUS_MERCHANT_ID') !== '' && billing_env('CRYPTOMUS_API_KEY') !== '';
-    $out['rub'] = ['monthly' => billing_rub_price('monthly'), 'yearly' => billing_rub_price('yearly')];
-    $out['usdtPrice'] = ['monthly' => usdt_price('monthly'), 'yearly' => usdt_price('yearly')];
+    $out['rub'] = [];
+    $out['usdtPrice'] = [];
+    foreach (array_keys(BILLING_PERIOD_DAYS) as $plan) {
+        $out['rub'][$plan] = billing_rub_price($plan);
+        $out['usdtPrice'][$plan] = usdt_price($plan);
+    }
     return $out;
 }
 
@@ -238,9 +247,13 @@ function lava_api_base() {
     return rtrim(billing_env('LAVA_API_BASE', 'https://gate.lava.top'), '/');
 }
 
+/** One offer usually carries every period; LAVA_OFFER_ID_QUARTERLY / _YEARLY override it per plan. */
 function lava_offer_id($plan) {
-    return billing_plan($plan) === 'yearly' ? billing_env('LAVA_OFFER_ID_YEARLY', billing_env('LAVA_OFFER_ID')) : billing_env('LAVA_OFFER_ID');
+    $plan = billing_plan($plan);
+    return $plan === 'monthly' ? billing_env('LAVA_OFFER_ID') : billing_env('LAVA_OFFER_ID_' . strtoupper($plan), billing_env('LAVA_OFFER_ID'));
 }
+
+const LAVA_PERIODICITY = ['monthly' => 'MONTHLY', 'quarterly' => 'PERIOD_90_DAYS', 'yearly' => 'PERIOD_YEAR'];
 
 function lava_create_invoice($userId, $plan, $email, $lang) {
     $plan = billing_plan($plan);
@@ -249,7 +262,7 @@ function lava_create_invoice($userId, $plan, $email, $lang) {
         'email' => $email,
         'offerId' => lava_offer_id($plan),
         'currency' => billing_env('LAVA_CURRENCY', 'USD'),
-        'periodicity' => $plan === 'yearly' ? 'PERIOD_YEAR' : 'MONTHLY',
+        'periodicity' => LAVA_PERIODICITY[$plan],
         'buyerLanguage' => in_array($lang, ['EN', 'RU', 'ES'], true) ? $lang : 'EN',
         'clientUtm' => ['utm_source' => 'riffkiller', 'utm_content' => 'u:' . $userId],
         'successful_return_url' => billing_site_url('billing.html?paid=lava'),
@@ -358,7 +371,7 @@ function robokassa_create_payment($userId, $plan, $email) {
     $invId = billing_next_inv_id();
     $login = billing_env('ROBOKASSA_LOGIN');
     $shp = ['Shp_plan' => $plan, 'Shp_user' => (string)$userId];
-    $desc = $plan === 'yearly' ? 'Riff Killer Premium, 1 year' : 'Riff Killer Premium, 1 month';
+    $desc = billing_plan_description($plan);
     $params = [
         'MerchantLogin' => $login,
         'OutSum' => $sum,
@@ -440,7 +453,7 @@ function yookassa_payment_body($userId, $plan, $email) {
     $body = [
         'amount' => ['value' => billing_rub_price($plan), 'currency' => 'RUB'],
         'capture' => true,
-        'description' => $plan === 'yearly' ? 'Riff Killer Premium, 1 year' : 'Riff Killer Premium, 1 month',
+        'description' => billing_plan_description($plan),
         'metadata' => ['user_id' => (string)$userId, 'plan' => $plan],
     ];
     // Self-employed shops get receipts from YooKassa automatically; a 54-FZ shop sets YOOKASSA_RECEIPT=1.
@@ -557,11 +570,12 @@ function usdt_address() {
     return preg_match('/^T[1-9A-HJ-NP-Za-km-z]{33}$/', $a) ? $a : '';
 }
 
-/** Base price in USDT: USDT_PRICE_MONTHLY / USDT_PRICE_YEARLY, defaults 9 and 90. */
+/** Base price in USDT: USDT_PRICE_MONTHLY / _QUARTERLY / _YEARLY, defaults 9, 22 and 90. */
 function usdt_price($plan) {
-    $yearly = billing_plan($plan) === 'yearly';
-    $v = billing_env($yearly ? 'USDT_PRICE_YEARLY' : 'USDT_PRICE_MONTHLY', $yearly ? '90' : '9');
-    return preg_match('/^\d+$/', $v) && (int)$v > 0 ? (int)$v : ($yearly ? 90 : 9);
+    $plan = billing_plan($plan);
+    $default = ['monthly' => 9, 'quarterly' => 22, 'yearly' => 90][$plan];
+    $v = billing_env('USDT_PRICE_' . strtoupper($plan), (string)$default);
+    return preg_match('/^\d+$/', $v) && (int)$v > 0 ? (int)$v : $default;
 }
 
 function usdt_is_open(array $o, $now) {
