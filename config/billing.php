@@ -570,10 +570,10 @@ function usdt_address() {
     return preg_match('/^T[1-9A-HJ-NP-Za-km-z]{33}$/', $a) ? $a : '';
 }
 
-/** Base price in USDT: USDT_PRICE_MONTHLY / _QUARTERLY / _YEARLY, defaults 9, 22 and 90. */
+/** Base price in USDT: USDT_PRICE_MONTHLY / _QUARTERLY / _YEARLY, defaults 9, 20 and 90. */
 function usdt_price($plan) {
     $plan = billing_plan($plan);
-    $default = ['monthly' => 9, 'quarterly' => 22, 'yearly' => 90][$plan];
+    $default = ['monthly' => 9, 'quarterly' => 20, 'yearly' => 90][$plan];
     $v = billing_env('USDT_PRICE_' . strtoupper($plan), (string)$default);
     return preg_match('/^\d+$/', $v) && (int)$v > 0 ? (int)$v : $default;
 }

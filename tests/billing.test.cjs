@@ -175,7 +175,7 @@ const tronCalls=()=>calls.filter(c=>c.path.includes('/transactions/trc20')).leng
 
 test('USDT: unique amount per order, matched to the transfer, one-off premium that extends',async()=>{
     const {body:opts}=await api(null,'options.php');
-    assert.equal(opts.providers.usdt,true);assert.deepEqual(opts.providers.usdtPrice,{monthly:9,quarterly:22,yearly:90});
+    assert.equal(opts.providers.usdt,true);assert.deepEqual(opts.providers.usdtPrice,{monthly:9,quarterly:20,yearly:90});
     const user=await signUp();const other=await signUp();
     const order=(await api(user,'create.php',{provider:'usdt',plan:'monthly'})).body.usdt;
     assert.match(order.amount,/^9\.(0[1-9]|[1-9]\d)$/);assert.equal(order.address,WALLET);assert.equal(order.state,'pending');
@@ -225,7 +225,7 @@ test('USDT: the page polls at most every 15 s, the cron checks only while an ord
     const idle=tronCalls();await runRenewals();assert.equal(tronCalls(),idle,'no open orders, no TronGrid calls');
 });
 
-test('3 months: lava.top bills every 90 days, USDT asks 22.xx, rouble checkouts need their own price',async()=>{
+test('3 months: lava.top bills every 90 days, USDT asks 20.xx, rouble checkouts need their own price',async()=>{
     const user=await signUp();
     assert.equal((await api(user,'create.php',{provider:'robokassa',plan:'quarterly'})).status,400,'no BILLING_RUB_QUARTERLY, no rouble checkout');
     const created=await api(user,'create.php',{provider:'lava',plan:'quarterly'});
@@ -233,9 +233,9 @@ test('3 months: lava.top bills every 90 days, USDT asks 22.xx, rouble checkouts 
     const inv=JSON.parse(calls.filter(c=>c.path==='/api/v3/invoice').at(-1).body);
     assert.equal(inv.periodicity,'PERIOD_90_DAYS');assert.equal(inv.offerId,'11111111-2222-3333-4444-555555555555');
     const contractId=created.body.paymentUrl.split('/').pop();lavaInvoices[contractId]='COMPLETED';
-    await lavaHook({eventType:'payment.success',contractId,amount:22,currency:'USD',status:'completed'});
+    await lavaHook({eventType:'payment.success',contractId,amount:20,currency:'USD',status:'completed'});
     const sub=subOf(user.id);assert.equal(sub.plan,'quarterly');assert.ok(Math.abs(sub.expires-(now()+93*day))<60);
     assert.equal((await api(user,'status.php')).body.renewal.plan,'quarterly');
     const buyer=await signUp();
-    assert.match((await api(buyer,'create.php',{provider:'usdt',plan:'quarterly'})).body.usdt.amount,/^22\.\d\d$/);
+    assert.match((await api(buyer,'create.php',{provider:'usdt',plan:'quarterly'})).body.usdt.amount,/^20\.\d\d$/);
 });
