@@ -150,7 +150,10 @@ test('a looped part sounds from its own file, which loops by itself and leads th
     left.currentTime=3.7; t.tick(); assert.equal(left.currentTime,3.7);
     t.setRate(.5); assert.equal(a.playbackRate,.5);
     t.pause(); assert.equal(a.paused,true);
+    // switching the view (left, right, both hands) keeps a single voice: the part file, not the camera as well
+    left.muted=false; right.muted=false; t.applyVoice(); assert.equal(left.muted,true); assert.equal(right.muted,true);
     t.clearVoice(); assert.equal(left.muted,false);
+    t.applyVoice(); assert.equal(left.muted,false); assert.equal(right.muted,true);
 });
 test('a refused part sound hands the sound back to the clock camera', async () => {
     const {left,t}=setup(); const a=new Sound(); a.result=Promise.reject(new Error('NotAllowedError'));

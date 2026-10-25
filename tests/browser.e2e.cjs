@@ -92,9 +92,15 @@ test('segment loops, angle changes, tabs, slow motion, drift correction and paus
     // Changing the angle never moves the sound or re-seeks the second camera (that stalls its decoder).
     const switching=await page.evaluate(async()=>{let seeks=0;const on=()=>{if(!leftVideo.seeking)seeks++;};rightVideo.addEventListener('seeking',on);
         for(const mode of ['right','left','split','right','left']){document.querySelector('.mode-btn[data-mode="'+mode+'"]').click();await new Promise(r=>setTimeout(r,250));
-            if(leftVideo.muted||!rightVideo.muted)return {mode,leftMuted:leftVideo.muted,rightMuted:rightVideo.muted};}
+            const part=!!(practiceTransport.voice&&!practiceTransport.voice.audio.paused);
+            if((part||!!practiceTransport.silenced)!==leftVideo.muted||!rightVideo.muted)return {mode,part,leftMuted:leftVideo.muted,rightMuted:rightVideo.muted};}
         rightVideo.removeEventListener('seeking',on);return {seeks,paused:leftVideo.paused||rightVideo.paused};});
     assert.deepEqual(switching,{seeks:0,paused:false});
+    // While the part's own sound file plays, showing both hands must not unmute a camera on top of it.
+    const voiced=await page.evaluate(async()=>{practiceTransport.setVoice(new Audio(),3.64,5.56);const out=[];
+        for(const mode of ['split','right','left']){document.querySelector('.mode-btn[data-mode="'+mode+'"]').click();await new Promise(r=>setTimeout(r,50));out.push([mode,leftVideo.muted,rightVideo.muted]);}
+        practiceTransport.clearVoice();return out;});
+    assert.deepEqual(voiced,[['split',true,true],['right',true,true],['left',true,true]]);
     await page.locator('[data-mode="right"]').click();await page.locator('[data-mode="split"]').click();
     assert.equal(await page.locator('#toggleTabs').evaluate(el=>el.classList.contains('active')),true);
     await page.locator('.speed-btn[data-speed="0.5"]').click();state=await sample();assert.equal(state.rate,.5);
