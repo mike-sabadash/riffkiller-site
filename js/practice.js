@@ -179,40 +179,29 @@ function rkMarkLastPracticed(riffId) {
     rkSetRiffProgress(riffId, { lastPracticedAt: Date.now() });
 }
 
-function rkIsSegmentLearned(riffId, segIndex) {
-    const p = rkGetRiffProgress(riffId);
-    return p.learned.indexOf(segIndex) !== -1;
-}
-
-function rkToggleSegmentLearned(riffId, segIndex) {
-    const p = rkGetRiffProgress(riffId);
-    const learned = p.learned.slice();
-    const i = learned.indexOf(segIndex);
-    const wasLearned = i !== -1;
-    if (i === -1) learned.push(segIndex);
-    else learned.splice(i, 1);
-    learned.sort((a, b) => a - b);
-    const patch = { learned: learned, lastPracticedAt: Date.now() };
-    // Speed Demon metric: learned at 0.5x
-    if (!wasLearned && Math.abs((playbackSpeed || 1) - 0.5) < 0.001) {
-        patch.learnedAtSlowSpeed = true;
-    }
-    rkSetRiffProgress(riffId, patch);
-    return learned.indexOf(segIndex) !== -1;
-}
-
+// Part states, the "clean?" question and practice time: js/practice-progress.js.
 function updatePracticeProgressUI() {
-    if (!currentRiff || !currentRiff.segments) return;
-    const pill = document.getElementById('practiceProgressPill');
-    if (!pill) return;
-    const p = rkGetRiffProgress(currentRiff.id);
-    const total = currentRiff.segments.length || 0;
-    const learnedCount = (p.learned || []).filter(i => i >= 0 && i < total).length;
-    pill.textContent = learnedCount + '/' + total + ' learned';
-    pill.style.display = total > 0 ? 'inline-flex' : 'none';
+    if (window.PracticeProgress) window.PracticeProgress.refresh();
+}
 
-    // Mark learned button больше не отображается на practice-странице;
-    // прогресс показывается только в профиле.
+let practiceProgressStarted = false;
+function startPracticeProgress() {
+    if (!window.PracticeProgress || !currentRiff || !Array.isArray(currentRiff.segments) || !currentRiff.segments.length) return;
+    if (!practiceProgressStarted) {
+        practiceProgressStarted = true;
+        window.PracticeProgress.init({
+            riff: currentRiff,
+            getSpeed: () => playbackSpeed,
+            getMode: () => practiceMode,
+            playPart: (index) => playPracticeSegment(index),
+            notify: (text) => showNotification(text)
+        });
+        setInterval(() => {
+            const playing = !!(practiceTransport && isPlaying && !lessonModeActive && leftVideo && !leftVideo.paused);
+            window.PracticeProgress.tick(playing);
+        }, 1000);
+    }
+    window.PracticeProgress.refresh();
 }
 
 function setPlaybackSpeedUI(speed) {
@@ -568,6 +557,7 @@ function initPracticePage() {
                 initTimeline();
                 initSegmentControls();
                 if (window.RiffDNA) window.RiffDNA.init(currentRiff);
+                startPracticeProgress();
                 enableControls(true);
                 hideVideoLoadingPlaceholder();
                 setVideoMode(currentMode);
@@ -594,6 +584,7 @@ function initPracticePage() {
                         initTimeline();
                         initSegmentControls();
                         if (window.RiffDNA) window.RiffDNA.init(currentRiff);
+                        startPracticeProgress();
                         enableControls(true);
                         hideVideoLoadingPlaceholder();
                         setVideoMode(currentMode);
@@ -1025,6 +1016,7 @@ function loopBack(byTimer) {
     if (loopSegmentEnd() == null) return;
     const segment = currentRiff.segments[currentSegment];
     if (loopDebug) loopDebug.jump(segment, byTimer === true);
+    if (window.PracticeProgress) window.PracticeProgress.loop(currentSegment);
     speedTrainerOnLoop(currentSegment);
     practiceTransport.loopTo(getSegmentStartRaw(segment), HARD_LOOP);
 }
@@ -1142,6 +1134,10 @@ function handleVideoEnd() {
     if (!practiceTransport || lessonModeActive) return;
     if (loopActive) {
         const segment = currentRiff.segments[currentSegment];
+        if (window.PracticeProgress) {
+            if (loopAllRiff) window.PracticeProgress.wholePass();
+            else if (segment) window.PracticeProgress.loop(currentSegment);
+        }
         if (!loopAllRiff && segment) speedTrainerOnLoop(currentSegment);
         practiceTransport.seek(loopAllRiff || !segment ? 0 : getSegmentStartRaw(segment));
         practiceTransport.play();

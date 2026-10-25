@@ -1,0 +1,88 @@
+/* Progress on the practice page (js/practice-progress.js): quiet marks on the part buttons, one line under
+   the parts, and a small card for the "clean?" question and the session summary. No colour of its own:
+   the marks use the button's text colour, the card uses the player's surfaces and the one purple action. */
+
+.segment-btn .part-progress {
+    display: inline-flex; align-items: center; gap: 4px; flex: none;
+    color: rgba(244, 247, 255, 0.5);
+    font: 500 11px/1 ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+    font-variant-numeric: tabular-nums; white-space: nowrap;
+    --rk-progress-knockout: #121214;
+}
+.segment-btn .part-progress[hidden] { display: none; }
+.segment-btn .part-progress svg { flex: none; }
+.segment-btn .part-progress[data-state^='locked'] { color: rgba(244, 247, 255, 0.78); }
+.segment-btn .part-progress-review { font-family: 'Inter', system-ui, sans-serif; font-size: 11px; font-weight: 600; color: rgba(244, 247, 255, 0.78); }
+.segment-btn.active .part-progress { color: rgba(255, 255, 255, 0.85); --rk-progress-knockout: #4b2f79; }
+
+@media (max-width: 600px) {
+    /* Two short columns: the mark sits above the role on the right, the name keeps its width. */
+    .practice-workspace .segment-btn:not(.all-riff):has(.part-progress:not([hidden])) { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; column-gap: 8px; row-gap: 3px; align-items: center; }
+    .segment-btn:has(.part-progress:not([hidden])) .segment-icon { grid-column: 1; grid-row: 1 / span 2; }
+    .segment-btn:has(.part-progress:not([hidden])) .segment-name { grid-column: 2; grid-row: 1 / span 2; }
+    .segment-btn:has(.dna-segment-atoms):has(.part-progress:not([hidden])) .segment-name { grid-row: 1; }
+    .segment-btn:has(.part-progress:not([hidden])) .part-progress { grid-column: 3; grid-row: 1; justify-self: end; }
+    .segment-btn:has(.part-progress:not([hidden])) .dna-segment-role { grid-column: 3; grid-row: 2; margin-left: 0; padding-left: 0; justify-self: end; }
+}
+
+.parts-progress {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px;
+    margin: 12px 0 0; padding: 0 10px;
+    color: rgba(244, 247, 255, 0.62); font-size: 12px; line-height: 20px;
+}
+.parts-progress[hidden] { display: none; }
+.parts-progress-main { color: rgba(244, 247, 255, 0.85); font-weight: 500; font-variant-numeric: tabular-nums; }
+.parts-progress .rk-hint { margin-left: -6px; }
+
+.progress-card {
+    position: relative;
+    margin: 0 0 12px; padding: 14px 14px 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px;
+    background: rgba(255, 255, 255, 0.045);
+    color: rgba(244, 247, 255, 0.92);
+    font-family: 'Inter', system-ui, sans-serif;
+    animation: progress-card-in .18s ease-out;
+}
+@keyframes progress-card-in { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .progress-card { animation: none; } }
+.progress-card-close {
+    position: absolute; top: 8px; right: 8px; width: 28px; height: 28px;
+    display: grid; place-items: center; border: 0; border-radius: 8px;
+    background: transparent; color: rgba(244, 247, 255, 0.5); cursor: pointer;
+}
+.progress-card-close:hover { background: rgba(255, 255, 255, 0.06); color: #fff; }
+.progress-card-kicker { margin: 0 32px 4px 0; color: rgba(244, 247, 255, 0.5); font-size: 12px; line-height: 16px; }
+.progress-card-title { margin: 0 32px 6px 0; font-size: 15px; font-weight: 600; line-height: 20px; color: #fff; }
+.progress-card-text { margin: 0 0 12px; color: rgba(244, 247, 255, 0.66); font-size: 13px; line-height: 18px; }
+.progress-card-week { margin: 0 0 12px; color: rgba(244, 247, 255, 0.8); font-size: 13px; line-height: 18px; font-variant-numeric: tabular-nums; }
+.progress-card-list { list-style: none; margin: 4px 0 12px; padding: 0; display: grid; gap: 4px; }
+.progress-card-list li { display: flex; justify-content: space-between; gap: 12px; font-size: 13px; line-height: 18px; color: rgba(244, 247, 255, 0.66); }
+.progress-card-list b { color: rgba(244, 247, 255, 0.92); font-weight: 500; white-space: nowrap; }
+.progress-card-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.progress-card-btn, .progress-goal-btn {
+    height: 36px; padding: 0 14px; border: 0; border-radius: 10px;
+    background: rgba(255, 255, 255, 0.07); color: rgba(244, 247, 255, 0.92);
+    font: 600 13px/1 'Inter', system-ui, sans-serif; cursor: pointer;
+}
+.progress-card-btn:hover, .progress-goal-btn:hover { background: rgba(255, 255, 255, 0.11); }
+.progress-card-btn.primary { background: #9355E5; color: #fff; }
+.progress-card-btn.primary:hover { background: #7B3FC7; }
+.progress-card-btn:focus-visible, .progress-goal-btn:focus-visible, .progress-card-close:focus-visible { outline: 2px solid #cfff55; outline-offset: 2px; }
+.progress-goal-options { display: flex; gap: 8px; margin: 0 0 12px; }
+
+html[data-theme='light'] .segment-btn .part-progress { color: rgba(20, 20, 30, 0.5); --rk-progress-knockout: #f4f4f6; }
+html[data-theme='light'] .segment-btn .part-progress[data-state^='locked'],
+html[data-theme='light'] .segment-btn .part-progress-review { color: rgba(20, 20, 30, 0.8); }
+html[data-theme='light'] .parts-progress { color: rgba(20, 20, 30, 0.6); }
+html[data-theme='light'] .parts-progress-main { color: rgba(20, 20, 30, 0.88); }
+html[data-theme='light'] .progress-card { background: #fff; border-color: rgba(20, 20, 30, 0.1); color: #16161f; }
+html[data-theme='light'] .progress-card-title { color: #12121a; }
+html[data-theme='light'] .progress-card-kicker,
+html[data-theme='light'] .progress-card-close { color: rgba(20, 20, 30, 0.5); }
+html[data-theme='light'] .progress-card-text,
+html[data-theme='light'] .progress-card-list li { color: rgba(20, 20, 30, 0.65); }
+html[data-theme='light'] .progress-card-week,
+html[data-theme='light'] .progress-card-list b { color: rgba(20, 20, 30, 0.88); }
+html[data-theme='light'] .progress-card-btn,
+html[data-theme='light'] .progress-goal-btn { background: rgba(20, 20, 30, 0.06); color: #16161f; }
+html[data-theme='light'] .progress-card-btn.primary { background: #9355E5; color: #fff; }
