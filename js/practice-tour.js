@@ -20,7 +20,8 @@
         '<path d="M4 30c7-1.5 17-6 24-13.5 3.2-3.4 5.6-7.4 7.4-11.6" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>' +
         '<path d="M28.8 8.6c2.3-1.4 4.6-3.3 6.6-4.8.7 2.7 1.1 5.3 1.9 8" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
-    var root = null, spot = null, card = null, steps = [], index = 0, raf = 0, onKey = null;
+    var ARROW_W = 44, ARROW_TIP = 36; // the arrow's width and where its tip sits, in px from the left
+    var root = null, spot = null, card = null, steps = [], index = 0, raf = 0, track = 0, last = '', onKey = null;
 
     function seen() {
         try { return localStorage.getItem(KEY) === '1'; } catch (e) { return true; }
@@ -82,9 +83,27 @@
         card.style.left = x + 'px';
         card.style.top = y + 'px';
         card.dataset.side = below === true ? 'below' : below === false ? 'above' : 'over';
-        // The drawn arrow leans toward the control's middle.
-        var arrowX = Math.min(Math.max(r.left + r.width / 2 - x - 22, 12), cw - 56);
-        card.style.setProperty('--arrow-x', arrowX + 'px');
+        // The drawn arrow's tip lands on the control's middle; it is mirrored when the control sits near
+        // the card's left edge (a small button), so the arrow stays over the card.
+        var mid = r.left + r.width / 2 - x, arrowX = mid - ARROW_TIP, flip = arrowX < 4;
+        if (flip) arrowX = mid - (ARROW_W - ARROW_TIP);
+        card.style.setProperty('--arrow-x', Math.min(Math.max(arrowX, 4), cw - ARROW_W - 4) + 'px');
+        card.classList.toggle('tour-card--flip', flip);
+        last = rectKey(el);
+    }
+
+    function rectKey(el) {
+        var r = el.getBoundingClientRect();
+        return Math.round(r.left) + ',' + Math.round(r.top) + ',' + Math.round(r.width) + ',' + Math.round(r.height);
+    }
+
+    // The page keeps settling while the tour is open (riff data, fonts, the parts list), which moves the
+    // controls without a scroll or resize; follow the lit control every frame.
+    function follow() {
+        if (!root) return;
+        var el = steps[index] && document.querySelector(steps[index].target);
+        if (el && rectKey(el) !== last) place();
+        track = requestAnimationFrame(follow);
     }
 
     function show(i) {
@@ -97,7 +116,7 @@
         var r = el.getBoundingClientRect();
         // Bring the control into view, leaving room for the note below it.
         if (r.top < 70 || r.bottom > global.innerHeight - 180) {
-            el.scrollIntoView({ block: r.height > global.innerHeight * 0.5 ? 'start' : 'center' });
+            el.scrollIntoView({ block: r.height > global.innerHeight * 0.5 ? 'start' : 'center', behavior: 'instant' });
         }
         place();
         root.querySelector('.tour-next').focus({ preventScroll: true });
@@ -113,6 +132,7 @@
         document.removeEventListener('keydown', onKey, true);
         global.removeEventListener('resize', schedule);
         global.removeEventListener('scroll', schedule, true);
+        cancelAnimationFrame(track);
         root.remove();
         root = spot = card = null;
     }
@@ -123,6 +143,7 @@
         if (!steps.length) return;
         build();
         show(0);
+        track = requestAnimationFrame(follow);
     }
 
     function init() {

@@ -1021,6 +1021,8 @@
 .tour-arrow { position: absolute; left: var(--arrow-x, 24px); color: #cfff55; pointer-events: none; }
 .tour-card[data-side="below"] .tour-arrow { top: -30px; }
 .tour-card[data-side="above"] .tour-arrow { bottom: -30px; transform: scaleY(-1); }
+.tour-card--flip[data-side="below"] .tour-arrow { transform: scaleX(-1); }
+.tour-card--flip[data-side="above"] .tour-arrow { transform: scale(-1, -1); }
 .tour-card[data-side="over"] .tour-arrow { display: none; }
 @media (prefers-reduced-motion: reduce) { .tour-spot, .tour-card { transition: none; } }
 html[data-theme='light'] .tour-spot { box-shadow: 0 0 0 200vmax rgba(20, 20, 30, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.6); }

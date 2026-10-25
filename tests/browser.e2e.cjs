@@ -396,6 +396,14 @@ test('practice tour: first visit lights up one control at a time, skips hidden o
             assert.ok(card.x>=0&&card.y>=0&&card.x+card.width<=width+1&&card.y+card.height<=height+1,title+' note on screen '+JSON.stringify(card));
             assert.ok(spot.width>20&&spot.height>10,title+' lit area '+JSON.stringify(spot));
             assert.equal(await page.evaluate(()=>!!document.activeElement.closest('.tour-card')),true,'focus stays in the note');
+            if(title==='Help'){
+                // The drawn arrow's tip points at the small ? button, not past it.
+                await page.waitForTimeout(400);
+                const aim=await page.evaluate(()=>{const a=document.querySelector('.tour-arrow').getBoundingClientRect(),b=document.querySelector('#practiceHelp').getBoundingClientRect();
+                    const tip=document.querySelector('.tour-card').classList.contains('tour-card--flip')?a.left+8:a.left+36;return {tip,mid:b.left+b.width/2,spotTop:document.querySelector('.tour-spot').getBoundingClientRect().top,top:b.top};});
+                assert.ok(Math.abs(aim.tip-aim.mid)<=4,'arrow aims at ? '+JSON.stringify(aim));
+                assert.ok(Math.abs(aim.spotTop+6-aim.top)<=2,'light sits on ? '+JSON.stringify(aim));
+            }
             await page.click('.tour-next');
         }
         assert.deepEqual(steps.slice(0,2),['Riff parts','Parts on the video']);assert.equal(steps.at(-1),'Help');
