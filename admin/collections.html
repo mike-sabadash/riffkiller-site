@@ -39,7 +39,8 @@
         .tab-pane.active { display: block; }
         .col-list { display: flex; flex-direction: column; gap: 8px; }
         .col-card { display: flex; align-items: center; gap: 14px; padding: 14px 16px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; flex-wrap: wrap; }
-        .col-card-thumb { width: 88px; height: 52px; object-fit: cover; border-radius: 8px; flex-shrink: 0; background: #000; }
+        .col-card-thumb { width: 88px; height: 52px; border-radius: 8px; flex-shrink: 0; overflow: hidden; background: rgba(255,255,255,0.06); }
+        .col-card-thumb img { display: block; width: 100%; height: 100%; object-fit: cover; }
         .col-card-meta { flex: 1; min-width: 160px; }
         .col-card-name { font-weight: 600; font-size: 15px; }
         .col-card-sub { font-size: 12px; color: rgba(255,255,255,0.45); margin-top: 4px; }
@@ -191,6 +192,18 @@
         if (cur) sel.value = cur;
     }
 
+    // Card picture in the list: paths are from the site root, this page is in /admin/. The 400px WebP copy
+    // written on upload, else the original, else an empty frame.
+    function setListThumb(box, thumb) {
+        thumb = String(thumb || '').trim();
+        if (!thumb) return;
+        var src = /^(https?:|\/)/.test(thumb) ? thumb : '../' + thumb;
+        var img = new Image();
+        img.alt = ''; img.loading = 'lazy'; img.decoding = 'async';
+        img.onerror = function () { if (img.src.indexOf('.w400.webp') !== -1) img.src = src; else img.remove(); };
+        img.src = /\.(png|jpe?g|webp)$/i.test(src) && !/\.w\d+\.webp$/i.test(src) ? src.replace(/\.[^.\/]+$/, '.w400.webp') : src;
+        box.appendChild(img);
+    }
     function renderColList() {
         var body = document.getElementById('colListBody');
         if (!body) return;
@@ -203,9 +216,8 @@
         collectionsCache.forEach(function (c) {
             var card = document.createElement('div');
             card.className = 'col-card';
-            var img = c.imageUrl || '';
             card.innerHTML =
-                '<img class="col-card-thumb" alt="" src="' + img.replace(/"/g, '') + '">' +
+                '<span class="col-card-thumb"></span>' +
                 '<div class="col-card-meta">' +
                 '<div class="col-card-name"></div>' +
                 '<div class="col-card-sub"></div></div>' +
@@ -215,8 +227,7 @@
             card.querySelector('.col-card-name').textContent = c.name || '(без названия)';
             var rc = c.videoCount != null ? c.videoCount : ((c.riffs && c.riffs.length) || 0);
             card.querySelector('.col-card-sub').textContent = 'id ' + c.id + ' · ' + rc + ' риффов (из админки риффов)';
-            var thumb = card.querySelector('.col-card-thumb');
-            thumb.onerror = function () { this.src = 'https://via.placeholder.com/176x104/2a2d42/ffffff?text=Cover'; };
+            setListThumb(card.querySelector('.col-card-thumb'), c.imageUrl);
             card.querySelector('.btn-edit').onclick = function () {
                 switchTab('edit');
                 document.getElementById('colSelect').value = String(c.id);

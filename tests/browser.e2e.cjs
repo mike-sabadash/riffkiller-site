@@ -287,6 +287,16 @@ test('draft: a new riff starts hidden; shown without a video it has a card and a
     assert.ok(!await home.locator('#videoErrorState').isVisible(),'no download error');
     await home.close();
 });
+test('admin collection list shows each card picture; recent riffs leave out ones deleted from the catalog',async t=>{
+    const page=await pageFor(t);const [name,value]=(await site.adminCookie()).split('=');await page.context().addCookies([{name,value,url:site.base}]);
+    await page.goto(site.base+'/admin/collections.html',{waitUntil:'domcontentloaded'});
+    await page.waitForFunction(()=>{const imgs=[...document.querySelectorAll('.col-card .col-card-thumb img')];return imgs.length>0&&imgs.every(i=>i.complete&&i.naturalWidth>0);});
+    await page.addInitScript(()=>{try{const s=JSON.parse(localStorage.getItem('riffKillerState')||'{}');if(!s.seeded){s.seeded=1;s.recentlyPracticed=[{id:777,song:'Deleted test riff',artist:'Nobody',thumbnail:'assets/img/riff-1.png'},{id:1,song:'Black Dog',artist:'Led Zeppelin',thumbnail:'assets/img/riff-1.png'}];localStorage.setItem('riffKillerState',JSON.stringify(s));}}catch(e){}});
+    await page.goto(site.base+'/practice.html?riff=2',{waitUntil:'domcontentloaded'});
+    await page.waitForSelector('#recentRiffsGrid .riff-card');
+    assert.equal(await page.getByText('Deleted test riff').count(),0,'a deleted riff is not in recent');
+    assert.ok(await page.locator('#recentRiffsGrid .riff-card[data-id="1"]').count()>0||await page.locator('#recentRiffsGrid').getByText('Black Dog').count()>0);
+});
 test('a cover file bigger than the 2 MB upload limit is shrunk in the browser and saved',async t=>{
     const store=path.join(site.dir,'data/riffs.json'),original=fs.readFileSync(store);t.after(()=>fs.writeFileSync(store,original));
     const big=path.join(site.dir,'big-cover.png');

@@ -101,6 +101,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     loadUserRiffs();
+    // Riffs deleted or hidden in the admin drop out of recent and favorites once the live list arrives.
+    fetch('/api/riffs/list.php').then(function (r) { if (!r.ok) throw new Error('list'); return r.json(); })
+        .then(function (list) { if (Array.isArray(list)) { liveRiffList = list; loadUserRiffs(); } })
+        .catch(function () {});
     updatePracticeStats();
     updateGameDashboard();
 
@@ -565,6 +569,7 @@ function showFavoritesLoginModal() {
 }
 
 // Загрузка риффов пользователя ТОЛЬКО из localStorage (без демо-данных)
+let liveRiffList = null;
 function loadUserRiffs() {
     try {
         const savedState = localStorage.getItem('riffKillerState');
@@ -576,13 +581,17 @@ function loadUserRiffs() {
         const rawRecent = (appState.recentlyPracticed && Array.isArray(appState.recentlyPracticed))
             ? appState.recentlyPracticed
             : [];
-        allRecentRiffs = rawRecent.map(r => ({
-            ...r,
-            isFavorite: !!(riffsDb.find(db => db.id === r.id) || {}).isFavorite
-        }));
+        const live = liveRiffList ? new Map(liveRiffList.map(r => [String(r.id), r])) : null;
+        allRecentRiffs = rawRecent
+            .filter(r => !live || live.has(String(r.id)))
+            .map(r => ({
+                ...r,
+                ...(live ? { song: live.get(String(r.id)).song || r.song, artist: live.get(String(r.id)).artist || r.artist, thumbnail: live.get(String(r.id)).thumbnail || r.thumbnail } : {}),
+                isFavorite: !!(riffsDb.find(db => db.id === r.id) || {}).isFavorite
+            }));
 
         // Избранные — из appState.riffsDatabase (isFavorite) + метаданные риффов для отображения
-        const metadata = getRiffsMetadata();
+        const metadata = liveRiffList || getRiffsMetadata();
         allFavoriteRiffs = metadata
             .filter(meta => (riffsDb.find(r => r.id === meta.id) || {}).isFavorite)
             .map(r => ({ ...r, isFavorite: true }));
