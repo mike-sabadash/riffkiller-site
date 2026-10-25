@@ -383,6 +383,14 @@
         return moved;
     }
 
+    /** One quiet line for a riff card: “Learned” or “3/10 parts at tempo”; empty before the first loop. */
+    function cardNote(riff) {
+        if (!riff || !Array.isArray(riff.segments) || !riff.segments.length) return '';
+        var sum = riffSummary(load(), riff, Date.now());
+        if (!sum.started) return '';
+        return sum.learned ? 'Learned' : sum.atTempo + '/' + sum.total + ' parts at tempo';
+    }
+
     function maxNum(a, b) { return Math.max(num(a), num(b)); }
     function minSet(a, b) { a = num(a); b = num(b); return a && b ? Math.min(a, b) : (a || b); }
 
@@ -504,7 +512,7 @@
         recordLoop: recordLoop, markClean: markClean, reviewMissed: reviewMissed, markWhole: markWhole,
         partStatus: partStatus, riffSummary: riffSummary, addPlayTime: addPlayTime, setGoal: setGoal,
         weekSummary: weekSummary, calendar: calendar, techniques: techniques, nextStep: nextStep,
-        sessionDiff: sessionDiff, merge: merge,
+        sessionDiff: sessionDiff, merge: merge, cardNote: cardNote,
         load: load, update: update, save: save, sync: sync, flush: flush, onChange: onChange
     };
     global.RKProgress = api;

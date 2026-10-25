@@ -143,6 +143,24 @@ test('three clean loops at ×1 ask whether the part was clean; yes puts it at te
     assert.match(await page.locator('#partsProgress').innerText(),/^1 of 10 parts at tempo/);
     assert.equal(await page.evaluate(()=>RKProgress.load().days[RKProgress.dayKey(Date.now())].sec>0),true,'playing time was counted');
 });
+test('profile shows the week, what to play next, riffs and techniques from practice progress; the goal can be changed',async t=>{
+    const page=await pageFor(t);await page.goto(site.base+'/index.html',{waitUntil:'domcontentloaded'});
+    await page.evaluate(()=>fetch('api/auth/email-register.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:'progress-profile@example.com',password:'progress-profile-pw',name:'Progress'})}));
+    await page.evaluate(async()=>{const r=(await (await fetch('api/riffs/list.php')).json())[0];const D=86400000,now=Date.now();
+        RKProgress.update(s=>{RKProgress.setGoal(s,3,now);RKProgress.addPlayTime(s,r.id,400,now);RKProgress.markClean(s,r.id,r.segments,0,1,now-4*D);RKProgress.markClean(s,r.id,r.segments,1,1,now);});});
+    await page.goto(site.base+'/profile.html',{waitUntil:'domcontentloaded'});
+    await page.waitForSelector('#profileProgress .pp-riffs li');
+    const text=await page.locator('#profileProgress').innerText();
+    assert.match(text,/1\s*of 3 days/);assert.match(text,/Review: Black Dog/);assert.match(text,/2 of 10 parts at tempo/);assert.match(text,/1 part to review/);
+    assert.match(await page.locator('.pp-next .pp-btn').getAttribute('href'),/practice\.html\?riff=1&part=1$/);
+    await page.click('#ppChangeGoal');await page.click('.pp-goal-btn[data-goal="5"]');
+    await page.waitForFunction(()=>/of 5 days/.test(document.getElementById('profileProgress').innerText));
+    // saved to the account: a fresh browser with the same session gets it back
+    await page.evaluate(()=>{localStorage.removeItem('rkProgressV2');});
+    await page.waitForTimeout(800);
+    await page.reload({waitUntil:'domcontentloaded'});
+    await page.waitForFunction(()=>/2 of 10 parts at tempo/.test(document.getElementById('profileProgress').innerText),{timeout:10000});
+});
 test('editor captures boundaries, edits Atoms, saves and reopens without losing metadata',async t=>{
     const page=await pageFor(t);const [name,value]=(await site.adminCookie()).split('=');await page.context().addCookies([{name,value,url:site.base}]);await page.goto(site.base+'/admin/riffs.html',{waitUntil:'domcontentloaded'});await page.click('.admin-tab[data-tab="edit"]');await page.selectOption('#riffSelect','1');
     await page.waitForFunction(()=>document.querySelectorAll('#segmentRows .segment-row').length===10);

@@ -452,6 +452,16 @@ body.riffs-hub .riff-meta-below .riff-artist,
     overflow: hidden;
 }
 
+/* Progress under the artist (js/riff-gallery-card.js): quiet text, no badge. */
+.riff-meta-below .riff-progress-note {
+    margin-top: 4px;
+    font-size: 12px;
+    line-height: 16px;
+    color: rgba(244, 247, 255, 0.55);
+    font-variant-numeric: tabular-nums;
+}
+html[data-theme='light'] .riff-meta-below .riff-progress-note { color: rgba(20, 20, 30, 0.55); }
+
 @media (max-width: 400px) {
     body.riffs-hub,
     .rk-riff-gallery {
