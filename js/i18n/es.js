@@ -630,6 +630,8 @@
             "Your progress": "Tu progreso",
             "This week": "Esta semana",
             "Last 12 weeks": "Últimas 12 semanas",
+            "Email me a short summary of my week every Monday": "Envíame un breve resumen de mi semana cada lunes",
+            "One email a week. It stops by itself after two quiet weeks.": "Un email a la semana. Se detiene solo tras dos semanas sin tocar.",
             "Practice days, last 12 weeks": "Días de práctica, últimas 12 semanas",
             "Weeks in a row": "Semanas seguidas",
             "Goal": "Meta",

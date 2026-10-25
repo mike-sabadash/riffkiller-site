@@ -74,7 +74,10 @@
         return '<section class="pp-card pp-week">' +
             '<h3 class="pp-title">This week ' + hint('A practice day is 5 minutes of the video actually playing on the practice page. The week starts on Monday. Weeks in a row counts weeks that met your goal; the current week joins the run once it is met.', 'practice day') + '</h3>' +
             '<div class="pp-days">' + days + '</div>' + head +
-            '<p class="pp-label">Last 12 weeks</p>' + calHtml + '</section>';
+            '<p class="pp-label">Last 12 weeks</p>' + calHtml +
+            '<label class="pp-email"><input type="checkbox" id="ppEmail"' + (state.email ? ' checked' : '') + '>' +
+            '<span>Email me a short summary of my week every Monday<small>One email a week. It stops by itself after two quiet weeks.</small></span></label>' +
+            '</section>';
     }
 
     function nextHtml(state, now) {
@@ -170,6 +173,10 @@
                 editingGoal = false;
                 P.update(function (s, t) { P.setGoal(s, Number(b.dataset.goal), t); }, { soon: true });
             });
+        });
+        var email = root.querySelector('#ppEmail');
+        if (email) email.addEventListener('change', function () {
+            P.update(function (s, t) { P.setEmail(s, email.checked, t); }, { soon: true });
         });
         var change = root.querySelector('#ppChangeGoal');
         if (change) change.addEventListener('click', function () { editingGoal = true; render(); });
