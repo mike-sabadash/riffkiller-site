@@ -254,6 +254,29 @@ test('cover: a frame from the markup video becomes the riff card picture after s
     await page.waitForFunction(()=>document.querySelector('#riffsGrid .riff-card[data-id="1"] img.riff-image').complete);
     assert.match(await page.$eval('#riffsGrid .riff-card[data-id="1"] img.riff-image',img=>img.currentSrc),/\.w\d+\.webp$/,'the card loads a WebP copy');
 });
+test('draft: a riff saved with only a name, collection and level is hidden until it has a video',async t=>{
+    const store=path.join(site.dir,'data/riffs.json'),original=fs.readFileSync(store);t.after(()=>fs.writeFileSync(store,original));
+    const page=await pageFor(t);const [name,value]=(await site.adminCookie()).split('=');await page.context().addCookies([{name,value,url:site.base}]);
+    await page.goto(site.base+'/admin/riffs.html',{waitUntil:'domcontentloaded'});await page.click('.admin-tab[data-tab="edit"]');
+    await page.waitForSelector('#collChecks input[data-col-id="3"]');
+    assert.ok(await page.isChecked('#hidden')&&await page.isDisabled('#hidden'),'without a video the riff can only be hidden');
+    await page.fill('#song','Paranoid');await page.fill('#artist','Black Sabbath');await page.selectOption('#genre','metal');await page.selectOption('#difficulty','advanced');
+    await page.check('#collChecks input[data-col-id="3"]');
+    const save=page.waitForResponse(r=>r.url().endsWith('/api/riffs/save.php'));await page.click('#submitBtn');
+    assert.equal((await save).status(),200);await page.waitForFunction(()=>/Сохранено/.test(document.getElementById('edStatus').textContent));
+    const draft=JSON.parse(fs.readFileSync(store)).find(r=>r.song==='Paranoid');
+    assert.equal(draft.hidden,true);assert.equal(draft.videoFile,'');assert.equal(draft.difficulty,'advanced');assert.deepEqual(draft.collectionIds,[3]);
+    assert.match(await page.locator('#riffSelect option:checked').innerText(),/черновик/);
+    await page.click('.admin-tab[data-tab="list"]');
+    assert.match(await page.locator('.riff-card[data-id="'+draft.id+'"] .riff-list-draft').innerText(),/черновик, нет видео/);
+    // A video path unlocks the checkbox; it stays ticked until the admin publishes on purpose.
+    await page.click('.admin-tab[data-tab="edit"]');await page.fill('#videoFile','assets/video/x/paranoid-left.mp4');
+    assert.ok(await page.isChecked('#hidden')&&!await page.isDisabled('#hidden'));
+    await page.fill('#videoFile','');assert.ok(await page.isDisabled('#hidden'));
+    await page.goto(site.base+'/',{waitUntil:'domcontentloaded'});await page.waitForSelector('#riffsGrid .riff-card');
+    assert.equal(await page.locator('#riffsGrid .riff-card[data-id="'+draft.id+'"]').count(),0,'the draft is not in the library');
+    assert.equal(await page.getByText('Paranoid').count(),0);
+});
 test('collection banner: a wide picture fills the header, a small one is flagged, none shows the card picture whole',async t=>{
     const store=path.join(site.dir,'data/collections.json'),original=fs.readFileSync(store);t.after(()=>fs.writeFileSync(store,original));
     const tmp=fs.mkdtempSync(path.join(require('node:os').tmpdir(),'banner-'));const wide=path.join(tmp,'wide.png');

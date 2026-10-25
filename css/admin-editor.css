@@ -55,6 +55,9 @@ body.ed-page .tab-pane#tabList .form-section { max-width: 760px; }
 .ed-field input:focus, .ed-field select:focus, .ed-field textarea:focus, .ed-input:focus { outline: none; border-color: var(--ed-accent); box-shadow: 0 0 0 3px rgba(147, 85, 229, 0.25); }
 .ed-field select option, .ed-input option { color: #000; }
 .ed-check { display: flex; align-items: center; gap: 8px; color: var(--ed-text-2); cursor: pointer; align-self: end; padding-bottom: 9px; }
+.ed-checks { display: flex; flex-direction: column; gap: 8px; align-self: end; padding-bottom: 9px; }
+.ed-checks .ed-check { padding-bottom: 0; }
+.ed-check:has(input:disabled) { cursor: default; color: var(--ed-text-3); }
 
 /* Buttons used inside the editor */
 .ed-btn { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px; border-radius: 6px; border: 1px solid var(--ed-line-strong); background: var(--ed-surface-2); color: var(--ed-text); font-family: inherit; font-size: 13px; font-weight: 500; line-height: 1; cursor: pointer; white-space: nowrap; }

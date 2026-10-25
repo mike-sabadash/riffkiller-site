@@ -27,9 +27,12 @@ function writeJSON(file, data) {
     fs.writeFileSync(file, JSON.stringify(data, null, 4), 'utf8');
 }
 
+// Same rule as config/riff-visibility.php: drafts without a video and hidden riffs stay off the site.
+const isPublicRiff = r => !!r && !r.hidden && !!String(r.videoFile || '').trim();
+
 function buildCollectionsList() {
     const meta = readJSON(COLLECTIONS_FILE);
-    const riffs = readJSON(RIFFS_FILE);
+    const riffs = readJSON(RIFFS_FILE).filter(isPublicRiff);
     return meta.filter(c => c && c.id).map(c => {
         const cid = Number(c.id);
         const riffIds = riffs.filter(r => r && r.id && Array.isArray(r.collectionIds) && r.collectionIds.includes(cid)).map(r => Number(r.id));
@@ -54,7 +57,8 @@ function stripCollectionIdFromRiffs(collectionId) {
 
 app.get('/api/riffs/list.php', (req, res) => {
     res.header('Cache-Control', 'no-store, no-cache, must-revalidate');
-    res.json(readJSON(RIFFS_FILE));
+    const list = readJSON(RIFFS_FILE);
+    res.json(req.query.raw ? list : list.filter(isPublicRiff));
 });
 
 app.post('/api/riffs/save.php', (req, res) => {

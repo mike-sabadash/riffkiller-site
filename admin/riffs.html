@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="../css/reset.css">
     <link rel="stylesheet" href="../css/variables.css?v=flat1">
     <!-- Не подключаем base.css и components.css — там стили заглушки; админка риффов самодостаточна -->
-    <link rel="stylesheet" href="../css/admin-editor.css?v=cov1">
+    <link rel="stylesheet" href="../css/admin-editor.css?v=draft1">
     <link rel="icon" type="image/svg+xml" href="../assets/icons/favicon.svg">
     <style>
         html, body { background: #111629 !important; background-image: none !important; color: #fff; font-family: Roboto, sans-serif; min-height: 100vh; min-height: 100dvh; padding: 24px; margin: 0; padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px) + 52px); }
@@ -53,6 +53,7 @@
         .riff-move-btns button:hover { color: var(--color-text-primary); }
         .riff-move-btns button:disabled { opacity: 0.3; cursor: not-allowed; }
         .riff-list-song { font-weight: 500; flex: 1; min-width: 0; }
+        .riff-list-draft { margin-left: 8px; font-size: 12px; font-weight: 400; color: var(--color-text-tertiary); }
         .riff-list-artist { color: var(--color-text-tertiary); font-size: 13px; flex: 1; min-width: 0; }
         .riff-list-actions { display: flex; gap: 8px; align-items: center; flex-shrink: 0; }
         .riff-list-empty { padding: 40px; text-align: center; color: var(--color-text-tertiary); }
@@ -158,7 +159,10 @@
                     <label class="ed-field"><span>Сложность</span><select id="difficulty"><option value="beginner">beginner</option><option value="intermediate" selected>intermediate</option><option value="advanced">advanced</option></select></label>
                     <label class="ed-field"><span>Жанр</span><select id="genre"><option value="rock" selected>rock</option><option value="metal">metal</option><option value="blues">blues</option><option value="country">country</option><option value="punk">punk</option><option value="funk">funk</option><option value="jazz">jazz</option><option value="pop">pop</option><option value="other">other</option></select></label>
                     <label class="ed-field"><span>Длительность, сек</span><input type="number" id="duration" step="any" min="0" placeholder="берётся из видео"></label>
-                    <label class="ed-check"><input type="checkbox" id="isFree" name="isFree"> Бесплатный, без подписки</label>
+                    <div class="ed-checks">
+                        <label class="ed-check"><input type="checkbox" id="isFree" name="isFree"> Бесплатный, без подписки</label>
+                        <label class="ed-check" id="hiddenLabel"><input type="checkbox" id="hidden" name="hidden"> <span id="hiddenText">Скрыть с сайта</span></label>
+                    </div>
                     <div class="ed-field span-4"><span>Коллекции</span><div id="collChecks" class="coll-picks"></div><small>Сами коллекции создаются в разделе «Коллекции» админки.</small></div>
                 </div>
             </section>
@@ -484,7 +488,7 @@
             riffsCache = list || [];
             var sel = document.getElementById('riffSelect');
             sel.innerHTML = '<option value="">— Новый рифф —</option>';
-            (riffsCache).forEach(function(r){ var o = document.createElement('option'); o.value = r.id; o.textContent = (r.song||'')+' — '+(r.artist||''); sel.appendChild(o); });
+            (riffsCache).forEach(function(r){ var o = document.createElement('option'); o.value = r.id; o.textContent = (r.song||'')+' — '+(r.artist||'') + (draftLabel(r) ? ' · ' + draftLabel(r).split(',')[0] : ''); sel.appendChild(o); });
             sel.value = document.getElementById('riffForm').dataset.editId || '';
             renderRiffList();
             loadCollectionsMeta(function () {
@@ -569,6 +573,22 @@
         }
         dragCard = null; dragOrigIdx = null; placeholderEl = null;
     }
+    // Same rule as config/riff-visibility.php: without a video or with «Скрыть с сайта» the riff is a draft.
+    function draftLabel(r) {
+        if (!String(r.videoFile || '').trim()) return 'черновик, нет видео';
+        return r.hidden ? 'скрыт' : '';
+    }
+    function hasVideo() {
+        return !!(document.getElementById('videoFile').value.trim() || document.getElementById('videoFileUpload').files[0]);
+    }
+    // No video yet: the riff can only be saved hidden. With a video the checkbox is the admin's own choice again.
+    function syncHidden() {
+        var cb = document.getElementById('hidden'), noVideo = !hasVideo();
+        if (noVideo) cb.checked = true;
+        cb.disabled = noVideo;
+        document.getElementById('hiddenText').textContent = noVideo ? 'Скрыт с сайта: нет видео' : 'Скрыть с сайта';
+        document.getElementById('hiddenLabel').title = noVideo ? 'Рифф появится на сайте, когда будет видео и галочка снята' : '';
+    }
     function renderRiffList() {
         var body = document.getElementById('riffListBody');
         if (!body) return;
@@ -589,7 +609,7 @@
                 '<div class="riff-move-cell">' +
                 '<span class="riff-grip" title="Перетащить" aria-label="Перетащить">' + GripSvg + '</span>' +
                 '<div class="riff-move-btns"><button type="button" class="move-up" title="Выше">▲</button><button type="button" class="move-down" title="Ниже">▼</button></div></div>' +
-                '<span class="riff-list-song">' + (r.song||'') + '</span>' +
+                '<span class="riff-list-song">' + (r.song||'') + (draftLabel(r) ? ' <span class="riff-list-draft">' + draftLabel(r) + '</span>' : '') + '</span>' +
                 '<span class="riff-list-artist">' + (r.artist||'') + '</span>' +
                 '<div class="riff-list-actions"><button type="button" class="btn btn-primary btn-small btn-edit">Редактировать</button><button type="button" class="btn btn-secondary btn-small btn-del">Удалить</button></div>';
             var moveUp = card.querySelector('.move-up'); var moveDown = card.querySelector('.move-down');
@@ -707,13 +727,14 @@
         videoSource = riff.videoSource || null;
         document.getElementById('song').value = riff.song || '';
         document.getElementById('artist').value = riff.artist || '';
-        document.getElementById('duration').value = riff.duration != null ? riff.duration : '';
+        document.getElementById('duration').value = riff.duration ? riff.duration : '';
         document.getElementById('difficulty').value = riff.difficulty || 'intermediate';
         var g = (riff.genre || 'rock').trim();
         var ge = document.getElementById('genre');
         if (g && !Array.prototype.some.call(ge.options, function (o) { return o.value === g; })) { var o = document.createElement('option'); o.value = g; o.textContent = g; ge.appendChild(o); }
         ge.value = g || 'rock';
         document.getElementById('isFree').checked = !!riff.isFree;
+        document.getElementById('hidden').checked = !!riff.hidden;
         document.getElementById('dnaReference').checked = !!riff.dnaReference;
         document.getElementById('videoFile').value = riff.videoFile || '';
         document.getElementById('videoFileRight').value = riff.videoFileRight || '';
@@ -721,6 +742,7 @@
         setCover(null, riff.thumbnail || '');
         document.getElementById('lessonVideo').value = riff.lessonVideo || '';
         ['videoFileUpload', 'videoFileRightUpload', 'thumbnailUpload', 'lessonVideoUpload'].forEach(function (id) { document.getElementById(id).value = ''; });
+        syncHidden();
         SegmentEditor.load(riff);
         TabEditor.load(riff);
         RiffDNAEditor.load(riff);
@@ -882,7 +904,7 @@
             uLesson ? uploadVideo(uLesson, basePath + songSlug + '-lesson.mp4', 'lessonVideoProgress') : Promise.resolve(vLesson),
             TabEditor.collect(uploadImage, basePath.replace(/^assets\/video\//, 'assets/tabs/'))
         ]).then(function(r){
-            var riff = Object.assign({}, editingRiff || {}, { song:song, artist:artist, duration: SegmentEditor.duration() || parseFloat(document.getElementById('duration').value)||0, difficulty: document.getElementById('difficulty').value||'intermediate', genre: document.getElementById('genre').value.trim()||'rock', isFree: document.getElementById('isFree').checked, dnaReference: document.getElementById('dnaReference').checked, videoFile: r[0]||basePath+'left.mp4', videoFileRight: r[1]||basePath+'right.mp4', thumbnail: r[2]||'assets/img/riff-1.png', lessonVideo: r[3]||vLesson||null, segments: segs, dna: dna, collectionIds: getSelectedCollectionIds() });
+            var riff = Object.assign({}, editingRiff || {}, { song:song, artist:artist, duration: SegmentEditor.duration() || parseFloat(document.getElementById('duration').value)||0, difficulty: document.getElementById('difficulty').value||'intermediate', genre: document.getElementById('genre').value.trim()||'rock', isFree: document.getElementById('isFree').checked, hidden: document.getElementById('hidden').checked || !r[0], dnaReference: document.getElementById('dnaReference').checked, videoFile: r[0]||'', videoFileRight: r[1]||'', thumbnail: r[2]||'assets/img/riff-1.png', lessonVideo: r[3]||vLesson||null, segments: segs, dna: dna, collectionIds: getSelectedCollectionIds() });
             if (r[4]) riff.tab = r[4]; else delete riff.tab;
             if (videoSource) riff.videoSource = videoSource;
             if(editId) riff.id = parseInt(editId,10);
@@ -920,9 +942,11 @@
     });
     document.getElementById('riffForm').addEventListener('change', function (e) { if (e.target.id !== 'riffSelect' && e.isTrusted) markDirty(); });
     document.getElementById('videoFile').addEventListener('change', function () { SegmentEditor.setVideo(this.value || document.getElementById('videoFileRight').value); });
+    document.getElementById('videoFile').addEventListener('input', syncHidden);
     // A chosen file plays here right away, before it is uploaded on save.
     document.getElementById('videoFileUpload').addEventListener('change', function () {
         var f = this.files[0];
+        syncHidden();
         if (f) SegmentEditor.setVideo(URL.createObjectURL(f));
     });
 
@@ -939,6 +963,7 @@
         done: function (result) {
             document.getElementById('videoFile').value = result.left;
             document.getElementById('videoFileRight').value = result.right;
+            syncHidden();
             videoSource = { file: result.source, left: result.boxes.left, right: result.boxes.right };
             SegmentEditor.setVideo(result.left);
             markDirty();

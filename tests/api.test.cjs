@@ -32,6 +32,25 @@ test('save and reload preserve DNA, segment metadata and unknown fields; stale s
     response=await post('/api/riffs/save.php',{riff:original,expectedRiff:original},admin);assert.equal(response.status,409);
     const reloaded=(await (await fetch(site.base+'/api/riffs/list.php')).json())[0];assert.equal(reloaded.segments[0].name,'Edited segment');assert.equal(reloaded.segments[0].tabImage,original.segments[0].tabImage);
 });
+test('a draft without video and a hidden riff stay in the admin list only and do not fill collections',async()=>{
+    const store=path.join(site.dir,'data/riffs.json'),original=fs.readFileSync(store);
+    try {
+        const before=await (await fetch(site.base+'/api/collections/list.php')).json();
+        let response=await post('/api/riffs/save.php',{riff:{song:'Paranoid',artist:'Black Sabbath',difficulty:'intermediate',genre:'metal',isFree:false,hidden:true,videoFile:'',videoFileRight:'',thumbnail:'assets/img/riff-1.png',segments:[],collectionIds:[3]}},admin);
+        assert.equal(response.status,200);const draft=(await response.json()).riff;assert.equal(draft.duration,0);
+        const hidden={...JSON.parse(original)[0]};hidden.hidden=true;
+        response=await post('/api/riffs/save.php',{riff:hidden,expectedRiff:JSON.parse(original)[0]},admin);assert.equal(response.status,200);
+        const ids=list=>list.map(r=>r.id);
+        const pub=await (await fetch(site.base+'/api/riffs/list.php')).json();
+        assert.ok(!ids(pub).includes(draft.id)&&!ids(pub).includes(hidden.id),'public list has no draft and no hidden riff');
+        assert.ok(!ids(await (await fetch(site.base+'/api/riffs/list.php?raw=1')).json()).includes(draft.id),'raw list without admin sign-in has no draft');
+        const raw=await (await fetch(site.base+'/api/riffs/list.php?raw=1',{headers:{Cookie:admin}})).json();
+        assert.ok(ids(raw).includes(draft.id)&&ids(raw).includes(hidden.id),'the admin sees both');
+        const after=await (await fetch(site.base+'/api/collections/list.php')).json();
+        assert.equal(after.find(c=>c.id===3).videoCount,before.find(c=>c.id===3).videoCount,'a draft does not fill its collection');
+        for(const c of after)assert.ok(!c.riffs.includes(draft.id)&&!c.riffs.includes(hidden.id));
+    } finally { fs.writeFileSync(store,original); }
+});
 test('the range endpoint returns bytes for seeking and rejects out-of-range requests',async()=>{
     const riff=(await (await fetch(site.base+'/api/riffs/list.php')).json())[0];
     const response=await fetch(site.base+'/video.php?file='+encodeURIComponent(riff.videoFile),{headers:{Range:'bytes=10-29'}});
