@@ -108,6 +108,12 @@
             audio.playbackRate = this.rate;
             if (this.intendedPlaying) this.syncVoice(true);
         }
+        // One voice at a time: the part's file while it plays, otherwise the left camera (the clock);
+        // the right camera is always silent. A view change must not unmute the left camera over the part file.
+        applyVoice() {
+            this.right.muted = true;
+            this.left.muted = !!(this.voice || this.silenced);
+        }
         clearVoice(keepMuted) {
             const v = this.voice;
             if (!v) return;

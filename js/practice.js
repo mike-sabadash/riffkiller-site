@@ -787,8 +787,8 @@ function setVideoMode(mode) {
         video.style.opacity = String(show[i]);
         video.style.pointerEvents = show[i] ? 'auto' : 'none';
     });
-    leftVideo.muted = false;
-    rightVideo.muted = true;
+    if (practiceTransport) practiceTransport.applyVoice();
+    else { leftVideo.muted = false; rightVideo.muted = true; }
 }
 
 // Сообщение при попытке использовать управление в lesson mode
