@@ -486,32 +486,12 @@ document.addEventListener('DOMContentLoaded', () => {
     initPracticePage();
 });
 
-// Онбординг Practice: один раз на устройство
+// Tour of the practice controls (js/practice-tour.js): once per device, then from the "?" next to Tabs.
+let practiceTourReady = false;
 function initPracticeOnboarding() {
-    try {
-        if (localStorage.getItem('riffKillerOnboardingSeen') === '1') return;
-    } catch (e) {
-        // если localStorage не доступен — просто не показываем
-        return;
-    }
-    var overlay = document.getElementById('practiceOnboarding');
-    if (!overlay) return;
-    var skipBtn = document.getElementById('onboardingSkipBtn');
-    var nextBtn = document.getElementById('onboardingNextBtn');
-    overlay.style.display = 'flex';
-
-    function closeOnboarding() {
-        overlay.style.display = 'none';
-        try { localStorage.setItem('riffKillerOnboardingSeen', '1'); } catch (e) {}
-    }
-
-    if (skipBtn) skipBtn.addEventListener('click', closeOnboarding);
-    if (nextBtn) nextBtn.addEventListener('click', closeOnboarding);
-
-    // клик по фону вне карточки — тоже закрывает
-    overlay.addEventListener('click', function(e) {
-        if (e.target === overlay) closeOnboarding();
-    });
+    if (practiceTourReady || !window.PracticeTour) return;
+    practiceTourReady = true;
+    window.PracticeTour.init();
 }
 
 
@@ -1787,7 +1767,7 @@ window.addEventListener('pagehide', event => { if (!event.persisted && practiceM
     }
     function modalOpen() {
         if (document.querySelector('.auth-modal-backdrop')) return true;
-        return !!document.querySelector('dialog[open]');
+        return !!document.querySelector('dialog[open], .tour');
     }
     function isSpace(e) { return e.code === 'Space' || e.key === ' '; }
     function keyboardFocused(el) {

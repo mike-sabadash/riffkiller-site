@@ -964,102 +964,54 @@
     touch-action: manipulation;
 }
 
-/* === PRACTICE ONBOARDING OVERLAY === */
-.practice-onboarding-backdrop {
-    position: fixed;
-    inset: 0;
-    background: rgba(4, 6, 20, 0.82);
-    backdrop-filter: blur(10px);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1200;
-    box-sizing: border-box;
-    padding: max(20px, env(safe-area-inset-top, 0px)) 20px
-        calc(max(24px, env(safe-area-inset-bottom, 0px)) + var(--rk-mobile-browser-chrome-bottom, 52px));
+/* === Practice tour (js/practice-tour.js): the page dims, one control stays lit, a short note sits next to it === */
+.tour { position: fixed; inset: 0; z-index: 1300; }
+.tour-shade { position: absolute; inset: 0; }
+.tour-spot {
+    position: fixed; border-radius: 14px; pointer-events: none;
+    box-shadow: 0 0 0 200vmax rgba(4, 5, 10, 0.74), 0 0 0 1px rgba(255, 255, 255, 0.22);
+    transition: left .25s ease, top .25s ease, width .25s ease, height .25s ease;
 }
+.tour-card {
+    position: fixed; width: min(320px, calc(100vw - 32px)); box-sizing: border-box; padding: 16px 16px 12px;
+    border-radius: 14px; background: #16171d; color: rgba(255, 255, 255, 0.92);
+    box-shadow: 0 18px 50px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.08);
+    font: 400 14px/1.45 'Inter', system-ui, sans-serif;
+    transition: left .25s ease, top .25s ease;
+}
+.tour-title { margin: 0 0 4px; font-size: 15px; font-weight: 600; color: #fff; }
+.tour-text { margin: 0; color: rgba(255, 255, 255, 0.72); }
+.tour-foot { display: flex; align-items: center; gap: 8px; margin-top: 14px; }
+.tour-count { margin-right: auto; color: rgba(255, 255, 255, 0.4); font-size: 12px; font-variant-numeric: tabular-nums; }
+.tour-skip, .tour-next { height: 34px; padding: 0 14px; border: 0; border-radius: 9px; font: 500 13px/1 'Inter', system-ui, sans-serif; cursor: pointer; }
+.tour-skip { background: none; color: rgba(255, 255, 255, 0.6); }
+.tour-skip:hover { color: #fff; }
+.tour-next { background: #9355E5; color: #fff; }
+.tour-next:hover { background: #7B3FC7; }
+.tour-skip:focus-visible, .tour-next:focus-visible { outline: 2px solid #cfff55; outline-offset: 2px; }
+/* Drawn arrow from the note toward the lit control */
+.tour-arrow { position: absolute; left: var(--arrow-x, 24px); color: #cfff55; pointer-events: none; }
+.tour-card[data-side="below"] .tour-arrow { top: -30px; }
+.tour-card[data-side="above"] .tour-arrow { bottom: -30px; transform: scaleY(-1); }
+.tour-card[data-side="over"] .tour-arrow { display: none; }
+@media (prefers-reduced-motion: reduce) { .tour-spot, .tour-card { transition: none; } }
+html[data-theme='light'] .tour-spot { box-shadow: 0 0 0 200vmax rgba(20, 20, 30, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.6); }
+html[data-theme='light'] .tour-card { background: #fff; color: #15151c; box-shadow: 0 18px 50px rgba(0, 0, 0, 0.18), 0 0 0 1px rgba(20, 20, 30, 0.08); }
+html[data-theme='light'] .tour-title { color: #15151c; }
+html[data-theme='light'] .tour-text { color: rgba(20, 20, 30, 0.72); }
+html[data-theme='light'] .tour-count { color: rgba(20, 20, 30, 0.45); }
+html[data-theme='light'] .tour-skip { color: rgba(20, 20, 30, 0.6); }
+html[data-theme='light'] .tour-arrow { color: #7B3FC7; }
 
-.practice-onboarding-card {
-    background: linear-gradient(180deg, #101225 0%, #050615 100%);
-    border-radius: 20px;
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    max-width: 420px;
-    width: calc(100% - 40px);
-    max-height: min(85vh, 560px);
-    max-height: min(560px, 85dvh);
-    max-height: min(560px, 78svh);
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-    padding: 24px 22px 20px;
-    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.7);
-    box-sizing: border-box;
+/* "?" next to Tabs: starts the tour again */
+.practice-help-btn {
+    display: inline-flex; align-items: center; justify-content: center; flex: none;
+    width: 40px; height: 40px; padding: 0; border: 1px solid rgba(255, 255, 255, 0.09); border-radius: 10px;
+    background: rgba(255, 255, 255, 0.035); color: rgba(230, 234, 248, 0.72); cursor: pointer;
 }
-
-.practice-onboarding-title {
-    font-family: var(--font-family-accent, 'Zen Dots', system-ui);
-    font-size: 18px;
-    margin: 0 0 14px 0;
-    color: var(--color-text-primary);
-    letter-spacing: 0.02em;
-}
-
-.practice-onboarding-steps {
-    list-style: none;
-    padding: 0;
-    margin: 0 0 18px 0;
-    font-size: 14px;
-    color: var(--color-text-secondary);
-}
-
-.practice-onboarding-steps li {
-    margin-bottom: 8px;
-}
-
-.practice-onboarding-steps li strong {
-    color: var(--color-text-primary);
-}
-
-.practice-onboarding-hint{
-    margin: 4px 0 16px;
-    font-size: 13px;
-    color: var(--color-text-tertiary);
-    line-height: 1.5;
-}
-
-.practice-onboarding-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 8px;
-}
-
-.onboarding-btn {
-    border-radius: 999px;
-    padding: 8px 16px;
-    font-size: 13px;
-    cursor: pointer;
-    border: 1px solid transparent;
-    font-family: inherit;
-}
-
-.onboarding-btn.secondary {
-    background: transparent;
-    color: var(--color-text-tertiary);
-    border-color: rgba(255, 255, 255, 0.18);
-}
-
-.onboarding-btn.secondary:hover {
-    background: rgba(255, 255, 255, 0.06);
-}
-
-.onboarding-btn.primary {
-    background: #9355E5;
-    color: #fff;
-    border-color: #9355E5;
-}
-
-.onboarding-btn.primary:hover {
-    background: #7B3FC7;
-}
+.practice-help-btn:hover { color: #fff; }
+.practice-help-btn:focus-visible { outline: 2px solid #cfff55; outline-offset: 2px; }
+html[data-theme='light'] .practice-help-btn { border-color: rgba(20, 20, 30, 0.12); background: rgba(20, 20, 30, 0.03); color: rgba(20, 20, 30, 0.7); }
 
 /* === Speed Trainer guide (dialog.dna-guide from riff-dna.css; "i" next to the mode) === */
 .practice-speed-mode .st-info {
@@ -1077,26 +1029,45 @@
 .st-step p { margin: 0; line-height: 1.5; color: rgba(255, 255, 255, 0.62); font-size: 13px; }
 /* Pieces of the real controls, drawn small and inert */
 .st-demo { display: grid; gap: 14px; padding: 14px; border-radius: 12px; background: rgba(255, 255, 255, 0.035); }
-.st-parts { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
-.st-parts span, .st-chip, .st-track span {
+.st-demo { position: relative; }
+/* Part rows as in the parts column: play icon, name, role in its colour on the right */
+.st-parts { display: grid; gap: 6px; }
+.st-part {
+    display: flex; align-items: center; gap: 10px; height: 38px; padding: 0 12px; border-radius: 10px;
+    background: rgba(255, 255, 255, 0.045); border: 1px solid rgba(255, 255, 255, 0.1); color: rgba(244, 247, 255, 0.8); font-size: 12.5px; font-weight: 500;
+}
+.st-part img { width: 16px; height: 16px; opacity: 0.85; }
+.st-part span { flex: 1; }
+.st-part b { color: var(--role); font-weight: 500; }
+.st-part.on { background: rgba(147, 85, 229, 0.38); border-color: transparent; color: #fff; }
+.st-chip, .st-track span {
     display: flex; align-items: center; justify-content: center; height: 30px; border-radius: 9px;
     color: rgba(230, 234, 248, 0.72); font-size: 12.5px; font-weight: 500; white-space: nowrap;
 }
-.st-parts span { background: rgba(255, 255, 255, 0.05); }
-.st-parts span.on, .st-chip.on, .st-track span.on { background: rgba(147, 85, 229, 0.38); color: #fff; }
-.st-timeline { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 3px; margin-top: 30px; }
-.st-timeline i { position: relative; height: 6px; border-radius: 3px; background: rgba(255, 255, 255, 0.12); }
-.st-timeline i.on { background: #9355E5; }
+.st-chip.on, .st-track span.on { background: rgba(147, 85, 229, 0.38); color: #fff; }
+/* The bottom of the video with the parts bar, as in the player */
+.st-video { position: relative; height: 64px; border-radius: 12px; background: linear-gradient(160deg, #2a2440, #141320); overflow: hidden; }
+.st-timeline { position: absolute; left: 0; right: 0; bottom: 0; height: 22px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; align-items: center; padding: 0 6px; border-radius: 12px; background: rgba(0, 0, 0, 0.8); }
+.st-timeline i { position: relative; height: 6px; border-radius: 3px; background: rgba(147, 85, 229, 0.3); }
+.st-timeline i.on { background: rgba(147, 85, 229, 0.75); }
 .st-timeline b {
-    position: absolute; left: 50%; bottom: calc(100% + 8px); transform: translateX(-50%);
+    position: absolute; left: 50%; bottom: calc(100% + 9px); transform: translateX(-50%);
     padding: 3px 9px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.14); background: rgba(6, 8, 18, 0.78);
-    color: #fff; font-size: 11px; font-weight: 700; letter-spacing: 0.07em; white-space: nowrap;
+    color: #fff; font-size: 11px; font-weight: 700; letter-spacing: 0.07em; white-space: nowrap; font-style: normal;
 }
 .st-ladder { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; padding: 3px; border: 1px solid rgba(255, 255, 255, 0.09); border-radius: 12px; }
 .st-ladder div { display: grid; gap: 6px; text-align: center; }
 .st-ladder small { padding-bottom: 4px; color: rgba(255, 255, 255, 0.45); font-size: 11.5px; }
-.st-track { display: inline-flex; gap: 2px; justify-self: start; padding: 3px; border: 1px solid rgba(255, 255, 255, 0.09); border-radius: 12px; }
+.st-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.st-track { display: inline-flex; gap: 2px; padding: 3px; border: 1px solid rgba(255, 255, 255, 0.09); border-radius: 12px; }
 .st-track span { padding: 0 12px; }
+.st-speeds span { padding: 0 9px; }
+/* Hand-drawn arrows toward the place the text talks about */
+.st-arrow { position: absolute; color: #cfff55; pointer-events: none; }
+.st-arrow--part { right: 64px; top: 58px; transform: rotate(-12deg); }
+.st-arrow--badge { left: calc(37.5% + 30px); top: 22px; transform: scaleX(-1) rotate(40deg); }
+.st-demo--exit { padding-bottom: 42px; }
+.st-arrow--exit { left: 30px; top: 54px; transform: rotate(-4deg); }
 .st-foot { padding: 12px 20px 20px; border-top: 1px solid rgba(255, 255, 255, 0.06); }
 .st-start {
     width: 100%; height: 40px; border: 0; border-radius: 10px; background: #9355E5; color: #fff;
@@ -1115,9 +1086,11 @@ html[data-theme='light'] .st-step, html[data-theme='light'] .st-foot { border-co
 html[data-theme='light'] .st-guide .st-step h3 { color: #15151c; }
 html[data-theme='light'] .st-step p, html[data-theme='light'] .st-ladder small { color: rgba(20, 20, 30, 0.6); }
 html[data-theme='light'] .st-demo { background: rgba(20, 20, 30, 0.04); }
-html[data-theme='light'] .st-parts span, html[data-theme='light'] .st-chip, html[data-theme='light'] .st-track span { color: rgba(20, 20, 30, 0.7); }
-html[data-theme='light'] .st-parts span { background: rgba(20, 20, 30, 0.05); }
-html[data-theme='light'] .st-parts span.on, html[data-theme='light'] .st-chip.on, html[data-theme='light'] .st-track span.on { background: rgba(147, 85, 229, 0.16); color: #15151c; }
+html[data-theme='light'] .st-part, html[data-theme='light'] .st-chip, html[data-theme='light'] .st-track span { color: rgba(20, 20, 30, 0.7); }
+html[data-theme='light'] .st-part { background: rgba(20, 20, 30, 0.04); border-color: rgba(20, 20, 30, 0.1); }
+html[data-theme='light'] .st-part img { filter: invert(1); }
+html[data-theme='light'] .st-part.on, html[data-theme='light'] .st-chip.on, html[data-theme='light'] .st-track span.on { background: rgba(147, 85, 229, 0.16); color: #15151c; }
+html[data-theme='light'] .st-arrow { color: #7B3FC7; }
 html[data-theme='light'] .st-timeline i { background: rgba(20, 20, 30, 0.12); }
 html[data-theme='light'] .st-timeline i.on { background: #9355E5; }
 html[data-theme='light'] .st-ladder, html[data-theme='light'] .st-track { border-color: rgba(20, 20, 30, 0.1); }
@@ -1928,6 +1901,9 @@ html[data-theme='light'] .st-ladder, html[data-theme='light'] .st-track { border
 @media (max-width: 560px) {
     .practice-workspace .controls-below-container { gap: 10px 8px; }
     .practice-workspace .practice-speed-mode { order: 3; flex-basis: 100%; }
+    .practice-workspace .practice-speed-mode { display: flex; align-items: center; flex-wrap: nowrap; margin-left: 0; }
+    .practice-workspace .practice-speed-mode .practice-modes { flex: 1; min-width: 0; }
+    .practice-workspace .practice-speed-mode .st-info { margin-left: 2px; }
     .practice-workspace .practice-modes { display: flex; }
     .practice-workspace .practice-mode-btn { flex: 1; min-height: 38px; }
     .practice-workspace .control-btn { width: 36px; min-width: 36px; padding: 8px; }
