@@ -574,21 +574,21 @@
         }
         dragCard = null; dragOrigIdx = null; placeholderEl = null;
     }
-    // Same rule as config/riff-visibility.php: without a video or with «Скрыть с сайта» the riff is a draft.
+    // Same rule as config/riff-visibility.php: only «Скрыть с сайта» keeps a riff off the site. Without a video
+    // a shown riff has a card and a «video coming soon» practice page.
     function draftLabel(r) {
-        if (!String(r.videoFile || '').trim()) return 'черновик, нет видео';
-        return r.hidden ? 'скрыт' : '';
+        var noVideo = !String(r.videoFile || '').trim();
+        if (r.hidden) return noVideo ? 'черновик, нет видео' : 'скрыт';
+        return noVideo ? 'на сайте без видео' : '';
     }
     function hasVideo() {
         return !!(document.getElementById('videoFile').value.trim() || document.getElementById('videoFileUpload').files[0]);
     }
-    // No video yet: the riff can only be saved hidden. With a video the checkbox is the admin's own choice again.
+    // A new riff starts hidden; the admin may still show one without a video, e.g. to see its card in the library.
     function syncHidden() {
-        var cb = document.getElementById('hidden'), noVideo = !hasVideo();
-        if (noVideo) cb.checked = true;
-        cb.disabled = noVideo;
-        document.getElementById('hiddenText').textContent = noVideo ? 'Скрыт с сайта: нет видео' : 'Скрыть с сайта';
-        document.getElementById('hiddenLabel').title = noVideo ? 'Рифф появится на сайте, когда будет видео и галочка снята' : '';
+        var noVideo = !hasVideo();
+        document.getElementById('hiddenText').textContent = noVideo ? 'Скрыть с сайта (видео ещё нет)' : 'Скрыть с сайта';
+        document.getElementById('hiddenLabel').title = noVideo ? 'Без галочки карточка будет в библиотеке, а практика покажет «видео скоро»' : '';
     }
     function renderRiffList() {
         var body = document.getElementById('riffListBody');
@@ -736,7 +736,7 @@
         if (g && !Array.prototype.some.call(ge.options, function (o) { return o.value === g; })) { var o = document.createElement('option'); o.value = g; o.textContent = g; ge.appendChild(o); }
         ge.value = g || 'rock';
         document.getElementById('isFree').checked = !!riff.isFree;
-        document.getElementById('hidden').checked = !!riff.hidden;
+        document.getElementById('hidden').checked = riff.id ? !!riff.hidden : true;
         document.getElementById('dnaReference').checked = !!riff.dnaReference;
         document.getElementById('videoFile').value = riff.videoFile || '';
         document.getElementById('videoFileRight').value = riff.videoFileRight || '';
@@ -921,7 +921,7 @@
             uLesson ? uploadVideo(uLesson, basePath + songSlug + '-lesson.mp4', 'lessonVideoProgress') : Promise.resolve(vLesson),
             TabEditor.collect(uploadImage, basePath.replace(/^assets\/video\//, 'assets/tabs/'))
         ]).then(function(r){
-            var riff = Object.assign({}, editingRiff || {}, { song:song, artist:artist, duration: SegmentEditor.duration() || parseFloat(document.getElementById('duration').value)||0, difficulty: document.getElementById('difficulty').value||'intermediate', genre: document.getElementById('genre').value.trim()||'rock', isFree: document.getElementById('isFree').checked, hidden: document.getElementById('hidden').checked || !r[0], dnaReference: document.getElementById('dnaReference').checked, videoFile: r[0]||'', videoFileRight: r[1]||'', thumbnail: r[2]||'assets/img/riff-1.png', lessonVideo: r[3]||vLesson||null, segments: segs, dna: dna, collectionIds: getSelectedCollectionIds() });
+            var riff = Object.assign({}, editingRiff || {}, { song:song, artist:artist, duration: SegmentEditor.duration() || parseFloat(document.getElementById('duration').value)||0, difficulty: document.getElementById('difficulty').value||'intermediate', genre: document.getElementById('genre').value.trim()||'rock', isFree: document.getElementById('isFree').checked, hidden: document.getElementById('hidden').checked, dnaReference: document.getElementById('dnaReference').checked, videoFile: r[0]||'', videoFileRight: r[1]||'', thumbnail: r[2]||'assets/img/riff-1.png', lessonVideo: r[3]||vLesson||null, segments: segs, dna: dna, collectionIds: getSelectedCollectionIds() });
             if (r[4]) riff.tab = r[4]; else delete riff.tab;
             if (videoSource) riff.videoSource = videoSource;
             if(editId) riff.id = parseInt(editId,10);

@@ -1,10 +1,10 @@
 <?php
 /**
- * A riff is on the site only when it has a video and the admin has not ticked «Скрыть с сайта».
- * Drafts (name, cover, collections, no video yet) stay in data/riffs.json for the admin only.
+ * A riff is on the site unless the admin ticked «Скрыть с сайта». New riffs start hidden; one without a video
+ * may still be shown (its card is in the library, practice says the video is coming soon).
  */
 function riff_is_public($riff) {
-    return is_array($riff) && empty($riff['hidden']) && trim((string)($riff['videoFile'] ?? '')) !== '';
+    return is_array($riff) && empty($riff['hidden']);
 }
 
 /** @return array<int, array<string,mixed>> */

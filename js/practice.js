@@ -401,6 +401,19 @@ function showVideoErrorState() {
     if (status) status.textContent = 'Download interrupted · Retry to prepare both cameras';
 }
 
+function showVideoSoonState(riff) {
+    const el = document.getElementById('videoSoonState');
+    if (!el) return;
+    const placeholder = document.getElementById('videoLoadingPlaceholder');
+    if (placeholder) placeholder.style.display = 'none';
+    const overlay = document.getElementById('videoOverlay');
+    if (overlay) overlay.style.display = 'none';
+    if (riff.thumbnail) el.style.backgroundImage = 'url("' + String(riff.thumbnail).replace(/["\\]/g, '') + '")';
+    el.hidden = false;
+    document.body.classList.add('practice-soon');
+    document.getElementById('videoWrapper')?.setAttribute('aria-busy', 'false');
+}
+
 function hideVideoErrorState() {
     const errorEl = document.getElementById('videoErrorState');
     if (errorEl) { errorEl.style.display = 'none'; errorEl.setAttribute('aria-hidden', 'true'); }
@@ -532,6 +545,13 @@ function initPracticePage() {
     function runWithRiffs(riffs) {
         if (!Array.isArray(riffs) || riffs.length === 0) riffs = fallbackRiffs;
         var found = riffs.find(function(r) { return r && (r.id === riffId || (r.id != null && parseInt(r.id, 10) === riffId)); });
+        // Shown in the library before its video is recorded: name and cover, no player.
+        if (found && !found.videoFile && (found.song || found.title || found.name)) {
+            currentRiff = found;
+            updateTitle();
+            showVideoSoonState(found);
+            return;
+        }
         if (found && isFullRiff(found)) {
             currentRiff = found;
         } else {

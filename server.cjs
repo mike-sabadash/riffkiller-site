@@ -27,8 +27,8 @@ function writeJSON(file, data) {
     fs.writeFileSync(file, JSON.stringify(data, null, 4), 'utf8');
 }
 
-// Same rule as config/riff-visibility.php: drafts without a video and hidden riffs stay off the site.
-const isPublicRiff = r => !!r && !r.hidden && !!String(r.videoFile || '').trim();
+// Same rule as config/riff-visibility.php: riffs with «Скрыть с сайта» stay off the site.
+const isPublicRiff = r => !!r && !r.hidden;
 
 function buildCollectionsList() {
     const meta = readJSON(COLLECTIONS_FILE);
