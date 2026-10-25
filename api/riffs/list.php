@@ -25,4 +25,15 @@ if (!is_array($data)) {
     exit;
 }
 
+// Light WebP copies of each cover for the cards. The admin asks for the raw list (?raw=1): it saves riffs back
+// and compares them with the stored ones.
+if (!isset($_GET['raw'])) {
+    require_once $base . '/config/image-variants.php';
+    foreach ($data as $i => $riff) {
+        if (!is_array($riff) || empty($riff['thumbnail'])) continue;
+        $srcset = image_srcset($riff['thumbnail']);
+        if ($srcset !== '') $data[$i]['thumbnailSrcset'] = $srcset;
+    }
+}
+
 echo json_encode($data);

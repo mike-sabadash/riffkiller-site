@@ -392,6 +392,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 id: parseInt(c.id, 10),
                 name: c.name || 'Collection',
                 imageUrl: c.imageUrl || c.image || 'assets/img/collections-1.png',
+                imageSrcset: c.imageSrcset || '',
                 riffs,
                 videoCount: riffs.length,
                 isFavorite: !!c.isFavorite
@@ -467,7 +468,7 @@ function createCollectionCard(collection) {
     const favoriteIcon = `<svg class="favorite-icon" viewBox="0 0 16 16" fill="none"><path d="M8 2L9.79611 5.52786L13.6574 6.21885L10.8287 9.16714L11.4721 13L8 11.1279L4.52786 13L5.17127 9.16714L2.3426 6.21885L6.20389 5.52786L8 2Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
     
     card.innerHTML = `
-        <img src="${collection.imageUrl}" alt="${collection.name}" class="collection-image" 
+        <img src="${collection.imageUrl}"${collection.imageSrcset ? ` srcset="${String(collection.imageSrcset).replace(/"/g, '')}" sizes="300px"` : ''} alt="${collection.name}" class="collection-image" 
              onerror="this.onerror=null; this.style.visibility='hidden'">
         <div class="collection-overlay"></div>
         <div class="collection-content">

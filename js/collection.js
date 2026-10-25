@@ -276,6 +276,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     name: c.name || 'Collection',
                     imageUrl: c.imageUrl || c.image || 'assets/img/collections-1.png',
                     bannerUrl: c.bannerUrl || '',
+                    imageSrcset: c.imageSrcset || '',
+                    bannerSrcset: c.bannerSrcset || '',
                     riffs,
                     videoCount: riffs.length,
                     isFavorite: !!c.isFavorite
@@ -319,9 +321,14 @@ function loadCollection(collectionId) {
         // of itself: stretched to 1184x200 a 600x360 card picture loses its edges and goes soft.
         const wide = !!collection.bannerUrl;
         const src = String(wide ? collection.bannerUrl : collection.imageUrl).replace(/"/g, '');
+        const srcset = String((wide ? collection.bannerSrcset : collection.imageSrcset) || '').replace(/"/g, '');
+        // Wide banner up to 1184 px; the card picture in the header is at most 200 px tall (~340 px wide).
+        const pick = srcset ? ` srcset="${srcset}" sizes="${wide ? '(max-width: 1240px) 100vw, 1184px' : '340px'}"` : '';
         banner.classList.toggle('collection-banner--fit', !wide);
-        banner.innerHTML = (wide ? '' : `<img src="${src}" alt="" aria-hidden="true" class="collection-banner-backdrop">`) + `
-            <img src="${src}" alt="${collection.name}" class="collection-banner-image"
+        // The blurred backdrop needs only the smallest copy.
+        const backdrop = srcset ? srcset.split(',')[0].trim().split(' ')[0] : src;
+        banner.innerHTML = (wide ? '' : `<img src="${backdrop}" alt="" aria-hidden="true" class="collection-banner-backdrop">`) + `
+            <img src="${src}"${pick} alt="${collection.name}" class="collection-banner-image"
                  onerror="this.onerror=null; this.style.visibility='hidden'">
             <div class="collection-banner-overlay"></div>
         `;

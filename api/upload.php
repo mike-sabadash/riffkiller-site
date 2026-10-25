@@ -54,4 +54,14 @@ if (!move_uploaded_file($tmp, $fullPath)) {
     exit();
 }
 
+// Covers: light WebP copies for the cards and the collection banner (config/image-variants.php).
+$variants = isset($_POST['variants']) ? (string) $_POST['variants'] : '';
+if (($variants === 'card' || $variants === 'banner') && preg_match('#^assets/img/#', $path)) {
+    require_once $root . '/config/image-variants.php';
+    @chmod($fullPath, 0664);
+    image_make_variants($path, $variants === 'banner' ? IMAGE_BANNER_WIDTHS : IMAGE_CARD_WIDTHS);
+    echo json_encode(['success' => true, 'path' => $path, 'srcset' => image_srcset($path)]);
+    exit();
+}
+
 echo json_encode(['success' => true, 'path' => $path]);

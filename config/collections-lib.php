@@ -3,6 +3,8 @@
  * Коллекции: метаданные в data/collections.json, состав — по полю collectionIds у риффов.
  */
 
+require_once __DIR__ . '/image-variants.php';
+
 function rk_collections_meta_path(): string
 {
     return dirname(__DIR__) . '/data/collections.json';
@@ -70,6 +72,8 @@ function rk_collections_build_list(): array
             'name' => (string) ($c['name'] ?? ''),
             'imageUrl' => (string) ($c['imageUrl'] ?? 'assets/img/collections-1.png'),
             'bannerUrl' => (string) ($c['bannerUrl'] ?? ''),
+            'imageSrcset' => image_srcset((string) ($c['imageUrl'] ?? '')),
+            'bannerSrcset' => image_srcset((string) ($c['bannerUrl'] ?? '')),
             'isFavorite' => !empty($c['isFavorite']),
             'riffs' => $riffIds,
             'videoCount' => count($riffIds),
