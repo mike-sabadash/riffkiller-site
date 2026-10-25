@@ -15,7 +15,7 @@ async function pageFor(t,width=1440) {
     const page=await context.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));
     t.after(()=>assert.deepEqual(errors,[],'No browser JavaScript errors'));
     await page.route(/fonts\.(googleapis|gstatic)\.com/,route=>route.abort());
-    await page.addInitScript(()=>localStorage.setItem('riffKillerOnboardingSeen','1'));
+    await page.addInitScript(()=>localStorage.setItem('rkPracticeTourSeen','1'));
     return page;
 }
 async function practice(page,id=1) {
@@ -366,6 +366,32 @@ test('mobile practice has all stages and usable segment controls without horizon
 });
 
 
+test('practice tour: first visit lights up one control at a time, skips hidden ones, ? starts it again',async t=>{
+    for(const [width,height] of [[1440,900],[390,844]]){
+        const context=await browser.newContext({viewport:{width,height}});t.after(()=>context.close());
+        const page=await context.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));
+        await page.route(/fonts\.(googleapis|gstatic)\.com/,route=>route.abort());
+        await page.goto(site.base+'/practice.html?riff=1',{waitUntil:'domcontentloaded'});
+        await page.waitForSelector('.tour .tour-card');
+        const steps=[];
+        for(let i=0;i<10&&await page.locator('.tour').count();i++){
+            const title=await page.locator('.tour-title').innerText();steps.push(title);
+            const card=await page.locator('.tour-card').boundingBox(),spot=await page.locator('.tour-spot').boundingBox();
+            assert.ok(card.x>=0&&card.y>=0&&card.x+card.width<=width+1&&card.y+card.height<=height+1,title+' note on screen '+JSON.stringify(card));
+            assert.ok(spot.width>20&&spot.height>10,title+' lit area '+JSON.stringify(spot));
+            assert.equal(await page.evaluate(()=>!!document.activeElement.closest('.tour-card')),true,'focus stays in the note');
+            await page.click('.tour-next');
+        }
+        assert.deepEqual(steps.slice(0,2),['Riff parts','Parts on the video']);assert.equal(steps.at(-1),'Help');
+        assert.ok(steps.length>=6,steps.join());
+        assert.equal(await page.evaluate(()=>localStorage.getItem('rkPracticeTourSeen')),'1');
+        await page.reload({waitUntil:'domcontentloaded'});await page.waitForFunction(()=>document.querySelectorAll('#segmentControls .segment-btn').length>1);
+        await page.waitForTimeout(300);assert.equal(await page.locator('.tour').count(),0,'shown once');
+        await page.click('#practiceHelp');await page.waitForSelector('.tour .tour-card');
+        await page.keyboard.press('Escape');assert.equal(await page.locator('.tour').count(),0);
+        assert.deepEqual(errors,[]);
+    }
+});
 test('Speed Trainer guide: shown once on the first tap, the i reopens it; a sheet from the bottom on a phone',async t=>{
     const page=await pageFor(t);await practice(page);
     await page.click('#modeSpeedBtn');await page.waitForSelector('#speedTrainerGuide[open]');
@@ -639,7 +665,7 @@ test('on a phone a looped part turns back before its end even when the page is c
     await page.route(/fonts\.(googleapis|gstatic)\.com/,route=>route.abort());
     // iPhone Safari at its worst: no frame callbacks, coarse time checks. The jump must not depend on catching the end.
     await page.addInitScript(()=>{
-        localStorage.setItem('riffKillerOnboardingSeen','1');
+        localStorage.setItem('rkPracticeTourSeen','1');
         window.requestAnimationFrame=fn=>setTimeout(()=>fn(performance.now()),250);
         delete HTMLVideoElement.prototype.requestVideoFrameCallback;
     });
