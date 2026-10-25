@@ -198,18 +198,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Achievements: View all (expand grid)
-    var viewAllLink = document.querySelector('.view-all-link');
-    if (viewAllLink) {
-        viewAllLink.addEventListener('click', function (e) {
-            e.preventDefault();
-            var grid = document.getElementById('achievementsGrid');
-            if (!grid) return;
-            if (!window.__rkAchievementsWithStatus || !window.__rkAchievementsWithStatus.length) return;
-            grid.innerHTML = window.__rkAchievementsWithStatus.map(function (it) { return it.html; }).join('');
-            viewAllLink.style.display = 'none';
-        });
-    }
 });
 
 function loadUserProfile() {
@@ -688,7 +676,6 @@ function updatePracticeStats() {
             weeklyGoal: weeklyGoal,
             learnedAtSlowSpeed: learnedAtSlowSpeed
         });
-        renderAchievements(stats);
         updateGameDashboard(stats);
     } catch (e) {}
 }
@@ -722,15 +709,13 @@ function updateStreakCard(stats) {
     var numEl = document.getElementById('streakNumber');
     var goalEl = document.getElementById('streakGoal');
     var fillEl = document.getElementById('streakProgressFill');
-    var rewardEl = document.getElementById('streakRewardBadge');
     var streakHintEl = document.getElementById('streakProgressHint');
     if (numEl) numEl.textContent = String(current);
     if (goalEl) goalEl.textContent = String(nextData.next);
     if (fillEl) fillEl.style.width = String(nextData.percent) + '%';
     if (streakHintEl) {
-        streakHintEl.textContent = 'Progress to ' + String(nextData.next) + '-day milestone';
+        streakHintEl.textContent = 'Toward the ' + String(nextData.next) + '-day mark';
     }
-    if (rewardEl) rewardEl.textContent = nextData.next === 7 ? 'Double XP' : (nextData.next === 30 ? 'Streak Shield' : 'Legend Badge');
 
     var chips = document.querySelectorAll('#streakMilestones .chip');
     chips.forEach(function (chip) {
@@ -808,18 +793,16 @@ function updateWeeklyChallengeCard(stats) {
     var goalEl = document.getElementById('challengeGoal');
     var fillEl = document.getElementById('challengeProgressFill');
     var footerEl = document.getElementById('challengeFooter');
-    var rewardEl = document.getElementById('challengeRewardBadge');
 
     if (progressEl) progressEl.textContent = String(weekly.progress);
     if (goalEl) goalEl.textContent = String(weekly.goal);
     if (fillEl) fillEl.style.width = Math.max(0, Math.min(100, Math.round((weekly.progress / Math.max(1, weekly.goal)) * 100))) + '%';
-    if (rewardEl) rewardEl.textContent = weekly.isCompleted ? 'Done' : '2× XP';
 
     if (footerEl) {
         if (weekly.isCompleted) {
-            footerEl.innerHTML = '<span class="completed-chip" id="challengeStatus"><span class="chip-icon">✨</span><span>Completed</span></span>';
+            footerEl.innerHTML = '<span class="completed-chip" id="challengeStatus">Completed</span>';
         } else {
-            footerEl.innerHTML = '<span class="chip dynamic-chip" id="challengeStatus"><span class="chip-icon">🎯</span><span>based on your pace</span></span>';
+            footerEl.innerHTML = '<span class="chip dynamic-chip" id="challengeStatus">based on your pace</span>';
         }
     }
 }
@@ -885,8 +868,7 @@ function updateStreakDashboard(currentStreak) {
     if (next == null) {
         nextEl.textContent = 'Maxed: 100+ days';
     } else {
-        var reward = next === 7 ? 'Double XP' : next === 30 ? 'Streak Shield' : 'Legend Badge';
-        nextEl.innerHTML = 'Next: <span class="milestone-days">' + next + '</span> days → <span class="milestone-reward">' + reward + '</span>';
+        nextEl.innerHTML = 'Next: <span class="milestone-days">' + next + '</span> days';
     }
 
     var ms = milestonesWrap.querySelectorAll('.milestone');
@@ -968,91 +950,6 @@ function updateWeeklyCompletions(weeklyLearned, weeklyGoal) {
     return completions;
 }
 
-const achievements = [
-    {
-        id: 'first_kill',
-        name: 'First Blood',
-        description: 'Learn your first segment',
-        icon: '🎸',
-        condition: (stats) => (stats.totalLearned || 0) >= 1,
-        getProgress: (stats) => Math.min(1, (stats.totalLearned || 0) / 1),
-        maxProgress: 1
-    },
-    {
-        id: 'speed_demon',
-        name: 'Speed Demon',
-        description: 'Learn a segment at 0.5x speed',
-        icon: '⚡',
-        condition: (stats) => stats.learnedAtSlowSpeed || false,
-        getProgress: (stats) => (stats.learnedAtSlowSpeed ? 1 : 0),
-        maxProgress: 1
-    },
-    {
-        id: 'weekly_warrior',
-        name: 'Weekly Warrior',
-        description: 'Complete weekly challenge',
-        icon: '⚔️',
-        condition: (stats) => (stats.weeklyCompletions || 0) >= 5,
-        getProgress: (stats) => Math.min(5, (stats.weeklyCompletions || 0)),
-        maxProgress: 5,
-        showProgress: true
-    },
-    {
-        id: 'perfectionist',
-        name: 'Perfectionist',
-        description: 'Master a riff (all segments)',
-        icon: '🏆',
-        condition: (stats) => (stats.masteredRiffs || 0) >= 10,
-        getProgress: (stats) => Math.min(10, (stats.masteredRiffs || 0)),
-        maxProgress: 10,
-        showProgress: true
-    }
-];
-
-function renderAchievements(stats) {
-    var grid = document.getElementById('achievementsGrid');
-    if (!grid) return;
-    var items = achievements.map(function (a) {
-        var current = 0;
-        try { current = typeof a.getProgress === 'function' ? a.getProgress(stats) : 0; } catch (e) { current = 0; }
-        var earned = current >= a.maxProgress;
-        var progressPct = a.maxProgress ? Math.min(100, Math.round((current / a.maxProgress) * 100)) : (earned ? 100 : 0);
-        return { a: a, earned: earned, current: current, progressPct: progressPct };
-    });
-
-    items.sort(function (x, y) {
-        if (x.earned !== y.earned) return x.earned ? -1 : 1;
-        return (y.progressPct || 0) - (x.progressPct || 0);
-    });
-
-    var htmlItems = items.map(function (it) {
-        var a = it.a;
-        var earnedClass = it.earned ? 'earned' : '';
-        var showProgress = !!a.showProgress;
-        var progressHtml = '';
-        if (showProgress) {
-            progressHtml =
-                '<div class="achievement-progress">' +
-                '<div class="progress-bar"><div style="width:' + it.progressPct + '%"></div></div>' +
-                '<span>' + Math.round(it.current) + '/' + a.maxProgress + '</span>' +
-                '</div>';
-        }
-        var cardHtml = (
-            '<div class="achievement-card ' + earnedClass + '" data-id="' + a.id + '">' +
-            '<div class="achievement-icon">' + a.icon + '</div>' +
-            '<div class="achievement-name">' + a.name + '</div>' +
-            '<div class="achievement-desc">' + a.description + '</div>' +
-            progressHtml +
-            '</div>'
-        );
-        return { id: a.id, html: cardHtml };
-    });
-
-    // cache for View all
-    window.__rkAchievementsWithStatus = htmlItems;
-
-    grid.innerHTML = htmlItems.slice(0, 4).map(function (x) { return x.html; }).join('');
-}
 
 function calculateMastery(riff) {
     var learnedCount = 0;
@@ -1068,17 +965,7 @@ function calculateMastery(riff) {
         }
     } catch (e) {}
 
-    var pct = total > 0 ? Math.round((learnedCount / total) * 100) : 0;
-    var stars = 0;
-    if (pct >= 100) stars = 5;
-    else if (pct >= 81) stars = 4;
-    else if (pct >= 61) stars = 3;
-    else if (pct >= 41) stars = 2;
-    else if (pct >= 21) stars = 1;
-    else stars = 0;
-
-    var label = stars === 0 ? 'Warm up' : stars === 1 ? 'Getting there' : stars === 2 ? 'Killing it!' : stars === 3 ? 'On fire' : stars === 4 ? 'Almost killed' : 'KILLED';
-    return { pct: pct, stars: stars, label: label, learned: learnedCount, total: total };
+    return { learned: learnedCount, total: total };
 }
 
 function computeStreaksFromDays(daysSet) {
@@ -1242,28 +1129,8 @@ function createRiffCard(riff, type) {
 
     var mastery = calculateMastery(riff);
     var masteryStarsHtml = '';
-    if (mastery && mastery.total > 0) {
-        var stars = mastery.stars || 0;
-        var filled = Math.max(0, Math.min(5, stars));
-        var empty = 5 - filled;
-        var tooltip = mastery.pct + '% (' + mastery.learned + '/' + mastery.total + ')';
-        var starsHtml = '';
-        for (var s = 0; s < filled; s++) starsHtml += '<span class="star filled">★</span>';
-        for (var e = 0; e < empty; e++) starsHtml += '<span class="star empty">☆</span>';
-        masteryStarsHtml =
-            '<div class="riff-mastery">' +
-            '<div class="mastery-stars" data-mastery="' +
-            filled +
-            '" data-tooltip="' +
-            tooltip +
-            '">' +
-            starsHtml +
-            (filled === 5 ? '<span class="killed-badge">KILLED</span>' : '') +
-            '</div>' +
-            '<span class="mastery-label">' +
-            (mastery.label || '') +
-            '</span>' +
-            '</div>';
+    if (mastery && mastery.learned > 0) {
+        masteryStarsHtml = '<div class="riff-mastery"><span class="mastery-label">' + mastery.learned + '/' + mastery.total + ' parts</span></div>';
     }
 
     return window.RiffKillerRiffGallery.createCard(riffForCard, {
