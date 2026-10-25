@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <script src="js/rk-theme-init.js"></script>
     <style>html{background:#0a0a0a;color:#fff}html[data-theme="light"]{background:#f4f4f8;color:#12121a}</style>
-    <script src="js/i18n.js?v=i10"></script>
+    <script src="js/i18n.js?v=i11"></script>
     <meta name="theme-color" content="#0a0a0a" id="rk-theme-color">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Riff Killer - Practice Mode</title>
@@ -23,7 +23,7 @@
     <link rel="stylesheet" href="css/components.css?v=s1">
     <link rel="stylesheet" href="css/rk-header.css?v=ctl1">
     <link rel="stylesheet" href="css/rk-site-footer.css">
-    <link rel="stylesheet" href="css/practice.css?v=tour1">
+    <link rel="stylesheet" href="css/practice.css?v=soon2">
     <link rel="stylesheet" href="css/riff-dna.css?v=eye1">
     <link rel="stylesheet" href="css/rk-hint.css?v=1">
     <link rel="stylesheet" href="css/riffs-hub.css?v=ctl1">
@@ -112,6 +112,11 @@
         <div class="video-error-state" id="videoErrorState" style="display: none;" aria-hidden="true">
             <p class="video-error-text" role="alert">Could not prepare both recordings. Check your connection and retry.</p>
             <button type="button" class="video-retry-btn" id="videoRetryBtn">Retry</button>
+        </div>
+        <div class="video-soon-state" id="videoSoonState" hidden>
+            <p class="video-soon-title">Video lesson coming soon</p>
+            <p class="video-soon-text">We are recording this riff. Pick another one for now.</p>
+            <a class="video-retry-btn" href="index.html">Back to riffs</a>
         </div>
         <!-- Video elements are appended here by JS (preload="auto") -->
         <!-- Оверлей с кнопкой play -->
@@ -332,7 +337,7 @@
 <script src="js/tab-strip.js?v=1"></script>
 <script src="js/tab-live.js?v=8"></script>
 <script src="js/practice-tour.js?v=1"></script>
-<script src="js/practice.js?v=tour1"></script>
+<script src="js/practice.js?v=soon2"></script>
 </body>
 </html>
 

@@ -339,6 +339,34 @@
     border-radius: 16px;
 }
 
+.video-soon-state {
+    position: absolute;
+    inset: 0;
+    z-index: 6;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 24px;
+    text-align: center;
+    border-radius: 16px;
+    background: rgba(0, 0, 0, 0.72) center / cover no-repeat;
+    background-blend-mode: multiply;
+}
+
+.video-soon-state[hidden] { display: none; }
+/* Nothing to play yet: keep the title and the cover, drop the player controls, parts and DNA. */
+.practice-soon .video-top-controls,
+.practice-soon .riff-timeline,
+.practice-soon .practice-media-status,
+.practice-soon .video-controls-below,
+.practice-soon .practice-parts,
+.practice-soon .dna-lab { display: none; }
+.video-soon-title { margin: 0; font-size: 20px; font-weight: 600; color: #fff; }
+.video-soon-text { margin: 0 0 6px; font-size: 14px; color: rgba(255, 255, 255, 0.75); }
+.video-soon-state .video-retry-btn { text-decoration: none; }
+
 .video-error-text {
     margin: 0;
     font-size: 15px;

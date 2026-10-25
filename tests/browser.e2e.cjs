@@ -254,28 +254,38 @@ test('cover: a frame from the markup video becomes the riff card picture after s
     await page.waitForFunction(()=>document.querySelector('#riffsGrid .riff-card[data-id="1"] img.riff-image').complete);
     assert.match(await page.$eval('#riffsGrid .riff-card[data-id="1"] img.riff-image',img=>img.currentSrc),/\.w\d+\.webp$/,'the card loads a WebP copy');
 });
-test('draft: a riff saved with only a name, collection and level is hidden until it has a video',async t=>{
+test('draft: a new riff starts hidden; shown without a video it has a card and a «coming soon» practice page',async t=>{
     const store=path.join(site.dir,'data/riffs.json'),original=fs.readFileSync(store);t.after(()=>fs.writeFileSync(store,original));
     const page=await pageFor(t);const [name,value]=(await site.adminCookie()).split('=');await page.context().addCookies([{name,value,url:site.base}]);
     await page.goto(site.base+'/admin/riffs.html',{waitUntil:'domcontentloaded'});await page.click('.admin-tab[data-tab="edit"]');
     await page.waitForSelector('#collChecks input[data-col-id="3"]');
-    assert.ok(await page.isChecked('#hidden')&&await page.isDisabled('#hidden'),'without a video the riff can only be hidden');
+    assert.ok(await page.isChecked('#hidden')&&!await page.isDisabled('#hidden'),'a new riff starts hidden, the admin can still untick it');
     await page.fill('#song','Paranoid');await page.fill('#artist','Black Sabbath');await page.selectOption('#genre','metal');await page.selectOption('#difficulty','advanced');
     await page.check('#collChecks input[data-col-id="3"]');
-    const save=page.waitForResponse(r=>r.url().endsWith('/api/riffs/save.php'));await page.click('#submitBtn');
+    let save=page.waitForResponse(r=>r.url().endsWith('/api/riffs/save.php'));await page.click('#submitBtn');
     assert.equal((await save).status(),200);await page.waitForFunction(()=>/Сохранено/.test(document.getElementById('edStatus').textContent));
-    const draft=JSON.parse(fs.readFileSync(store)).find(r=>r.song==='Paranoid');
+    let draft=JSON.parse(fs.readFileSync(store)).find(r=>r.song==='Paranoid');
     assert.equal(draft.hidden,true);assert.equal(draft.videoFile,'');assert.equal(draft.difficulty,'advanced');assert.deepEqual(draft.collectionIds,[3]);
     assert.match(await page.locator('#riffSelect option:checked').innerText(),/черновик/);
     await page.click('.admin-tab[data-tab="list"]');
     assert.match(await page.locator('.riff-card[data-id="'+draft.id+'"] .riff-list-draft').innerText(),/черновик, нет видео/);
-    // A video path unlocks the checkbox; it stays ticked until the admin publishes on purpose.
-    await page.click('.admin-tab[data-tab="edit"]');await page.fill('#videoFile','assets/video/x/paranoid-left.mp4');
-    assert.ok(await page.isChecked('#hidden')&&!await page.isDisabled('#hidden'));
-    await page.fill('#videoFile','');assert.ok(await page.isDisabled('#hidden'));
-    await page.goto(site.base+'/',{waitUntil:'domcontentloaded'});await page.waitForSelector('#riffsGrid .riff-card');
-    assert.equal(await page.locator('#riffsGrid .riff-card[data-id="'+draft.id+'"]').count(),0,'the draft is not in the library');
-    assert.equal(await page.getByText('Paranoid').count(),0);
+    await page.waitForFunction(()=>{const img=document.querySelector('.riff-card[data-id="1"] .riff-list-thumb img');return img&&img.complete&&img.naturalWidth>0;});
+    const home=await page.context().newPage();
+    await home.goto(site.base+'/',{waitUntil:'domcontentloaded'});await home.waitForSelector('#riffsGrid .riff-card');
+    assert.equal(await home.locator('#riffsGrid .riff-card[data-id="'+draft.id+'"]').count(),0,'a hidden draft is not in the library');
+    // Untick to look at the card in the library, without a video.
+    await page.click('.admin-tab[data-tab="edit"]');await page.uncheck('#hidden');
+    save=page.waitForResponse(r=>r.url().endsWith('/api/riffs/save.php'));await page.click('#submitBtn');
+    assert.equal((await save).status(),200);await page.waitForFunction(()=>/Сохранено/.test(document.getElementById('edStatus').textContent));
+    assert.equal(JSON.parse(fs.readFileSync(store)).find(r=>r.id===draft.id).hidden,false);
+    await home.goto(site.base+'/',{waitUntil:'domcontentloaded'});
+    await home.waitForSelector('#riffsGrid .riff-card[data-id="'+draft.id+'"]');
+    await home.goto(site.base+'/practice.html?riff='+draft.id,{waitUntil:'domcontentloaded'});
+    await home.waitForSelector('#videoSoonState:not([hidden])');
+    assert.match(await home.locator('#videoSoonState').innerText(),/coming soon/);
+    assert.match(await home.locator('.breadcrumb-current').innerText(),/Paranoid/);
+    assert.ok(!await home.locator('#videoErrorState').isVisible(),'no download error');
+    await home.close();
 });
 test('a cover file bigger than the 2 MB upload limit is shrunk in the browser and saved',async t=>{
     const store=path.join(site.dir,'data/riffs.json'),original=fs.readFileSync(store);t.after(()=>fs.writeFileSync(store,original));

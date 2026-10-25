@@ -53,7 +53,9 @@
         .riff-move-btns button:hover { color: var(--color-text-primary); }
         .riff-move-btns button:disabled { opacity: 0.3; cursor: not-allowed; }
         .riff-list-song { font-weight: 500; flex: 1; min-width: 0; }
-        .riff-list-draft { margin-left: 8px; font-size: 12px; font-weight: 400; color: var(--color-text-tertiary); }
+        .riff-list-draft { margin-left: 8px; font-size: 12px; font-weight: 400; color: var(--color-text-tertiary); white-space: nowrap; }
+        .riff-list-thumb { flex: none; width: 60px; height: 36px; border-radius: 6px; overflow: hidden; background: rgba(255,255,255,0.06); }
+        .riff-list-thumb img { display: block; width: 100%; height: 100%; object-fit: cover; }
         .riff-list-artist { color: var(--color-text-tertiary); font-size: 13px; flex: 1; min-width: 0; }
         .riff-list-actions { display: flex; gap: 8px; align-items: center; flex-shrink: 0; }
         .riff-list-empty { padding: 40px; text-align: center; color: var(--color-text-tertiary); }
@@ -574,21 +576,32 @@
         }
         dragCard = null; dragOrigIdx = null; placeholderEl = null;
     }
-    // Same rule as config/riff-visibility.php: without a video or with «Скрыть с сайта» the riff is a draft.
+    // Same rule as config/riff-visibility.php: only «Скрыть с сайта» keeps a riff off the site. Without a video
+    // a shown riff has a card and a «video coming soon» practice page.
     function draftLabel(r) {
-        if (!String(r.videoFile || '').trim()) return 'черновик, нет видео';
-        return r.hidden ? 'скрыт' : '';
+        var noVideo = !String(r.videoFile || '').trim();
+        if (r.hidden) return noVideo ? 'черновик, нет видео' : 'скрыт';
+        return noVideo ? 'на сайте без видео' : '';
     }
     function hasVideo() {
         return !!(document.getElementById('videoFile').value.trim() || document.getElementById('videoFileUpload').files[0]);
     }
-    // No video yet: the riff can only be saved hidden. With a video the checkbox is the admin's own choice again.
+    // A new riff starts hidden; the admin may still show one without a video, e.g. to see its card in the library.
     function syncHidden() {
-        var cb = document.getElementById('hidden'), noVideo = !hasVideo();
-        if (noVideo) cb.checked = true;
-        cb.disabled = noVideo;
-        document.getElementById('hiddenText').textContent = noVideo ? 'Скрыт с сайта: нет видео' : 'Скрыть с сайта';
-        document.getElementById('hiddenLabel').title = noVideo ? 'Рифф появится на сайте, когда будет видео и галочка снята' : '';
+        var noVideo = !hasVideo();
+        document.getElementById('hiddenText').textContent = noVideo ? 'Скрыть с сайта (видео ещё нет)' : 'Скрыть с сайта';
+        document.getElementById('hiddenLabel').title = noVideo ? 'Без галочки карточка будет в библиотеке, а практика покажет «видео скоро»' : '';
+    }
+    // Small cover in the list: the 400px WebP copy written on upload, else the original, else an empty frame.
+    function setListThumb(box, thumb) {
+        thumb = String(thumb || '').trim();
+        if (!thumb) return;
+        var src = /^(https?:|\/)/.test(thumb) ? thumb : '../' + thumb;
+        var img = new Image();
+        img.alt = ''; img.loading = 'lazy'; img.decoding = 'async';
+        img.onerror = function () { if (img.src.indexOf('.w400.webp') !== -1) img.src = src; else img.remove(); };
+        img.src = /\.(png|jpe?g|webp)$/i.test(src) && !/\.w\d+\.webp$/i.test(src) ? src.replace(/\.[^.\/]+$/, '.w400.webp') : src;
+        box.appendChild(img);
     }
     function renderRiffList() {
         var body = document.getElementById('riffListBody');
@@ -610,9 +623,11 @@
                 '<div class="riff-move-cell">' +
                 '<span class="riff-grip" title="Перетащить" aria-label="Перетащить">' + GripSvg + '</span>' +
                 '<div class="riff-move-btns"><button type="button" class="move-up" title="Выше">▲</button><button type="button" class="move-down" title="Ниже">▼</button></div></div>' +
+                '<span class="riff-list-thumb"></span>' +
                 '<span class="riff-list-song">' + (r.song||'') + (draftLabel(r) ? ' <span class="riff-list-draft">' + draftLabel(r) + '</span>' : '') + '</span>' +
                 '<span class="riff-list-artist">' + (r.artist||'') + '</span>' +
                 '<div class="riff-list-actions"><button type="button" class="btn btn-primary btn-small btn-edit">Редактировать</button><button type="button" class="btn btn-secondary btn-small btn-del">Удалить</button></div>';
+            setListThumb(card.querySelector('.riff-list-thumb'), r.thumbnail);
             var moveUp = card.querySelector('.move-up'); var moveDown = card.querySelector('.move-down');
             moveUp.disabled = (origIdx === 0);
             moveDown.disabled = (origIdx === riffsCache.length - 1);
@@ -736,7 +751,7 @@
         if (g && !Array.prototype.some.call(ge.options, function (o) { return o.value === g; })) { var o = document.createElement('option'); o.value = g; o.textContent = g; ge.appendChild(o); }
         ge.value = g || 'rock';
         document.getElementById('isFree').checked = !!riff.isFree;
-        document.getElementById('hidden').checked = !!riff.hidden;
+        document.getElementById('hidden').checked = riff.id ? !!riff.hidden : true;
         document.getElementById('dnaReference').checked = !!riff.dnaReference;
         document.getElementById('videoFile').value = riff.videoFile || '';
         document.getElementById('videoFileRight').value = riff.videoFileRight || '';
@@ -921,7 +936,7 @@
             uLesson ? uploadVideo(uLesson, basePath + songSlug + '-lesson.mp4', 'lessonVideoProgress') : Promise.resolve(vLesson),
             TabEditor.collect(uploadImage, basePath.replace(/^assets\/video\//, 'assets/tabs/'))
         ]).then(function(r){
-            var riff = Object.assign({}, editingRiff || {}, { song:song, artist:artist, duration: SegmentEditor.duration() || parseFloat(document.getElementById('duration').value)||0, difficulty: document.getElementById('difficulty').value||'intermediate', genre: document.getElementById('genre').value.trim()||'rock', isFree: document.getElementById('isFree').checked, hidden: document.getElementById('hidden').checked || !r[0], dnaReference: document.getElementById('dnaReference').checked, videoFile: r[0]||'', videoFileRight: r[1]||'', thumbnail: r[2]||'assets/img/riff-1.png', lessonVideo: r[3]||vLesson||null, segments: segs, dna: dna, collectionIds: getSelectedCollectionIds() });
+            var riff = Object.assign({}, editingRiff || {}, { song:song, artist:artist, duration: SegmentEditor.duration() || parseFloat(document.getElementById('duration').value)||0, difficulty: document.getElementById('difficulty').value||'intermediate', genre: document.getElementById('genre').value.trim()||'rock', isFree: document.getElementById('isFree').checked, hidden: document.getElementById('hidden').checked, dnaReference: document.getElementById('dnaReference').checked, videoFile: r[0]||'', videoFileRight: r[1]||'', thumbnail: r[2]||'assets/img/riff-1.png', lessonVideo: r[3]||vLesson||null, segments: segs, dna: dna, collectionIds: getSelectedCollectionIds() });
             if (r[4]) riff.tab = r[4]; else delete riff.tab;
             if (videoSource) riff.videoSource = videoSource;
             if(editId) riff.id = parseInt(editId,10);
