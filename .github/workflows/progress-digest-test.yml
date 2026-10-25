@@ -1,0 +1,48 @@
+name: Progress digest test
+
+# Agent tool: sends one weekly practice summary marked "[Test]" to the given address right now, through the
+# server's Resend keys (config/progress-digest-cli.php --test). Uses that account's own week when it has
+# progress, sample numbers otherwise; changes no data.
+on:
+  workflow_dispatch:
+    inputs:
+      to:
+        description: Email address to send the test summary to
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  send:
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://riffkiller.fun
+    env:
+      DEPLOY_HOST: ${{ secrets.CLAUDE_DEPLOY_HOST }}
+      DEPLOY_USER: ${{ secrets.CLAUDE_DEPLOY_USER }}
+      DEPLOY_PORT: ${{ secrets.CLAUDE_DEPLOY_PORT || '22' }}
+      RIFFKILLER_ROOT: ${{ vars.RIFFKILLER_ROOT }}
+      TO: ${{ inputs.to }}
+    steps:
+      - name: Check inputs
+        run: '[[ "$TO" =~ ^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$ ]] || { echo "::error::to must be an email address"; exit 1; }'
+      - name: Configure SSH
+        env:
+          SSH_KEY: ${{ secrets.CLAUDE_DEPLOY_SSH_KEY }}
+          KNOWN_HOSTS: ${{ secrets.CLAUDE_DEPLOY_KNOWN_HOSTS }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/deploy_key
+          printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/deploy_key ~/.ssh/known_hosts
+          printf 'Host prod\n  HostName %s\n  User %s\n  Port %s\n  IdentityFile ~/.ssh/deploy_key\n  IdentitiesOnly yes\n  StrictHostKeyChecking yes\n' \
+            "$DEPLOY_HOST" "$DEPLOY_USER" "$DEPLOY_PORT" > ~/.ssh/config
+      - name: Send the test summary
+        run: |
+          ssh prod "cd '${RIFFKILLER_ROOT:-/var/www/riffkiller}' || exit 1
+            [ -f /etc/cron.d/riffkiller-progress-digest ] && echo 'cron: installed' || echo 'cron: missing'
+            owner=\$(stat -c %U data)
+            if [ \"\$(id -u)\" = 0 ] && [ -n \"\$owner\" ]; then runuser -u \"\$owner\" -- php config/progress-digest-cli.php --test '$TO'
+            else php config/progress-digest-cli.php --test '$TO'; fi"
