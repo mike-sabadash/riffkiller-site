@@ -269,6 +269,7 @@ test('draft: a new riff starts hidden; shown without a video it has a card and a
     assert.match(await page.locator('#riffSelect option:checked').innerText(),/черновик/);
     await page.click('.admin-tab[data-tab="list"]');
     assert.match(await page.locator('.riff-card[data-id="'+draft.id+'"] .riff-list-draft').innerText(),/черновик, нет видео/);
+    await page.waitForFunction(()=>{const img=document.querySelector('.riff-card[data-id="1"] .riff-list-thumb img');return img&&img.complete&&img.naturalWidth>0;});
     const home=await page.context().newPage();
     await home.goto(site.base+'/',{waitUntil:'domcontentloaded'});await home.waitForSelector('#riffsGrid .riff-card');
     assert.equal(await home.locator('#riffsGrid .riff-card[data-id="'+draft.id+'"]').count(),0,'a hidden draft is not in the library');

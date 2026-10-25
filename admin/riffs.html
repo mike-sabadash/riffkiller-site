@@ -53,7 +53,9 @@
         .riff-move-btns button:hover { color: var(--color-text-primary); }
         .riff-move-btns button:disabled { opacity: 0.3; cursor: not-allowed; }
         .riff-list-song { font-weight: 500; flex: 1; min-width: 0; }
-        .riff-list-draft { margin-left: 8px; font-size: 12px; font-weight: 400; color: var(--color-text-tertiary); }
+        .riff-list-draft { margin-left: 8px; font-size: 12px; font-weight: 400; color: var(--color-text-tertiary); white-space: nowrap; }
+        .riff-list-thumb { flex: none; width: 60px; height: 36px; border-radius: 6px; overflow: hidden; background: rgba(255,255,255,0.06); }
+        .riff-list-thumb img { display: block; width: 100%; height: 100%; object-fit: cover; }
         .riff-list-artist { color: var(--color-text-tertiary); font-size: 13px; flex: 1; min-width: 0; }
         .riff-list-actions { display: flex; gap: 8px; align-items: center; flex-shrink: 0; }
         .riff-list-empty { padding: 40px; text-align: center; color: var(--color-text-tertiary); }
@@ -590,6 +592,17 @@
         document.getElementById('hiddenText').textContent = noVideo ? 'Скрыть с сайта (видео ещё нет)' : 'Скрыть с сайта';
         document.getElementById('hiddenLabel').title = noVideo ? 'Без галочки карточка будет в библиотеке, а практика покажет «видео скоро»' : '';
     }
+    // Small cover in the list: the 400px WebP copy written on upload, else the original, else an empty frame.
+    function setListThumb(box, thumb) {
+        thumb = String(thumb || '').trim();
+        if (!thumb) return;
+        var src = /^(https?:|\/)/.test(thumb) ? thumb : '../' + thumb;
+        var img = new Image();
+        img.alt = ''; img.loading = 'lazy'; img.decoding = 'async';
+        img.onerror = function () { if (img.src.indexOf('.w400.webp') !== -1) img.src = src; else img.remove(); };
+        img.src = /\.(png|jpe?g|webp)$/i.test(src) && !/\.w\d+\.webp$/i.test(src) ? src.replace(/\.[^.\/]+$/, '.w400.webp') : src;
+        box.appendChild(img);
+    }
     function renderRiffList() {
         var body = document.getElementById('riffListBody');
         if (!body) return;
@@ -610,9 +623,11 @@
                 '<div class="riff-move-cell">' +
                 '<span class="riff-grip" title="Перетащить" aria-label="Перетащить">' + GripSvg + '</span>' +
                 '<div class="riff-move-btns"><button type="button" class="move-up" title="Выше">▲</button><button type="button" class="move-down" title="Ниже">▼</button></div></div>' +
+                '<span class="riff-list-thumb"></span>' +
                 '<span class="riff-list-song">' + (r.song||'') + (draftLabel(r) ? ' <span class="riff-list-draft">' + draftLabel(r) + '</span>' : '') + '</span>' +
                 '<span class="riff-list-artist">' + (r.artist||'') + '</span>' +
                 '<div class="riff-list-actions"><button type="button" class="btn btn-primary btn-small btn-edit">Редактировать</button><button type="button" class="btn btn-secondary btn-small btn-del">Удалить</button></div>';
+            setListThumb(card.querySelector('.riff-list-thumb'), r.thumbnail);
             var moveUp = card.querySelector('.move-up'); var moveDown = card.querySelector('.move-down');
             moveUp.disabled = (origIdx === 0);
             moveDown.disabled = (origIdx === riffsCache.length - 1);
