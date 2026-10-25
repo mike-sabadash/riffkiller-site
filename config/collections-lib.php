@@ -4,6 +4,7 @@
  */
 
 require_once __DIR__ . '/image-variants.php';
+require_once __DIR__ . '/riff-visibility.php';
 
 function rk_collections_meta_path(): string
 {
@@ -45,7 +46,8 @@ function rk_riffs_load(): array
 function rk_collections_build_list(): array
 {
     $meta = rk_collections_load_meta();
-    $riffs = rk_riffs_load();
+    // Drafts do not count: a collection with only drafts stays empty and hidden on the home page.
+    $riffs = riff_public_list(rk_riffs_load());
 
     $out = [];
     foreach ($meta as $c) {
