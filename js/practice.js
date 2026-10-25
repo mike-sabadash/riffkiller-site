@@ -530,6 +530,7 @@ function initPracticePage() {
             currentRiff = found;
             updateTitle();
             showVideoSoonState(found);
+            loadRecentlyPracticedRiffs();
             return;
         }
         if (found && isFullRiff(found)) {
@@ -541,6 +542,7 @@ function initPracticePage() {
             var el = document.querySelector('.breadcrumb-current');
             if (el) el.textContent = 'Riff not found';
             showVideoErrorState();
+            loadRecentlyPracticedRiffs();
             return;
         }
         if (currentRiff.segments && currentRiff.segments.length) {
@@ -618,6 +620,7 @@ function initPracticePage() {
         return fetch('/api/riffs/list.php').then(function(r) { if (!r.ok) throw new Error('Riff list unavailable'); return r.json(); });
     }).then(function(list) {
         var riffs = (Array.isArray(list) && list.length > 0) ? list : fallbackRiffs;
+        if (riffs === list) liveRiffs = list;
         runWithRiffs(riffs);
     }).catch(function() { runWithRiffs(fallbackRiffs); });
 }
@@ -1712,18 +1715,23 @@ function showNotification(message) {
 }
 
 // Загрузка недавних риффов
+// The riff list from the API, when it loaded: recent riffs that were deleted or hidden since are left out.
+let liveRiffs = null;
 function loadRecentlyPracticedRiffs() {
     const grid = document.getElementById('recentRiffsGrid');
     if (!grid) return;
     
     try {
         const state = loadAppState();
+        const liveById = {};
+        (liveRiffs || []).forEach(function (r) { if (r && r.id != null) liveById[String(r.id)] = r; });
+        const recent = (state.recentlyPracticed || []).filter(function (rp) { return !liveRiffs || liveById[String(rp.id)]; });
         
-        if (state.recentlyPracticed && state.recentlyPracticed.length > 0) {
+        if (recent.length > 0) {
             grid.innerHTML = '';
-            state.recentlyPracticed.slice(0, 4).forEach(function (rp) {
-                var cat = riffsDatabase.find(function (r) { return r.id === rp.id; });
-                var merged = Object.assign({}, rp, cat ? { isFree: !!cat.isFree } : {});
+            recent.slice(0, 4).forEach(function (rp) {
+                var cat = liveById[String(rp.id)] || riffsDatabase.find(function (r) { return r.id === rp.id; });
+                var merged = Object.assign({}, rp, cat ? { isFree: !!cat.isFree, song: cat.song || rp.song, artist: cat.artist || rp.artist, thumbnail: cat.thumbnail || rp.thumbnail } : {});
                 var favEntry = (state.riffsDatabase || []).find(function (r) { return r.id === rp.id; });
                 if (favEntry && typeof favEntry.isFavorite === 'boolean') {
                     merged.isFavorite = favEntry.isFavorite;
