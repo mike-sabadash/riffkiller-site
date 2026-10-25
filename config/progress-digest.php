@@ -40,6 +40,8 @@ function digest_secret() {
         if (!is_dir(dirname($path))) @mkdir(dirname($path), 0755, true);
         @file_put_contents($path, bin2hex(random_bytes(32)));
         @chmod($path, 0600);
+        // Created by root (a manual --test run): hand it to the owner of data/, the user the cron runs as.
+        if (function_exists('posix_getuid') && posix_getuid() === 0) @chown($path, fileowner(dirname($path)));
     }
     return trim((string)@file_get_contents($path));
 }
@@ -244,4 +246,28 @@ function digest_run($nowTs = null, $send = 'digest_send_resend') {
     }
     digest_save_json($logPath, $log);
     return $out;
+}
+
+/**
+ * One test email to $to right now, marked “[Test]”: that account's own week if it has progress, sample numbers
+ * otherwise. Touches no log or progress file. Returns a log line.
+ */
+function digest_send_test($to, $send = 'digest_send_resend') {
+    if (!filter_var($to, FILTER_VALIDATE_EMAIL)) return 'progress-digest test: not an email address';
+    $user = null;
+    foreach (user_list_all() as $u) {
+        if (strcasecmp(trim((string)($u['email'] ?? '')), $to) === 0) { $user = $u; break; }
+    }
+    $progress = $user ? digest_load_json(digest_progress_file((string)$user['id']), null) : null;
+    $facts = is_array($progress) ? digest_facts($progress, digest_load_json(digest_root() . '/data/riffs.json', []), [], time()) : null;
+    if (!$facts) $facts = ['week' => 'test', 'days' => 3, 'goal' => 5, 'minutes' => 42, 'tempo' => [], 'due' => 1, 'open' => null];
+    $facts['pausing'] = false;
+    $id = $user ? (string)$user['id'] : 'test';
+    $base = digest_base_url();
+    $stopUrl = $base . '/api/progress-email-off.php?u=' . rawurlencode($id) . '&t=' . digest_stop_token($id);
+    $mail = digest_compose($facts, (string)(($progress['lang'] ?? '') ?: 'ru'), $base, $stopUrl);
+    $mail['subject'] = '[Test] ' . $mail['subject'];
+    $err = call_user_func($send, $to, $mail, $stopUrl);
+    return 'progress-digest test: ' . ($user ? 'account found' : 'no account, sample numbers') . ', subject "' . $mail['subject'] . '", '
+        . ($err === null ? 'sent' : 'failed: ' . $err);
 }

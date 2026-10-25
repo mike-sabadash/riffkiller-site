@@ -81,3 +81,21 @@ test('the cron entry point refuses to run over the web', async()=>{
     const r=await fetch(site.base+'/config/progress-digest-cli.php');
     assert.notEqual(r.status,200);
 });
+
+test('a test email goes out now, marked, with the account’s own numbers, and changes nothing', ()=>{
+    const before=fs.readFileSync(progressFile('u_la'),'utf8');
+    const out=path.join(site.dir,'test-sent.json');
+    const code=`require '${site.dir}/config/progress-digest.php';
+        $sent=[];$rec=function($to,$mail,$stop)use(&$sent){$sent[]=['to'=>$to,'mail'=>$mail];return null;};
+        $lines=[digest_send_test('la@example.com',$rec),digest_send_test('nobody@example.com',$rec),digest_send_test('not-an-email',$rec)];
+        file_put_contents('${out}',json_encode(['sent'=>$sent,'lines'=>$lines],JSON_UNESCAPED_UNICODE));`;
+    execFileSync(process.env.PHP_BIN||'php',['-r',code]);
+    const r=JSON.parse(fs.readFileSync(out,'utf8'));
+    assert.match(r.lines[0],/account found.*sent$/);
+    assert.match(r.lines[1],/no account, sample numbers.*sent$/);
+    assert.match(r.lines[2],/not an email address/);
+    assert.equal(r.sent.length,2);
+    assert.match(r.sent[0].mail.subject,/^\[Test\] Tu semana/);
+    assert.equal(r.sent[1].mail.subject,'[Test] Твоя неделя: 3 из 5 дней');
+    assert.equal(fs.readFileSync(progressFile('u_la'),'utf8'),before);
+});
