@@ -277,6 +277,23 @@ test('draft: a riff saved with only a name, collection and level is hidden until
     assert.equal(await page.locator('#riffsGrid .riff-card[data-id="'+draft.id+'"]').count(),0,'the draft is not in the library');
     assert.equal(await page.getByText('Paranoid').count(),0);
 });
+test('a cover file bigger than the 2 MB upload limit is shrunk in the browser and saved',async t=>{
+    const store=path.join(site.dir,'data/riffs.json'),original=fs.readFileSync(store);t.after(()=>fs.writeFileSync(store,original));
+    const big=path.join(site.dir,'big-cover.png');
+    require('node:child_process').execFileSync('ffmpeg',['-hide_banner','-loglevel','error','-y','-f','lavfi','-i','nullsrc=s=3000x1800,geq=random(1)*255:128:128','-frames:v','1',big]);
+    assert.ok(fs.statSync(big).size>2*1024*1024,'fixture is over the limit');
+    const page=await pageFor(t);const [name,value]=(await site.adminCookie()).split('=');await page.context().addCookies([{name,value,url:site.base}]);
+    await page.goto(site.base+'/admin/riffs.html',{waitUntil:'domcontentloaded'});await page.click('.admin-tab[data-tab="edit"]');
+    await page.waitForSelector('#collChecks input');
+    await page.fill('#song','War Pigs');await page.fill('#artist','Black Sabbath');
+    await page.setInputFiles('#thumbnailUpload',big);
+    const save=page.waitForResponse(r=>r.url().endsWith('/api/riffs/save.php'));await page.click('#submitBtn');
+    assert.equal((await save).status(),200);await page.waitForFunction(()=>/Сохранено/.test(document.getElementById('edStatus').textContent));
+    const saved=JSON.parse(fs.readFileSync(store)).find(r=>r.song==='War Pigs');
+    assert.match(saved.thumbnail,/^assets\/img\/riffs\/black-sabbath-war-pigs-[a-z0-9]+\.jpg$/);
+    const file=path.join(site.dir,saved.thumbnail);t.after(()=>{for(const f of fs.readdirSync(path.dirname(file)).filter(n=>n.startsWith(path.basename(file,'.jpg'))))fs.rmSync(path.join(path.dirname(file),f),{force:true})});
+    assert.ok(fs.statSync(file).size<=1.8*1024*1024,String(fs.statSync(file).size));
+});
 test('a save after the admin session expired says so next to the Save button and keeps the form',async t=>{
     const store=path.join(site.dir,'data/riffs.json'),original=fs.readFileSync(store);t.after(()=>fs.writeFileSync(store,original));
     const page=await pageFor(t);const [name,value]=(await site.adminCookie()).split('=');await page.context().addCookies([{name,value,url:site.base}]);
