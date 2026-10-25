@@ -57,3 +57,19 @@ test('the range endpoint returns bytes for seeking and rejects out-of-range requ
     assert.equal(response.status,206);assert.equal((await response.arrayBuffer()).byteLength,20);assert.match(response.headers.get('content-range'),/^bytes 10-29\//);
     const bad=await fetch(site.base+'/video.php?file='+encodeURIComponent(riff.videoFile),{headers:{Range:'bytes=999999999-'}});assert.equal(bad.status,416);
 });
+test('practice progress is saved per account and refused without a session',async()=>{
+    const P=require('../js/rk-progress.js');
+    assert.deepEqual(await (await fetch(site.base+'/api/progress.php')).json(),{success:true,authenticated:false});
+    const state=P.empty();P.markClean(state,1,[{start:0,end:2}],0,1,Date.now());P.addPlayTime(state,1,320,Date.now());
+    assert.equal((await post('/api/progress.php',{progress:state})).status,401);
+    const reg=async email=>{const r=await post('/api/auth/email-register.php',{email,password:'riffkiller-test-password',name:'P'});return r.headers.getSetCookie().at(-1).split(';')[0];};
+    const a=await reg('progress-a@example.com'),b=await reg('progress-b@example.com');
+    assert.deepEqual((await (await fetch(site.base+'/api/progress.php',{headers:{Cookie:a}})).json()).progress,null);
+    assert.equal((await post('/api/progress.php',{progress:{v:1}},a)).status,400);
+    assert.equal((await post('/api/progress.php',{progress:state},a)).status,200);
+    const got=(await (await fetch(site.base+'/api/progress.php',{headers:{Cookie:a}})).json()).progress;
+    assert.deepEqual(P.normalize(got),P.normalize(state));
+    assert.equal((await (await fetch(site.base+'/api/progress.php',{headers:{Cookie:b}})).json()).progress,null,'another account sees nothing');
+    const big='x'.repeat(600*1024);
+    assert.equal((await post('/api/progress.php',{progress:{...state,pad:big}},a)).status,413);
+});

@@ -130,6 +130,19 @@ test('All Riff updates tabs; Speed Trainer advances only on completed loops',asy
     await page.waitForFunction(()=>playbackSpeed===.75,{timeout:12000});
     assert.equal(await page.evaluate(()=>practiceTransport.rate),.75);assert.ok(await page.evaluate(()=>Math.abs(rightVideo.playbackRate/.75-1)<=.1));
 });
+test('three clean loops at ×1 ask whether the part was clean; yes puts it at tempo and it survives a reload',async t=>{
+    const page=await pageFor(t);await practice(page);
+    await page.evaluate(()=>{setPracticeMode('normal');setPlaybackSpeedUI(1);});
+    await page.locator('.segment-btn:not(.all-riff)').nth(2).click();
+    await page.waitForSelector('#progressCleanYes',{timeout:20000});
+    assert.match(await page.locator('.progress-card-title').innerText(),/Three loops at full speed/);
+    await page.click('#progressCleanYes');
+    await page.waitForFunction(()=>document.querySelectorAll('.segment-btn:not(.all-riff)')[2].querySelector('.part-progress')?.dataset.state==='tempo');
+    assert.match(await page.locator('#partsProgress').innerText(),/^1 of 10 parts at tempo/);
+    await page.reload({waitUntil:'domcontentloaded'});await page.waitForFunction(()=>document.getElementById('partsProgress'),{timeout:20000});
+    assert.match(await page.locator('#partsProgress').innerText(),/^1 of 10 parts at tempo/);
+    assert.equal(await page.evaluate(()=>RKProgress.load().days[RKProgress.dayKey(Date.now())].sec>0),true,'playing time was counted');
+});
 test('editor captures boundaries, edits Atoms, saves and reopens without losing metadata',async t=>{
     const page=await pageFor(t);const [name,value]=(await site.adminCookie()).split('=');await page.context().addCookies([{name,value,url:site.base}]);await page.goto(site.base+'/admin/riffs.html',{waitUntil:'domcontentloaded'});await page.click('.admin-tab[data-tab="edit"]');await page.selectOption('#riffSelect','1');
     await page.waitForFunction(()=>document.querySelectorAll('#segmentRows .segment-row').length===10);
