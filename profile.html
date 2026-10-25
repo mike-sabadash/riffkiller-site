@@ -924,12 +924,6 @@
                 <div class="card streak-card">
                     <div class="content-col">
                         <div class="header-row">
-                            <div class="card-icon">
-                                <div class="fire-icon" id="streakFireIcon" title="Волшебный огонь 🔥">
-                                    <span class="fire-emoji" aria-hidden="true">🔥</span>
-                                    <canvas class="fire-sparks-canvas" aria-hidden="true"></canvas>
-                                </div>
-                            </div>
                             <div class="label-group">
                                 <div class="row-label">Streak</div>
                                 <div class="info-icon" tabindex="0" data-tooltip="How many days in a row you've learned at least one segment.">
@@ -944,7 +938,7 @@
                         <div class="progress-bar">
                             <div class="progress-fill streak-fill" id="streakProgressFill" style="width: 0%;"></div>
                         </div>
-                        <div class="progress-hint" id="streakProgressHint">Toward your next streak reward</div>
+                        <div class="progress-hint" id="streakProgressHint">Toward the 7-day mark</div>
                         <div class="row-main">
                             <div class="main-group">
                                 <span class="main-number streak-number" id="streakNumber">0</span>
@@ -952,7 +946,6 @@
                                 <span class="target-number" id="streakGoal">7</span>
                                 <span class="main-unit">days</span>
                             </div>
-                            <span class="badge badge-orange" id="streakRewardBadge">Double XP</span>
                         </div>
                         <div class="row-bottom" id="streakMilestones">
                             <div class="chip" data-milestone="7">7 days</div>
@@ -966,9 +959,6 @@
                 <div class="card challenge-card">
                     <div class="content-col">
                         <div class="header-row">
-                            <div class="card-icon challenge-icon-duo" aria-hidden="true">
-                                <span class="challenge-sword-mirrored">🗡️</span><span class="challenge-guitar-normal">🎸</span>
-                            </div>
                             <div class="label-group">
                                 <div class="row-label">Weekly goal</div>
                                 <div class="info-icon" tabindex="0" data-tooltip="Weekly goal based on your average daily segments.">
@@ -990,10 +980,9 @@
                                 <span class="fraction">/</span>
                                 <span class="target-number" id="challengeGoal">50</span>
                             </div>
-                            <span class="badge badge-purple" id="challengeRewardBadge">2× XP</span>
                         </div>
                         <div class="row-bottom" id="challengeFooter">
-                            <span class="chip dynamic-chip" id="challengeStatus"><span class="chip-icon">🎯</span><span>based on your pace</span></span>
+                            <span class="chip dynamic-chip" id="challengeStatus">based on your pace</span>
                         </div>
                     </div>
                 </div>
@@ -1062,15 +1051,6 @@
                 </div>
             </section>
 
-            <!-- 3) Achievements (above Recent Practice) -->
-            <section class="achievements-section">
-                <div class="section-header">
-                    <h2 class="section-title">Achievements</h2>
-                    <a href="#" class="view-all-link">View all</a>
-                </div>
-                <div class="achievements-grid" id="achievementsGrid"></div>
-            </section>
-
             <!-- Recent Practice (галерея как на главной, карточки подставляет profile.js) -->
             <section class="recent-section">
                 <h2 class="section-title">Recent practice</h2>
@@ -1129,7 +1109,6 @@
     <script src="js/site-header-behaviors.js?v=u1"></script>
     <script src="js/rk-theme.js"></script>
     <script src="js/riff-gallery-card.js?v=img1"></script>
-    <script src="js/profile-streak-fire.js?v=5"></script>
-    <script src="js/profile.js?v=u3"></script>
+    <script src="js/profile.js?v=u4"></script>
 </body>
 </html>
