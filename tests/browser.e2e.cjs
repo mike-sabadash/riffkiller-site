@@ -277,6 +277,20 @@ test('draft: a riff saved with only a name, collection and level is hidden until
     assert.equal(await page.locator('#riffsGrid .riff-card[data-id="'+draft.id+'"]').count(),0,'the draft is not in the library');
     assert.equal(await page.getByText('Paranoid').count(),0);
 });
+test('a save after the admin session expired says so next to the Save button and keeps the form',async t=>{
+    const store=path.join(site.dir,'data/riffs.json'),original=fs.readFileSync(store);t.after(()=>fs.writeFileSync(store,original));
+    const page=await pageFor(t);const [name,value]=(await site.adminCookie()).split('=');await page.context().addCookies([{name,value,url:site.base}]);
+    await page.goto(site.base+'/admin/riffs.html',{waitUntil:'domcontentloaded'});await page.click('.admin-tab[data-tab="edit"]');
+    await page.waitForSelector('#collChecks input');
+    await page.fill('#song','Iron Man');await page.fill('#artist','Black Sabbath');
+    await page.context().clearCookies();
+    const save=page.waitForResponse(r=>r.url().endsWith('/api/riffs/save.php'));await page.click('#submitBtn');
+    assert.equal((await save).status(),403);
+    await page.waitForFunction(()=>/Вход в админку истёк/.test(document.getElementById('edStatus').textContent));
+    assert.ok(await page.locator('#edStatus').isVisible());
+    assert.equal(await page.inputValue('#song'),'Iron Man');
+    assert.equal(fs.readFileSync(store,'utf8'),original.toString());
+});
 test('collection banner: a wide picture fills the header, a small one is flagged, none shows the card picture whole',async t=>{
     const store=path.join(site.dir,'data/collections.json'),original=fs.readFileSync(store);t.after(()=>fs.writeFileSync(store,original));
     const tmp=fs.mkdtempSync(path.join(require('node:os').tmpdir(),'banner-'));const wide=path.join(tmp,'wide.png');

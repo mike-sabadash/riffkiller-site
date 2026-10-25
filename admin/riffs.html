@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="../css/reset.css">
     <link rel="stylesheet" href="../css/variables.css?v=flat1">
     <!-- Не подключаем base.css и components.css — там стили заглушки; админка риффов самодостаточна -->
-    <link rel="stylesheet" href="../css/admin-editor.css?v=draft1">
+    <link rel="stylesheet" href="../css/admin-editor.css?v=draft2">
     <link rel="icon" type="image/svg+xml" href="../assets/icons/favicon.svg">
     <style>
         html, body { background: #111629 !important; background-image: none !important; color: #fff; font-family: Roboto, sans-serif; min-height: 100vh; min-height: 100dvh; padding: 24px; margin: 0; padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px) + 52px); }
@@ -692,6 +692,7 @@
         var s = document.getElementById('edStatus');
         s.textContent = text;
         s.className = 'ed-bar-status' + (cls ? ' ' + cls : '');
+        s.title = '';
     }
     function markDirty() {
         if (isDirty) return;
@@ -781,11 +782,26 @@
                 else showMsg(d.error||'Ошибка', true);
             }).catch(function(){ showMsg('Ошибка', true); });
     };
+    // The admin session lives in PHP and expires after a while without requests; the page itself stays open.
+    var SESSION_LOST = 'Вход в админку истёк. Откройте /admin/ в новой вкладке, войдите и нажмите «Сохранить» снова — введённое здесь не пропадёт.';
+    function apiJson(r) {
+        if (r.status === 403) return Promise.reject(new Error(SESSION_LOST));
+        if (r.status === 413) return Promise.reject(new Error('Файл слишком большой для сервера.'));
+        return r.json().catch(function () { return Promise.reject(new Error('Сервер ответил ' + r.status + ', а не данными.')); });
+    }
+    // Every few minutes while the editor is open, so the session does not expire mid-edit.
+    setInterval(function () { fetch(listUrl, { cache: 'no-store' }).catch(function () {}); }, 5 * 60 * 1000);
+    function saveFailed(text) {
+        showMsg(text, true);
+        setStatus('Не сохранено: ' + text, 'dirty');
+        document.getElementById('edStatus').title = text;
+        isDirty = true;
+    }
     function showMsg(t, err) { var m = document.getElementById('msg'); m.textContent = t; m.className = 'msg '+(err?'error':'success'); }
     function uploadImage(file, path, variants) {
         var fd = new FormData(); fd.append('file', file, file.name || path.split('/').pop()); fd.append('path', path);
         if (variants) fd.append('variants', variants);
-        return fetch(uploadUrl, { method: 'POST', body: fd }).then(function(r){return r.json();}).then(function(d){ return d.success&&d.path ? d.path : Promise.reject(new Error(d.error||'Upload failed')); });
+        return fetch(uploadUrl, { method: 'POST', body: fd }).then(apiJson).then(function(d){ return d.success&&d.path ? d.path : Promise.reject(new Error(d.error||'Upload failed')); });
     }
     // Videos go up in chunks: the server takes at most 2 MB per request.
     function uploadVideo(file, path, barId) {
@@ -908,7 +924,7 @@
             if (r[4]) riff.tab = r[4]; else delete riff.tab;
             if (videoSource) riff.videoSource = videoSource;
             if(editId) riff.id = parseInt(editId,10);
-            return fetch(saveUrl, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({riff:riff, expectedRiff:editingRiff}) }).then(function(x){return x.json();});
+            return fetch(saveUrl, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({riff:riff, expectedRiff:editingRiff}) }).then(apiJson);
         }).then(function(d){
             submitBtn.disabled = false;
             if(d.success){
@@ -927,8 +943,8 @@
                 }).then(function () {
                     markClean('Сохранено в ' + new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }));
                 });
-            } else { showMsg(d.error||'Ошибка', true); setStatus('Не сохранено', 'dirty'); isDirty = true; }
-        }).catch(function(err){ submitBtn.disabled = false; showMsg(err.message||'Ошибка', true); setStatus('Не сохранено', 'dirty'); isDirty = true; });
+            } else saveFailed(d.error || 'Ошибка');
+        }).catch(function(err){ submitBtn.disabled = false; saveFailed(err.message || 'Ошибка'); });
     }
     document.getElementById('riffForm').onsubmit = function(e){ e.preventDefault(); save(); };
     document.addEventListener('keydown', function (e) {
