@@ -1043,10 +1043,10 @@ html[data-theme='light'] .tour-arrow { color: #7B3FC7; }
 .practice-help-btn:focus-visible { outline: 2px solid #cfff55; outline-offset: 2px; }
 html[data-theme='light'] .practice-help-btn { border-color: rgba(20, 20, 30, 0.12); background: rgba(20, 20, 30, 0.03); color: rgba(20, 20, 30, 0.7); }
 
-/* === Speed Trainer guide (dialog.dna-guide from riff-dna.css; "i" next to the mode) === */
+/* === Speed Trainer guide (dialog.dna-guide from riff-dna.css; "i" is the last slot of the mode track) === */
 .practice-speed-mode .st-info {
     display: inline-flex; align-items: center; justify-content: center; flex: none;
-    width: 32px; height: 32px; margin-left: -6px; padding: 0; border: 0; border-radius: 8px;
+    width: 32px; height: 32px; padding: 0; border: 0; border-radius: 9px;
     background: none; color: rgba(255, 255, 255, 0.45); cursor: pointer; -webkit-tap-highlight-color: transparent;
 }
 .practice-speed-mode .st-info:hover { color: rgba(255, 255, 255, 0.92); }
@@ -1925,6 +1925,9 @@ html[data-theme='light'] .st-ladder, html[data-theme='light'] .st-track { border
 .practice-workspace .segment-btn:hover { border-color: var(--segment-color, #9355e5); }
 .practice-workspace .segment-btn.active { background: rgba(147,85,229,.38) !important; border-color: transparent; color: #fff !important; }
 .practice-workspace .segment-btn.active .segment-icon { filter: none !important; }
+/* Старое белое hover-состояние активной кнопки перебивало фиолетовое: белый текст на белом */
+.practice-workspace .segment-btn.active:hover,
+.practice-workspace .segment-btn.all-riff.active:hover { background: rgba(147,85,229,.46) !important; }
 @media (min-width: 1160px) {
     .practice-workspace { grid-template-columns: minmax(0, 1.65fr) minmax(340px, 1fr); }
 }
@@ -1933,7 +1936,6 @@ html[data-theme='light'] .st-ladder, html[data-theme='light'] .st-track { border
     .practice-workspace .practice-speed-mode { order: 3; flex-basis: 100%; }
     .practice-workspace .practice-speed-mode { display: flex; align-items: center; flex-wrap: nowrap; margin-left: 0; }
     .practice-workspace .practice-speed-mode .practice-modes { flex: 1; min-width: 0; }
-    .practice-workspace .practice-speed-mode .st-info { margin-left: 2px; }
     .practice-workspace .practice-modes { display: flex; }
     .practice-workspace .practice-mode-btn { flex: 1; min-height: 38px; }
     .practice-workspace .control-btn { width: 36px; min-width: 36px; padding: 8px; }
