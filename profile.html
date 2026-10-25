@@ -25,7 +25,7 @@
     <link rel="stylesheet" href="css/rk-header.css?v=ctl1">
     <link rel="stylesheet" href="css/rk-site-footer.css">
     <link rel="stylesheet" href="css/profile.css?v=d20261021">
-    <link rel="stylesheet" href="css/riffs-hub.css?v=ctl1">
+    <link rel="stylesheet" href="css/riffs-hub.css?v=prog1">
     <link rel="stylesheet" href="css/rk-theme-light.css?v=ctl1">
     
     <!-- Favicon -->
@@ -851,6 +851,8 @@
     <!-- Единый визуальный язык с landing.html (после инлайна — переопределяет устаревшие токены) -->
     <link rel="stylesheet" href="css/profile-landing-sync.css?v=ctl1">
     <link rel="stylesheet" href="css/profile-human.css?v=h20261021">
+    <link rel="stylesheet" href="css/rk-hint.css?v=1">
+    <link rel="stylesheet" href="css/profile-progress.css?v=1">
 </head>
 <body class="profile-page" data-rk-header="app" data-logo-href="index.html" data-nav-active="profile">
     <div id="site-header-mount"></div>
@@ -892,102 +894,12 @@
                 </div>
             </section>
 
-            <!-- Practice Overview -->
-            <section class="practice-stats-section">
-                <h2 class="section-title">Practice overview</h2>
-                
-                <!-- 4 плашки (значения заполняет profile.js) -->
-                <div class="practice-stats-grid">
-                    <div class="practice-stat">
-                        <span class="practice-stat-value" id="statTotalLearned">—</span>
-                        <span class="practice-stat-label">Segments learned</span>
-                    </div>
-                    <div class="practice-stat">
-                        <span class="practice-stat-value" id="statRiffsWithProgress">—</span>
-                        <span class="practice-stat-label">Riffs with progress</span>
-                    </div>
-                    <div class="practice-stat">
-                        <span class="practice-stat-value" id="statCurrentStreak">0 days</span>
-                        <span class="practice-stat-label">Current streak</span>
-                    </div>
-                    <div class="practice-stat">
-                        <span class="practice-stat-value" id="statBestStreak">0 days</span>
-                        <span class="practice-stat-label">Best streak</span>
-                    </div>
-                </div>
-                
+            <!-- Your progress: filled by js/profile-progress.js from js/rk-progress.js -->
+            <section class="progress-section" aria-labelledby="progressTitle">
+                <h2 class="section-title" id="progressTitle">Your progress</h2>
+                <div id="profileProgress"></div>
             </section>
 
-            <!-- Game Dashboard (Streak + Weekly Challenge) -->
-            <div class="game-dashboard">
-                <!-- STREAK CARD -->
-                <div class="card streak-card">
-                    <div class="content-col">
-                        <div class="header-row">
-                            <div class="label-group">
-                                <div class="row-label">Streak</div>
-                                <div class="info-icon" tabindex="0" data-tooltip="How many days in a row you've learned at least one segment.">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                        <circle cx="12" cy="12" r="8"></circle>
-                                        <line x1="12" y1="16" x2="12" y2="12"></line>
-                                        <line x1="12" y1="8" x2="12.01" y2="8"></line>
-                                    </svg>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="progress-bar">
-                            <div class="progress-fill streak-fill" id="streakProgressFill" style="width: 0%;"></div>
-                        </div>
-                        <div class="progress-hint" id="streakProgressHint">Toward the 7-day mark</div>
-                        <div class="row-main">
-                            <div class="main-group">
-                                <span class="main-number streak-number" id="streakNumber">0</span>
-                                <span class="fraction">/</span>
-                                <span class="target-number" id="streakGoal">7</span>
-                                <span class="main-unit">days</span>
-                            </div>
-                        </div>
-                        <div class="row-bottom" id="streakMilestones">
-                            <div class="chip" data-milestone="7">7 days</div>
-                            <div class="chip" data-milestone="30">30 days</div>
-                            <div class="chip" data-milestone="100">100 days</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- WEEKLY CHALLENGE CARD -->
-                <div class="card challenge-card">
-                    <div class="content-col">
-                        <div class="header-row">
-                            <div class="label-group">
-                                <div class="row-label">Weekly goal</div>
-                                <div class="info-icon" tabindex="0" data-tooltip="Weekly goal based on your average daily segments.">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                        <circle cx="12" cy="12" r="8"></circle>
-                                        <line x1="12" y1="16" x2="12" y2="12"></line>
-                                        <line x1="12" y1="8" x2="12.01" y2="8"></line>
-                                    </svg>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="progress-bar">
-                            <div class="progress-fill challenge-fill" id="challengeProgressFill" style="width: 0%;"></div>
-                        </div>
-                        <div class="progress-hint" id="challengeProgressHint">Goal and progress reset every Monday</div>
-                        <div class="row-main" id="challengeMainRow">
-                            <div class="main-group">
-                                <span class="main-number" id="challengeProgress">0</span>
-                                <span class="fraction">/</span>
-                                <span class="target-number" id="challengeGoal">50</span>
-                            </div>
-                        </div>
-                        <div class="row-bottom" id="challengeFooter">
-                            <span class="chip dynamic-chip" id="challengeStatus">based on your pace</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
             <!-- Separator -->
             <hr class="section-separator">
             
@@ -1108,7 +1020,11 @@
     <script src="js/auth-manager.js?v=flat1"></script>
     <script src="js/site-header-behaviors.js?v=u1"></script>
     <script src="js/rk-theme.js"></script>
-    <script src="js/riff-gallery-card.js?v=img1"></script>
-    <script src="js/profile.js?v=u4"></script>
+    <script src="js/riff-gallery-card.js?v=prog1"></script>
+    <script src="js/rk-hint.js?v=1"></script>
+    <script src="js/riff-dna-vocab.js?v=dna7"></script>
+    <script src="js/rk-progress.js?v=1"></script>
+    <script src="js/profile-progress.js?v=1"></script>
+    <script src="js/profile.js?v=prog1"></script>
 </body>
 </html>

@@ -104,7 +104,6 @@ let lastSegmentTapTime = 0;
 const SEGMENT_TAP_DEBOUNCE_MS = 220;
 let pendingSegmentIndex = null;
 // Riff Killer 2.0: per-riff progress + practice modes
-const RK_PROGRESS_KEY = 'riffKillerProgressV1';
 let practiceMode = 'normal'; // normal | speed
 let normalPracticeSettings = null;
 let _speedTrainerState = { active: false, segIndex: -1, speedIdx: 0, loopsAtSpeed: 0 };
@@ -140,43 +139,6 @@ function updateSpeedTrainerTimelineLabel() {
 function syncRiffTimelineSpeedTrainerClass() {
     const tl = document.getElementById('riffTimeline');
     if (tl) tl.classList.toggle('speed-trainer-active', practiceMode === 'speed');
-}
-
-function rkLoadProgress() {
-    try {
-        const raw = localStorage.getItem(RK_PROGRESS_KEY);
-        return raw ? (JSON.parse(raw) || {}) : {};
-    } catch (e) {
-        return {};
-    }
-}
-
-function rkSaveProgress(all) {
-    try { localStorage.setItem(RK_PROGRESS_KEY, JSON.stringify(all || {})); } catch (e) {}
-}
-
-function rkGetRiffProgress(riffId) {
-    const all = rkLoadProgress();
-    const key = String(riffId || '');
-    const p = all[key] || {};
-    const learned = Array.isArray(p.learned) ? p.learned.filter(n => typeof n === 'number' && n >= 0) : [];
-    return {
-        learned: learned,
-        lastPracticedAt: p.lastPracticedAt || null,
-        learnedAtSlowSpeed: !!p.learnedAtSlowSpeed
-    };
-}
-
-function rkSetRiffProgress(riffId, patch) {
-    const all = rkLoadProgress();
-    const key = String(riffId || '');
-    const prev = all[key] && typeof all[key] === 'object' ? all[key] : {};
-    all[key] = { ...prev, ...patch };
-    rkSaveProgress(all);
-}
-
-function rkMarkLastPracticed(riffId) {
-    rkSetRiffProgress(riffId, { lastPracticedAt: Date.now() });
 }
 
 // Part states, the "clean?" question and practice time: js/practice-progress.js.
@@ -501,6 +463,8 @@ function initPracticePage() {
     document.body.style.opacity = '1';
     var urlParams = new URLSearchParams(window.location.search);
     var riffId = parseInt(urlParams.get('riff')) || 1;
+    // ?part=N (from the profile's "Next") selects that part once the recordings are ready.
+    var partParam = parseInt(urlParams.get('part'), 10);
     var state = loadAppState();
     // Fallback только полные риффы (riffsDatabase): в state.riffsDatabase только id/isFavorite — нет song, artist, videoFile
     var fallbackRiffs = riffsDatabase;
@@ -538,7 +502,7 @@ function initPracticePage() {
             console.log('[RiffKiller] SEGMENTS_FROM_DATA (admin timing):', JSON.stringify(currentRiff.segments.map(function(s, i) { return (i + 1) + ': ' + Number(s.start) + '-' + Number(s.end); })));
         }
         addToRecentlyPracticed(currentRiff);
-        rkMarkLastPracticed(currentRiff.id);
+        if (partParam >= 1 && currentRiff.segments && partParam <= currentRiff.segments.length) pendingSegmentIndex = partParam - 1;
         updateTitle();
         videosFullyLoaded = false;
         // The tab library goes ahead of the two video downloads that start next.

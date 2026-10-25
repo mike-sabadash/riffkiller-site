@@ -24,8 +24,14 @@
      * @param {object} hooks
      * @param {function} [hooks.onNavigate] — клик по карточке (кроме звезды)
      * @param {function} [hooks.onFavoriteClick] — (e, favBtn, riff)
-     * @param {string} [hooks.extraMetaHtml] — HTML под artist (mastery на profile)
+     * @param {string} [hooks.extraMetaHtml] — HTML под artist; по умолчанию — прогресс риффа
      */
+    // “3/10 parts at tempo” or “Learned” under the artist, once the student has started the riff (js/rk-progress.js).
+    function progressNote(riff) {
+        var note = global.RKProgress && global.RKProgress.cardNote ? global.RKProgress.cardNote(riff) : '';
+        return note ? '<div class="riff-progress-note">' + esc(note) + '</div>' : '';
+    }
+
     function createCard(riff, hooks) {
         hooks = hooks || {};
 
@@ -85,7 +91,7 @@
             esc(riff.artist) +
             levelHtml +
             '</div>' +
-            (hooks.extraMetaHtml || '');
+            (hooks.extraMetaHtml != null ? hooks.extraMetaHtml : progressNote(riff));
 
         stack.appendChild(card);
         stack.appendChild(meta);

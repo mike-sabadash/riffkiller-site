@@ -1,0 +1,109 @@
+/* "Your progress" on the profile (js/profile-progress.js). Same panels as the rest of the profile:
+   dark surface, hairline border, one purple for the action and for done days; no icons or badges. */
+
+.progress-section { margin-bottom: 48px; text-align: left; }
+.pp-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.pp-grid > * { min-width: 0; }
+.pp-card {
+    display: flex; flex-direction: column; gap: 12px;
+    padding: 20px; border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 14px; background: #121214;
+    font-family: 'Inter', system-ui, sans-serif; color: rgba(244, 247, 255, 0.92);
+}
+.pp-grid { grid-template-areas: 'next next' 'week miles' 'week tech' 'riffs riffs'; align-items: start; }
+.pp-next { grid-area: next; } .pp-week { grid-area: week; } .pp-miles { grid-area: miles; } .pp-tech-card { grid-area: tech; } .pp-riffs-card { grid-area: riffs; }
+@media (max-width: 760px) { .pp-grid { grid-template-areas: 'next' 'week' 'riffs' 'tech' 'miles'; } }
+.pp-next { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: 'title btn' 'head btn' 'text btn'; gap: 4px 24px; align-items: center; }
+.pp-next .pp-title { grid-area: title; }
+.pp-next .pp-next-title { grid-area: head; }
+.pp-next .pp-text { grid-area: text; }
+.pp-next .pp-btn { grid-area: btn; align-self: center; margin: 0; }
+@media (max-width: 560px) {
+    .pp-next { grid-template-columns: minmax(0, 1fr); grid-template-areas: 'title' 'head' 'text' 'btn'; }
+    .pp-next .pp-btn { justify-self: start; margin-top: 8px; }
+}
+
+@media (max-width: 760px) { .pp-grid { grid-template-columns: minmax(0, 1fr); } }
+
+
+.pp-title { display: flex; align-items: center; gap: 6px; margin: 0; font-size: 13px; font-weight: 500; color: rgba(244, 247, 255, 0.55); }
+.pp-text { margin: 0; font-size: 14px; line-height: 20px; color: rgba(244, 247, 255, 0.66); }
+.pp-label { margin: 4px 0 0; font-size: 12px; color: rgba(244, 247, 255, 0.45); }
+.pp-meta { margin: 0; font-size: 13px; color: rgba(244, 247, 255, 0.55); font-variant-numeric: tabular-nums; }
+
+.pp-days { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; max-width: 340px; }
+.pp-day { aspect-ratio: 1; max-width: 100%; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 5px; border-radius: 8px; background: rgba(255, 255, 255, 0.05); color: rgba(244, 247, 255, 0.45); font-size: 11px; font-weight: 500; }
+.pp-day.done { background: #6b3da6; color: #fff; }
+.pp-day.today { box-shadow: inset 0 0 0 1px rgba(244, 247, 255, 0.45); }
+.pp-day.future { opacity: 0.55; }
+
+.pp-week-figures { display: flex; flex-direction: column; gap: 2px; }
+.pp-big { margin: 0; font-variant-numeric: tabular-nums; }
+.pp-big-num { font-size: 32px; font-weight: 600; line-height: 1.1; color: #fff; }
+.pp-big-of { font-size: 15px; color: rgba(244, 247, 255, 0.7); }
+.pp-facts { display: flex; flex-wrap: wrap; gap: 8px 28px; margin: 0; }
+.pp-facts div { display: flex; flex-direction: column; gap: 2px; }
+.pp-facts dt { font-size: 12px; color: rgba(244, 247, 255, 0.45); }
+.pp-facts dd { margin: 0; font-size: 14px; color: rgba(244, 247, 255, 0.9); font-variant-numeric: tabular-nums; }
+.pp-link { margin-left: 6px; padding: 0; border: 0; background: none; color: #b28cf0; font: inherit; font-size: 13px; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+
+.pp-goal-options { display: flex; flex-wrap: wrap; gap: 8px; }
+.pp-goal-btn { height: 36px; padding: 0 14px; border: 0; border-radius: 10px; background: rgba(255, 255, 255, 0.07); color: rgba(244, 247, 255, 0.92); font: 600 13px/1 'Inter', system-ui, sans-serif; cursor: pointer; }
+.pp-goal-btn:hover { background: rgba(255, 255, 255, 0.11); }
+.pp-goal-btn.active { background: rgba(147, 85, 229, 0.38); color: #fff; }
+
+.pp-calendar { display: flex; gap: 3px; overflow-x: auto; }
+.pp-cal-week { display: grid; grid-template-rows: repeat(7, 10px); gap: 3px; }
+.pp-cal-week i { display: block; width: 10px; height: 10px; border-radius: 2px; background: rgba(255, 255, 255, 0.06); }
+.pp-cal-week i.some { background: rgba(147, 85, 229, 0.3); }
+.pp-cal-week i.done { background: #9355e5; }
+.pp-cal-week i.future { background: transparent; }
+
+.pp-next-title { margin: 0; font-size: 18px; font-weight: 600; line-height: 24px; color: #fff; }
+.pp-btn { align-self: flex-start; display: inline-flex; align-items: center; height: 40px; margin-top: auto; padding: 0 18px; border-radius: 10px; background: #9355e5; color: #fff; font-size: 14px; font-weight: 600; text-decoration: none; }
+.pp-btn:hover { background: #7b3fc7; }
+
+.pp-riffs { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.pp-riffs a { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: 'name status' 'artist status' 'bar bar'; gap: 2px 16px; padding: 10px 10px 12px; margin: 0 -10px; border-radius: 10px; color: inherit; text-decoration: none; }
+.pp-riffs a:hover { background: rgba(255, 255, 255, 0.04); }
+.pp-riff-name { grid-area: name; font-size: 15px; font-weight: 600; color: #fff; }
+.pp-riff-artist { grid-area: artist; font-size: 13px; color: rgba(244, 247, 255, 0.5); }
+.pp-riff-status { grid-area: status; align-self: center; display: flex; flex-direction: column; align-items: flex-end; gap: 2px; font-size: 13px; color: rgba(244, 247, 255, 0.8); font-variant-numeric: tabular-nums; text-align: right; }
+.pp-due { font-size: 12px; color: rgba(244, 247, 255, 0.55); }
+.pp-bar { grid-area: bar; height: 4px; margin-top: 8px; border-radius: 2px; background: rgba(255, 255, 255, 0.06); overflow: hidden; }
+.pp-bar i { display: block; height: 100%; background: #9355e5; border-radius: 2px; }
+
+.pp-tech { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.pp-tech li { display: flex; justify-content: space-between; gap: 12px; font-size: 14px; color: rgba(244, 247, 255, 0.9); }
+.pp-tech li.none { color: rgba(244, 247, 255, 0.45); }
+.pp-tech-detail { font-size: 13px; color: rgba(244, 247, 255, 0.55); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.pp-tech li.learned .pp-tech-detail { color: rgba(244, 247, 255, 0.9); }
+
+.pp-miles-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.pp-miles-list li { display: flex; align-items: center; gap: 10px; font-size: 14px; color: rgba(244, 247, 255, 0.5); }
+.pp-miles-list li.done { color: rgba(244, 247, 255, 0.92); }
+.pp-mile-mark { flex: none; width: 14px; height: 14px; border-radius: 50%; box-shadow: inset 0 0 0 1.5px rgba(244, 247, 255, 0.25); }
+.pp-miles-list li.done .pp-mile-mark { background: #9355e5; box-shadow: none; }
+.pp-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+.pp-goal-btn:focus-visible, .pp-btn:focus-visible, .pp-link:focus-visible, .pp-riffs a:focus-visible { outline: 2px solid #cfff55; outline-offset: 2px; }
+
+html[data-theme='light'] .pp-card { background: #fff; border-color: rgba(20, 20, 30, 0.08); color: #16161f; }
+html[data-theme='light'] .pp-title, html[data-theme='light'] .pp-label, html[data-theme='light'] .pp-facts dt { color: rgba(20, 20, 30, 0.5); }
+html[data-theme='light'] .pp-text, html[data-theme='light'] .pp-meta, html[data-theme='light'] .pp-big-of, html[data-theme='light'] .pp-riff-artist,
+html[data-theme='light'] .pp-tech-detail, html[data-theme='light'] .pp-due { color: rgba(20, 20, 30, 0.6); }
+html[data-theme='light'] .pp-big-num, html[data-theme='light'] .pp-next-title, html[data-theme='light'] .pp-riff-name,
+html[data-theme='light'] .pp-facts dd, html[data-theme='light'] .pp-riff-status, html[data-theme='light'] .pp-tech li,
+html[data-theme='light'] .pp-tech li.learned .pp-tech-detail, html[data-theme='light'] .pp-miles-list li.done { color: #16161f; }
+html[data-theme='light'] .pp-tech li.none, html[data-theme='light'] .pp-miles-list li { color: rgba(20, 20, 30, 0.45); }
+html[data-theme='light'] .pp-day, html[data-theme='light'] .pp-cal-week i, html[data-theme='light'] .pp-bar,
+html[data-theme='light'] .pp-goal-btn { background: rgba(20, 20, 30, 0.06); color: rgba(20, 20, 30, 0.55); }
+html[data-theme='light'] .pp-goal-btn { color: #16161f; }
+html[data-theme='light'] .pp-day.done { background: #6b3da6; color: #fff; }
+html[data-theme='light'] .pp-cal-week i.done { background: #9355e5; }
+html[data-theme='light'] .pp-cal-week i.some { background: rgba(147, 85, 229, 0.3); }
+html[data-theme='light'] .pp-cal-week i.future { background: transparent; }
+html[data-theme='light'] .pp-goal-btn.active { background: rgba(147, 85, 229, 0.2); }
+html[data-theme='light'] .pp-day.today { box-shadow: inset 0 0 0 1px rgba(20, 20, 30, 0.45); }
+html[data-theme='light'] .pp-mile-mark { box-shadow: inset 0 0 0 1.5px rgba(20, 20, 30, 0.25); }
+html[data-theme='light'] .pp-link { color: #7b3fc7; }
+html[data-theme='light'] .pp-riffs a:hover { background: rgba(20, 20, 30, 0.04); }
