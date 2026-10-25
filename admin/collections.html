@@ -144,6 +144,7 @@
             </form>
         </div>
     </div>
+    <script src="../js/image-shrink.js?v=1"></script>
     <script>
 (function () {
     var listUrl = '/api/collections/list.php';
@@ -317,15 +318,19 @@
             if (!f) return;
             var ext = (f.name.split('.').pop() || 'png').toLowerCase();
             if (!/^(png|jpe?g|webp)$/.test(ext)) ext = 'jpg';
-            var path = 'assets/img/collections/' + slugName() + '-' + o.kind + '-' + Date.now().toString(36) + '.' + ext;
             imageSize(f).then(function (size) {
                 var small = size && (size.w < o.minW || size.h < o.minH);
                 var ratio = size ? size.w / size.h : 0, off = size && Math.abs(ratio / o.ratio - 1) > 0.25;
                 var text = size ? 'Загружено ' + size.w + '×' + size.h + '.' : 'Загружено.';
                 if (small) text += ' Это меньше ' + o.minW + '×' + o.minH + ': на сайте картинка будет мыльной. Лучше ' + o.best + '.';
                 else if (off) text += ' Пропорции не ' + o.ratioLabel + ': края обрежутся, проверьте превью.';
+                return shrinkImage(f).then(function (file) { return [size, small, off, text, file]; });
+            }).then(function (r) {
+                var size = r[0], small = r[1], off = r[2], text = r[3], file = r[4];
+                if (file !== f) ext = 'jpg';
+                var path = 'assets/img/collections/' + slugName() + '-' + o.kind + '-' + Date.now().toString(36) + '.' + ext;
                 var fd = new FormData();
-                fd.append('file', f);
+                fd.append('file', file, (f.name.replace(/\.[^.]+$/, '') || 'cover') + '.' + ext);
                 fd.append('path', path);
                 fd.append('variants', o.kind);
                 return fetch(uploadUrl, { method: 'POST', body: fd })

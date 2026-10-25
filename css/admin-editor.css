@@ -33,7 +33,7 @@ body.ed-page .tab-pane#tabList .form-section { max-width: 760px; }
 .ed-id-copy { color: var(--ed-text-3); font-size: 12px; }
 .ed-id:hover { border-color: var(--ed-text-3); }
 .ed-bar-title { flex: 1; min-width: 0; color: var(--ed-text-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.ed-bar-status { color: var(--ed-text-3); font-size: 13px; white-space: nowrap; }
+.ed-bar-status { color: var(--ed-text-3); font-size: 13px; max-width: 50%; text-align: right; line-height: 1.35; }
 .ed-bar-status.dirty { color: #f2c94c; }
 .ed-bar-status.saved { color: var(--ed-ok); }
 
