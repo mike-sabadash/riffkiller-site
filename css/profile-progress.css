@@ -14,7 +14,13 @@
 @media (max-width: 760px) { .pp-grid { grid-template-areas: 'next' 'week' 'riffs' 'tech' 'miles'; } }
 .pp-next { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: 'title btn' 'head btn' 'text btn'; gap: 4px 24px; align-items: center; }
 .pp-next .pp-title { grid-area: title; }
-.pp-next .pp-next-title { grid-area: head; }
+.pp-email { display: flex; align-items: flex-start; gap: 10px; margin-top: 6px; padding-top: 14px; border-top: 1px solid rgba(255, 255, 255, 0.06); font-size: 14px; line-height: 20px; color: rgba(244, 247, 255, 0.85); cursor: pointer; }
+.pp-email input { flex: none; width: 16px; height: 16px; margin: 2px 0 0; accent-color: #9355e5; }
+.pp-email small { display: block; font-size: 12px; line-height: 18px; color: rgba(244, 247, 255, 0.5); }
+html[data-theme='light'] .pp-email { border-color: rgba(20, 20, 30, 0.08); color: #16161f; }
+html[data-theme='light'] .pp-email small { color: rgba(20, 20, 30, 0.5); }
+
+.pp-next-title { grid-area: head; }
 .pp-next .pp-text { grid-area: text; }
 .pp-next .pp-btn { grid-area: btn; align-self: center; margin: 0; }
 @media (max-width: 560px) {

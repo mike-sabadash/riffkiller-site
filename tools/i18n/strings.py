@@ -683,6 +683,8 @@ T = [
 ("Your progress", "Твой прогресс", "Tu progreso"),
 ("This week", "Эта неделя", "Esta semana"),
 ("Last 12 weeks", "Последние 12 недель", "Últimas 12 semanas"),
+("Email me a short summary of my week every Monday", "Присылать короткий итог недели по понедельникам", "Envíame un breve resumen de mi semana cada lunes"),
+("One email a week. It stops by itself after two quiet weeks.", "Одно письмо в неделю. Если две недели не играть, письма прекратятся сами.", "Un email a la semana. Se detiene solo tras dos semanas sin tocar."),
 ("Practice days, last 12 weeks", "Дни практики за последние 12 недель", "Días de práctica, últimas 12 semanas"),
 ("Weeks in a row", "Недель подряд", "Semanas seguidas"),
 ("Goal", "Цель", "Meta"),

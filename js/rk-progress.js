@@ -22,7 +22,7 @@
     var LEARNED_IN_RIFFS = 3;
 
     function empty() {
-        return { v: 2, goal: 0, goalAt: 0, days: {}, riffs: {}, updatedAt: 0 };
+        return { v: 2, goal: 0, goalAt: 0, email: false, emailAt: 0, tz: '', lang: '', days: {}, riffs: {}, updatedAt: 0 };
     }
 
     function num(x) { x = Number(x); return isFinite(x) && x > 0 ? x : 0; }
@@ -64,6 +64,10 @@
         if (!s || typeof s !== 'object') return out;
         out.goal = GOALS.indexOf(Number(s.goal)) >= 0 ? Number(s.goal) : 0;
         out.goalAt = num(s.goalAt);
+        out.email = s.email === true;
+        out.emailAt = num(s.emailAt);
+        out.tz = typeof s.tz === 'string' && /^[A-Za-z0-9_+\-\/]{1,64}$/.test(s.tz) ? s.tz : '';
+        out.lang = s.lang === 'ru' || s.lang === 'es' || s.lang === 'en' ? s.lang : '';
         out.updatedAt = num(s.updatedAt);
         if (s.days && typeof s.days === 'object') {
             Object.keys(s.days).forEach(function (k) {
@@ -249,6 +253,13 @@
         return true;
     }
 
+    /** The weekly summary email (sent on Monday morning in the student’s time zone): opt-in. */
+    function setEmail(state, on, now) {
+        state.email = !!on;
+        state.emailAt = now;
+        state.updatedAt = now;
+    }
+
     /** This week (Monday first), the goal and how many weeks in a row it was met. */
     function weekSummary(state, now) {
         var start = weekStart(now);
@@ -410,6 +421,12 @@
         var goalFrom = a.goalAt >= b.goalAt ? a : b;
         out.goal = goalFrom.goal || a.goal || b.goal;
         out.goalAt = goalFrom.goalAt;
+        var emailFrom = a.emailAt >= b.emailAt ? a : b;
+        out.email = emailFrom.email;
+        out.emailAt = emailFrom.emailAt;
+        var newer = a.updatedAt >= b.updatedAt ? a : b, older = newer === a ? b : a;
+        out.tz = newer.tz || older.tz;
+        out.lang = newer.lang || older.lang;
         out.updatedAt = Math.max(a.updatedAt, b.updatedAt);
         Object.keys(a.days).concat(Object.keys(b.days)).forEach(function (k) {
             var x = a.days[k] || { sec: 0, riffs: {} }, y = b.days[k] || { sec: 0, riffs: {} };
@@ -488,6 +505,9 @@
             signedIn = true;
             clearTimeout(syncTimer);
             cache = merge(load(), res.progress || null);
+            // Where and in which language the Monday email should arrive.
+            try { cache.tz = Intl.DateTimeFormat().resolvedOptions().timeZone || cache.tz; } catch (e) {}
+            try { var l = global.localStorage && global.localStorage.getItem('rk-lang'); if (l === 'ru' || l === 'es' || l === 'en') cache.lang = l; } catch (e) {}
             save({ quiet: !res.progress });
             clearTimeout(syncTimer);
             dirty = false;
@@ -510,7 +530,7 @@
         KEY: KEY, DAY_SECONDS: DAY_SECONDS, GOALS: GOALS, REVIEW_DAYS: REVIEW_DAYS,
         empty: empty, normalize: normalize, dayKey: dayKey, weekStart: weekStart,
         recordLoop: recordLoop, markClean: markClean, reviewMissed: reviewMissed, markWhole: markWhole,
-        partStatus: partStatus, riffSummary: riffSummary, addPlayTime: addPlayTime, setGoal: setGoal,
+        partStatus: partStatus, riffSummary: riffSummary, addPlayTime: addPlayTime, setGoal: setGoal, setEmail: setEmail,
         weekSummary: weekSummary, calendar: calendar, techniques: techniques, nextStep: nextStep,
         sessionDiff: sessionDiff, merge: merge, cardNote: cardNote,
         load: load, update: update, save: save, sync: sync, flush: flush, onChange: onChange

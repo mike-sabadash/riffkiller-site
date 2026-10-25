@@ -217,6 +217,14 @@ else
   echo "::warning::Billing renewals cron not installed (uid $(id -u), web user ${web_user:-unknown}, php ${php_bin:-missing})"
 fi
 
+# Monday practice summaries (opt-in on the profile): hourly, each student gets theirs on Monday from 8:00 their time.
+if [ "$(id -u)" = 0 ] && [ -n "$web_user" ] && [ -n "$php_bin" ] && [ -f "$root/config/progress-digest-cli.php" ]; then
+  printf '# Installed by riffkiller deploy-remote.sh\n7 * * * * %s %s %s/config/progress-digest-cli.php 2>&1 | logger -t riffkiller-progress-digest\n' \
+    "$web_user" "$php_bin" "$root" > /etc/cron.d/riffkiller-progress-digest
+  chmod 644 /etc/cron.d/riffkiller-progress-digest
+  note "Practice summary cron: /etc/cron.d/riffkiller-progress-digest (hourly as $web_user)"
+fi
+
 ln -sfn "$backup" "$backup_base/last"
 note "Deployed $sha; backup $backup"
 echo "BACKUP_DIR=$backup"

@@ -639,6 +639,8 @@
             "Your progress": "Твой прогресс",
             "This week": "Эта неделя",
             "Last 12 weeks": "Последние 12 недель",
+            "Email me a short summary of my week every Monday": "Присылать короткий итог недели по понедельникам",
+            "One email a week. It stops by itself after two quiet weeks.": "Одно письмо в неделю. Если две недели не играть, письма прекратятся сами.",
             "Practice days, last 12 weeks": "Дни практики за последние 12 недель",
             "Weeks in a row": "Недель подряд",
             "Goal": "Цель",
