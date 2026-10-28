@@ -167,7 +167,7 @@
                     <h2>2. Choose how to pay</h2>
                     <div class="billing-notice" id="billingNotice" role="status" hidden></div>
                     <form class="billing-email" id="billingEmail" hidden>
-                        <label for="billingEmailInput">Email for the receipt and your subscription</label>
+                        <label for="billingEmailInput">Email for the payment receipt (you stay signed in; premium goes to this account)</label>
                         <div class="billing-email-row">
                             <input type="email" id="billingEmailInput" autocomplete="email" required placeholder="you@example.com">
                             <button type="submit">Continue</button>
@@ -450,7 +450,7 @@
                     if (data.success && data.usdt) { setBusy(provider, false); showUsdtOrder(data.usdt); return; }
                     setBusy(provider, false);
                     if (data.needEmail) {
-                        showNotice(email || data.error !== 'Email required' ? data.error : 'Enter an email for the receipt and your subscription, then press Continue.', email ? 'error' : '');
+                        showNotice(data.error !== 'Email required' ? data.error : 'Your account has no email. Enter one for the payment receipt, then press Continue.', email ? 'error' : '');
                         pendingProvider = provider;
                         emailForm.hidden = false;
                         try { emailInput.focus({ preventScroll: true }); } catch (e) { emailInput.focus(); }

@@ -51,7 +51,12 @@ if (!empty($result['error'])) {
     payments_log_write($provider . '.create.failed', ['source' => $provider, 'user_id' => $user['id'], 'plan' => $plan, 'note' => $result['error']]);
     // lava.top refuses some addresses, e.g. the seller's own email: ask the buyer for another one.
     if ($provider === 'lava' && stripos($result['error'], 'email') !== false) {
-        billing_reply(400, ['success' => false, 'error' => 'The payment service did not accept this email. Enter another one.', 'needEmail' => true]);
+        // Name the refused address and say the purchase stays on this account: the buyer is signed in already.
+        $typed = filter_var(trim((string)($input['email'] ?? '')), FILTER_VALIDATE_EMAIL) ? true : false;
+        $msg = $typed
+            ? 'lava.top did not accept ' . $email . '. Try another email.'
+            : 'lava.top, our card payment service, did not accept your account email ' . $email . '. Enter another email for the receipt: premium still goes to the account you are signed in with.';
+        billing_reply(400, ['success' => false, 'error' => $msg, 'needEmail' => true, 'refusedEmail' => $email]);
     }
     billing_reply(502, ['success' => false, 'error' => 'Payment service is not responding, try again later']);
 }
