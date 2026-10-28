@@ -311,14 +311,14 @@ html[data-theme='light'] .profile-mini-name {
 }
 
 .topbar .btn-primary {
-    background: #9355e5;
-    color: #ffffff;
+    background: #ffffff;
+    color: #0d0d12;
     box-shadow: none;
 }
 
 .topbar .btn-primary:hover {
-    background: #7c45c7;
-    color: #ffffff;
+    background: #ececf0;
+    color: #0d0d12;
 }
 
 /* Та же специфичность, что у блока .btn шапки — иначе border остаётся transparent */
@@ -851,10 +851,10 @@ html[data-theme='light'] .profile-mini-name {
 .mobile-menu-overlay .mobile-auth .mobile-plans-btn {
     display: none;
 }
-/* Кнопки как на десктопе: Log in — контур, Sign up — акцент (была белая). */
+/* Кнопки как на десктопе: Log in — контур, Start free — белая. */
 .mobile-menu-overlay .mobile-signup-btn.btn-primary {
-    background: #9355e5;
-    color: #ffffff;
+    background: #ffffff;
+    color: #0d0d12;
     border: 1px solid transparent;
 }
 .mobile-menu-overlay .mobile-signup-btn.btn-outline {

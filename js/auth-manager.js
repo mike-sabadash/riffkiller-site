@@ -770,8 +770,8 @@ class AuthManager {
             .btn-plans-nav { display: inline-flex; align-items: center; justify-content: center; background: #9355E5; color: #fff; border-radius: 12px; padding: 12px 24px; min-height: 44px; text-decoration: none; font-size: 0.875rem; font-weight: 500; line-height: 1.25rem; transition: background 0.2s, border-color 0.2s, box-shadow 0.2s; border: none; box-sizing: border-box; font-family: Inter, system-ui, sans-serif; }
             .btn-plans-nav:hover { background: #7c45c7; color: #fff; }
             .auth-header-btn, .auth-buttons .btn { min-height: 44px; padding: 12px 24px; border-radius: 12px; font-size: 0.875rem; font-weight: 500; line-height: 1.25rem; box-sizing: border-box; font-family: Inter, system-ui, sans-serif; }
-            .auth-buttons .btn-primary { background: #9355E5; color: #fff; border: none; box-shadow: none; }
-            .auth-buttons .btn-primary:hover { background: #7c45c7; color: #fff; }
+            .auth-buttons .btn-primary { background: #fff; color: #0d0d12; border: none; box-shadow: none; }
+            .auth-buttons .btn-primary:hover { background: #ececf0; color: #0d0d12; }
             .auth-buttons .btn-outline { background: rgba(255,255,255,0.03); color: #eef2ff; border: 1px solid rgba(255,255,255,0.2); }
             .auth-buttons .btn-outline:hover { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.4); color: #fff; }
             .mobile-plans-btn { display: block; width: 100%; text-align: center; margin-bottom: 8px; box-sizing: border-box; min-height: 38px; padding: 10px 20px; }
