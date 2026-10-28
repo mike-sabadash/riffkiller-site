@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <script src="js/rk-theme-init.js"></script>
     <style>html{background:#0a0a0a;color:#fff}html[data-theme="light"]{background:#f4f4f8;color:#12121a}</style>
-    <script src="js/i18n.js?v=i11"></script>
+    <script src="js/i18n.js?v=i12"></script>
     <meta name="theme-color" content="#0a0a0a" id="rk-theme-color">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Riff Killer - Premium Billing</title>
@@ -105,6 +105,19 @@
         html[data-theme='light'] .billing-notice.is-ok { color: #166534; }
         html[data-theme='light'] .billing-notice.is-error { color: #991b1b; }
         .billing-email button { min-height: 44px; padding: 0 18px; border-radius: 12px; border: none; background: #9355E5; color: #fff; font: inherit; font-weight: 500; cursor: pointer; }
+        .billing-includes[hidden], .billing-header > p[hidden], .account-panel[hidden], .plan-section[hidden], .methods-section[hidden], .switch-note[hidden] { display: none; }
+        .account-panel { max-width: 640px; margin: 0 auto 40px; padding: 24px; border-radius: 20px; border: 1px solid rgba(147, 85, 229, 0.55); background: linear-gradient(180deg, rgba(147, 85, 229, 0.12), rgba(147, 85, 229, 0.03)); text-align: center; }
+        .account-eyebrow { font-size: 0.6875rem; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(196, 181, 252, 0.98); margin-bottom: 8px; }
+        .account-title { font-size: 1.375rem; font-weight: 700; margin-bottom: 8px; }
+        .account-line { font-size: 0.9375rem; color: var(--color-text-secondary); line-height: 1.6; }
+        .account-line + .account-line { margin-top: 2px; }
+        .account-actions { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin-top: 16px; }
+        .account-actions a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 18px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.22); color: inherit; text-decoration: none; font-size: 0.875rem; font-weight: 500; }
+        .account-actions a:hover { background: rgba(255, 255, 255, 0.08); }
+        html[data-theme='light'] .account-actions a { border-color: rgba(18, 18, 26, 0.2); }
+        .plan-current { display: inline-block; margin-left: 8px; padding: 2px 8px; border-radius: 999px; font-size: 0.6875rem; font-weight: 600; vertical-align: middle; color: #e9d5ff; background: rgba(147, 85, 229, 0.35); }
+        html[data-theme='light'] .plan-current { color: #5b21b6; background: rgba(147, 85, 229, 0.15); }
+        .switch-note { max-width: 640px; margin: -8px auto 20px; font-size: 0.875rem; color: var(--color-text-secondary); text-align: center; line-height: 1.5; }
         .usdt-pay[hidden] { display: none; }
         .usdt-pay { max-width: 560px; margin: 24px auto 0; padding: 24px; border-radius: 20px; border: 1px solid var(--color-border-light); background: rgba(255, 255, 255, 0.03); }
         .usdt-pay h3 { font-size: 1.125rem; font-weight: 600; margin-bottom: 4px; }
@@ -130,9 +143,9 @@
         <main class="main-content">
             <div class="billing-main">
                 <header class="billing-header">
-                    <h1>Unlock every riff</h1>
-                    <p>One plan, everything included. Cancel anytime.</p>
-                    <ul class="billing-includes">
+                    <h1 id="billingTitle">Unlock every riff</h1>
+                    <p id="billingLead">One plan, everything included. Cancel anytime.</p>
+                    <ul class="billing-includes" id="billingIncludes">
                         <li>Full riff library, new riffs monthly</li>
                         <li>Left + right hand cameras</li>
                         <li>Slow motion, loops, Speed Trainer</li>
@@ -140,8 +153,15 @@
                     </ul>
                 </header>
 
-                <section class="plan-section">
-                    <h2>1. Choose a plan</h2>
+                <section class="account-panel" id="accountPanel" aria-live="polite" hidden>
+                    <p class="account-eyebrow">Your subscription</p>
+                    <p class="account-title" id="accountTitle"></p>
+                    <div id="accountLines"></div>
+                    <div class="account-actions" id="accountActions"></div>
+                </section>
+
+                <section class="plan-section" id="planSection">
+                    <h2 id="planHeading">1. Choose a plan</h2>
                     <div class="plans-row">
                         <div class="plan-card selected" id="planMonthly" data-plan="monthly">
                             <div class="plan-name">Monthly</div>
@@ -163,8 +183,9 @@
                     </div>
                 </section>
 
-                <section class="methods-section">
-                    <h2>2. Choose how to pay</h2>
+                <section class="methods-section" id="methodsSection">
+                    <h2 id="methodsHeading">2. Choose how to pay</h2>
+                    <p class="switch-note" id="switchNote" hidden></p>
                     <div class="billing-notice" id="billingNotice" role="status" hidden></div>
                     <form class="billing-email" id="billingEmail" hidden>
                         <label for="billingEmailInput">Email for the payment receipt (you stay signed in; premium goes to this account)</label>
@@ -301,7 +322,7 @@
 
     <script src="config/env-config.php"></script>
     <script src="js/patreon-config.js"></script>
-    <script src="js/auth-manager.js?v=flat1"></script>
+    <script src="js/auth-manager.js?v=plan1"></script>
     <script src="js/site-header-behaviors.js?v=u1"></script>
     <script src="js/rk-theme.js"></script>
     <script>
@@ -354,9 +375,9 @@
                 if (planYearly) { planYearly.classList.toggle('selected', plan === 'yearly'); }
                 updatePlanLinks();
             }
-            if (planMonthly) planMonthly.addEventListener('click', function() { setPlan('monthly'); });
-            if (planQuarterly) planQuarterly.addEventListener('click', function() { setPlan('quarterly'); });
-            if (planYearly) planYearly.addEventListener('click', function() { setPlan('yearly'); });
+            if (planMonthly) planMonthly.addEventListener('click', function() { planChosenByUser = true; setPlan('monthly'); });
+            if (planQuarterly) planQuarterly.addEventListener('click', function() { planChosenByUser = true; setPlan('quarterly'); });
+            if (planYearly) planYearly.addEventListener('click', function() { planChosenByUser = true; setPlan('yearly'); });
             var planParam = (typeof URLSearchParams !== 'undefined' && window.location.search) ? new URLSearchParams(window.location.search).get('plan') : null;
             if (planParam === 'yearly' || planParam === 'quarterly') setPlan(planParam);
             else updatePlanLinks();
@@ -410,6 +431,7 @@
                     var card = el.closest('.method-card');
                     if (card && p[card.getAttribute('data-provider')]) card.hidden = !price;
                 });
+                renderButtons();
             }
             function applyOptions(opts) {
                 billingOptions = opts;
@@ -419,12 +441,147 @@
                 // Only one featured method: the card checkout when it is on, Patreon otherwise.
                 var patreonCard = document.getElementById('methodPatreon');
                 if (patreonCard) patreonCard.classList.toggle('method-card--featured', !p.lava);
+                applyAccountToMethods();
                 updatePrices();
             }
             function setBusy(provider, busy) {
                 document.querySelectorAll('.pay-btn').forEach(function(b) { b.disabled = busy; });
                 var btn = document.querySelector('.pay-btn[data-provider="' + provider + '"] .pay-label');
-                if (btn) btn.textContent = busy ? (provider === 'usdt' ? 'Preparing\u2026' : 'Opening checkout\u2026') : 'Pay';
+                if (btn && busy) btn.textContent = provider === 'usdt' ? 'Preparing\u2026' : 'Opening checkout\u2026';
+                if (!busy) renderButtons();
+            }
+
+            // Subscriber view: what the account already has decides what the page offers (api/billing/status.php → account).
+            var account = null;
+            var PLAN_LABEL = { monthly: 'Monthly', quarterly: '3 months', yearly: 'Yearly' };
+            var SOURCE_LABEL = { lava: 'Card', robokassa: 'Russian card', yookassa: 'Russian card', usdt: 'USDT' };
+            var METHOD_ID = { lava: 'methodLava', robokassa: 'methodRobokassa', yookassa: 'methodYookassa', usdt: 'methodUsdt' };
+            var planChosenByUser = !!planParam;
+            function kind() { return (account && account.kind) || 'none'; }
+            function fmtDate(sec) {
+                var d = new Date(sec * 1000);
+                try { return d.toLocaleDateString(document.documentElement.lang || undefined, { month: 'short', day: 'numeric', year: 'numeric' }); }
+                catch (e) { return d.toDateString(); }
+            }
+            // Each phrase is its own text node so the translations match it exactly; dates stay as formatted.
+            function accountLine(parts) {
+                var p = document.createElement('p');
+                p.className = 'account-line';
+                parts.forEach(function(part, i) {
+                    if (i) p.appendChild(document.createTextNode(part.date || parts[i - 1].date ? ' ' : ' \u00b7 '));
+                    var span = document.createElement('span');
+                    span.textContent = part.date ? fmtDate(part.date) : part;
+                    if (part.date) span.setAttribute('translate', 'no');
+                    p.appendChild(span);
+                });
+                return p;
+            }
+            function renderButtons() {
+                var k = kind();
+                document.querySelectorAll('.pay-btn').forEach(function(btn) {
+                    var label = btn.querySelector('.pay-label');
+                    var price = btn.querySelector('.pay-price');
+                    var text = 'Pay', current = false;
+                    if (k === 'renewing') {
+                        current = selectedPlan === account.plan;
+                        text = current ? 'Your current plan' : 'Switch';
+                    } else if (k === 'ending') {
+                        text = btn.getAttribute('data-provider') === 'usdt' ? 'Extend' : 'Renew';
+                    } else if (k === 'oneoff') {
+                        text = 'Extend';
+                    }
+                    if (label) label.textContent = text;
+                    if (price) price.hidden = current;
+                    btn.disabled = current;
+                });
+                // The switch terms matter only once another plan is picked.
+                var note = document.getElementById('switchNote');
+                if (note && k === 'renewing') note.hidden = !note.textContent || selectedPlan === account.plan;
+            }
+            function applyAccountToMethods() {
+                var k = kind();
+                if (k === 'none') return;
+                var patreonCard = document.getElementById('methodPatreon');
+                if (patreonCard) patreonCard.hidden = true;
+                if (k === 'renewing') {
+                    // Only the service that charges the subscription can switch its plan.
+                    Object.keys(METHOD_ID).forEach(function(p) {
+                        var el = document.getElementById(METHOD_ID[p]);
+                        if (el && p !== account.source) el.hidden = true;
+                    });
+                    ['methodStripe', 'methodCryptomus'].forEach(function(id) { var el = document.getElementById(id); if (el) el.hidden = true; });
+                }
+            }
+            function renderAccount() {
+                var k = kind();
+                var premium = k !== 'none';
+                var panel = document.getElementById('accountPanel');
+                var lines = document.getElementById('accountLines');
+                var actions = document.getElementById('accountActions');
+                document.getElementById('billingTitle').textContent = premium ? 'Your plan' : 'Unlock every riff';
+                document.getElementById('billingLead').hidden = premium;
+                document.getElementById('billingIncludes').hidden = premium;
+                panel.hidden = !premium;
+                var manageOutside = k === 'external' || k === 'gift';
+                document.getElementById('planSection').hidden = manageOutside;
+                document.getElementById('methodsSection').hidden = manageOutside;
+                document.getElementById('planHeading').textContent = k === 'renewing' ? 'Change your plan' : '1. Choose a plan';
+                document.getElementById('methodsHeading').textContent = k === 'renewing' ? 'Pay for the new plan'
+                    : (k === 'ending' || k === 'oneoff') ? 'Extend your premium' : '2. Choose how to pay';
+                var note = document.getElementById('switchNote');
+                note.textContent = k === 'renewing'
+                    ? 'You pay today. The new plan starts when your current period ends, and the current plan stops renewing.'
+                    : (k === 'ending' || k === 'oneoff') ? 'Paying now adds a full new period after your current one. No days are lost.' : '';
+                note.hidden = !note.textContent || (k === 'renewing' && selectedPlan === account.plan);
+                document.querySelectorAll('.plan-current').forEach(function(b) { b.remove(); });
+                if (!premium) { renderButtons(); return; }
+                document.getElementById('accountTitle').textContent = 'Premium is on';
+                lines.textContent = '';
+                actions.textContent = '';
+                var until = account.until;
+                if (k === 'renewing' || k === 'ending') {
+                    lines.appendChild(accountLine([PLAN_LABEL[account.plan] || account.plan, SOURCE_LABEL[account.source] || account.source]));
+                    if (until) lines.appendChild(accountLine([k === 'renewing' ? 'Renews on' : 'Premium until', { date: until }]));
+                    if (k === 'ending') lines.appendChild(accountLine(['Auto-renewal is off.']));
+                } else if (k === 'oneoff') {
+                    lines.appendChild(accountLine(['Paid with USDT']));
+                    if (until) lines.appendChild(accountLine(['Premium until', { date: until }]));
+                    lines.appendChild(accountLine(['It does not renew by itself.']));
+                } else if (k === 'external') {
+                    lines.appendChild(accountLine([account.source === 'patreon' ? 'Your premium comes from Patreon.' : 'Your premium comes from an earlier payment.']));
+                    if (until) lines.appendChild(accountLine(['Premium until', { date: until }]));
+                } else if (k === 'gift') {
+                    lines.appendChild(accountLine(['Gift or promo access']));
+                    if (until) lines.appendChild(accountLine(['Premium until', { date: until }]));
+                }
+                function action(text, href, external) {
+                    var a = document.createElement('a');
+                    a.href = href; a.textContent = text;
+                    if (external) { a.target = '_blank'; a.rel = 'noopener noreferrer'; }
+                    actions.appendChild(a);
+                }
+                if (k === 'renewing' || k === 'ending') action('Manage in profile', 'profile.html');
+                if (k === 'external' && account.source === 'patreon') {
+                    action('Manage on Patreon', (typeof PATREON_CONFIG !== 'undefined' && PATREON_CONFIG.campaignUrl) || 'https://www.patreon.com/cw/MikeSabadash?vanity=MikeSabadash', true);
+                }
+                if ((k === 'renewing' || k === 'ending') && account.plan) {
+                    var card = document.querySelector('.plan-card[data-plan="' + account.plan + '"] .plan-name');
+                    if (card) {
+                        var badge = document.createElement('span');
+                        badge.className = 'plan-current';
+                        badge.textContent = 'Your plan';
+                        card.appendChild(badge);
+                    }
+                    if (!planChosenByUser) setPlan(account.plan);
+                }
+                if (billingOptions) applyOptions(billingOptions);
+                else renderButtons();
+            }
+            function loadAccount() {
+                return fetch('api/billing/status.php', { credentials: 'same-origin' })
+                    .then(function(r) { return r.json(); })
+                    .then(function(st) { account = st && st.signedIn ? (st.account || null) : null; renderAccount(); })
+                    .catch(function() {});
             }
             function startPayment(provider, email) {
                 var auth = window.patreonAuth;
@@ -503,6 +660,7 @@
                                 usdtPay.hidden = true;
                                 showNotice('Payment received. Premium is on. Enjoy every riff!', 'ok');
                                 premiumOn();
+                                loadAccount();
                                 return;
                             }
                             if (o && o.state === 'expired') {
@@ -525,7 +683,13 @@
             function loadOptions() {
                 return fetch('api/billing/options.php', { credentials: 'same-origin' })
                     .then(function(r) { return r.json(); })
-                    .then(function(opts) { if (opts && opts.success) applyOptions(opts); })
+                    .then(function(opts) {
+                        if (!opts || !opts.success) return;
+                        applyOptions(opts);
+                        if (opts.signedIn) return loadAccount();
+                        account = null;
+                        renderAccount();
+                    })
                     .catch(function() {});
             }
             loadOptions();
@@ -544,6 +708,7 @@
                         var sub = st && st.subscription;
                         if (sub && sub.status === 'active' && sub.source === paidVia) {
                             showNotice('Premium is on. Enjoy every riff!', 'ok');
+                            loadAccount();
                             var auth = window.patreonAuth;
                             if (auth && auth.userData && typeof auth.fetchSubscriptionFromServer === 'function') auth.fetchSubscriptionFromServer(auth.userData.id);
                             if (profileLink) profileLink.style.display = 'inline-block';

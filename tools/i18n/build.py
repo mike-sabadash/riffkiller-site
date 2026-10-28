@@ -75,6 +75,8 @@ RU_PATTERNS = r"""
         [/^(\$[\d.]+|[\d\s\u00a0\u202f]+ ₽) \/ 3 months$/, '$1 / 3 мес'],
         [/^Auto-renewal is off\. Premium stays on until (.+)\.$/, 'Автопродление отключено. Premium действует до $1.'],
         [/^Renews automatically on (.+)\.$/, 'Следующее автоматическое продление: $1.'],
+        [/^lava\.top did not accept (.+)\. Try another email\.$/, 'lava.top не принял $1. Попробуй другой email.'],
+        [/^lava\.top, our card payment service, did not accept your account email (.+)\. Enter another email for the receipt: premium still goes to the account you are signed in with\.$/, 'lava.top, наш сервис оплаты картой, не принял email твоего аккаунта $1. Введи другой email для чека: premium всё равно придёт на аккаунт, в который ты вошёл.'],
         [/^Left hand: (.+) · Right hand: (.+)$/, function (m, part) { return 'Левая рука: ' + part(m[1]).replace('MB', 'МБ') + ' · Правая рука: ' + part(m[2]).replace('MB', 'МБ'); }]
 """
 ES_PATTERNS = r"""
@@ -144,6 +146,8 @@ ES_PATTERNS = r"""
         [/^(\$[\d.]+|[\d\s\u00a0\u202f]+ ₽) \/ 3 months$/, '$1 / 3 meses'],
         [/^Auto-renewal is off\. Premium stays on until (.+)\.$/, 'Renovación automática cancelada. El premium sigue activo hasta el $1.'],
         [/^Renews automatically on (.+)\.$/, 'Se renueva automáticamente el $1.'],
+        [/^lava\.top did not accept (.+)\. Try another email\.$/, 'lava.top no aceptó $1. Prueba con otro email.'],
+        [/^lava\.top, our card payment service, did not accept your account email (.+)\. Enter another email for the receipt: premium still goes to the account you are signed in with\.$/, 'lava.top, nuestro servicio de pago con tarjeta, no aceptó el email de tu cuenta $1. Escribe otro email para el recibo: el premium igual va a la cuenta con la que iniciaste sesión.'],
         [/^Left hand: (.+) · Right hand: (.+)$/, function (m, part) { return 'Mano izquierda: ' + part(m[1]) + ' · Mano derecha: ' + part(m[2]); }]
 """
 HEAD = """/**

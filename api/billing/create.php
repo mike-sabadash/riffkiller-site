@@ -21,10 +21,20 @@ if (in_array($provider, ['robokassa', 'yookassa'], true) && billing_rub_price($p
     billing_reply(400, ['success' => false, 'error' => 'This payment method is not available']);
 }
 
-$current = get_subscription($user['id']);
-$renewal = billing_renewal_get($user['id']);
-if ($current && subscription_is_effectively_active($current) && $renewal && !empty($renewal['auto'])) {
-    billing_reply(409, ['success' => false, 'error' => 'You already have an active subscription']);
+// A subscriber is never sold what they already have: see billing_account_state() for the cases.
+$state = billing_account_state($user['id']);
+if ($state['kind'] === 'external') {
+    billing_reply(409, ['success' => false, 'error' => $state['source'] === 'patreon'
+        ? 'Your premium comes from Patreon: manage it there.'
+        : 'You already have premium access.']);
+}
+if ($state['kind'] === 'gift') billing_reply(409, ['success' => false, 'error' => 'You already have premium access.']);
+if ($state['kind'] === 'renewing') {
+    if ($provider !== $state['source']) {
+        billing_reply(409, ['success' => false, 'error' => 'Your card subscription renews automatically. To pay another way, turn off auto-renewal in your profile first.']);
+    }
+    if ($plan === $state['plan']) billing_reply(409, ['success' => false, 'error' => 'This is your current plan.']);
+    // A different plan is a switch: the new period starts after the paid one and the old subscription stops (billing_apply_payment).
 }
 
 if ($provider === 'usdt') {

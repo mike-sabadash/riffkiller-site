@@ -99,7 +99,8 @@ test('lava.top: invoice, confirmed payment, monthly renewal, cancellation',async
     await lavaHook({eventType:'subscription.recurring.payment.success',contractId:crypto.randomUUID(),parentContractId:contractId,amount:9,currency:'USD'});
     assert.ok(Math.abs(subOf(user.id).expires-(sub.expires+30*day))<60,'renewal adds a month after the paid period');
 
-    assert.equal((await api(user,'create.php',{provider:'lava',plan:'yearly'})).status,409,'no second subscription while one renews');
+    assert.equal((await api(user,'create.php',{provider:'lava',plan:'monthly'})).status,409,'the current plan is not sold again');
+    assert.equal((await api(user,'create.php',{provider:'usdt',plan:'monthly'})).status,409,'no second payment method while the card renews');
     const cancel=await api(user,'cancel.php',{});assert.equal(cancel.body.success,true);
     const del=calls.filter(c=>c.method==='DELETE').at(-1);assert.equal(del.query.get('contractId'),contractId);assert.equal(del.query.get('email'),user.email);
     const status=(await api(user,'status.php')).body;assert.equal(status.renewal.auto,false);assert.equal(status.subscription.status,'active','premium stays until the paid period ends');
@@ -249,4 +250,47 @@ test('lava.top refuses an email: the page asks for another one and it is used',a
     const ok=await api(user,'create.php',{provider:'lava',plan:'monthly',email:'other@example.com'});
     assert.equal(ok.status,200);
     assert.equal(JSON.parse(calls.filter(c=>c.path==='/api/v3/invoice').at(-1).body).email,'other@example.com','the typed email wins over the account one');
+});
+
+test('subscriber: the page knows the plan; switching plan stops the old lava.top subscription and loses no days',async()=>{
+    const user=await signUp();
+    assert.deepEqual((await api(user,'status.php')).body.account,{kind:'none'});
+    const first=(await api(user,'create.php',{provider:'lava',plan:'monthly'})).body.paymentUrl.split('/').pop();
+    lavaInvoices[first]='COMPLETED';
+    await lavaHook({eventType:'payment.success',contractId:first,amount:9,currency:'USD'});
+    let account=(await api(user,'status.php')).body.account;
+    assert.equal(account.kind,'renewing');assert.equal(account.plan,'monthly');assert.equal(account.source,'lava');
+    const paidUntil=account.until;assert.ok(Math.abs(paidUntil-(now()+30*day))<60,'renews on the end of the paid month, without grace days');
+
+    const switched=await api(user,'create.php',{provider:'lava',plan:'yearly'});
+    assert.equal(switched.status,200,'another plan is a switch');
+    const second=switched.body.paymentUrl.split('/').pop();
+    assert.equal(calls.filter(c=>c.method==='DELETE'&&c.query.get('contractId')===first).length,0,'nothing stops before the new plan is paid');
+    lavaInvoices[second]='COMPLETED';
+    await lavaHook({eventType:'payment.success',contractId:second,amount:90,currency:'USD'});
+    assert.equal(calls.filter(c=>c.method==='DELETE'&&c.query.get('contractId')===first).length,1,'the old monthly subscription is cancelled on lava.top');
+    account=(await api(user,'status.php')).body.account;
+    assert.equal(account.kind,'renewing');assert.equal(account.plan,'yearly');
+    assert.ok(Math.abs(account.until-(paidUntil+365*day))<60,'the year starts when the paid month ends');
+    assert.equal(renewals()[user.id].contract,second);
+
+    await api(user,'cancel.php',{});
+    account=(await api(user,'status.php')).body.account;
+    assert.equal(account.kind,'ending');
+    assert.equal((await api(user,'create.php',{provider:'usdt',plan:'monthly'})).status,200,'with auto-renewal off any method extends');
+});
+
+test('subscriber: premium from Patreon or a promo is not sold again on the site',async()=>{
+    for(const [source,kind] of [['patreon','external'],['promo','gift']]){
+        const user=await signUp();
+        fs.mkdirSync(path.join(site.dir,'data/subscriptions'),{recursive:true});
+        fs.writeFileSync(path.join(site.dir,'data/subscriptions',user.id+'.json'),JSON.stringify({status:'active',source,expires:now()+20*day}));
+        const account=(await api(user,'status.php')).body.account;
+        assert.equal(account.kind,kind);assert.equal(account.source,source);
+        for(const provider of ['lava','usdt']){
+            const r=await api(user,'create.php',{provider,plan:'monthly'});
+            assert.equal(r.status,409,source+' '+provider);
+        }
+        if(source==='patreon')assert.match((await api(user,'create.php',{provider:'lava',plan:'yearly'})).body.error,/Patreon/);
+    }
 });

@@ -176,6 +176,15 @@ function billing_apply_payment($orderId, $note = '') {
         $base = (int)$previous['paid_until'];
     }
     $paidUntil = $base + BILLING_PERIOD_DAYS[$plan] * 86400;
+    // Plan switch on lava.top: the new subscription replaces the old one, so the old one must stop charging.
+    if ($previous && !empty($previous['auto']) && ($previous['provider'] ?? '') === 'lava' && $order['provider'] === 'lava'
+        && !empty($previous['contract']) && $previous['contract'] !== ($order['contract'] ?? null)) {
+        $stopped = lava_cancel($previous);
+        payments_log_write($stopped ? 'lava.switch.old_cancelled' : 'lava.switch.cancel_failed', [
+            'source' => 'lava', 'user_id' => $userId, 'plan' => $previous['plan'] ?? null, 'reference' => $previous['contract'],
+            'note' => 'replaced by ' . ($order['contract'] ?? $orderId),
+        ]);
+    }
     // Grace days cover a renewal being retried; a one-off USDT period simply ends.
     $expires = $paidUntil + ($order['provider'] === 'usdt' ? 0 : BILLING_GRACE_DAYS * 86400);
     save_subscription($userId, ['status' => 'active', 'plan' => $plan, 'source' => $order['provider'], 'expires' => $expires]);
@@ -197,6 +206,44 @@ function billing_apply_payment($orderId, $note = '') {
         'reference' => $orderId, 'note' => $note,
     ]);
     return $expires;
+}
+
+/** Sources this site charges itself; any other premium (Patreon, promo, old Stripe/Cryptomus) is managed elsewhere. */
+const BILLING_SITE_SOURCES = ['lava', 'robokassa', 'yookassa', 'usdt'];
+
+/**
+ * What the billing page should offer this user:
+ *   none      no premium
+ *   renewing  card subscription that renews by itself (switching plan is allowed, buying the same one is not)
+ *   ending    card subscription with auto-renewal off, premium until `until`
+ *   oneoff    paid with USDT until `until`, nothing renews
+ *   external  premium from Patreon or another outside service
+ *   gift      promo code or test access
+ */
+function billing_account_state($userId, $now = null) {
+    $now = $now === null ? time() : (int)$now;
+    $sub = get_subscription($userId);
+    if (!$sub || !subscription_is_effectively_active($sub, $now)) return ['kind' => 'none'];
+    $source = (string)($sub['source'] ?? '');
+    $r = billing_renewal_get($userId);
+    if (in_array($source, BILLING_SITE_SOURCES, true) && $r && ($r['provider'] ?? '') === $source) {
+        $auto = !empty($r['auto']);
+        return [
+            'kind' => $source === 'usdt' ? 'oneoff' : ($auto ? 'renewing' : 'ending'),
+            'source' => $source,
+            'plan' => billing_plan((string)($r['plan'] ?? ($sub['plan'] ?? 'monthly'))),
+            'until' => (int)($r['paid_until'] ?? 0) ?: null,
+            'auto' => $auto,
+        ];
+    }
+    $expires = (int)($sub['expires'] ?? ($sub['expires_at'] ?? 0));
+    return [
+        'kind' => in_array($source, ['promo', 'test'], true) ? 'gift' : 'external',
+        'source' => $source !== '' ? $source : 'patreon',
+        'plan' => isset($sub['plan']) ? (string)$sub['plan'] : null,
+        'until' => $expires > 0 ? $expires : null,
+        'auto' => null,
+    ];
 }
 
 /** Stops further charges; premium stays until the end of the paid period. */

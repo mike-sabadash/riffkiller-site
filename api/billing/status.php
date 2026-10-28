@@ -19,5 +19,6 @@ billing_reply(200, [
     'signedIn' => true,
     'subscription' => $sub ? ['status' => $sub['status'], 'plan' => $sub['plan'], 'source' => $sub['source'], 'expiresAt' => $sub['expires']] : null,
     'usdt' => $usdt,
+    'account' => billing_account_state($user['id']),
     'renewal' => $r ? ['provider' => $r['provider'], 'plan' => $r['plan'] ?? 'monthly', 'auto' => !empty($r['auto']), 'paidUntil' => $r['paid_until'] ?? null] : null,
 ]);
