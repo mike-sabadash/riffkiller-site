@@ -12,6 +12,7 @@ keys = [t[0] for t in T]
 dups = {k for k in keys if keys.count(k) > 1}
 assert not dups, dups
 RU_PATTERNS = r"""
+        [/^(\d{4}-\d\d-\d\d) · (\d+) min$/, '$1 · $2 мин'],
         [/^(\d+) of (\d+) stars$/, function (m) { return m[1] + ' из ' + m[2] + ' ' + plural(m[2], 'звезды', 'звёзд', 'звёзд'); }],
         [/^(\d+) shots to kill$/, function (m) { return 'Ещё ' + m[1] + ' ' + plural(m[1], 'фрагмент', 'фрагмента', 'фрагментов') + ', чтобы добить'; }],
         [/^1 more kill to (.+)$/, 'Ещё 1 рифф до $1'],
