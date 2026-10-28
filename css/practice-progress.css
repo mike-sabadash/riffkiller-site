@@ -124,3 +124,15 @@ html[data-theme='light'] .parts-progress-kill { color: rgba(20, 20, 30, 0.6); }
 @media (min-width: 1160px) {
     .practice-parts .segment-controls-container > .progress-card:first-child { margin-top: -4px; }
 }
+
+/*
+ * Desktop parts column: only the list of parts scrolls. The question card, the role key and the stars line
+ * stay put, so a card that appears never makes the whole column scroll or slides away under the cursor.
+ */
+@media (min-width: 1160px) {
+    .practice-parts { display: flex; flex-direction: column; overflow: hidden; }
+    .practice-parts .segment-controls-container { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; }
+    .practice-parts .segment-controls-container > :not(.segment-controls) { flex: none; }
+    .practice-parts .segment-controls { flex: 1 1 auto; min-height: 0; flex-wrap: nowrap; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; }
+    .practice-parts .segment-controls > * { flex-shrink: 0; }
+}

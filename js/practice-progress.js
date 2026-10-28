@@ -149,6 +149,13 @@
         });
         card.querySelector('.progress-card-close').addEventListener('click', function () { closeCard(); opts.onClose && opts.onClose(); });
         host.insertBefore(card, host.firstChild);
+        // The list of parts may now be shorter than its content: keep the part the card is about in view.
+        var list = document.getElementById('segmentControls'), act = list && list.querySelector('.segment-btn.active');
+        if (list && act && list.scrollHeight > list.clientHeight) {
+            var top = act.getBoundingClientRect().top - list.getBoundingClientRect().top + list.scrollTop, bottom = top + act.offsetHeight;
+            if (top < list.scrollTop) list.scrollTop = top;
+            else if (bottom > list.scrollTop + list.clientHeight) list.scrollTop = bottom - list.clientHeight;
+        }
     }
 
     function changed() {
