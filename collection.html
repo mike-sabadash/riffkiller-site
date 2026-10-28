@@ -21,7 +21,7 @@
     <link rel="stylesheet" href="css/components.css?v=cov1">
     <link rel="stylesheet" href="css/rk-header.css?v=ctl1">
     <link rel="stylesheet" href="css/rk-site-footer.css">
-    <link rel="stylesheet" href="css/riffs-hub.css?v=stack3">
+    <link rel="stylesheet" href="css/riffs-hub.css?v=crumb1">
     <link rel="stylesheet" href="css/rk-theme-light.css?v=ctl1">
     
     <!-- Favicon -->
@@ -36,6 +36,21 @@
             
             <!-- Заголовок коллекции -->
             <section class="collection-header-section">
+                <nav class="collection-crumb" aria-label="Breadcrumb"><a href="index.html" id="collectionBack">Riffs</a><span aria-hidden="true">/</span></nav>
+                <script>
+                (function () {
+                    // Back to where the student came from (index or app), at the same scroll, when that was our riffs page.
+                    var a = document.getElementById('collectionBack');
+                    try { var entry = sessionStorage.getItem('appEntry'); if (entry) a.setAttribute('href', entry); } catch (e) {}
+                    a.addEventListener('click', function (e) {
+                        var ref = document.referrer;
+                        if (ref && ref.indexOf(location.origin + '/') === 0 && /\/(index|app)\.html|\/$/.test(new URL(ref).pathname) && history.length > 1) {
+                            e.preventDefault();
+                            history.back();
+                        }
+                    });
+                })();
+                </script>
                 <div class="collection-banner" id="collectionBanner">
                     <!-- Баннер будет загружен через JavaScript -->
                 </div>
@@ -110,7 +125,7 @@
     <!-- JavaScript (Patreon: config before auth) -->
     <script src="js/patreon-config.js"></script>
     <script src="js/auth-manager.js?v=legal1"></script>
-    <script src="js/site-header-behaviors.js?v=u1"></script>
+    <script src="js/site-header-behaviors.js?v=u2"></script>
     <script src="js/rk-theme.js"></script>
 
 <!-- Специфичный для страницы -->

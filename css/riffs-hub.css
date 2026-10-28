@@ -1301,3 +1301,18 @@ body.riffs-hub .collection-card::after {
 body.riffs-hub .collection-card::before { left: 10px; right: 10px; top: -7px; border-radius: 15px 15px 0 0; background: #222229; z-index: -1; }
 /* дальняя — темнее, лежит под ближней */
 body.riffs-hub .collection-card::after { left: 22px; right: 22px; top: -13px; border-radius: 13px 13px 0 0; background: #18181e; z-index: -2; }
+
+/* Коллекция: крошка «← Riffs /» над баннером, как на странице практики */
+.collection-crumb {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0 0 16px;
+    font: 600 0.8125rem/1 'Inter', system-ui, sans-serif;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: rgba(160, 165, 182, 0.95);
+}
+.collection-crumb a { color: inherit; text-decoration: none; transition: color 0.15s ease; }
+.collection-crumb a::before { content: '← '; }
+.collection-crumb a:hover { color: rgba(244, 247, 255, 0.95); }
