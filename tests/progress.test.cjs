@@ -131,3 +131,76 @@ test('session diff lists parts that moved up or got faster',()=>{
     const d=P.sessionDiff(before,P.riffSummary(s,riff,now));
     assert.deepEqual(d.map(x=>[x.part,x.from.best,x.to.key]),[[0,0.5,'working'],[1,0,'tempo'],[2,0,'working']]);
 });
+
+test('stars: ★ at ×0.5, ★★ at ×0.75, ★★★ at ×1; each star is a win once; the riff counts stars and shots to kill',()=>{
+    const s=P.empty(),now=at(2026,10,26);
+    P.recordLoop(s,1,segs,0,now);
+    let sum=P.riffSummary(s,riff,now);
+    assert.equal(sum.parts[0].stars,0);assert.equal(sum.stars,0);assert.equal(sum.maxStars,12);assert.equal(sum.toKill,4);
+    P.markClean(s,1,segs,0,0.5,now);
+    assert.equal(P.riffSummary(s,riff,now).parts[0].stars,1);
+    P.markClean(s,1,segs,0,0.75,now+1);P.markClean(s,1,segs,0,0.75,now+2);
+    assert.equal(P.riffSummary(s,riff,now).stars,2);
+    P.markClean(s,1,segs,1,1,now+3);
+    sum=P.riffSummary(s,riff,now);
+    assert.deepEqual(sum.parts.map(p=>p.stars),[2,3,0,0]);assert.equal(sum.stars,5);assert.equal(sum.toKill,3);
+    assert.deepEqual(s.wins.map(w=>w.t+(w.n||'')+':'+(w.p==null?'':w.p)),['star1:0','star2:0','star1:1','star2:1','star3:1','tempo:1'],'a jump to ×1 gives every star on the way');
+    assert.equal(P.starsFor(0.6),1);assert.equal(P.starsFor(0),0);assert.equal(P.starsFor(0.3,true),3);
+});
+
+test('the method: Scan, Split, Isolate, Decode, Mutate; kill, rank and the next step after the kill',()=>{
+    const ruled={...riff,dna:{...riff.dna,rule:'Call and answer that comes home.'}};
+    const s=P.empty(),now=at(2026,10,26);
+    let sum=P.riffSummary(s,ruled,now);
+    assert.equal(sum.stageNext,'scan');assert.equal(sum.stagesDone,0);
+    assert.equal(P.markStage(s,1,'scan',now),true);assert.equal(P.markStage(s,1,'scan',now+5),false,'only the first time');
+    for(const i of [0,1,2,3])P.recordLoop(s,1,segs,i,now);
+    sum=P.riffSummary(s,ruled,now);assert.equal(sum.stageNext,'isolate');assert.equal(sum.stagesDone,2);
+    for(const i of [0,1,2,3])P.markClean(s,1,segs,i,1,now);
+    sum=P.riffSummary(s,ruled,now);
+    assert.equal(sum.stages.isolate,true);assert.equal(sum.killed,false);assert.equal(sum.toKill,1,'the whole riff at ×1 is the last shot');
+    assert.equal(P.rank(s,[ruled],now).label,'Rookie');
+    P.markWhole(s,1,now);
+    sum=P.riffSummary(s,ruled,now);assert.equal(sum.killed,true);assert.equal(sum.toKill,0);
+    const r=P.rank(s,[ruled],now);
+    assert.equal(r.label,'Riff Hunter');assert.equal(r.kills,1);assert.deepEqual([r.next.label,r.next.toGo],['Riff Killer',2]);
+    assert.equal(P.nextStep(s,[ruled],at(2026,10,27)).kind,'decode','a killed riff with a rule asks for Decode');
+    P.markStage(s,1,'decode',now);
+    assert.equal(P.nextStep(s,[ruled],at(2026,10,27)).kind,'mutate');
+    P.markStage(s,1,'mutate',now);
+    sum=P.riffSummary(s,ruled,now);assert.equal(sum.stagesDone,5);assert.equal(sum.stageNext,null);
+    assert.deepEqual(s.wins.filter(w=>!['star','tempo'].includes(w.t)).map(w=>w.t),['scan','kill','decode','mutate']);
+});
+
+test('achievements show how far along they are, and only the ones the catalog allows',()=>{
+    const s=P.empty(),now=at(2026,10,26);
+    P.markClean(s,1,segs,0,0.5,now);
+    let list=P.achievements(s,[riff],now);
+    const by=k=>list.find(a=>a.key===k);
+    assert.deepEqual([by('first-star').done,by('first-tempo').done],[true,false]);
+    assert.deepEqual([by('all-stars').value,by('all-stars').target],[1,12]);
+    assert.equal(by('three-kills'),undefined,'three kills need three riffs cut into parts');
+    assert.equal(by('technique'),undefined,'a technique in three riffs needs three riffs with it');
+    const r2={id:2,segments:segs,dna:{atoms:[{technique:'bend',segmentIndex:0}]}},r3={id:3,segments:segs,dna:{atoms:[{technique:'bend',segmentIndex:1}]}};
+    list=P.achievements(s,[riff,r2,r3],now);
+    assert.ok(list.find(a=>a.key==='three-kills'));assert.ok(list.find(a=>a.key==='technique'));
+    const t=P.techniques(s,[riff,r2,r3],now).find(x=>x.technique==='bend');
+    assert.equal(t.reachable,true);assert.equal(t.trainIn,'1','where to train it next');
+});
+
+test('the weekly goal is a win once a week; wins merge from both copies without doubles',()=>{
+    const a=P.empty(),b=P.empty();
+    P.setGoal(a,3,at(2026,10,19));
+    for(const d of [26,27,28])P.addPlayTime(a,1,320,at(2026,10,d));
+    P.addPlayTime(a,1,320,at(2026,10,29));
+    assert.equal(a.wins.filter(w=>w.t==='goal').length,1);
+    P.markClean(b,1,segs,0,0.5,at(2026,10,20));P.markClean(a,1,segs,0,0.5,at(2026,10,22));
+    P.markStage(b,1,'decode',at(2026,10,21));
+    const m=P.merge(a,b);
+    assert.equal(m.wins.filter(w=>w.t==='star').length,1,'the same star once');
+    assert.equal(m.wins.find(w=>w.t==='star').at,at(2026,10,20),'with the earliest time');
+    assert.equal(m.riffs['1'].decodeAt,at(2026,10,21));
+    const junk=P.normalize({v:2,days:{},riffs:{},wins:[{t:'hack',at:1},{t:'star',at:0},{t:'kill',r:'<b>',at:5},{t:'star',n:9,at:3}]});
+    assert.deepEqual(junk.wins,[{t:'kill',at:5},{t:'star',at:3}]);
+    assert.equal(P.recentWins(m,2).length,2);
+});

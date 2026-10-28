@@ -104,29 +104,55 @@ function digest_facts($progress, $riffs, $log, $nowTs) {
     $byId = [];
     foreach ($riffs as $r) if (isset($r['id'])) $byId[(string)$r['id']] = $r;
     $startMs = $w['start']->getTimestamp() * 1000; $endMs = $w['end']->getTimestamp() * 1000; $nowMs = $nowTs * 1000;
-    $reachedTempo = []; $due = 0; $open = null;
+    $reachedTempo = []; $due = 0; $open = null; $kills = [];
     foreach (($progress['riffs'] ?? []) as $id => $r) {
         $riff = $byId[(string)$id] ?? null;
         if (!$riff) continue;
-        $atTempo = 0;
+        $atTempo = 0; $stars = 0;
         foreach (($r['parts'] ?? []) as $p) {
             $t = (float)($p['tempoAt'] ?? 0);
             if ($t > 0) $atTempo++;
+            $stars += digest_part_stars($p);
             if ($t >= $startMs && $t < $endMs) $reachedTempo[(string)$id] = ($reachedTempo[(string)$id] ?? 0) + 1;
             if ($t > 0 && ($p['nextReview'] ?? 0) > 0 && $p['nextReview'] <= $nowMs) $due++;
         }
         $total = is_array($riff['segments'] ?? null) ? count($riff['segments']) : 0;
-        $learned = $total > 0 && $atTempo >= $total && !empty($r['wholeAt']);
-        if (!$learned && (!$open || ($r['lastAt'] ?? 0) > $open['lastAt'])) {
-            $open = ['song' => (string)($riff['song'] ?? ''), 'id' => (string)$id, 'atTempo' => min($atTempo, $total), 'total' => $total, 'lastAt' => (float)($r['lastAt'] ?? 0)];
-        }
+        if ($total === 0) continue;
+        $atTempo = min($atTempo, $total);
+        $learned = $atTempo >= $total && !empty($r['wholeAt']);
+        $wk = (float)($r['wholeAt'] ?? 0);
+        if ($learned && $wk >= $startMs && $wk < $endMs) $kills[] = (string)($riff['song'] ?? '');
+        if ($learned) continue;
+        // The closest kill: fewest shots left (parts below tempo, plus the whole riff once), then the latest played.
+        $toKill = $total - $atTempo + 1;
+        $cand = ['song' => (string)($riff['song'] ?? ''), 'id' => (string)$id, 'atTempo' => $atTempo, 'total' => $total,
+            'toKill' => $toKill, 'stars' => min($stars, $total * 3), 'maxStars' => $total * 3, 'lastAt' => (float)($r['lastAt'] ?? 0)];
+        if (!$open || $toKill < $open['toKill'] || ($toKill === $open['toKill'] && $cand['lastAt'] > $open['lastAt'])) $open = $cand;
+    }
+    // Stars earned this week, from the wins log (js/rk-progress.js state.wins).
+    $starsWeek = 0;
+    foreach (($progress['wins'] ?? []) as $w) {
+        if (!is_array($w) || ($w['t'] ?? '') !== 'star') continue;
+        $at = (float)($w['at'] ?? 0);
+        if ($at >= $startMs && $at < $endMs) $starsWeek++;
     }
     $tempo = [];
     foreach ($reachedTempo as $id => $n) $tempo[] = ['song' => (string)($byId[$id]['song'] ?? ''), 'parts' => $n];
     return [
         'week' => $w['key'], 'days' => $days, 'goal' => (int)($progress['goal'] ?? 0), 'minutes' => $minutes,
         'tempo' => $tempo, 'due' => $due, 'open' => $open, 'pausing' => $quiet,
+        'stars' => $starsWeek, 'kills' => $kills,
     ];
+}
+
+/** Stars of a part, as in js/rk-progress.js: ★ at ×0.5, ★★ at ×0.75, ★★★ at ×1 (tempo). */
+function digest_part_stars($p) {
+    if (!is_array($p)) return 0;
+    if ((float)($p['tempoAt'] ?? 0) > 0) return 3;
+    $best = (float)($p['best'] ?? 0);
+    $n = 0;
+    foreach ([0.5, 0.75, 1] as $sp) if ($best >= $sp - 1e-6) $n++;
+    return $n;
 }
 
 function digest_strings($lang) {
@@ -135,7 +161,8 @@ function digest_strings($lang) {
             'subject' => 'Your week: %d of %d days', 'subject_nogoal' => 'Your week: %d practice days', 'subject_pause' => 'Pausing your weekly summary',
             'days' => 'Last week you played %d of %d days (%d min).', 'days_nogoal' => 'Last week you played %d days (%d min).',
             'tempo' => '%s: %d part(s) reached tempo.', 'due' => '%d part(s) are due for a review: play each once at ×1 to lock it in.',
-            'open' => 'Next up: %s, %d of %d parts at tempo.', 'cta' => 'Open your progress',
+            'open' => 'Closest kill: %s — %d shot(s) left, %d of %d ★.', 'stars' => 'Stars earned this week: %d ★.',
+            'kill' => 'Riff killed: %s.', 'cta' => 'Open your progress',
             'pause' => 'You haven’t played for two weeks, so we’ll stop these summaries. They start again by themselves the next time you practice.',
             'stop' => 'Don’t want these emails? Turn them off', 'why' => 'You get this because you turned on the weekly summary in your Riff Killer profile.',
         ],
@@ -143,7 +170,8 @@ function digest_strings($lang) {
             'subject' => 'Твоя неделя: %d из %d дней', 'subject_nogoal' => 'Твоя неделя: дней практики — %d', 'subject_pause' => 'Ставим недельные итоги на паузу',
             'days' => 'Прошлая неделя: %d из %d дней практики (%d мин).', 'days_nogoal' => 'Прошлая неделя: дней практики — %d (%d мин).',
             'tempo' => '%s: частей вышло на темп — %d.', 'due' => 'Частей ждут повтора: %d. Сыграй каждую один раз на ×1, чтобы закрепить.',
-            'open' => 'Дальше: %s, на темпе %d из %d частей.', 'cta' => 'Открыть прогресс',
+            'open' => 'Ближе всего к kill: %s — осталось шагов: %d, звёзд %d из %d ★.', 'stars' => 'Звёзд за неделю: %d ★.',
+            'kill' => 'Рифф убит: %s.', 'cta' => 'Открыть прогресс',
             'pause' => 'Две недели без практики, поэтому мы приостанавливаем эти письма. Они вернутся сами после следующего занятия.',
             'stop' => 'Не хочешь получать эти письма? Отключить', 'why' => 'Это письмо пришло, потому что в твоём профиле Riff Killer включены недельные итоги.',
         ],
@@ -151,7 +179,8 @@ function digest_strings($lang) {
             'subject' => 'Tu semana: %d de %d días', 'subject_nogoal' => 'Tu semana: %d días de práctica', 'subject_pause' => 'Pausamos tu resumen semanal',
             'days' => 'La semana pasada tocaste %d de %d días (%d min).', 'days_nogoal' => 'La semana pasada tocaste %d días (%d min).',
             'tempo' => '%s: %d parte(s) llegaron a tempo.', 'due' => '%d parte(s) esperan repaso: toca cada una una vez a ×1 para afianzarla.',
-            'open' => 'Lo siguiente: %s, %d de %d partes a tempo.', 'cta' => 'Ver tu progreso',
+            'open' => 'Más cerca del kill: %s — quedan %d paso(s), %d de %d ★.', 'stars' => 'Estrellas de la semana: %d ★.',
+            'kill' => 'Riff eliminado: %s.', 'cta' => 'Ver tu progreso',
             'pause' => 'Llevas dos semanas sin tocar, así que pausamos estos resúmenes. Volverán solos la próxima vez que practiques.',
             'stop' => '¿No quieres estos emails? Desactívalos', 'why' => 'Recibes esto porque activaste el resumen semanal en tu perfil de Riff Killer.',
         ],
@@ -169,9 +198,12 @@ function digest_compose($facts, $lang, $baseUrl, $stopUrl) {
     } else {
         $subject = $facts['goal'] ? sprintf($t['subject'], $facts['days'], $facts['goal']) : sprintf($t['subject_nogoal'], $facts['days']);
         $lines[] = $facts['goal'] ? sprintf($t['days'], $facts['days'], $facts['goal'], $facts['minutes']) : sprintf($t['days_nogoal'], $facts['days'], $facts['minutes']);
+        if (!empty($facts['stars'])) $lines[] = sprintf($t['stars'], $facts['stars']);
+        foreach (($facts['kills'] ?? []) as $song) $lines[] = sprintf($t['kill'], $song);
         foreach ($facts['tempo'] as $r) $lines[] = sprintf($t['tempo'], $r['song'], $r['parts']);
         if ($facts['due']) $lines[] = sprintf($t['due'], $facts['due']);
-        if ($facts['open']) $lines[] = sprintf($t['open'], $facts['open']['song'], $facts['open']['atTempo'], $facts['open']['total']);
+        $o = $facts['open'];
+        if ($o) $lines[] = sprintf($t['open'], $o['song'], $o['toKill'] ?? ($o['total'] - $o['atTempo'] + 1), $o['stars'] ?? $o['atTempo'] * 3, $o['maxStars'] ?? $o['total'] * 3);
     }
     $link = rtrim($baseUrl, '/') . '/profile.html';
     $text = implode("\n\n", $lines) . "\n\n" . $t['cta'] . ': ' . $link . "\n\n---\n" . $t['why'] . "\n" . $t['stop'] . ': ' . $stopUrl;
@@ -260,7 +292,7 @@ function digest_send_test($to, $send = 'digest_send_resend') {
     }
     $progress = $user ? digest_load_json(digest_progress_file((string)$user['id']), null) : null;
     $facts = is_array($progress) ? digest_facts($progress, digest_load_json(digest_root() . '/data/riffs.json', []), [], time()) : null;
-    if (!$facts) $facts = ['week' => 'test', 'days' => 3, 'goal' => 5, 'minutes' => 42, 'tempo' => [], 'due' => 1, 'open' => null];
+    if (!$facts) $facts = ['week' => 'test', 'days' => 3, 'goal' => 5, 'minutes' => 42, 'tempo' => [], 'due' => 1, 'open' => null, 'stars' => 4, 'kills' => []];
     $facts['pausing'] = false;
     $id = $user ? (string)$user['id'] : 'test';
     $base = digest_base_url();

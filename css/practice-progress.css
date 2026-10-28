@@ -86,3 +86,36 @@ html[data-theme='light'] .progress-card-list b { color: rgba(20, 20, 30, 0.88); 
 html[data-theme='light'] .progress-card-btn,
 html[data-theme='light'] .progress-goal-btn { background: rgba(20, 20, 30, 0.06); color: #16161f; }
 html[data-theme='light'] .progress-card-btn.primary { background: #9355E5; color: #fff; }
+
+/* Stars on the part buttons: ★ ×0.5, ★★ ×0.75, ★★★ ×1. Gold only for earned stars, so the next one is easy to see. */
+.segment-btn .part-stars { display: inline-flex; gap: 1px; }
+.segment-btn .part-star { display: inline-flex; color: rgba(244, 247, 255, 0.22); }
+.segment-btn .part-star.on { color: #facc15; }
+html[data-theme='light'] .segment-btn .part-star { color: rgba(20, 20, 30, 0.18); }
+html[data-theme='light'] .segment-btn .part-star.on { color: #d29b00; }
+.parts-progress-kill { color: rgba(244, 247, 255, 0.62); }
+html[data-theme='light'] .parts-progress-kill { color: rgba(20, 20, 30, 0.6); }
+
+/* The kill screen (js/practice-progress.js showKill). */
+.kill-screen {
+    position: fixed; inset: 0; z-index: 2000; display: grid; place-items: center; padding: 16px;
+    background: rgba(5, 5, 8, 0.72); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+    animation: progress-card-in .2s ease-out;
+}
+.kill-card {
+    width: min(440px, 100%); padding: 28px 24px 22px; border-radius: 20px; text-align: center;
+    background: radial-gradient(120% 80% at 80% 0%, rgba(147, 85, 229, 0.35), rgba(20, 16, 30, 0.98) 60%), #141018;
+    border: 1px solid rgba(147, 85, 229, 0.5); color: #fff; font-family: 'Inter', system-ui, sans-serif;
+    box-shadow: 0 30px 80px -20px rgba(0, 0, 0, 0.7);
+}
+.kill-kicker { margin: 0 0 6px; font-size: 12px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: #c4b5fc; }
+.kill-title { margin: 0; font-size: 30px; line-height: 1.1; font-weight: 800; }
+.kill-artist { margin: 4px 0 0; color: rgba(255, 255, 255, 0.65); font-size: 15px; }
+.kill-stars { margin: 14px 0 8px; font-size: 30px; letter-spacing: 6px; color: #facc15; }
+.kill-stats { list-style: none; margin: 0 0 12px; padding: 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 14px; color: rgba(255, 255, 255, 0.75); font-size: 13px; }
+.kill-rank { margin: 0 0 8px; font-size: 14px; color: rgba(255, 255, 255, 0.8); }
+.kill-rank.is-new { display: inline-block; padding: 6px 12px; border-radius: 999px; background: rgba(250, 204, 21, 0.14); color: #fde68a; }
+.kill-dna { margin: 6px 0 14px; font-size: 13px; line-height: 18px; color: rgba(255, 255, 255, 0.7); }
+.kill-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 10px; }
+.kill-actions a.progress-card-btn { display: inline-flex; align-items: center; text-decoration: none; }
+@media (prefers-reduced-motion: reduce) { .kill-screen { animation: none; } }

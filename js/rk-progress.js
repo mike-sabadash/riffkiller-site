@@ -5,7 +5,14 @@
  *   working   — looped at least once; `best` is the fastest speed the student said they played cleanly;
  *   at tempo  — the student said “clean” at ×1 (Speed Trainer asks after three loops at full speed);
  *   locked in — said “clean” at ×1 again on a review, 3 days later. Next reviews come after 10 and 30 days.
- * A riff is learned when every part is at tempo and the whole riff was played cleanly at ×1 once.
+ * A riff is learned (killed) when every part is at tempo and the whole riff was played cleanly at ×1 once.
+ *
+ * Every part (a "shot") earns stars by its best clean speed: ★ at ×0.5, ★★ at ×0.75, ★★★ at ×1, so the
+ * way to tempo is visible from the first session. A riff also walks the Riff DNA method, stage by stage:
+ *   Scan (heard whole) → Split (every shot played) → Isolate (every shot ★★★) → Decode (rule understood)
+ *   → Mutate (own variation played). Decode and Mutate are the student's own word, like "clean".
+ * Ranks count killed riffs only. Wins (stars, tempo, lock-ins, kills, stages, weekly goals) are kept in a short
+ * log for the profile, the kill screen and the Monday email. Nothing is scored in points.
  * A practice day is 5 minutes of the video actually playing. The weekly goal is 3, 5 or 7 such days.
  *
  * Parts are stored with their bounds, not only their number, so progress follows a part when the admin
@@ -20,9 +27,19 @@
     var DAY_SECONDS = 300;
     var GOALS = [3, 5, 7];
     var LEARNED_IN_RIFFS = 3;
+    var STAR_SPEEDS = [0.5, 0.75, 1];
+    var STAGES = ['scan', 'split', 'isolate', 'decode', 'mutate'];
+    var RANKS = [
+        { key: 'rookie', label: 'Rookie', kills: 0 },
+        { key: 'hunter', label: 'Riff Hunter', kills: 1 },
+        { key: 'killer', label: 'Riff Killer', kills: 3 },
+        { key: 'slayer', label: 'Riff Slayer', kills: 6 },
+        { key: 'legend', label: 'Riff Legend', kills: 10 }
+    ];
+    var WINS_KEPT = 80;
 
     function empty() {
-        return { v: 2, goal: 0, goalAt: 0, email: false, emailAt: 0, tz: '', lang: '', days: {}, riffs: {}, updatedAt: 0 };
+        return { v: 2, goal: 0, goalAt: 0, email: false, emailAt: 0, tz: '', lang: '', days: {}, riffs: {}, wins: [], updatedAt: 0 };
     }
 
     function num(x) { x = Number(x); return isFinite(x) && x > 0 ? x : 0; }
@@ -84,16 +101,50 @@
                 out.riffs[id] = {
                     parts: Array.isArray(r.parts) ? r.parts.map(cleanPart) : [],
                     wholeAt: num(r.wholeAt),
+                    scanAt: num(r.scanAt),
+                    decodeAt: num(r.decodeAt),
+                    mutateAt: num(r.mutateAt),
                     lastAt: num(r.lastAt)
                 };
             });
         }
+        if (Array.isArray(s.wins)) out.wins = s.wins.map(cleanWin).filter(Boolean).slice(-WINS_KEPT);
         return out;
+    }
+
+    var WIN_TYPES = ['star', 'tempo', 'locked', 'kill', 'scan', 'decode', 'mutate', 'goal'];
+    function cleanWin(w) {
+        if (!w || WIN_TYPES.indexOf(w.t) < 0 || !num(w.at)) return null;
+        var out = { t: w.t, at: num(w.at) };
+        if (w.r != null && /^[A-Za-z0-9_-]{1,40}$/.test(String(w.r))) out.r = String(w.r);
+        if (typeof w.p === 'number' && w.p >= 0 && w.p < 500) out.p = Math.floor(w.p);
+        if (typeof w.n === 'number' && w.n >= 1 && w.n <= 3) out.n = Math.floor(w.n);
+        if (typeof w.w === 'string' && /^\d{4}-\d\d-\d\d$/.test(w.w)) out.w = w.w;
+        return out;
+    }
+    function winKey(w) { return [w.t, w.r || '', w.p == null ? '' : w.p, w.n || '', w.w || ''].join('|'); }
+    /** Adds a win once: the same star of the same part, the same kill, the same week's goal count only the first time. */
+    function addWin(state, win) {
+        var w = cleanWin(win);
+        if (!w) return false;
+        var key = winKey(w);
+        if (state.wins.some(function (x) { return winKey(x) === key; })) return false;
+        state.wins.push(w);
+        if (state.wins.length > WINS_KEPT) state.wins = state.wins.slice(-WINS_KEPT);
+        return true;
+    }
+
+    /** Stars of a part from its best clean speed: 0 to 3. */
+    function starsFor(best, atTempo) {
+        if (atTempo) return 3;
+        var n = 0;
+        STAR_SPEEDS.forEach(function (sp) { if (num(best) >= sp - 1e-6) n++; });
+        return n;
     }
 
     function riffState(state, riffId) {
         var id = String(riffId);
-        if (!state.riffs[id]) state.riffs[id] = { parts: [], wholeAt: 0, lastAt: 0 };
+        if (!state.riffs[id]) state.riffs[id] = { parts: [], wholeAt: 0, scanAt: 0, decodeAt: 0, mutateAt: 0, lastAt: 0 };
         return state.riffs[id];
     }
 
@@ -154,11 +205,11 @@
     }
 
     function partStatus(rec, now) {
-        if (!rec || (!rec.loops && !rec.best && !rec.tempoAt)) return { key: 'new', best: 0, due: false };
+        if (!rec || (!rec.loops && !rec.best && !rec.tempoAt)) return { key: 'new', best: 0, stars: 0, due: false };
         var due = !!(rec.tempoAt && rec.nextReview && rec.nextReview <= now);
-        if (rec.tempoAt && rec.reviews > 0) return { key: 'locked', best: 1, due: due };
-        if (rec.tempoAt) return { key: 'tempo', best: 1, due: due };
-        return { key: 'working', best: rec.best, due: false };
+        if (rec.tempoAt && rec.reviews > 0) return { key: 'locked', best: 1, stars: 3, due: due };
+        if (rec.tempoAt) return { key: 'tempo', best: 1, stars: 3, due: due };
+        return { key: 'working', best: rec.best, stars: starsFor(rec.best, false), due: false };
     }
 
     /**
@@ -182,7 +233,12 @@
         }
         rec.lastAt = now;
         touch(state, riffId, now);
-        return { before: before, after: partStatus(rec, now) };
+        var after = partStatus(rec, now);
+        var id = String(riffId);
+        for (var n = before.stars + 1; n <= after.stars; n++) addWin(state, { t: 'star', r: id, p: index, n: n, at: now });
+        if (before.key !== 'tempo' && before.key !== 'locked' && (after.key === 'tempo' || after.key === 'locked')) addWin(state, { t: 'tempo', r: id, p: index, at: now });
+        if (before.key !== 'locked' && after.key === 'locked') addWin(state, { t: 'locked', r: id, p: index, at: now });
+        return { before: before, after: after };
     }
 
     /** “Not yet” on a review: the part stays at tempo and asks again in 3 days. Nothing is taken away twice. */
@@ -199,7 +255,24 @@
     function markWhole(state, riffId, now) {
         var r = riffState(state, riffId);
         if (!r.wholeAt) r.wholeAt = now;
+        if (!r.scanAt) r.scanAt = now;
         touch(state, riffId, now);
+        addWin(state, { t: 'kill', r: String(riffId), at: now });
+    }
+
+    /**
+     * A stage of the method the student marks: scan (the whole riff heard once), decode (the rule understood),
+     * mutate (an own variation played). Returns true the first time.
+     */
+    function markStage(state, riffId, stage, now) {
+        var field = { scan: 'scanAt', decode: 'decodeAt', mutate: 'mutateAt' }[stage];
+        if (!field) return false;
+        var r = riffState(state, riffId);
+        if (r[field]) return false;
+        r[field] = now;
+        touch(state, riffId, now);
+        addWin(state, { t: stage, r: String(riffId), at: now });
+        return true;
     }
 
     /** Status of every part of a riff and the riff as a whole. */
@@ -214,7 +287,27 @@
         parts.forEach(function (p, i) { if (p.due) due.push(i); });
         var next = -1;
         for (var i = 0; i < parts.length; i++) if (parts[i].key === 'new' || parts[i].key === 'working') { next = i; break; }
+        var stars = parts.reduce(function (n, p) { return n + p.stars; }, 0);
+        var allAtTempo = parts.length > 0 && atTempo === parts.length;
+        var learned = allAtTempo && !!(r && r.wholeAt);
+        var done = {
+            scan: !!(r && (r.scanAt || r.wholeAt)),
+            split: parts.length > 0 && started === parts.length,
+            isolate: allAtTempo,
+            decode: !!(r && r.decodeAt),
+            mutate: !!(r && r.mutateAt)
+        };
+        var stageNext = null;
+        for (var k = 0; k < STAGES.length; k++) if (!done[STAGES[k]]) { stageNext = STAGES[k]; break; }
         return {
+            stars: stars,
+            maxStars: parts.length * 3,
+            stages: done,
+            stagesDone: STAGES.filter(function (st) { return done[st]; }).length,
+            stageNext: stageNext,
+            toKill: parts.length - atTempo + (allAtTempo && !learned ? 1 : 0),
+            killed: learned,
+            lockedIn: learned && parts.length > 0 && parts.every(function (p) { return p.key === 'locked'; }),
             parts: parts,
             total: parts.length,
             started: started,
@@ -222,9 +315,9 @@
             locked: parts.filter(function (p) { return p.key === 'locked'; }).length,
             due: due,
             next: next,
-            allAtTempo: parts.length > 0 && atTempo === parts.length,
+            allAtTempo: allAtTempo,
             whole: !!(r && r.wholeAt),
-            learned: parts.length > 0 && atTempo === parts.length && !!(r && r.wholeAt),
+            learned: learned,
             lastAt: r ? r.lastAt : 0
         };
     }
@@ -238,6 +331,8 @@
         d.sec = Math.round(d.sec + seconds);
         if (riffId != null) d.riffs[String(riffId)] = 1;
         state.updatedAt = now;
+        var w = weekSummary(state, now);
+        if (w.met) addWin(state, { t: 'goal', w: dayKey(weekStart(now)), at: now });
     }
 
     function practiced(state, ts) {
@@ -331,8 +426,62 @@
         return Object.keys(map).map(function (t) {
             var e = map[t];
             var parts = Object.keys(e.parts).length, riffCount = Object.keys(e.riffs).length;
-            return { technique: t, parts: parts, riffs: riffCount, inRiffs: Object.keys(e.seen).length, learned: riffCount >= LEARNED_IN_RIFFS };
+            // Where to train it next: a riff that uses it and where it is not at tempo yet.
+            var trainIn = null;
+            Object.keys(e.seen).forEach(function (id) { if (!trainIn && !e.riffs[id]) trainIn = id; });
+            return { technique: t, parts: parts, riffs: riffCount, inRiffs: Object.keys(e.seen).length, need: LEARNED_IN_RIFFS,
+                learned: riffCount >= LEARNED_IN_RIFFS, reachable: Object.keys(e.seen).length >= LEARNED_IN_RIFFS, trainIn: trainIn };
         }).sort(function (x, y) { return (y.riffs - x.riffs) || (y.parts - x.parts) || (x.technique < y.technique ? -1 : 1); });
+    }
+
+    /** The rank by killed riffs, with the next one and how many kills it takes. */
+    function rank(state, riffs, now) {
+        var kills = (riffs || []).filter(function (r) { return r && Array.isArray(r.segments) && r.segments.length && riffSummary(state, r, now).killed; }).length;
+        var i = 0;
+        for (var k = 0; k < RANKS.length; k++) if (kills >= RANKS[k].kills) i = k;
+        var next = RANKS[i + 1] || null;
+        var from = RANKS[i].kills;
+        return {
+            key: RANKS[i].key, label: RANKS[i].label, index: i, kills: kills,
+            next: next ? { key: next.key, label: next.label, kills: next.kills, toGo: next.kills - kills } : null,
+            share: next ? (kills - from) / (next.kills - from) : 1
+        };
+    }
+
+    /**
+     * Achievements with their progress: only the ones the current catalog makes possible (three riffs to kill need
+     * three riffs cut into parts). value/target fill the bar; done when value reaches target.
+     */
+    function achievements(state, riffs, now) {
+        var playable = (riffs || []).filter(function (r) { return r && Array.isArray(r.segments) && r.segments.length; });
+        var sums = playable.map(function (r) { return riffSummary(state, r, now); });
+        var max = function (fn) { return sums.reduce(function (m, x) { return Math.max(m, fn(x)); }, 0); };
+        var techs = techniques(state, playable, now);
+        var w = weekSummary(state, now);
+        var kills = sums.filter(function (x) { return x.killed; }).length;
+        var list = [
+            { key: 'first-star', label: 'First star', how: 'Play a part cleanly at ×0.5.', value: Math.min(1, max(function (x) { return x.stars; })), target: 1 },
+            { key: 'first-tempo', label: 'First shot at full speed', how: 'Play a part cleanly at ×1.', value: Math.min(1, max(function (x) { return x.atTempo; })), target: 1 },
+            { key: 'all-stars', label: 'Every star of a riff', how: 'Three stars on every part of one riff.', value: max(function (x) { return x.stars; }), target: Math.max(3, max(function (x) { return x.maxStars; })) },
+            { key: 'first-kill', label: 'First riff killed', how: 'Every part at ×1, then the whole riff once at ×1.', value: Math.min(1, kills), target: 1 },
+            { key: 'full-dna', label: 'Full Riff DNA', how: 'All five stages on one riff: Scan, Split, Isolate, Decode, Mutate.', value: max(function (x) { return x.stagesDone; }), target: STAGES.length },
+            { key: 'locked-riff', label: 'Riff locked in', how: 'Every part of a killed riff passes its review.', value: max(function (x) { return x.killed ? x.locked : 0; }), target: Math.max(1, max(function (x) { return x.total; })) },
+            { key: 'goal-week', label: 'Weekly goal met', how: 'Reach your days this week.', value: Math.min(w.count, w.goal || 1), target: w.goal || 1 },
+            { key: 'goal-4', label: 'Four weeks in a row', how: 'Meet your weekly goal four weeks running.', value: Math.min(4, w.weeksInRow), target: 4 }
+        ];
+        if (playable.length >= 3) list.push({ key: 'three-kills', label: 'Three riffs killed', how: 'Kill three different riffs.', value: Math.min(3, kills), target: 3 });
+        var reachable = techs.filter(function (t) { return t.reachable; });
+        if (reachable.length) {
+            var bestT = reachable.reduce(function (m, t) { return t.riffs > m ? t.riffs : m; }, 0);
+            list.push({ key: 'technique', label: 'Technique learned', how: 'One technique at tempo in three riffs.', value: Math.min(LEARNED_IN_RIFFS, bestT), target: LEARNED_IN_RIFFS });
+        }
+        list.forEach(function (a) { a.done = a.value >= a.target; });
+        return list;
+    }
+
+    /** The latest wins, newest first. */
+    function recentWins(state, limit) {
+        return (state.wins || []).slice().sort(function (a, b) { return b.at - a.at; }).slice(0, limit || 8);
     }
 
     function riffTechniques(riff) {
@@ -347,6 +496,7 @@
      *   review   — a part at tempo whose review is due (oldest first);
      *   continue — the riff practiced most recently that is not learned yet, at its next part;
      *   whole    — every part is at tempo, play the whole riff at ×1;
+     *   decode / mutate — a killed riff whose rule or own variation is still open;
      *   new      — a riff not started yet whose techniques are mostly familiar, with at most a couple new.
      */
     function nextStep(state, riffs, now) {
@@ -369,6 +519,15 @@
             if (o.sum.allAtTempo) return { kind: 'whole', riff: o.riff, part: -1 };
             return { kind: 'continue', riff: o.riff, part: o.sum.next };
         }
+        // A killed riff whose rule or own variation is still open: the method is not finished.
+        var unfinished = riffs.map(function (riff) { return { riff: riff, sum: riffSummary(state, riff, now) }; })
+            .filter(function (x) {
+                var dna = x.riff.dna || {};
+                // Decode needs a rule written up for the riff; Mutate always has steps to follow.
+                return x.sum.killed && (x.sum.stageNext === 'decode' ? !!(dna.rule || dna.formula || dna.law) : x.sum.stageNext === 'mutate');
+            })
+            .sort(function (x, y) { return y.sum.lastAt - x.sum.lastAt; });
+        if (unfinished.length) return { kind: unfinished[0].sum.stageNext, riff: unfinished[0].riff, part: -1 };
         var known = {};
         techniques(state, riffs, now).forEach(function (t) { if (t.parts > 0) known[t.technique] = 1; });
         var fresh = riffs.filter(function (riff) { return riffSummary(state, riff, now).started === 0; });
@@ -399,7 +558,7 @@
         if (!riff || !Array.isArray(riff.segments) || !riff.segments.length) return '';
         var sum = riffSummary(load(), riff, Date.now());
         if (!sum.started) return '';
-        return sum.learned ? 'Learned' : sum.atTempo + '/' + sum.total + ' parts at tempo';
+        return sum.killed ? 'Killed' : sum.stars + '/' + sum.maxStars + ' ★';
     }
 
     function maxNum(a, b) { return Math.max(num(a), num(b)); }
@@ -445,8 +604,16 @@
                 if (hit >= 0) parts[hit] = mergePart(parts[hit], p);
                 else parts.push(cleanPart(p));
             });
-            out.riffs[id] = { parts: parts, wholeAt: minSet(x.wholeAt, y.wholeAt), lastAt: maxNum(x.lastAt, y.lastAt) };
+            out.riffs[id] = { parts: parts, wholeAt: minSet(x.wholeAt, y.wholeAt), scanAt: minSet(x.scanAt, y.scanAt),
+                decodeAt: minSet(x.decodeAt, y.decodeAt), mutateAt: minSet(x.mutateAt, y.mutateAt), lastAt: maxNum(x.lastAt, y.lastAt) };
         });
+        // Wins from both copies, each once, the earliest time kept.
+        var seen = {};
+        a.wins.concat(b.wins).forEach(function (w) {
+            var k = winKey(w);
+            if (!seen[k] || w.at < seen[k].at) seen[k] = w;
+        });
+        out.wins = Object.keys(seen).map(function (k) { return seen[k]; }).sort(function (x, y) { return x.at - y.at; }).slice(-WINS_KEPT);
         return out;
     }
 
@@ -527,7 +694,8 @@
     function onChange(fn) { listeners.push(fn); }
 
     var api = {
-        KEY: KEY, DAY_SECONDS: DAY_SECONDS, GOALS: GOALS, REVIEW_DAYS: REVIEW_DAYS,
+        KEY: KEY, DAY_SECONDS: DAY_SECONDS, GOALS: GOALS, REVIEW_DAYS: REVIEW_DAYS, STAGES: STAGES, RANKS: RANKS, STAR_SPEEDS: STAR_SPEEDS,
+        markStage: markStage, rank: rank, achievements: achievements, recentWins: recentWins, starsFor: starsFor,
         empty: empty, normalize: normalize, dayKey: dayKey, weekStart: weekStart,
         recordLoop: recordLoop, markClean: markClean, reviewMissed: reviewMissed, markWhole: markWhole,
         partStatus: partStatus, riffSummary: riffSummary, addPlayTime: addPlayTime, setGoal: setGoal, setEmail: setEmail,

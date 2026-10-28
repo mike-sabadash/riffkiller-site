@@ -360,3 +360,8 @@ html[data-theme='light'] .segment-btn .dna-segment-role--drill { color: rgba(20,
     border-radius: 5px; opacity: 0; pointer-events: none;
 }
 .practice-page .tab-live.is-ready .tab-live-cursor { opacity: 1; }
+
+/* Stages the student has done (js/rk-progress.js): a small check on the tab, and the Decode / Mutate marks. */
+.dna-stage.done::before { content: '✓'; margin-right: 4px; color: #86efac; font-weight: 700; }
+.dna-mark.is-done { opacity: 1; cursor: default; color: #86efac; border-color: rgba(134, 239, 172, 0.4); background: rgba(34, 197, 94, 0.08); }
+html[data-theme='light'] .dna-stage.done::before, html[data-theme='light'] .dna-mark.is-done { color: #15803d; }

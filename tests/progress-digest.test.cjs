@@ -32,7 +32,10 @@ before(async()=>{
     const riff=JSON.parse(fs.readFileSync(path.join(site.dir,'data/riffs.json'),'utf8')).find(r=>Array.isArray(r.segments)&&r.segments.length>=2);
     const parts=riff.segments.map((_,i)=>i===0?{tempoAt:ms(Date.UTC(2026,9,21)/1000),nextReview:ms(MONDAY_9_UTC-3600)}:{});
     const week={'2026-10-19':{sec:600},'2026-10-21':{sec:400},'2026-10-22':{sec:120}};
-    writeProgress('u_moscow',{email:true,tz:'Europe/Moscow',lang:'ru',goal:3,days:week,riffs:{[riff.id]:{parts,lastAt:ms(Date.UTC(2026,9,22)/1000)}}});
+    const at=ms(Date.UTC(2026,9,21)/1000);
+    const wins=[1,2,3].map(n=>({t:'star',r:riff.id,p:0,n,at})).concat([{t:'star',r:riff.id,p:1,n:1,at:ms(Date.UTC(2026,9,10)/1000)}]);
+    parts[1]={best:0.5};
+    writeProgress('u_moscow',{email:true,tz:'Europe/Moscow',lang:'ru',goal:3,days:week,wins,riffs:{[riff.id]:{parts,lastAt:ms(Date.UTC(2026,9,22)/1000)}}});
     writeProgress('u_off',{email:false,tz:'UTC',goal:3,days:week});
     writeProgress('u_quiet',{email:true,tz:'UTC',lang:'en',goal:5,days:{'2026-09-01':{sec:900}}});
     writeProgress('u_la',{email:true,tz:'America/Los_Angeles',lang:'es',goal:3,days:week});
@@ -51,6 +54,9 @@ test('Monday summary goes out once, from 8:00 in each student’s zone, only to 
     assert.match(ru.text,/Прошлая неделя: 2 из 3 дней практики \(19 мин\)/);
     assert.match(ru.text,new RegExp(site.riff.song.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+': частей вышло на темп — 1'));
     assert.match(ru.text,/Частей ждут повтора: 1/);
+    assert.match(ru.text,/Звёзд за неделю: 3 ★\./,'only the stars of the week');
+    const n=site.riff.segments.length;
+    assert.match(ru.text,new RegExp('Ближе всего к kill: .+ — осталось шагов: '+n+', звёзд 4 из '+(n*3)+' ★'));
     assert.match(ru.text,/https:\/\/riffkiller\.example\/profile\.html/);
     const quiet=first.sent.find(s=>s.to==='quiet@example.com').mail;
     assert.equal(quiet.subject,'Pausing your weekly summary');

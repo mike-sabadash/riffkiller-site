@@ -1105,7 +1105,11 @@ function handleVideoEnd() {
         if (!loopAllRiff && segment) speedTrainerOnLoop(currentSegment);
         practiceTransport.seek(loopAllRiff || !segment ? 0 : getSegmentStartRaw(segment));
         practiceTransport.play();
-    } else practiceTransport.pause();
+    } else {
+        // All Riff played to the end without the loop still counts as hearing the whole riff.
+        if (loopAllRiff && window.PracticeProgress) window.PracticeProgress.wholePass();
+        practiceTransport.pause();
+    }
 }
 
 // Обновление кнопок сегментов - ИСПРАВЛЕННАЯ ВЕРСИЯ
