@@ -21,6 +21,26 @@
         mutate: { title: 'Write your own on the same idea', hint: 'Keep the rule, change the notes, and you get a riff of your own built the same way.' }
     };
 
+    /** Which stages of the method this student has done on this riff (js/rk-progress.js). */
+    function stagesDone() {
+        var P = global.RKProgress;
+        if (!P || !activeRiff) return {};
+        try { return P.riffSummary(P.load(), activeRiff, Date.now()).stages || {}; } catch (e) { return {}; }
+    }
+    function markButton(stage) {
+        var done = stagesDone()[stage];
+        var label = stage === 'decode' ? (done ? 'Rule decoded' : 'I get the rule') : (done ? 'Mutation played' : 'I played my version');
+        return '<button type="button" class="dna-action dna-mark' + (done ? ' is-done' : '') + '" data-dna-mark="' + stage + '"' + (done ? ' disabled' : '') + '>' +
+            (done ? '✓ ' : '') + label + '</button>';
+    }
+    /** A check on the stage tabs the student has done. */
+    function paintStageTabs() {
+        var done = stagesDone();
+        document.querySelectorAll('.dna-stage').forEach(function (button) {
+            button.classList.toggle('done', !!done[button.dataset.dnaStage]);
+        });
+    }
+
     function hint(text, label) {
         return global.RKHint ? global.RKHint.icon(text, label) : '';
     }
@@ -261,7 +281,8 @@
         if (!rule && !dna.law && !test) return '<p class="dna-copy-lead">The rule of this riff hasn’t been written up yet.</p><p class="dna-copy-note">Start with the parts and techniques: they already show how it is built.</p>';
         return (rule ? '<p class="dna-rule">' + esc(rule) + '</p>' : '') +
             (dna.law ? '<p class="dna-law">' + esc(dna.law) + '</p>' : '') +
-            (test ? '<div class="dna-tests">' + test + '</div>' : '');
+            (test ? '<div class="dna-tests">' + test + '</div>' : '') +
+            '<p class="dna-copy-note">Say it in your own words: what keeps it recognisable? When you can, mark it.</p>' + markButton('decode');
     }
 
     function renderMutate(dna) {
@@ -273,6 +294,7 @@
         return '<strong class="dna-mutation-title">' + esc(m.title || 'Write a riff of your own') + '</strong>' +
             (m.description ? '<p class="dna-copy-note">' + esc(m.description) + '</p>' : '') +
             '<ol class="dna-mutation-steps">' + steps.map(function (s) { return '<li>' + esc(s) + '</li>'; }).join('') + '</ol>' +
+            markButton('mutate') +
             '<button type="button" class="dna-action dna-action--text" data-dna-stage-jump="split">← Back to the parts</button>';
     }
 
@@ -306,6 +328,14 @@
         document.querySelectorAll('#dnaLab [data-dna-segment]').forEach(function (el) { el.onclick = function () { focusSegment(Number(this.dataset.dnaSegment)); }; });
         document.querySelectorAll('#dnaLab [data-dna-atom]').forEach(function (el) { el.onclick = function () { focusAtom(Number(this.dataset.dnaAtom)); }; });
         document.querySelectorAll('#dnaLab [data-dna-stage-jump]').forEach(function (el) { el.onclick = function () { renderStage(this.dataset.dnaStageJump); }; });
+        document.querySelectorAll('#dnaLab [data-dna-mark]').forEach(function (el) {
+            el.onclick = function () {
+                var stage = this.dataset.dnaMark;
+                if (global.PracticeProgress && global.PracticeProgress.markStage) global.PracticeProgress.markStage(stage);
+                renderStage(activeStage);
+            };
+        });
+        paintStageTabs();
     }
 
     /* ---------- live sync with the video ---------- */
@@ -490,8 +520,13 @@
         key.hidden = !used.length && !anyTechnique;
     }
 
+    var watchingProgress = false;
     function init(riff) {
         activeRiff = riff;
+        if (!watchingProgress && global.RKProgress && global.RKProgress.onChange) {
+            watchingProgress = true;
+            global.RKProgress.onChange(paintStageTabs);
+        }
         var lab = document.getElementById('dnaLab');
         var ready = hasDNA(riff);
         if (lab) lab.classList.toggle('dna-lab--empty', !ready);
