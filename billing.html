@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <script src="js/rk-theme-init.js"></script>
     <style>html{background:#0a0a0a;color:#fff}html[data-theme="light"]{background:#f4f4f8;color:#12121a}</style>
-    <script src="js/i18n.js?v=i12"></script>
+    <script src="js/i18n.js?v=i13"></script>
     <meta name="theme-color" content="#0a0a0a" id="rk-theme-color">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Riff Killer - Premium Billing</title>
@@ -525,7 +525,7 @@
                 var manageOutside = k === 'external' || k === 'gift';
                 document.getElementById('planSection').hidden = manageOutside;
                 document.getElementById('methodsSection').hidden = manageOutside;
-                document.getElementById('planHeading').textContent = k === 'renewing' ? 'Change your plan' : '1. Choose a plan';
+                document.getElementById('planHeading').textContent = k === 'renewing' ? 'Change your plan' : k === 'gift' ? 'Plans' : '1. Choose a plan';
                 document.getElementById('methodsHeading').textContent = k === 'renewing' ? 'Pay for the new plan'
                     : (k === 'ending' || k === 'oneoff') ? 'Extend your premium' : '2. Choose how to pay';
                 var note = document.getElementById('switchNote');
@@ -534,6 +534,8 @@
                     : (k === 'ending' || k === 'oneoff') ? 'Paying now adds a full new period after your current one. No days are lost.' : '';
                 note.hidden = !note.textContent || (k === 'renewing' && selectedPlan === account.plan);
                 document.querySelectorAll('.plan-current').forEach(function(b) { b.remove(); });
+                // The header already links to the profile; the subscription panel has its own actions.
+                if (profileLink && premium) profileLink.style.display = 'none';
                 if (!premium) { renderButtons(); return; }
                 document.getElementById('accountTitle').textContent = 'Premium is on';
                 lines.textContent = '';
@@ -551,8 +553,9 @@
                     lines.appendChild(accountLine([account.source === 'patreon' ? 'Your premium comes from Patreon.' : 'Your premium comes from an earlier payment.']));
                     if (until) lines.appendChild(accountLine(['Premium until', { date: until }]));
                 } else if (k === 'gift') {
-                    lines.appendChild(accountLine(['Gift or promo access']));
-                    if (until) lines.appendChild(accountLine(['Premium until', { date: until }]));
+                    lines.appendChild(accountLine([account.source === 'test' ? 'Test access' : 'Promo code']));
+                    lines.appendChild(until ? accountLine(['Premium until', { date: until }]) : accountLine(['No end date']));
+                    if (until) lines.appendChild(accountLine(['When it ends, choose a plan here.']));
                 }
                 function action(text, href, external) {
                     var a = document.createElement('a');
@@ -561,6 +564,19 @@
                     actions.appendChild(a);
                 }
                 if (k === 'renewing' || k === 'ending') action('Manage in profile', 'profile.html');
+                // Promo with an end date: prices can be looked at in advance; paying waits until it ends.
+                if (k === 'gift' && until) {
+                    var see = document.createElement('a');
+                    see.href = '#planSection';
+                    see.textContent = 'See plans';
+                    see.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        var plans = document.getElementById('planSection');
+                        plans.hidden = !plans.hidden;
+                        if (!plans.hidden) plans.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    });
+                    actions.appendChild(see);
+                }
                 if (k === 'external' && account.source === 'patreon') {
                     action('Manage on Patreon', (typeof PATREON_CONFIG !== 'undefined' && PATREON_CONFIG.campaignUrl) || 'https://www.patreon.com/cw/MikeSabadash?vanity=MikeSabadash', true);
                 }

@@ -747,7 +747,11 @@
             "Preparing your USDT payment…": "Готовим оплату в USDT…",
             "The payment service is taking too long. Try again in a minute or pick another method.": "Платёжный сервис отвечает слишком долго. Попробуй через минуту или выбери другой способ.",
             "Your account has no email. Enter one for the payment receipt, then press Continue.": "У аккаунта нет email. Введи его для чека об оплате и нажми «Продолжить».",
-            "Email for the payment receipt (you stay signed in; premium goes to this account)": "Email для чека об оплате (ты остаёшься в аккаунте, premium придёт на него)"
+            "Email for the payment receipt (you stay signed in; premium goes to this account)": "Email для чека об оплате (ты остаёшься в аккаунте, premium придёт на него)",
+            "Test access": "Тестовый доступ",
+            "Promo code": "Промокод",
+            "No end date": "Без срока окончания",
+            "When it ends, choose a plan here.": "Когда срок закончится, выбери тариф здесь."
         },
         patterns: [
         // Russian plural: 1 фрагмент, 2 фрагмента, 5 фрагментов.

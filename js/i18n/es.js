@@ -738,7 +738,11 @@
             "Preparing your USDT payment…": "Preparando tu pago en USDT…",
             "The payment service is taking too long. Try again in a minute or pick another method.": "El servicio de pago tarda demasiado. Inténtalo en un minuto o elige otro método.",
             "Your account has no email. Enter one for the payment receipt, then press Continue.": "Tu cuenta no tiene email. Escribe uno para el recibo de pago y pulsa Continuar.",
-            "Email for the payment receipt (you stay signed in; premium goes to this account)": "Email para el recibo de pago (sigues con tu sesión; el premium va a esta cuenta)"
+            "Email for the payment receipt (you stay signed in; premium goes to this account)": "Email para el recibo de pago (sigues con tu sesión; el premium va a esta cuenta)",
+            "Test access": "Acceso de prueba",
+            "Promo code": "Código promocional",
+            "No end date": "Sin fecha de fin",
+            "When it ends, choose a plan here.": "Cuando termine, elige un plan aquí."
         },
         patterns: [
         [/^1 shots$/, '1 toma'],
