@@ -28,7 +28,7 @@ test('home opens the library; normal sign-up and login survive reload without a 
     await page.waitForSelector('#riffsGrid .riff-card');
     assert.equal(await page.locator('#comingSoonLanding').count(),0);
     assert.ok((await page.locator('body').innerText()).includes('Kill every riff'));assert.ok(await page.locator('#homeHeroPrimary').getAttribute('href'));
-    await page.getByText('Sign up',{exact:true}).first().click();
+    await page.getByText('Start free',{exact:true}).first().click();
     await page.fill('#authModalNameInput','Browser Practice');await page.fill('#authModalEmailInput','browser-test@example.com');await page.fill('#authModalPasswordInput','browser-test-password');
     // Without the consent box the account is not created.
     await page.click('#authModalEmailBtn');await page.waitForSelector('#authModalEmailMessage',{state:'visible'});assert.match(await page.locator('#authModalEmailMessage').innerText(),/accept the Terms/);
@@ -56,7 +56,7 @@ test('collection page lists its riffs and the profile shows no placeholder payme
 });
 test('email submits with Enter, blocks duplicate requests and recovers after a wrong password',async t=>{
     const page=await pageFor(t);await page.goto(site.base+'/',{waitUntil:'domcontentloaded'});
-    await page.getByText('Sign up',{exact:true}).first().click();
+    await page.getByText('Start free',{exact:true}).first().click();
     await page.fill('#authModalNameInput','Email UX');await page.fill('#authModalEmailInput','email-ux@example.com');await page.fill('#authModalPasswordInput','email-ux-password');await page.check('#authModalConsentInput');
     let requests=0;
     await page.route('**/api/auth/email-register.php',async route=>{requests++;await new Promise(r=>setTimeout(r,350));await route.continue()});
