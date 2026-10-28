@@ -801,4 +801,8 @@ T = [
 ('The payment service is taking too long. Try again in a minute or pick another method.', 'Платёжный сервис отвечает слишком долго. Попробуй через минуту или выбери другой способ.', 'El servicio de pago tarda demasiado. Inténtalo en un minuto o elige otro método.'),
 ('Your account has no email. Enter one for the payment receipt, then press Continue.', 'У аккаунта нет email. Введи его для чека об оплате и нажми «Продолжить».', 'Tu cuenta no tiene email. Escribe uno para el recibo de pago y pulsa Continuar.'),
 ('Email for the payment receipt (you stay signed in; premium goes to this account)', 'Email для чека об оплате (ты остаёшься в аккаунте, premium придёт на него)', 'Email para el recibo de pago (sigues con tu sesión; el premium va a esta cuenta)'),
+("Test access", "Тестовый доступ", "Acceso de prueba"),
+("Promo code", "Промокод", "Código promocional"),
+("No end date", "Без срока окончания", "Sin fecha de fin"),
+("When it ends, choose a plan here.", "Когда срок закончится, выбери тариф здесь.", "Cuando termine, elige un plan aquí."),
 ]
