@@ -3,6 +3,12 @@
  * Подключать после site-header.js, patreon-config и auth-manager (если есть).
  */
 (function () {
+    // Cards dim the page for a moment before they navigate; when the browser brings the page back from its
+    // back-forward cache, that dim would stay until a reload.
+    window.addEventListener('pageshow', function (e) {
+        if (e.persisted && document.body) { document.body.style.opacity = ''; document.body.style.pointerEvents = ''; }
+    });
+
     function currentPageKind() {
         var p = (window.location.pathname || '').toLowerCase();
         if (p.indexOf('practice.html') !== -1) return 'practice';
