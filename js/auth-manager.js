@@ -645,9 +645,10 @@ class AuthManager {
         const mobileAuth = document.querySelector('.mobile-auth');
         if (!authButtons && !mobileAuth) return;
         const hasActive = typeof this.hasActiveSubscription === 'function' && this.hasActiveSubscription();
-        // Always show Plans link (billing): "Plans" for non-subscribers, "Plans" for subscribers (manage)
-        const plansLink = `<a href="billing.html" class="btn-plans-nav">Plans</a>`;
-        const mobilePlans = `<a href="billing.html" class="btn-plans-nav mobile-plans-btn">Plans</a>`;
+        // Billing link: "Plans" to buy, "My plan" for a subscriber (the same page shows their subscription).
+        const plansText = hasActive ? 'My plan' : 'Plans';
+        const plansLink = `<a href="billing.html" class="btn-plans-nav">${plansText}</a>`;
+        const mobilePlans = `<a href="billing.html" class="btn-plans-nav mobile-plans-btn">${plansText}</a>`;
 
         if (this.isAuthenticated && this.userData) {
             const firstName = (this.userData.full_name || '').split(' ')[0] || 'User';

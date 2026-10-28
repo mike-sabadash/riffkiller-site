@@ -259,7 +259,8 @@ function loadUserProfile() {
     if (subscriptionMeta && sub) {
         var sourceLabel = paymentSourceLabel(sub.source);
         var nextBilling = '';
-        if (subExpiresSec) {
+        // Card subscriptions keep a few grace days in expiresAt; their real renewal date comes from the billing status below.
+        if (subExpiresSec && ['lava', 'robokassa', 'yookassa'].indexOf(sub.source) === -1) {
             var d = new Date(subExpiresSec * 1000);
             nextBilling = (sub.source === 'usdt' ? ' · Paid until: ' : ' · Next billing: ') + d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
         }
