@@ -98,7 +98,7 @@
         .billing-notice { max-width: 640px; margin: 0 auto 20px; padding: 14px 18px; border-radius: 14px; font-size: 0.9375rem; line-height: 1.5; text-align: center; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--color-border-light); }
         .billing-notice.is-ok { background: rgba(34, 197, 94, 0.10); border-color: rgba(34, 197, 94, 0.35); color: #bbf7d0; }
         .billing-notice.is-error { background: rgba(244, 67, 54, 0.10); border-color: rgba(244, 67, 54, 0.35); color: #fecaca; }
-        .billing-email { max-width: 480px; margin: 20px auto 0; }
+        .billing-email { max-width: 480px; margin: 0 auto 24px; }
         .billing-email label { display: block; font-size: 0.875rem; color: var(--color-text-secondary); margin-bottom: 8px; }
         .billing-email-row { display: flex; gap: 8px; }
         .billing-email input { flex: 1; min-width: 0; min-height: 44px; padding: 0 14px; border-radius: 12px; border: 1px solid var(--color-border-light); background: rgba(255, 255, 255, 0.04); color: inherit; font: inherit; }
@@ -166,6 +166,13 @@
                 <section class="methods-section">
                     <h2>2. Choose how to pay</h2>
                     <div class="billing-notice" id="billingNotice" role="status" hidden></div>
+                    <form class="billing-email" id="billingEmail" hidden>
+                        <label for="billingEmailInput">Email for the receipt and your subscription</label>
+                        <div class="billing-email-row">
+                            <input type="email" id="billingEmailInput" autocomplete="email" required placeholder="you@example.com">
+                            <button type="submit">Continue</button>
+                        </div>
+                    </form>
                     <div class="methods-grid">
                         <div class="method-card method-card--featured" id="methodLava" data-provider="lava" hidden>
                             <h3>Card</h3>
@@ -248,13 +255,6 @@
                         </ul>
                         <p class="usdt-status" id="usdtStatus" role="status"></p>
                     </div>
-                    <form class="billing-email" id="billingEmail" hidden>
-                        <label for="billingEmailInput">Email for the receipt and your subscription</label>
-                        <div class="billing-email-row">
-                            <input type="email" id="billingEmailInput" autocomplete="email" required placeholder="you@example.com">
-                            <button type="submit">Continue</button>
-                        </div>
-                    </form>
                 </section>
 
                 <div class="billing-actions">
@@ -386,6 +386,11 @@
                 notice.textContent = text;
                 notice.className = 'billing-notice' + (kind ? ' is-' + kind : '');
                 notice.hidden = !text;
+                // The methods sit below the fold on phones: bring the message to the buyer.
+                if (text && notice.scrollIntoView) {
+                    var r = notice.getBoundingClientRect();
+                    if (r.top < 0 || r.bottom > (window.innerHeight || 0)) notice.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
             }
             function formatRub(v) { return v ? Math.round(Number(v)).toLocaleString('ru-RU') + ' \u20bd' : ''; }
             function updatePrices() {
@@ -429,26 +434,35 @@
                     return;
                 }
                 setBusy(provider, true);
-                showNotice('', '');
+                emailForm.hidden = true;
+                // The payment service answers in a few seconds: say so at once, the button alone is easy to miss.
+                showNotice(provider === 'usdt' ? 'Preparing your USDT payment\u2026' : 'Opening secure checkout\u2026 This takes a few seconds.', '');
                 var lang = (document.documentElement.lang || 'en').slice(0, 2);
+                var ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+                var timer = ctrl ? setTimeout(function() { ctrl.abort(); }, 30000) : null;
                 fetch('api/billing/create.php', {
                     method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ provider: provider, plan: selectedPlan, email: email || '', lang: lang })
+                    body: JSON.stringify({ provider: provider, plan: selectedPlan, email: email || '', lang: lang }),
+                    signal: ctrl ? ctrl.signal : undefined
                 }).then(function(r) { return r.json(); }).then(function(data) {
-                    if (data.success && data.paymentUrl) { window.location.href = data.paymentUrl; return; }
+                    clearTimeout(timer);
+                    if (data.success && data.paymentUrl) { showNotice('Opening secure checkout\u2026', ''); window.location.href = data.paymentUrl; return; }
                     if (data.success && data.usdt) { setBusy(provider, false); showUsdtOrder(data.usdt); return; }
                     setBusy(provider, false);
                     if (data.needEmail) {
-                        if (email) showNotice(data.error, 'error');
+                        showNotice(email || data.error !== 'Email required' ? data.error : 'Enter an email for the receipt and your subscription, then press Continue.', email ? 'error' : '');
                         pendingProvider = provider;
                         emailForm.hidden = false;
-                        emailInput.focus();
+                        try { emailInput.focus({ preventScroll: true }); } catch (e) { emailInput.focus(); }
                         return;
                     }
                     showNotice(data.error || 'Could not start the payment. Try again.', 'error');
-                }).catch(function() {
+                }).catch(function(err) {
+                    clearTimeout(timer);
                     setBusy(provider, false);
-                    showNotice('Could not reach the server. Check your connection and try again.', 'error');
+                    showNotice(err && err.name === 'AbortError'
+                        ? 'The payment service is taking too long. Try again in a minute or pick another method.'
+                        : 'Could not reach the server. Check your connection and try again.', 'error');
                 });
             }
             document.querySelectorAll('.pay-btn').forEach(function(btn) {
