@@ -2,7 +2,13 @@ name: Riff tab sync
 
 # Agent tool: puts a tab (alphaTex in content/tabs/) into a riff and syncs it to the sound of the riff's video.
 # apply=no only reports what the sync found; if-all-synced writes only when every part is synced; yes writes what was found (backup first).
+# Two ways to start it: the Run workflow button, or (for the agent, which cannot press it) a push to
+# tab-sync/<name> of a commit with content/tabs/requests/<name>.json:
+#   { "riff_id": 1, "tex": "content/tabs/led-zeppelin/black-dog.tex", "apply": "if-all-synced", "atoms": "add" }
+# A push can only ask for apply "no" or "if-all-synced"; writing a partial sync ("yes") needs the button.
 on:
+  push:
+    branches: ['tab-sync/**']
   workflow_dispatch:
     inputs:
       riff_id:
@@ -47,20 +53,47 @@ jobs:
       DEPLOY_USER: ${{ secrets.CLAUDE_DEPLOY_USER }}
       DEPLOY_PORT: ${{ secrets.CLAUDE_DEPLOY_PORT || '22' }}
       RIFFKILLER_ROOT: ${{ vars.RIFFKILLER_ROOT }}
-      RIFF_ID: ${{ inputs.riff_id }}
-      TEX: ${{ inputs.tex }}
-      TRACK: ${{ inputs.track }}
-      ATOMS: ${{ inputs.atoms }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
 
+      # Job-level env would win over $GITHUB_ENV, so both ways set the values here.
+      - name: Read the inputs (button)
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          IN_RIFF: ${{ inputs.riff_id }}
+          IN_TEX: ${{ inputs.tex }}
+          IN_TRACK: ${{ inputs.track }}
+          IN_ATOMS: ${{ inputs.atoms }}
+          IN_APPLY: ${{ inputs.apply }}
+          IN_KEEP: ${{ inputs.keep_audio }}
+        run: |
+          { echo "RIFF_ID=$IN_RIFF"; echo "TEX=$IN_TEX"; echo "TRACK=${IN_TRACK:-0}"; echo "ATOMS=${IN_ATOMS:-add}"
+            echo "APPLY=${IN_APPLY:-no}"; echo "KEEP_AUDIO=$([ "$IN_KEEP" = true ] && echo true || echo false)"; } >> "$GITHUB_ENV"
+
+      - name: Read the request (push)
+        if: github.event_name == 'push'
+        run: |
+          name="${GITHUB_REF_NAME#tab-sync/}"
+          [[ "$name" =~ ^[A-Za-z0-9._-]+$ ]] || { echo "::error::branch must be tab-sync/<name>"; exit 1; }
+          file="content/tabs/requests/$name.json"
+          [ -f "$file" ] || { echo "::error::$file is not in this commit"; exit 1; }
+          node -e '
+            const r = JSON.parse(require("fs").readFileSync(process.argv[1], "utf8"));
+            const apply = r.apply || "no";
+            if (!["no", "if-all-synced"].includes(apply)) { console.log("::error::a push can ask for apply no or if-all-synced"); process.exit(1); }
+            const out = { RIFF_ID: r.riff_id, TEX: r.tex, TRACK: r.track ?? 0, ATOMS: r.atoms || "add", APPLY: apply, KEEP_AUDIO: r.keep_audio ? "true" : "false" };
+            for (const [k, v] of Object.entries(out)) { if (/[\r\n]/.test(String(v))) process.exit(1); console.log(k + "=" + v); }
+          ' "$file" >> "$GITHUB_ENV"
+
       - name: Check inputs
         run: |
           [[ "$RIFF_ID" =~ ^[0-9]+$ ]] || { echo "::error::riff_id must be a number"; exit 1; }
           [[ "$TRACK" =~ ^[0-9]+$ ]] || { echo "::error::track must be a number"; exit 1; }
+          [[ "$ATOMS" == add || "$ATOMS" == replace ]] || { echo "::error::atoms must be add or replace"; exit 1; }
+          echo "::notice::Riff $RIFF_ID, $TEX, apply $APPLY, atoms $ATOMS"
           [[ "$TEX" =~ ^content/tabs/[A-Za-z0-9._/-]+\.tex$ && "$TEX" != *..* && -f "$TEX" ]] || { echo "::error::tex must be a file under content/tabs/"; exit 1; }
 
       - name: Configure SSH
@@ -93,25 +126,25 @@ jobs:
         run: node tools/tab-sync-cli.cjs --riffs riffs.json --id "$RIFF_ID" --tex "$TEX" --track "$TRACK" --atoms "$ATOMS" --wav audio.wav --out patch.json | tee -a "$GITHUB_STEP_SUMMARY"
 
       - name: Notes heard in the sound
-        if: inputs.keep_audio
+        if: env.KEEP_AUDIO == 'true'
         run: node tools/audio-notes.cjs audio.wav
 
       - name: Keep the sound
-        if: inputs.keep_audio
+        if: env.KEEP_AUDIO == 'true'
         uses: actions/upload-artifact@v4
         with:
-          name: riff-${{ inputs.riff_id }}-audio
+          name: riff-${{ env.RIFF_ID }}-audio
           path: audio.wav
           retention-days: 1
 
       - name: Write to production
-        if: inputs.apply == 'yes' || (inputs.apply == 'if-all-synced' && steps.sync.outputs.all_synced == 'true')
+        if: env.APPLY == 'yes' || (env.APPLY == 'if-all-synced' && steps.sync.outputs.all_synced == 'true')
         run: |
           scp -q patch.json "prod:$REMOTE_DIR/patch.json"
           ssh prod "RIFFKILLER_ROOT='$RIFFKILLER_ROOT' bash '$REMOTE_DIR/riff-tab-remote.sh' apply '$REMOTE_DIR/patch.json'"
 
       - name: Not written
-        if: inputs.apply == 'if-all-synced' && steps.sync.outputs.all_synced != 'true'
+        if: env.APPLY == 'if-all-synced' && steps.sync.outputs.all_synced != 'true'
         run: echo "::warning::Not every part was synced, so nothing was written to production. See the report above."
 
       - name: Clean up
