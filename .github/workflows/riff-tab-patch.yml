@@ -1,0 +1,62 @@
+name: Riff tab patch
+
+# Agent tool: writes a reviewed tab patch (content/tabs/patches/<name>.json) to production.
+# Used when the automatic sync is close but a part needs anchors checked note by note against the sound.
+# Trigger: push the commit that holds the patch to branch tab-patch/<name>. The patch format is the one
+# scripts/riff-tab-apply.php reads; it refuses to apply if the riff's parts moved, and backs up data/riffs.json first.
+on:
+  push:
+    branches: ['tab-patch/**']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: riffkiller-production
+  cancel-in-progress: false
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://riffkiller.fun
+    env:
+      DEPLOY_HOST: ${{ secrets.CLAUDE_DEPLOY_HOST }}
+      DEPLOY_USER: ${{ secrets.CLAUDE_DEPLOY_USER }}
+      DEPLOY_PORT: ${{ secrets.CLAUDE_DEPLOY_PORT || '22' }}
+      RIFFKILLER_ROOT: ${{ vars.RIFFKILLER_ROOT }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Find the patch
+        run: |
+          name="${GITHUB_REF_NAME#tab-patch/}"
+          [[ "$name" =~ ^[A-Za-z0-9._-]+$ ]] || { echo "::error::branch must be tab-patch/<name>"; exit 1; }
+          file="content/tabs/patches/$name.json"
+          [ -f "$file" ] || { echo "::error::$file is not in this commit"; exit 1; }
+          node -e 'const p=JSON.parse(require("fs").readFileSync(process.argv[1]));if(!(p.id>0)||!p.tab||!p.tab.tex||!Array.isArray(p.expect)||!p.segments)process.exit(1);console.log("::notice::Riff "+p.id+": parts "+Object.keys(p.segments).map(i=>+i+1).join(", "))' "$file"
+          echo "PATCH=$file" >> "$GITHUB_ENV"
+
+      - name: Configure SSH
+        env:
+          SSH_KEY: ${{ secrets.CLAUDE_DEPLOY_SSH_KEY }}
+          KNOWN_HOSTS: ${{ secrets.CLAUDE_DEPLOY_KNOWN_HOSTS }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/deploy_key
+          printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/deploy_key ~/.ssh/known_hosts
+          printf 'Host prod\n  HostName %s\n  User %s\n  Port %s\n  IdentityFile ~/.ssh/deploy_key\n  IdentitiesOnly yes\n  StrictHostKeyChecking yes\n' \
+            "$DEPLOY_HOST" "$DEPLOY_USER" "$DEPLOY_PORT" > ~/.ssh/config
+          dir="/tmp/riffkiller-tab-$GITHUB_RUN_ID"
+          ssh prod "install -d -m 700 '$dir'"
+          scp -q scripts/riff-tab-remote.sh scripts/riff-tab-apply.php "$PATCH" "prod:$dir/"
+          echo "REMOTE_DIR=$dir" >> "$GITHUB_ENV"
+
+      - name: Write to production
+        run: ssh prod "RIFFKILLER_ROOT='$RIFFKILLER_ROOT' bash '$REMOTE_DIR/riff-tab-remote.sh' apply '$REMOTE_DIR/$(basename "$PATCH")'"
+
+      - name: Clean up
+        if: always()
+        run: '[ -z "${REMOTE_DIR:-}" ] || ssh prod "rm -rf ''$REMOTE_DIR''" || true'
