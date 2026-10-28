@@ -306,3 +306,14 @@ body.ed-page .btn { font-family: inherit; }
 .dna-notes-check p { margin: 2px 0 0; }
 .dna-notes-check b { color: var(--ed-text); font-weight: 600; }
 .dna-notes-check .warn b { color: #f2c94c; }
+/* Tab from a screenshot (js/admin-tab-ai.js) */
+.ed-tab-ai { margin: 0 0 16px; padding: 14px; border: 1px solid var(--ed-line-strong); border-radius: 8px; background: var(--ed-surface-2); }
+.ed-tab-ai-lead { margin: 0 0 10px; font-size: 13px; color: var(--ed-text-2, var(--ed-text)); line-height: 1.5; }
+.ed-tab-ai-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.ed-tab-ai-row .ed-input { flex: 1 1 240px; min-width: 0; }
+.ed-tab-ai .ed-tab-status { margin: 10px 0 0; }
+.ed-tab-ai-notes { margin-top: 8px; font-size: 13px; }
+.ed-tab-ai-notes[hidden] { display: none; }
+.ed-tab-ai-title { margin: 8px 0 4px; font-weight: 600; }
+.ed-tab-ai-notes ul { margin: 0; padding-left: 18px; color: var(--ed-text-3); }
+

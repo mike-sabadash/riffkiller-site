@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="../css/reset.css">
     <link rel="stylesheet" href="../css/variables.css?v=flat1">
     <!-- Не подключаем base.css и components.css — там стили заглушки; админка риффов самодостаточна -->
-    <link rel="stylesheet" href="../css/admin-editor.css?v=draft2">
+    <link rel="stylesheet" href="../css/admin-editor.css?v=tabai1">
     <link rel="icon" type="image/svg+xml" href="../assets/icons/favicon.svg">
     <style>
         html, body { background: #111629 !important; background-image: none !important; color: #fff; font-family: Roboto, sans-serif; min-height: 100vh; min-height: 100dvh; padding: 24px; margin: 0; padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px) + 52px); }
@@ -221,6 +221,16 @@
                     <li>Загрузите файл ниже. Под полем появится, сколько в нём тактов.</li>
                     <li>Нажмите «Синхронизировать по звуку»: сайт услышит в видео, какие такты играет каждая часть и где звучит каждая нота. Если звука в видео нет или он грязный, нажмите «Расставить такты по ролям». Проверьте такты у частей и сохраните.</li>
                 </ol>
+                <div class="ed-tab-ai">
+                    <p class="ed-tab-ai-lead"><b>Со скриншота.</b> Загрузите картинку таба ровно того, что звучит в видео (зачёркнутое не играется, пометки ручкой учитываются). ИИ наберёт таб по тем же правилам, что Claude в чате, сверит его со скриншотом и синхронизирует со звуком. Ничего не сохраняется, пока вы не нажмёте «Сохранить».</p>
+                    <div class="ed-tab-ai-row">
+                        <input type="file" id="tabAiImage" accept="image/png,image/jpeg,image/webp" aria-label="Скриншот таба">
+                        <input type="text" id="tabAiHint" class="ed-input" maxlength="1500" placeholder="Пояснение, если нужно: «такты 26–38», «повтор играется 2 раза»">
+                        <button type="button" class="ed-btn primary" id="tabAiRun">Распознать таб</button>
+                    </div>
+                    <p class="ed-tab-status" id="tabAiStatus" role="status"></p>
+                    <div class="ed-tab-ai-notes" id="tabAiNotes" hidden></div>
+                </div>
                 <div class="ed-grid">
                     <div class="ed-field span-2"><span>Файл табов</span><input type="file" id="tabFileUpload" accept=".gp,.gp3,.gp4,.gp5,.gpx,.mxl,.musicxml,.xml" aria-label="Загрузить файл табов"><input type="text" id="tabFile" class="ed-input" placeholder="или путь к файлу на сайте: assets/tabs/artist/song/song.gp"></div>
                     <details class="ed-more span-2" id="tabTexBox"><summary>Вместо файла: текст табов из rechord (Notation, кнопка «Код»)</summary><textarea id="tabTex" class="ed-input ed-tab-tex" rows="6" spellcheck="false" aria-label="Текст табов alphaTex" placeholder="\tempo 120&#10;.&#10;5.3 7.3 5.4 7.4 |"></textarea></details>
@@ -405,7 +415,9 @@
     <script src="../js/tab-live.js?v=8"></script>
     <script src="../js/tab-sync.js?v=3"></script>
     <script src="../js/tab-atoms.js?v=3"></script>
-    <script src="../js/admin-tabs.js?v=4"></script>
+    <script src="../js/admin-tabs.js?v=5"></script>
+    <script src="../js/tab-listing.js?v=1"></script>
+    <script src="../js/admin-tab-ai.js?v=1"></script>
     <script src="../js/admin-segments.js?v=ed4"></script>
     <script src="../js/admin-cutter.js?v=ed1"></script>
     <script src="../js/image-shrink.js?v=1"></script>
@@ -1014,6 +1026,7 @@
     });
     SegmentEditor.init();
     TabEditor.init();
+    TabAI.init();
     loadRiffs();
     fillForm({});
 })();

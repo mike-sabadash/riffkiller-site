@@ -144,7 +144,7 @@
         var button = el('tabSyncAudio'), track = Number(el('tabTrack').value) || 0, score = state.score, bars = state.bars;
         button.disabled = true;
         status('Загружаю звук видео…');
-        TabSync.decode(src).then(function (samples) {
+        return TabSync.decode(src).then(function (samples) {
             status('Слушаю звук…');
             var t0 = Math.max(0, Math.min.apply(null, parts.map(function (p) { return p.start; })) - 1);
             var t1 = Math.max.apply(null, parts.map(function (p) { return p.end; })) + 1;
@@ -217,5 +217,20 @@
         el('dnaTabAtoms').addEventListener('click', function (e) { e.preventDefault(); suggestAtoms(); });
     }
 
-    root.TabEditor = { init: init, load: load, collect: collect, autoMap: autoMap, suggestAtoms: suggestAtoms, syncAudio: syncAudio };
+    /** Puts alphaTex into the box (as if typed) and reads it: Promise<score or null>. Used by the screenshot reader. */
+    function setTex(tex) {
+        state.pending = null;
+        el('tabFile').value = '';
+        el('tabFileUpload').value = '';
+        el('tabTex').value = tex;
+        el('tabTexBox').open = true;
+        if (root.RiffEditorDirty) root.RiffEditorDirty();
+        return read({ tex: tex });
+    }
+
+    root.TabEditor = {
+        init: init, load: load, collect: collect, autoMap: autoMap, suggestAtoms: suggestAtoms, syncAudio: syncAudio, setTex: setTex,
+        score: function () { return state.score; },
+        track: function () { return Number(el('tabTrack').value) || 0; }
+    };
 })(window);
