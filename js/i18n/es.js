@@ -846,7 +846,13 @@
             "1 technique learned": "1 técnica aprendida",
             "1 riff killed": "1 riff dominado",
             "New rank:": "Nuevo rango:",
-            "Train it in": "Practícala en"
+            "Train it in": "Practícala en",
+            "See all": "Ver todo",
+            "Added to favorites": "Añadido a favoritos",
+            "Collection added to favorites": "Colección añadida a favoritos",
+            "Removed from favorites": "Quitado de favoritos",
+            "Saved on this device. Sign in to keep favorites everywhere.": "Guardado en este dispositivo. Inicia sesión para tener tus favoritos en todas partes.",
+            "No favorites yet. Tap the star on any riff or collection to keep it here.": "Aún no hay favoritos. Toca la estrella de cualquier riff o colección para guardarlo aquí."
         },
         patterns: [
         [/^(\d+) of (\d+) stars$/, '$1 de $2 estrellas'],

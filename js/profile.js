@@ -92,6 +92,16 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     loadUserRiffs();
+    if (window.RKFavorites) window.RKFavorites.onChange(function () { favoritesPage = 1; loadUserRiffs(); });
+    document.addEventListener('click', function (e) {
+        const star = e.target.closest && e.target.closest('.fav-collection-star');
+        if (!star) return;
+        e.preventDefault();
+        window.RKFavorites.toggle('collection', star.getAttribute('data-fav-key').slice(2));
+    });
+    fetch('/api/collections/list.php').then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (cols) { if (Array.isArray(cols)) { liveCollections = cols; renderFavoriteCollections(); } })
+        .catch(function () {});
     // Riffs deleted or hidden in the admin drop out of recent and favorites once the live list arrives.
     fetch('/api/riffs/list.php').then(function (r) { if (!r.ok) throw new Error('list'); return r.json(); })
         .then(function (list) {
@@ -527,31 +537,6 @@ function updateSubscriptionDetailsCard() {
     }
 }
 
-// Модальное окно «Войдите в Patreon, чтобы сохранять избранное» (для профиля)
-function showFavoritesLoginModal() {
-    if (document.getElementById('favoritesLoginModal')) return;
-    const backdrop = document.createElement('div');
-    backdrop.id = 'favoritesLoginBackdrop';
-    backdrop.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.8); z-index: 9999; backdrop-filter: blur(5px);';
-    const modal = document.createElement('div');
-    modal.id = 'favoritesLoginModal';
-    modal.style.cssText = 'position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #1a1f33; border-radius: 24px; padding: 40px; width: min(360px, 90vw); z-index: 10000; text-align: center; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 20px 60px rgba(0,0,0,0.5);';
-    modal.innerHTML = `
-        <p style="color: rgba(255,255,255,0.95); margin-bottom: 24px; line-height: 1.5;">Sign in with Patreon to save favorites.</p>
-        <button id="favoritesLoginPatreonBtn" style="width: 100%; padding: 14px; background: #FF424D; color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; margin-bottom: 12px;">Sign in with Patreon</button>
-        <button id="favoritesLoginCloseBtn" style="background: transparent; border: none; color: rgba(255,255,255,0.6); cursor: pointer; font-size: 14px;">Cancel</button>
-    `;
-    document.body.appendChild(backdrop);
-    document.body.appendChild(modal);
-    const closeModal = () => { backdrop.remove(); modal.remove(); };
-    document.getElementById('favoritesLoginPatreonBtn').addEventListener('click', () => {
-        closeModal();
-        if (window.patreonAuth && typeof window.patreonAuth.login === 'function') window.patreonAuth.login();
-    });
-    document.getElementById('favoritesLoginCloseBtn').addEventListener('click', closeModal);
-    backdrop.addEventListener('click', closeModal);
-}
-
 // Загрузка риффов пользователя ТОЛЬКО из localStorage (без демо-данных)
 let liveRiffList = null;
 function loadUserRiffs() {
@@ -559,7 +544,6 @@ function loadUserRiffs() {
         const savedState = localStorage.getItem('riffKillerState');
         const appState = savedState ? JSON.parse(savedState) : {};
 
-        const riffsDb = appState.riffsDatabase || [];
 
         // Недавно практикованные — только из localStorage; добавляем isFavorite из riffsDatabase для звёздочки
         const rawRecent = (appState.recentlyPracticed && Array.isArray(appState.recentlyPracticed))
@@ -571,14 +555,14 @@ function loadUserRiffs() {
             .map(r => ({
                 ...r,
                 ...(live ? { song: live.get(String(r.id)).song || r.song, artist: live.get(String(r.id)).artist || r.artist, thumbnail: live.get(String(r.id)).thumbnail || r.thumbnail } : {}),
-                isFavorite: !!(riffsDb.find(db => db.id === r.id) || {}).isFavorite
             }));
 
-        // Избранные — из appState.riffsDatabase (isFavorite) + метаданные риффов для отображения
+        // Избранные — общий список RKFavorites (js/riff-gallery-card.js), последние добавленные первыми
         const metadata = liveRiffList || getRiffsMetadata();
-        allFavoriteRiffs = metadata
-            .filter(meta => (riffsDb.find(r => r.id === meta.id) || {}).isFavorite)
-            .map(r => ({ ...r, isFavorite: true }));
+        const byId = new Map(metadata.map(r => [String(r.id), r]));
+        const favIds = window.RKFavorites ? window.RKFavorites.list('riff') : [];
+        allFavoriteRiffs = favIds.filter(id => byId.has(id)).map(id => byId.get(id));
+        renderFavoriteCollections();
 
         displayRecentRiffs(1);
         displayFavoriteRiffs(1);
@@ -589,6 +573,24 @@ function loadUserRiffs() {
         displayRecentRiffs(1);
         displayFavoriteRiffs(1);
     }
+}
+
+// Избранные коллекции: строка ссылок над риффами
+let liveCollections = null;
+function renderFavoriteCollections() {
+    const box = document.getElementById('favoriteCollections');
+    if (!box) return;
+    const ids = window.RKFavorites ? window.RKFavorites.list('collection') : [];
+    const byId = new Map((liveCollections || []).map(c => [String(c.id), c]));
+    const list = ids.filter(id => byId.has(id)).map(id => byId.get(id));
+    box.hidden = list.length === 0;
+    box.innerHTML = list.map(c => {
+        const n = Array.isArray(c.riffs) ? c.riffs.length : 0;
+        const name = String(c.name || 'Collection').replace(/[&<>"]/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]));
+        return '<li class="fav-collection"><a href="collection.html?id=' + encodeURIComponent(c.id) + '"><span class="fav-collection-name" translate="no">' + name +
+            '</span><span class="fav-collection-count">' + (n === 1 ? '1 riff' : n + ' riffs') + '</span></a>' +
+            window.RKFavorites.button('collection', c.id, 'fav-collection-star') + '</li>';
+    }).join('');
 }
 
 // Метаданные риффов для отображения (id, song, artist, thumbnail, difficulty). isFavorite берётся из localStorage.
@@ -648,7 +650,7 @@ function displayFavoriteRiffs(page) {
     }
     
     if (allFavoriteRiffs.length === 0 && page === 1) {
-        grid.innerHTML = '<p class="profile-empty-state">No favorites yet. Add some from the main page by clicking the star on any riff!</p>';
+        grid.innerHTML = '<p class="profile-empty-state">No favorites yet. Tap the star on any riff or collection to keep it here. <a href="index.html">Browse riffs</a></p>';
         const loadMoreContainer = document.getElementById('favoritesLoadMore');
         if (loadMoreContainer) loadMoreContainer.style.display = 'none';
         return;
@@ -676,19 +678,7 @@ function createRiffCard(riff, type) {
         return document.createElement('div');
     }
 
-    const isFavorite = type === 'favorite' ? true : !!riff.isFavorite;
-    const riffForCard = Object.assign({}, riff, { isFavorite: isFavorite });
-
-
-    return window.RiffKillerRiffGallery.createCard(riffForCard, {
-        onFavoriteClick: function (e, favBtn) {
-            e.stopPropagation();
-            if (!window.patreonAuth || !window.patreonAuth.isAuthenticated) {
-                showFavoritesLoginModal();
-                return;
-            }
-            toggleRiffFavorite(favBtn, riff.id, type);
-        },
+    return window.RiffKillerRiffGallery.createCard(riff, {
         onNavigate: function () {
             try {
                 const savedState = localStorage.getItem('riffKillerState');
@@ -704,36 +694,6 @@ function createRiffCard(riff, type) {
             }, 200);
         }
     });
-}
-
-// Переключение избранного для риффа (только для авторизованных)
-function toggleRiffFavorite(button, riffId, type) {
-    button.classList.toggle('active');
-    const isNowFavorite = button.classList.contains('active');
-    button.setAttribute('aria-label', isNowFavorite ? 'Remove from favorites' : 'Add to favorites');
-    
-    try {
-        const savedState = localStorage.getItem('riffKillerState');
-        const appState = savedState ? JSON.parse(savedState) : { currentRiffId: null, recentlyPracticed: [], trialRiffId: null, riffsDatabase: [] };
-        if (!appState.riffsDatabase) appState.riffsDatabase = [];
-        
-        const riffIndex = appState.riffsDatabase.findIndex(r => r.id === riffId);
-        if (riffIndex !== -1) {
-            appState.riffsDatabase[riffIndex].isFavorite = isNowFavorite;
-        } else {
-            appState.riffsDatabase.push({ id: riffId, isFavorite: isNowFavorite });
-        }
-        
-        localStorage.setItem('riffKillerState', JSON.stringify(appState));
-        
-        if (type === 'favorite' && !isNowFavorite) {
-            allFavoriteRiffs = allFavoriteRiffs.filter(r => r.id !== riffId);
-            favoritesPage = 1;
-            displayFavoriteRiffs(1);
-        }
-    } catch (e) {
-        console.error('Error toggling favorite:', e);
-    }
 }
 
 // Инициализация кнопок Load More

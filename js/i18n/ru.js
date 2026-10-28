@@ -855,7 +855,13 @@
             "1 technique learned": "1 приём освоен",
             "1 riff killed": "1 рифф добит",
             "New rank:": "Новый ранг:",
-            "Train it in": "Тренируй в"
+            "Train it in": "Тренируй в",
+            "See all": "Все",
+            "Added to favorites": "Добавлено в избранное",
+            "Collection added to favorites": "Коллекция добавлена в избранное",
+            "Removed from favorites": "Убрано из избранного",
+            "Saved on this device. Sign in to keep favorites everywhere.": "Сохранено на этом устройстве. Войди, чтобы избранное было на всех устройствах.",
+            "No favorites yet. Tap the star on any riff or collection to keep it here.": "Пока пусто. Нажми звёздочку на любом риффе или коллекции, и они появятся здесь."
         },
         patterns: [
         [/^(\d{4}-\d\d-\d\d) · (\d+) min$/, '$1 · $2 мин'],

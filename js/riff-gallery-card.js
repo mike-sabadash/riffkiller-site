@@ -20,10 +20,97 @@
         '<svg class="favorite-icon" viewBox="0 0 16 16" fill="none"><path d="M8 2L9.79611 5.52786L13.6574 6.21885L10.8287 9.16714L11.4721 13L8 11.1279L4.52786 13L5.17127 9.16714L2.3426 6.21885L6.20389 5.52786L8 2Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
     /**
+     * Favorites: one store for every page, kept in the practice progress (js/rk-progress.js, state.fav), so they
+     * reach the account and other devices with it. Guests keep them in this browser until they sign in.
+     *   RKFavorites.has(kind, id), toggle(kind, id) → on, list(kind) → ids (latest first), onChange(fn)
+     *   kind: 'riff' or 'collection'. Every star with data-fav-key repaints itself when favorites change.
+     */
+    var Fav = (function () {
+        var synced = false, listeners = [], hooked = false;
+        function P() { return global.RKProgress || null; }
+        function key(kind, id) { return (kind === 'collection' ? 'c' : 'r') + ':' + id; }
+        // Stars saved before favorites moved here (riffKillerState.riffsDatabase), once per browser.
+        function migrate() {
+            var ls;
+            try { ls = global.localStorage; if (!ls || ls.getItem('rkFavMoved')) return; ls.setItem('rkFavMoved', '1'); } catch (e) { return; }
+            var ids = [];
+            try {
+                var st = JSON.parse(ls.getItem('riffKillerState') || '{}');
+                (st.riffsDatabase || []).forEach(function (r) { if (r && r.isFavorite === true && r.id != null) ids.push(String(r.id)); });
+            } catch (e) { return; }
+            // When the riff list did not load, the old page saved its built-in demo flags (riffs 1, 3, 6, 9): not the student's.
+            if (!ids.length || ids.slice().sort().join(',') === '1,3,6,9') return;
+            P().update(function (s, now) { ids.forEach(function (id, i) { if (!P().isFavorite(s, 'riff', id)) P().setFavorite(s, 'riff', id, true, now - i); }); }, { quiet: true });
+        }
+        function ready() {
+            var p = P();
+            if (!p) return null;
+            if (!hooked) {
+                hooked = true;
+                migrate();
+                p.onChange(function () { paint(); listeners.forEach(function (fn) { try { fn(); } catch (e) {} }); });
+            }
+            if (!synced && p.sync) { synced = true; p.sync(); }
+            return p;
+        }
+        function has(kind, id) { var p = ready(); return !!(p && p.isFavorite(p.load(), kind, id)); }
+        function list(kind) { var p = ready(); return p ? p.favorites(p.load(), kind) : []; }
+        function toggle(kind, id) {
+            var p = ready();
+            if (!p) return false;
+            var on = p.update(function (s, now) { return p.setFavorite(s, kind, id, !p.isFavorite(s, kind, id), now); }, { soon: true });
+            toast(on, kind);
+            return on;
+        }
+        function label(on) { return on ? 'Remove from favorites' : 'Add to favorites'; }
+        function paint() {
+            var p = P();
+            if (!p || !global.document) return;
+            var s = p.load();
+            global.document.querySelectorAll('[data-fav-key]').forEach(function (btn) {
+                var k = btn.getAttribute('data-fav-key').split(':');
+                var on = p.isFavorite(s, k[0] === 'c' ? 'collection' : 'riff', k.slice(1).join(':'));
+                btn.classList.toggle('active', on);
+                btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+                btn.setAttribute('aria-label', label(on));
+            });
+        }
+        function signedIn() { var a = global.authManager || global.patreonAuth; return !!(a && a.isAuthenticated); }
+        var toastTimer = null;
+        function toast(on, kind) {
+            var d = global.document;
+            if (!d || !d.body) return;
+            var el = d.getElementById('rkFavToast');
+            if (!el) {
+                el = d.createElement('div');
+                el.id = 'rkFavToast';
+                el.className = 'rk-fav-toast';
+                el.setAttribute('role', 'status');
+                d.body.appendChild(el);
+            }
+            var onProfile = /profile\.html/.test(global.location.pathname);
+            var text = on ? (kind === 'collection' ? 'Collection added to favorites' : 'Added to favorites') : 'Removed from favorites';
+            var extra = on && !signedIn() ? '<span class="rk-fav-toast-sub">Saved on this device. Sign in to keep favorites everywhere.</span>' : '';
+            el.innerHTML = '<span class="rk-fav-toast-text">' + esc(text) + extra + '</span>' +
+                (on && !onProfile ? '<a class="rk-fav-toast-link" href="profile.html#favorites">See all</a>' : '');
+            el.classList.add('show');
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(function () { el.classList.remove('show'); }, on && !signedIn() ? 5000 : 3000);
+        }
+        function button(kind, id, extraClass) {
+            var on = has(kind, id);
+            return '<button type="button" class="' + extraClass + (on ? ' active' : '') + '" data-fav-key="' + esc(key(kind, id)) +
+                '" aria-pressed="' + on + '" aria-label="' + label(on) + '">' + FAVORITE_SVG + '</button>';
+        }
+        function onChange(fn) { ready(); listeners.push(fn); }
+        return { has: has, toggle: toggle, list: list, onChange: onChange, button: button, paint: paint };
+    })();
+    global.RKFavorites = Fav;
+
+    /**
      * @param {object} riff
      * @param {object} hooks
      * @param {function} [hooks.onNavigate] — клик по карточке (кроме звезды)
-     * @param {function} [hooks.onFavoriteClick] — (e, favBtn, riff)
      * @param {string} [hooks.extraMetaHtml] — HTML под artist; по умолчанию — прогресс риффа
      */
     // “3/10 parts at tempo” or “Learned” under the artist, once the student has started the riff (js/rk-progress.js).
@@ -52,7 +139,6 @@
             ? '<div class="riff-lock-tag" title="Premium"><svg viewBox="0 0 16 16" width="12" height="12" fill="none" aria-hidden="true"><rect x="3" y="7" width="10" height="7" rx="1.5" stroke="currentColor" stroke-width="1.5"/><path d="M5.5 7V5a2.5 2.5 0 015 0v2" stroke="currentColor" stroke-width="1.5"/></svg>Premium</div>'
             : '';
         if (hooks.locked) card.className += ' riff-card--locked';
-        var isFav = !!riff.isFavorite;
 
         card.innerHTML =
             '<div class="riff-image-container" style="position:relative; width:100%; height:100%;">' +
@@ -72,13 +158,7 @@
             'onerror="this.onerror=null; this.style.visibility=\'hidden\'; this.parentElement.querySelector(\'.riff-image-preloader\').style.display=\'none\';">' +
             '</div>' +
             '<div class="riff-overlay riff-overlay--hub" aria-hidden="true"></div>' +
-            '<button type="button" class="riff-favorite-btn' +
-            (isFav ? ' active' : '') +
-            '" aria-label="' +
-            (isFav ? 'Remove from favorites' : 'Add to favorites') +
-            '">' +
-            FAVORITE_SVG +
-            '</button>' +
+            Fav.button('riff', riff.id, 'riff-favorite-btn') +
             freeTag +
             lockTag;
 
@@ -99,18 +179,8 @@
         var favBtn = card.querySelector('.riff-favorite-btn');
         favBtn.addEventListener('click', function (e) {
             e.stopPropagation();
-            if (hooks.onFavoriteClick) {
-                hooks.onFavoriteClick(e, favBtn, riff);
-            } else if (global.window.patreonAuth && global.window.patreonAuth.isAuthenticated) {
-                favBtn.classList.toggle('active');
-                riff.isFavorite = favBtn.classList.contains('active');
-                favBtn.setAttribute(
-                    'aria-label',
-                    riff.isFavorite ? 'Remove from favorites' : 'Add to favorites'
-                );
-            } else if (typeof global.showFavoritesLoginModal === 'function') {
-                global.showFavoritesLoginModal();
-            }
+            e.preventDefault();
+            Fav.toggle('riff', riff.id);
         });
 
         stack.addEventListener('click', function (e) {

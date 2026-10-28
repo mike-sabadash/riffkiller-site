@@ -39,7 +39,7 @@
     var WINS_KEPT = 80;
 
     function empty() {
-        return { v: 2, goal: 0, goalAt: 0, email: false, emailAt: 0, tz: '', lang: '', days: {}, riffs: {}, wins: [], updatedAt: 0 };
+        return { v: 2, goal: 0, goalAt: 0, email: false, emailAt: 0, tz: '', lang: '', days: {}, riffs: {}, wins: [], fav: {}, updatedAt: 0 };
     }
 
     function num(x) { x = Number(x); return isFinite(x) && x > 0 ? x : 0; }
@@ -109,7 +109,33 @@
             });
         }
         if (Array.isArray(s.wins)) out.wins = s.wins.map(cleanWin).filter(Boolean).slice(-WINS_KEPT);
+        if (s.fav && typeof s.fav === 'object') {
+            Object.keys(s.fav).forEach(function (k) {
+                var f = s.fav[k];
+                if (FAV_KEY.test(k) && f && typeof f === 'object' && num(f.at)) out.fav[k] = { on: f.on === true, at: num(f.at) };
+            });
+        }
         return out;
+    }
+
+    // ---- favorites: riffs ("r:<id>") and collections ("c:<id>"). Removing keeps the key with on:false and its time,
+    // so the latest change wins when two devices merge.
+    var FAV_KEY = /^[rc]:[A-Za-z0-9_-]{1,40}$/;
+    function favKey(kind, id) { return (kind === 'collection' || kind === 'c' ? 'c' : 'r') + ':' + String(id); }
+    function isFavorite(state, kind, id) { var f = state.fav && state.fav[favKey(kind, id)]; return !!(f && f.on); }
+    function setFavorite(state, kind, id, on, now) {
+        var k = favKey(kind, id);
+        if (!FAV_KEY.test(k)) return false;
+        if (!state.fav) state.fav = {};
+        state.fav[k] = { on: !!on, at: Math.max(num(now) || Date.now(), (state.fav[k] && state.fav[k].at || 0) + 1) };
+        return !!on;
+    }
+    /** Ids of the favorite riffs or collections, the latest added first. */
+    function favorites(state, kind) {
+        var prefix = favKey(kind, '');
+        return Object.keys(state.fav || {}).filter(function (k) { return k.indexOf(prefix) === 0 && state.fav[k].on; })
+            .sort(function (a, b) { return state.fav[b].at - state.fav[a].at; })
+            .map(function (k) { return k.slice(prefix.length); });
     }
 
     var WIN_TYPES = ['star', 'tempo', 'locked', 'kill', 'scan', 'decode', 'mutate', 'goal'];
@@ -614,6 +640,10 @@
             if (!seen[k] || w.at < seen[k].at) seen[k] = w;
         });
         out.wins = Object.keys(seen).map(function (k) { return seen[k]; }).sort(function (x, y) { return x.at - y.at; }).slice(-WINS_KEPT);
+        Object.keys(a.fav).concat(Object.keys(b.fav)).forEach(function (k) {
+            var x = a.fav[k], y = b.fav[k];
+            out.fav[k] = !x ? y : !y ? x : (y.at > x.at ? y : x);
+        });
         return out;
     }
 
@@ -695,7 +725,7 @@
 
     var api = {
         KEY: KEY, DAY_SECONDS: DAY_SECONDS, GOALS: GOALS, REVIEW_DAYS: REVIEW_DAYS, STAGES: STAGES, RANKS: RANKS, STAR_SPEEDS: STAR_SPEEDS,
-        markStage: markStage, rank: rank, achievements: achievements, recentWins: recentWins, starsFor: starsFor,
+        markStage: markStage, rank: rank, isFavorite: isFavorite, setFavorite: setFavorite, favorites: favorites, achievements: achievements, recentWins: recentWins, starsFor: starsFor,
         empty: empty, normalize: normalize, dayKey: dayKey, weekStart: weekStart,
         recordLoop: recordLoop, markClean: markClean, reviewMissed: reviewMissed, markWhole: markWhole,
         partStatus: partStatus, riffSummary: riffSummary, addPlayTime: addPlayTime, setGoal: setGoal, setEmail: setEmail,

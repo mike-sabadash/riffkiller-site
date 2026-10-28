@@ -106,7 +106,7 @@
         return '<section class="pp-card pp-hero">' +
             '<div class="pp-rank">' +
             '<p class="pp-title">Your rank ' + hint('Your rank counts the riffs you killed: every part at ×1, then the whole riff once at ×1. Rookie, then Riff Hunter at 1 kill, Riff Killer at 3, Riff Slayer at 6, Riff Legend at 10.', 'rank') + '</p>' +
-            '<p class="pp-rank-name">' + esc(r.label) + '</p>' +
+            '<p class="pp-rank-name" translate="no">' + esc(r.label) + '</p>' +
             '<p class="pp-meta">' + esc(r.kills === 1 ? '1 riff killed' : r.kills + ' riffs killed') + ' · ' +
             esc(learnedTech === 1 ? '1 technique learned' : learnedTech + ' techniques learned') + '</p>' +
             bar(r.share, 1) + '<p class="pp-rank-next">' + esc(toNext) + '</p>' +
