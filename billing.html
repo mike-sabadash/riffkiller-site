@@ -107,8 +107,19 @@
         .billing-email button { min-height: 44px; padding: 0 18px; border-radius: 12px; border: none; background: #9355E5; color: #fff; font: inherit; font-weight: 500; cursor: pointer; }
         .billing-includes[hidden], .billing-header > p[hidden], .sub-card[hidden], .plan-section[hidden], .methods-section[hidden], .switch-note[hidden], .sub-hint[hidden] { display: none; }
         /* Subscriber view: a compact account header and one subscription card, left-aligned like account settings */
-        .billing-header.is-account { text-align: left; max-width: 720px; margin: 0 auto 24px; }
-        .billing-header.is-account h1 { font-size: clamp(1.75rem, 3vw, 2.25rem); margin-bottom: 0; }
+        /* One content width per page so blocks line up instead of stepping: plans and methods share the
+           three-column grid (3 × 290 + 2 × 16); the subscriber view is a single 720 px column. */
+        .methods-grid { max-width: 902px; margin-left: auto; margin-right: auto; }
+        .billing-main.is-account .billing-header,
+        .billing-main.is-account .sub-card,
+        .billing-main.is-account .plan-section,
+        .billing-main.is-account .methods-section { max-width: 720px; margin-left: auto; margin-right: auto; }
+        .billing-main.is-account .plans-row { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        .billing-main.is-account .methods-grid { grid-template-columns: 1fr; }
+        .billing-main.is-account .plan-section h2, .billing-main.is-account .methods-section h2, .billing-main.is-account .switch-note { text-align: left; margin-left: 0; }
+        .billing-main.is-account .billing-header { text-align: left; margin-bottom: 24px; }
+        .billing-main.is-account .billing-header h1 { font-size: clamp(1.75rem, 3vw, 2.25rem); margin-bottom: 0; }
+        @media (max-width: 640px) { .billing-main.is-account .plans-row { grid-template-columns: 1fr; } }
         .sub-card { max-width: 720px; margin: 0 auto 48px; border-radius: 20px; border: 1px solid var(--color-border-light); background: rgba(255, 255, 255, 0.03); overflow: hidden; }
         .sub-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 24px; background: linear-gradient(135deg, rgba(147, 85, 229, 0.22), rgba(147, 85, 229, 0.04)); border-bottom: 1px solid var(--color-border-light); }
         .sub-head-main { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
@@ -553,7 +564,7 @@
                 var premium = k !== 'none';
                 var panel = document.getElementById('accountPanel');
                 document.getElementById('billingTitle').textContent = premium ? 'Your plan' : 'Unlock every riff';
-                document.querySelector('.billing-header').classList.toggle('is-account', premium);
+                document.querySelector('.billing-main').classList.toggle('is-account', premium);
                 document.getElementById('billingLead').hidden = premium;
                 document.getElementById('billingIncludes').hidden = premium;
                 panel.hidden = !premium;
