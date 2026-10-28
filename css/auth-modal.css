@@ -493,3 +493,34 @@ html[data-theme='light'] .auth-promo-toggle {
 html[data-theme='light'] .auth-promo-toggle:hover {
     color: #12121a;
 }
+
+/* Sign-up consent (Terms, Privacy Policy, consent to personal data) and the note under the social buttons */
+.auth-consent {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin: 2px 0 4px;
+    font-size: 0.8125rem;
+    line-height: 1.45;
+    color: rgba(255, 255, 255, 0.72);
+    text-align: left;
+    cursor: pointer;
+}
+.auth-consent input {
+    flex-shrink: 0;
+    width: 16px;
+    height: 16px;
+    margin: 2px 0 0;
+    accent-color: #9355e5;
+    cursor: pointer;
+}
+.auth-consent a, .auth-legal-note a { color: #c4b5fc; text-decoration: underline; text-underline-offset: 2px; }
+.auth-consent--error { color: rgba(252, 165, 165, 0.95); }
+.auth-consent--error input { outline: 2px solid rgba(252, 165, 165, 0.8); outline-offset: 2px; }
+.auth-legal-note {
+    margin: 14px 0 0;
+    font-size: 0.75rem;
+    line-height: 1.45;
+    color: rgba(255, 255, 255, 0.45);
+    text-align: center;
+}

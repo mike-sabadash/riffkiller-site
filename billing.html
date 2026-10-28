@@ -4,15 +4,13 @@
     <meta charset="UTF-8">
     <script src="js/rk-theme-init.js"></script>
     <style>html{background:#0a0a0a;color:#fff}html[data-theme="light"]{background:#f4f4f8;color:#12121a}</style>
-    <script src="js/i18n.js?v=i16"></script>
+    <script src="js/i18n.js?v=i17"></script>
     <meta name="theme-color" content="#0a0a0a" id="rk-theme-color">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Riff Killer - Premium Billing</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <!-- Inter = тот же variable-шрифт, что на landing.html (opsz) -->
     <link rel="preload" href="fonts/TT_Travels_Next_Trial_Bold.ttf" as="font" type="font/ttf" crossorigin fetchpriority="low">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&family=Zen+Dots&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/fonts.css?v=1">
     <link rel="stylesheet" href="css/reset.css">
     <link rel="stylesheet" href="css/variables.css?v=flat1">
     <link rel="stylesheet" href="css/base.css?v=flat1">
@@ -45,6 +43,8 @@
         .method-card h3 { font-size: var(--font-size-lg); font-weight: 500; margin-bottom: 4px; }
         .method-tag { font-size: var(--font-size-xs); color: var(--color-text-tertiary); margin-bottom: 12px; }
         .method-desc { font-size: var(--font-size-sm); color: var(--color-text-secondary); margin-bottom: 12px; line-height: 1.5; }
+        .billing-legal { margin: 18px 0 0; font-size: 12px; line-height: 1.55; color: rgba(244, 247, 255, 0.5); max-width: 720px; }
+        .billing-legal a { color: rgba(196, 181, 252, 0.9); }
         .method-meta { font-size: var(--font-size-sm); color: var(--color-text-tertiary); margin-bottom: 16px; }
         .method-meta span { display: block; margin-bottom: 4px; }
         .method-cta { margin-top: auto; }
@@ -311,6 +311,7 @@
                             <p class="method-desc" style="margin-top:12px;font-size:12px;color:var(--color-text-tertiary);" id="patreonHint">Not logged in? You will sign in with Patreon first, then open the plan page.</p>
                         </div>
                     </div>
+                    <p class="billing-legal" id="billingLegal">By paying you accept the <a href="terms.html">Terms of Service</a> and ask us to start premium right away; once access starts, the statutory right of withdrawal ends. Card subscriptions renew automatically at the same price until you cancel in My plan. See the <a href="privacy.html">Privacy Policy</a>.</p>
                     <div class="usdt-pay" id="usdtPay" hidden>
                         <h3>Send USDT on the TRON network</h3>
                         <p class="usdt-pay-lead">Send exactly this amount: it tells us the payment is yours. Premium switches on by itself once the transfer is confirmed, usually within a few minutes.</p>
@@ -346,7 +347,7 @@
         <footer class="footer">
             <div class="footer-container">
                 <div class="footer-copyright">
-                    <p class="footer-text">© 2026 Riff Killer. All rights reserved. <a href="billing.html" class="footer-link">Pricing</a></p>
+                    <p class="footer-text">© 2026 Riff Killer. All rights reserved. <a href="billing.html" class="footer-link">Pricing</a> <a href="terms.html" class="footer-link">Terms</a> <a href="privacy.html" class="footer-link">Privacy</a></p>
                 </div>
                 <div class="footer-social">
                     <a href="https://www.instagram.com/mikesabad" class="social-link" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
@@ -380,7 +381,7 @@
 
     <script src="config/env-config.php"></script>
     <script src="js/patreon-config.js"></script>
-    <script src="js/auth-manager.js?v=hdr1"></script>
+    <script src="js/auth-manager.js?v=legal1"></script>
     <script src="js/site-header-behaviors.js?v=u1"></script>
     <script src="js/rk-theme.js"></script>
     <script>

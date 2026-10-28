@@ -1,0 +1,27 @@
+/* Legal pages: terms.html, privacy.html, consent.html */
+body.legal { background: #0a0a0c; color: rgba(244, 247, 255, 0.92); font-family: 'Inter', system-ui, sans-serif; margin: 0; }
+.legal-top { max-width: 760px; margin: 0 auto; padding: 24px 20px 0; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.legal-top a { color: rgba(244, 247, 255, 0.92); text-decoration: none; font-weight: 600; }
+.legal-lang { display: inline-flex; gap: 4px; padding: 3px; border-radius: 10px; background: rgba(255, 255, 255, 0.06); }
+.legal-lang button { border: 0; background: none; color: rgba(244, 247, 255, 0.7); font: 500 13px/1 'Inter', system-ui, sans-serif; padding: 8px 12px; border-radius: 8px; cursor: pointer; }
+.legal-lang button[aria-pressed="true"] { background: rgba(147, 85, 229, 0.35); color: #fff; }
+.legal-page { max-width: 760px; margin: 0 auto; padding: 24px 20px 80px; line-height: 1.65; }
+.legal-page h1 { font-size: 30px; line-height: 1.25; margin: 16px 0 6px; color: #fff; }
+.legal-page .legal-meta { color: rgba(244, 247, 255, 0.55); font-size: 14px; margin: 0 0 28px; }
+.legal-page h2 { font-size: 19px; margin: 34px 0 10px; color: #fff; }
+.legal-page h3 { font-size: 16px; margin: 22px 0 8px; color: #fff; }
+.legal-page p, .legal-page li { color: rgba(244, 247, 255, 0.78); font-size: 15px; }
+.legal-page p { margin: 0 0 12px; }
+.legal-page ul { margin: 0 0 14px; padding-left: 22px; }
+.legal-page li { margin-bottom: 6px; }
+.legal-page a { color: #c4b5fc; }
+.legal-page strong { color: rgba(244, 247, 255, 0.95); }
+.legal-page table { width: 100%; border-collapse: collapse; margin: 8px 0 18px; font-size: 14px; }
+.legal-page th, .legal-page td { text-align: left; vertical-align: top; padding: 9px 10px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); color: rgba(244, 247, 255, 0.78); }
+.legal-page th { color: #fff; font-weight: 600; }
+.legal-summary { padding: 16px 18px; border-radius: 14px; background: rgba(147, 85, 229, 0.1); border: 1px solid rgba(147, 85, 229, 0.25); margin: 0 0 24px; }
+.legal-summary p:last-child, .legal-summary ul:last-child { margin-bottom: 0; }
+.legal-doc[hidden] { display: none; }
+.legal-foot { margin-top: 40px; font-size: 14px; color: rgba(244, 247, 255, 0.55); }
+.legal-foot a { margin-right: 16px; }
+@media (max-width: 600px) { .legal-page h1 { font-size: 25px; } .legal-page table { font-size: 13px; } }

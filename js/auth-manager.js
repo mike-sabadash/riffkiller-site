@@ -265,6 +265,43 @@ class AuthManager {
         window.location.href = authUrl;
     }
 
+    /** Consent line for sign-up and the note under the social buttons, in the page language (links inside, so not via the dictionary). */
+    legalTexts() {
+        const lang = (window.RK_I18N && window.RK_I18N.lang) || 'en';
+        const q = lang === 'ru' ? '?lang=ru' : '';
+        const a = (href, text) => '<a href="' + href + q + '" target="_blank" rel="noopener">' + text + '</a>';
+        if (lang === 'ru') return {
+            consent: 'Я принимаю ' + a('terms.html', 'Соглашение') + ' и ' + a('privacy.html', 'Политику конфиденциальности') + ' и даю ' + a('consent.html', 'согласие на обработку персональных данных') + '.',
+            note: 'Продолжая, ты принимаешь ' + a('terms.html', 'Соглашение') + ' и ' + a('privacy.html', 'Политику конфиденциальности') + '.',
+            need: 'Чтобы создать аккаунт, отметь согласие с Соглашением и Политикой.'
+        };
+        if (lang === 'es') return {
+            consent: 'Acepto los ' + a('terms.html', 'Términos') + ' y la ' + a('privacy.html', 'Política de privacidad') + ' y doy mi ' + a('consent.html', 'consentimiento al tratamiento de mis datos personales') + '.',
+            note: 'Al continuar, aceptas los ' + a('terms.html', 'Términos') + ' y la ' + a('privacy.html', 'Política de privacidad') + '.',
+            need: 'Para crear una cuenta, acepta los Términos y la Política de privacidad.'
+        };
+        return {
+            consent: 'I agree to the ' + a('terms.html', 'Terms of Service') + ' and the ' + a('privacy.html', 'Privacy Policy') + ' and ' + a('consent.html', 'consent to the processing of my personal data') + '.',
+            note: 'By continuing, you accept the ' + a('terms.html', 'Terms of Service') + ' and the ' + a('privacy.html', 'Privacy Policy') + '.',
+            need: 'To create an account, please accept the Terms and the Privacy Policy.'
+        };
+    }
+
+    /** On the Sign up tab every way in (email, Google, Patreon) waits for the consent box; false shows why. */
+    consentGiven() {
+        const signup = document.getElementById('authTabSignup');
+        if (!signup || !signup.classList.contains('active')) return true;
+        const box = document.getElementById('authModalConsentInput');
+        if (box && box.checked) return true;
+        const row = document.getElementById('authModalConsent');
+        if (row) { row.classList.add('auth-consent--error'); }
+        if (this._authModalEmailMessage) {
+            this._authModalEmailMessage.textContent = this.legalTexts().need;
+            this._authModalEmailMessage.style.display = 'block';
+        }
+        return false;
+    }
+
     loginGoogle() {
         window.location.href = getApiBase() + '/api/auth/google-login.php';
     }
@@ -278,7 +315,7 @@ class AuthManager {
     }
 
     registerWithPassword(email, password, name) {
-        return this.submitPassword('email-register.php', { email: String(email).trim(), password: String(password), name: String(name || '').trim() });
+        return this.submitPassword('email-register.php', { email: String(email).trim(), password: String(password), name: String(name || '').trim(), consent: true });
     }
 
     async submitPassword(endpoint, payload) {
@@ -355,6 +392,7 @@ class AuthManager {
             '<input type="text" class="auth-email-input" id="authModalNameInput" placeholder="Your name" autocomplete="name" style="display:none;">' +
             '<input type="email" class="auth-email-input" id="authModalEmailInput" placeholder="your@email.com" autocomplete="email" autocapitalize="off" autocorrect="off">' +
             '<input type="password" class="auth-email-input" id="authModalPasswordInput" placeholder="Password" autocomplete="current-password">' +
+            '<label class="auth-consent" id="authModalConsent" style="display:none;" translate="no"><input type="checkbox" id="authModalConsentInput"><span>' + this.legalTexts().consent + '</span></label>' +
             '<button type="button" class="auth-btn auth-btn-email" id="authModalEmailBtn">Log in</button>' +
             '</div>' +
             '<p class="auth-email-message" id="authModalEmailMessage" role="alert" aria-live="polite" style="display:none;"></p>' +
@@ -363,6 +401,7 @@ class AuthManager {
             '<button type="button" class="auth-social-btn" id="authModalGoogle" aria-label="Continue with Google"><svg viewBox="0 0 24 24" width="22" height="22"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg></button>' +
             '<button type="button" class="auth-social-btn auth-social-btn-patreon" id="authModalPatreon" aria-label="Continue with Patreon"><svg viewBox="0 0 24 24" width="22" height="22"><path fill="currentColor" d="M4.5 3C3.11929 3 2 4.11929 2 5.5V18.5C2 19.8807 3.11929 21 4.5 21H7V3H4.5Z"/><circle cx="15" cy="9" r="5" fill="currentColor"/></svg></button>' +
             '</div>' +
+            '<p class="auth-legal-note" translate="no">' + this.legalTexts().note + '</p>' +
             '<div class="auth-promo-block">' +
             '<button type="button" class="auth-promo-toggle" id="authModalPromoToggle">Have a promo code?</button>' +
             '<div class="auth-promo-inputs" id="authModalPromoInputs" style="display:none;">' +
@@ -382,8 +421,12 @@ class AuthManager {
         backdrop.addEventListener('click', function (e) {
             if (e.target === backdrop) closeModal();
         });
-        document.getElementById('authModalPatreon').addEventListener('click', function () { this.loginPatreon(); }.bind(this));
-        document.getElementById('authModalGoogle').addEventListener('click', function () { this.loginGoogle(); }.bind(this));
+        document.getElementById('authModalPatreon').addEventListener('click', function () { if (this.consentGiven()) this.loginPatreon(); }.bind(this));
+        document.getElementById('authModalGoogle').addEventListener('click', function () { if (this.consentGiven()) this.loginGoogle(); }.bind(this));
+        document.getElementById('authModalConsentInput').addEventListener('change', function () {
+            document.getElementById('authModalConsent').classList.remove('auth-consent--error');
+            if (this.checked && self._authModalEmailMessage) self._authModalEmailMessage.style.display = 'none';
+        });
         document.getElementById('authModalPromoToggle').addEventListener('click', function () {
             var el = document.getElementById('authModalPromoInputs');
             el.style.display = el.style.display === 'none' ? 'flex' : 'none';
@@ -432,12 +475,14 @@ class AuthManager {
         var self = this;
         document.getElementById('authTabLogin').addEventListener('click', function () {
             document.getElementById('authModalNameInput').style.display = 'none';
+            document.getElementById('authModalConsent').style.display = 'none';
             document.getElementById('authModalEmailBtn').textContent = 'Log in';
             document.querySelectorAll('.auth-toggle-btn').forEach(function (t) { t.classList.remove('active'); });
             this.classList.add('active');
         });
         document.getElementById('authTabSignup').addEventListener('click', function () {
             document.getElementById('authModalNameInput').style.display = 'block';
+            document.getElementById('authModalConsent').style.display = 'flex';
             document.getElementById('authModalEmailBtn').textContent = 'Sign up';
             document.querySelectorAll('.auth-toggle-btn').forEach(function (t) { t.classList.remove('active'); });
             this.classList.add('active');
@@ -495,6 +540,7 @@ class AuthManager {
             emailEl.placeholder = 'your@email.com';
             passEl.placeholder = 'Password';
             if (self._authModalEmailMessage) self._authModalEmailMessage.style.display = 'none';
+            if (isSignup && !self.consentGiven()) return;
             if (isSignup) {
                 self.registerWithPassword(email, password, nameEl && nameEl.value ? nameEl.value.trim() : '');
             } else {
@@ -506,7 +552,7 @@ class AuthManager {
             const link = document.createElement('link');
             link.id = 'auth-modal-styles';
             link.rel = 'stylesheet';
-            link.href = resolveRkStaticAsset('css/auth-modal.css?v=flat1');
+            link.href = resolveRkStaticAsset('css/auth-modal.css?v=legal1');
             document.head.appendChild(link);
         }
     }

@@ -61,12 +61,12 @@ test('patrons of other creators and free members of our campaign do not get prem
     }
 });
 test('an unverified Patreon email never signs in to an existing email account',async()=>{
-    const reg=await fetch(site.base+'/api/auth/email-register.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:'victim@example.com',password:'victim-password',name:'Victim'})});
+    const reg=await fetch(site.base+'/api/auth/email-register.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({consent:true,email:'victim@example.com',password:'victim-password',name:'Victim'})});
     const victim=(await reg.json()).user;
     const {body}=await exchange('unverified');assert.equal(body.success,true);assert.notEqual(body.user.id,victim.id);
 });
 test('validation only refreshes the signed-in user linked to that Patreon account',async()=>{
-    const reg=await fetch(site.base+'/api/auth/email-register.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:'free-rider@example.com',password:'free-rider-password',name:'Free rider'})});
+    const reg=await fetch(site.base+'/api/auth/email-register.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({consent:true,email:'free-rider@example.com',password:'free-rider-password',name:'Free rider'})});
     const rider=(await reg.json()).user;const cookie=cookieOf(reg);
     const r=await fetch(site.base+'/patreon-validate.php',{method:'POST',headers:{'Content-Type':'application/json',Cookie:cookie},body:JSON.stringify({token:'our-paid',user_id:rider.id})});
     assert.equal((await r.json()).valid,true);assert.equal(subscriptionOf(rider.id),null);

@@ -4,18 +4,16 @@
     <meta charset="UTF-8">
     <script src="js/rk-theme-init.js"></script>
     <style>html{background:#0a0a0a;color:#fff}html[data-theme="light"]{background:#f4f4f8;color:#12121a}</style>
-    <script src="js/i18n.js?v=i16"></script>
+    <script src="js/i18n.js?v=i17"></script>
     <meta name="theme-color" content="#0a0a0a" id="rk-theme-color">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Riff Killer - Profile</title>
     
     <!-- Шрифты -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <!-- Inter = тот же variable-шрифт, что на landing.html (opsz), иначе меню визуально другое -->
     <!-- Inter (fallback для TT Travels) -->
     <link rel="preload" href="fonts/TT_Travels_Next_Trial_Bold.ttf" as="font" type="font/ttf" crossorigin fetchpriority="low">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/fonts.css?v=1">
     
     <!-- CSS файлы -->
     <link rel="stylesheet" href="css/reset.css">
@@ -849,6 +847,20 @@
         }
     </style>
     <!-- Единый визуальный язык с landing.html (после инлайна — переопределяет устаревшие токены) -->
+    <style>
+        /* Delete account: quiet button in the settings, confirm dialog with typed DELETE */
+        .profile-delete-btn { align-self: flex-start; padding: 10px 16px; border-radius: 10px; border: 1px solid rgba(248, 113, 113, 0.45); background: transparent; color: #fca5a5; font: 500 14px/1.2 'Inter', system-ui, sans-serif; cursor: pointer; }
+        .profile-delete-btn:hover:not(:disabled) { background: rgba(248, 113, 113, 0.1); }
+        .profile-delete-btn:disabled { opacity: 0.45; cursor: default; }
+        .profile-delete-dialog { max-width: min(440px, calc(100vw - 32px)); padding: 0; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 18px; background: #15151b; color: rgba(244, 247, 255, 0.92); }
+        .profile-delete-dialog::backdrop { background: rgba(0, 0, 0, 0.7); }
+        .profile-delete-form { padding: 24px; display: flex; flex-direction: column; gap: 10px; font: 14px/1.5 'Inter', system-ui, sans-serif; }
+        .profile-delete-form h3 { margin: 0 0 4px; font-size: 18px; color: #fff; }
+        .profile-delete-form p { margin: 0; color: rgba(244, 247, 255, 0.7); }
+        .profile-delete-form input { padding: 10px 12px; border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.15); background: rgba(255, 255, 255, 0.04); color: #fff; font: 15px/1.2 'Inter', system-ui, sans-serif; letter-spacing: 0.08em; }
+        .profile-delete-error { color: #fca5a5 !important; }
+        .profile-delete-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 6px; }
+    </style>
     <link rel="stylesheet" href="css/profile-landing-sync.css?v=ctl1">
     <link rel="stylesheet" href="css/profile-human.css?v=h20261021">
     <link rel="stylesheet" href="css/rk-hint.css?v=1">
@@ -959,6 +971,12 @@
                             <a href="https://www.patreon.com/settings" target="_blank" rel="noopener noreferrer" class="profile-password-reset" id="profilePasswordReset">Reset password</a>
                             <span class="profile-edit-hint">Use your Patreon account to change or reset password.</span>
                         </div>
+
+                        <div class="profile-edit-row profile-field-column profile-field-column--delete">
+                            <span class="profile-edit-label">Delete account</span>
+                            <button type="button" class="profile-delete-btn" id="deleteAccountBtn">Delete account</button>
+                            <span class="profile-edit-hint">Erases your account, progress and favorites. A card subscription is cancelled first. Payment records are kept as tax law requires.</span>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -987,13 +1005,27 @@
                     <button class="load-more-btn">Load More</button>
                 </div>
             </section>
+                    <dialog class="profile-delete-dialog" id="deleteAccountDialog" aria-labelledby="deleteAccountTitle">
+                <form method="dialog" class="profile-delete-form" id="deleteAccountForm">
+                    <h3 id="deleteAccountTitle">Delete your account?</h3>
+                    <p>This erases your account, practice progress, stars, wins and favorites on every device. It cannot be undone.</p>
+                    <p>A card subscription is cancelled first, so no further charges are made; premium that is left is lost. A Patreon membership is managed on Patreon: cancel it there.</p>
+                    <label for="deleteAccountConfirm">Type <b translate="no">DELETE</b> to confirm</label>
+                    <input type="text" id="deleteAccountConfirm" autocomplete="off" autocapitalize="characters" spellcheck="false" translate="no">
+                    <p class="profile-delete-error" id="deleteAccountError" role="alert" hidden></p>
+                    <div class="profile-delete-actions">
+                        <button type="button" class="btn btn-outline" id="deleteAccountCancel">Cancel</button>
+                        <button type="submit" class="profile-delete-btn" id="deleteAccountGo" disabled>Delete account</button>
+                    </div>
+                </form>
+            </dialog>
         </main>
         
         <!-- Футер -->
         <footer class="footer">
             <div class="footer-container">
                 <div class="footer-copyright">
-                    <p class="footer-text">© 2026 Riff Killer. All rights reserved. <a href="billing.html" class="footer-link">Pricing</a></p>
+                    <p class="footer-text">© 2026 Riff Killer. All rights reserved. <a href="billing.html" class="footer-link">Pricing</a> <a href="terms.html" class="footer-link">Terms</a> <a href="privacy.html" class="footer-link">Privacy</a></p>
                 </div>
                 
                 <div class="footer-social">
@@ -1029,7 +1061,7 @@
     
     <!-- Скрипты -->
     <script src="js/patreon-config.js"></script>
-    <script src="js/auth-manager.js?v=hdr1"></script>
+    <script src="js/auth-manager.js?v=legal1"></script>
     <script src="js/site-header-behaviors.js?v=u1"></script>
     <script src="js/rk-theme.js"></script>
     <script src="js/riff-gallery-card.js?v=fav1"></script>
@@ -1037,6 +1069,6 @@
     <script src="js/riff-dna-vocab.js?v=dna7"></script>
     <script src="js/rk-progress.js?v=dna1"></script>
     <script src="js/profile-progress.js?v=fav1"></script>
-    <script src="js/profile.js?v=fav1"></script>
+    <script src="js/profile.js?v=legal1"></script>
 </body>
 </html>

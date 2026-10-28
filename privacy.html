@@ -2,29 +2,145 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <script src="js/i18n.js?v=i16"></script>
+    <script src="js/i18n.js?v=i17"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Privacy Policy - Riff Killer</title>
-    <link rel="stylesheet" href="css/reset.css">
-    <link rel="stylesheet" href="css/variables.css?v=flat1">
-    <link rel="stylesheet" href="css/base.css?v=flat1">
+    <meta name="description" content="How Riff Killer collects, uses and protects personal data; cookies and local storage.">
+    <link rel="stylesheet" href="css/fonts.css?v=1">
+    <link rel="stylesheet" href="css/legal.css?v=1">
     <link rel="icon" type="image/svg+xml" href="assets/icons/favicon.svg">
-    <style>
-        .legal-page { max-width: 720px; margin: 60px auto; padding: 24px; color: var(--color-text-primary); }
-        .legal-page h1 { font-size: 28px; margin-bottom: 24px; }
-        .legal-page p { margin-bottom: 16px; line-height: 1.6; color: var(--color-text-secondary); }
-        .legal-page a { color: #9355E5; }
-    </style>
 </head>
-<body>
-    <div class="legal-page">
-        <h1>Privacy Policy</h1>
-        <p><strong>Riff Killer</strong> (“we”) respects your privacy. This page is a placeholder for the full Privacy Policy.</p>
-        <p>We use Patreon for sign-in and subscription. When you sign in with Patreon, we receive your name, email, and profile image to display in your profile. We do not sell your data.</p>
-        <p>Local data (e.g. recently practiced riffs, favorites) is stored in your browser (localStorage) and is not sent to our servers except as part of Patreon authentication.</p>
-        <p>Practice progress (which parts of a riff you marked as clean and at what speed, review dates, minutes played per day and your weekly goal) is kept in your browser. When you are signed in, it is also saved to your account on our server so it is the same on every device. It is used only to show your progress and is never shared.</p>
-        <p>For questions, contact us via the app or Patreon.</p>
-        <p><a href="index.html">← Back to Riff Killer</a></p>
+<body class="legal">
+    <div class="legal-top">
+        <a href="index.html">← Riff Killer</a>
+        <div class="legal-lang" role="group" aria-label="Language" translate="no">
+            <button type="button" data-show="en" aria-pressed="true">English</button>
+            <button type="button" data-show="ru" aria-pressed="false">Русский</button>
+        </div>
     </div>
+
+    <!-- ============================== ENGLISH ============================== -->
+    <main class="legal-page legal-doc" data-lang="en" translate="no">
+        <h1>Privacy Policy</h1>
+        <p class="legal-meta">Version 2026-10-29 · Effective 29 October 2026</p>
+
+        <div class="legal-summary">
+            <p><strong>In short:</strong> we collect only what the Service needs to work: your account, your practice progress and your payments. We do not sell data, show ads or use analytics or tracking cookies. You can delete your account at any time in your profile.</p>
+        </div>
+
+        <h2>1. Who is responsible</h2>
+        <p>The controller (operator) of your personal data is the individual who runs Riff Killer, registered in the Russian Federation as a self-employed professional (see the <a href="terms.html">Terms</a>). Contact for any privacy question or request: <a href="mailto:support@riffkiller.fun">support@riffkiller.fun</a>.</p>
+
+        <h2>2. What we collect and why</h2>
+        <table>
+            <tr><th>Data</th><th>Why</th><th>Legal basis (GDPR)</th></tr>
+            <tr><td><strong>Account:</strong> email, name, profile picture, password (stored only as a secure hash), how you signed in (email, Google, Yandex or Patreon) and the account ID from that service</td><td>To create and secure your account and let you sign in</td><td>Contract</td></tr>
+            <tr><td><strong>Practice progress:</strong> parts you marked as clean and at what speed, stars, review dates, Riff DNA stages, wins, minutes played per day, weekly goal, favorites, time zone and language</td><td>To show your progress and keep it the same on every device</td><td>Contract</td></tr>
+            <tr><td><strong>Payments:</strong> plan, amount, currency, dates, payment service, order and transaction IDs, subscription status, the email used for the receipt; for USDT, the transaction ID on the blockchain</td><td>To give you premium, manage renewals and cancellations, issue receipts and keep tax records</td><td>Contract; legal obligation</td></tr>
+            <tr><td><strong>Emails:</strong> sign-in links, receipts and account notices; the weekly practice summary only if you turned it on</td><td>To run your account; to send the summary you asked for</td><td>Contract; consent (summary)</td></tr>
+            <tr><td><strong>Messages</strong> you send to support</td><td>To answer you</td><td>Contract; legitimate interest</td></tr>
+            <tr><td><strong>Technical data:</strong> IP address, browser type and the pages requested, in server logs</td><td>To keep the Service secure and fix errors</td><td>Legitimate interest</td></tr>
+        </table>
+        <p>We do not collect special categories of data, do not make automated decisions that affect you, and do not use your data for advertising.</p>
+
+        <h2>3. Cookies and local storage</h2>
+        <p id="cookies">We use one cookie: the session cookie that keeps you signed in. Your browser's local storage keeps your language, progress, favorites and a few interface settings (for example, whether you have already seen the practice tour), so the site works the same on your next visit. All of this is strictly necessary for the features you use. There are no analytics, advertising or third-party tracking cookies, so we do not show a cookie consent banner. Fonts are served from our own server.</p>
+        <p>You can clear cookies and local storage in your browser settings at any time; you will be signed out and unsynced progress on that device will be lost.</p>
+
+        <h2>4. Who else processes the data</h2>
+        <p>We share data only with services that help run Riff Killer, and only what each one needs:</p>
+        <ul>
+            <li><strong>Hosting:</strong> our server, located outside Russia in the European Union, stores the site and all account data.</li>
+            <li><strong>Resend</strong> (USA): sends our emails (your email address and the message).</li>
+            <li><strong>Google, Yandex, Patreon:</strong> only if you choose to sign in with them; they tell us your name, email, picture and account ID. Patreon also tells us your membership status.</li>
+            <li><strong>lava.top:</strong> processes card payments and renewals; receives the email for the receipt and the order details.</li>
+            <li><strong>TRON blockchain:</strong> USDT transfers are public by nature; we only match the transaction ID to your order.</li>
+        </ul>
+        <p>Some of these services are outside your country, including outside the EU and outside Russia. Where GDPR applies, transfers rely on adequacy decisions or standard contractual clauses offered by these providers. We do not sell or rent personal data, and we disclose it to authorities only where the law requires it.</p>
+
+        <h2>5. How long we keep it</h2>
+        <ul>
+            <li>Account and progress: while your account exists. When you delete it, we erase it at once; copies in backups are overwritten within 30 days.</li>
+            <li>Payment records: for as long as tax law requires (in Russia, up to 5 years), then deleted.</li>
+            <li>Server logs: about 14 days.</li>
+            <li>Support emails: up to 2 years after the conversation ends.</li>
+        </ul>
+
+        <h2>6. Your rights</h2>
+        <p>You can ask us to give you a copy of your data, correct it, delete it, restrict or object to its processing, or send it to you in a portable format. You can withdraw your consent at any time (for the weekly summary, with one click in any summary email or in your profile). You can delete your account yourself in the profile. For anything else, write to <a href="mailto:support@riffkiller.fun">support@riffkiller.fun</a>; we answer within 30 days (within 10 working days for requests under Russian law). You also have the right to complain to a data protection authority in your country.</p>
+
+        <h2>7. Security</h2>
+        <p>Data travels over HTTPS, passwords are stored only as hashes, access to the server is limited to the operator, and payment card details never reach our server.</p>
+
+        <h2>8. Children</h2>
+        <p>The Service is not meant for children under 16 without the consent of a parent or guardian. If you believe a child has given us data without such consent, write to us and we will delete it.</p>
+
+        <h2>9. Changes</h2>
+        <p>We will update this policy when our processing changes. The version and date are at the top; for important changes we will tell signed-in users by email or on the site.</p>
+
+        <p class="legal-foot"><a href="terms.html">Terms of Service</a><a href="consent.html">Consent to personal data processing</a></p>
+    </main>
+
+    <!-- ============================== РУССКИЙ ============================== -->
+    <main class="legal-page legal-doc" data-lang="ru" translate="no" hidden>
+        <h1>Политика конфиденциальности (политика обработки персональных данных)</h1>
+        <p class="legal-meta">Редакция 2026-10-29 · Действует с 29 октября 2026 г.</p>
+
+        <div class="legal-summary">
+            <p><strong>Коротко:</strong> мы собираем только то, что нужно для работы Сервиса: аккаунт, прогресс практики и платежи. Мы не продаём данные, не показываем рекламу и не используем аналитику и следящие cookie. Удалить аккаунт можно в любой момент в профиле.</p>
+        </div>
+
+        <h2>1. Оператор</h2>
+        <p>Оператор персональных данных — физическое лицо, которое ведёт Riff Killer и зарегистрировано в Российской Федерации как плательщик налога на профессиональный доход (см. <a href="terms.html?lang=ru">Соглашение</a>). Вопросы и запросы о персональных данных: <a href="mailto:support@riffkiller.fun">support@riffkiller.fun</a>. Политика составлена в соответствии с Федеральным законом № 152-ФЗ «О персональных данных» и Общим регламентом ЕС по защите данных (GDPR).</p>
+
+        <h2>2. Какие данные и зачем</h2>
+        <table>
+            <tr><th>Данные</th><th>Цель</th></tr>
+            <tr><td><strong>Аккаунт:</strong> email, имя, фото профиля, пароль (хранится только в виде защищённого хеша), способ входа (email, Google, Яндекс или Patreon) и ID аккаунта в этом сервисе</td><td>Создать и защитить аккаунт, дать возможность входить</td></tr>
+            <tr><td><strong>Прогресс практики:</strong> какие части сыграны чисто и на какой скорости, звёзды, даты повторов, этапы Riff DNA, победы, минуты игры по дням, цель недели, избранное, часовой пояс и язык</td><td>Показывать прогресс и сохранять его одинаковым на всех устройствах</td></tr>
+            <tr><td><strong>Платежи:</strong> тариф, сумма, валюта, даты, платёжный сервис, ID заказа и транзакции, статус подписки, email для чека; для USDT — ID транзакции в блокчейне</td><td>Включать premium, вести продления и отмены, выдавать чеки, вести налоговый учёт</td></tr>
+            <tr><td><strong>Письма:</strong> ссылки для входа, чеки и уведомления по аккаунту; недельный итог практики — только если ты его включил</td><td>Работа аккаунта; отправка итогов, о которых ты попросил</td></tr>
+            <tr><td><strong>Обращения</strong> в поддержку</td><td>Ответить тебе</td></tr>
+            <tr><td><strong>Технические данные:</strong> IP-адрес, тип браузера и запрошенные страницы в журналах сервера</td><td>Безопасность Сервиса и исправление ошибок</td></tr>
+        </table>
+        <p>Действия с данными: сбор, запись, систематизация, хранение, уточнение, использование, передача (предоставление) обработчикам из раздела 4, удаление и уничтожение. Обработка автоматизированная. Основания: договор (Соглашение), согласие пользователя, исполнение требований закона. Специальные категории данных мы не обрабатываем, решений, порождающих для тебя юридические последствия, автоматически не принимаем, данные для рекламы не используем.</p>
+
+        <h2 id="cookies-ru">3. Cookie и локальное хранилище</h2>
+        <p>Мы используем одну cookie — сессионную, чтобы ты оставался в аккаунте. В локальном хранилище браузера хранятся язык, прогресс, избранное и несколько настроек интерфейса (например, видел ли ты обучение на странице практики). Всё это строго необходимо для работы функций, которыми ты пользуешься. Аналитических, рекламных и сторонних следящих cookie нет, поэтому мы не показываем баннер согласия на cookie. Шрифты загружаются с нашего сервера.</p>
+        <p>Очистить cookie и локальное хранилище можно в настройках браузера; при этом ты выйдешь из аккаунта, а несинхронизированный прогресс на этом устройстве пропадёт.</p>
+
+        <h2>4. Кто ещё обрабатывает данные</h2>
+        <ul>
+            <li><strong>Хостинг:</strong> наш сервер находится за пределами России, в Европейском союзе; на нём хранятся сайт и данные аккаунтов.</li>
+            <li><strong>Resend</strong> (США): отправка писем (email и текст письма).</li>
+            <li><strong>Google, Яндекс, Patreon:</strong> только если ты входишь через них; они передают имя, email, фото и ID аккаунта. Patreon также передаёт статус членства.</li>
+            <li><strong>lava.top:</strong> приём оплаты картой и продлений; получает email для чека и данные заказа.</li>
+            <li><strong>Блокчейн TRON:</strong> переводы USDT публичны по своей природе; мы только сопоставляем ID транзакции с заказом.</li>
+        </ul>
+        <p>Часть этих сервисов находится за пределами России и ЕС, поэтому происходит трансграничная передача данных; ты даёшь на неё согласие (см. <a href="consent.html?lang=ru">Согласие</a>). Мы не продаём и не сдаём данные в аренду и передаём их государственным органам только в случаях, предусмотренных законом.</p>
+
+        <h2>5. Сроки хранения</h2>
+        <ul>
+            <li>Аккаунт и прогресс — пока существует аккаунт. При удалении мы стираем их сразу; копии в резервных копиях перезаписываются в течение 30 дней.</li>
+            <li>Данные о платежах — столько, сколько требует налоговое законодательство (до 5 лет), затем удаляются.</li>
+            <li>Журналы сервера — около 14 дней.</li>
+            <li>Переписка с поддержкой — до 2 лет после её окончания.</li>
+        </ul>
+
+        <h2>6. Твои права</h2>
+        <p>Ты можешь запросить сведения об обработке и копию своих данных, потребовать уточнить, заблокировать или удалить их, возразить против обработки и отозвать согласие в любой момент (для недельных итогов — одной ссылкой в любом письме или в профиле). Удалить аккаунт можно самостоятельно в профиле. Остальные запросы направляй на <a href="mailto:support@riffkiller.fun">support@riffkiller.fun</a>; мы отвечаем в течение 10 рабочих дней. Ты также вправе обратиться в Роскомнадзор или в орган по защите данных своей страны.</p>
+
+        <h2>7. Защита данных</h2>
+        <p>Данные передаются по HTTPS, пароли хранятся только в виде хешей, доступ к серверу есть только у оператора, данные банковских карт на наш сервер не попадают.</p>
+
+        <h2>8. Дети</h2>
+        <p>Сервис не предназначен для детей младше 16 лет без согласия родителя или законного представителя. Если ты считаешь, что ребёнок передал нам данные без такого согласия, напиши нам — мы их удалим.</p>
+
+        <h2>9. Изменения</h2>
+        <p>Мы обновляем политику, когда меняется обработка данных. Редакция и дата указаны вверху; о существенных изменениях сообщим пользователям по email или на сайте.</p>
+
+        <p class="legal-foot"><a href="terms.html?lang=ru">Пользовательское соглашение</a><a href="consent.html?lang=ru">Согласие на обработку персональных данных</a></p>
+    </main>
+    <script src="js/legal.js?v=1"></script>
 </body>
 </html>

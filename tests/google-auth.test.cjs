@@ -14,7 +14,7 @@ test('Google uses a server session, a unique state and PKCE; rejected callbacks 
  const replay=await finish(a);assert.match(replay.headers.get('location'),/reason=state/);
 });
 test('verified Google sign-in links the existing Patreon/email user and preserves password, identity and subscription',async()=>{
- const registered=await fetch(site.base+'/api/auth/email-register.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:'linked@example.com',password:'test-password',name:'Existing'})});assert.equal(registered.status,200);const existing=(await registered.json()).user;
+ const registered=await fetch(site.base+'/api/auth/email-register.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({consent:true,email:'linked@example.com',password:'test-password',name:'Existing'})});assert.equal(registered.status,200);const existing=(await registered.json()).user;
  execFileSync(process.env.PHP_BIN||'php',['-r',`require ${JSON.stringify(path.join(site.dir,'config/user-store.php'))}; user_update(${JSON.stringify(existing.id)}, ['provider'=>'patreon','provider_id'=>'patreon-fixture-id']);`]);
  fs.mkdirSync(path.join(site.dir,'data/subscriptions'),{recursive:true});fs.writeFileSync(path.join(site.dir,'data/subscriptions',existing.id+'.json'),JSON.stringify({status:'active',source:'patreon',plan:'monthly',expires:Math.floor(Date.now()/1000)+3600}));
  const a=await begin();const done=await finish(a);assert.equal(done.headers.get('location'),site.base+'/app.html');assert.ok(cookie(done));assert.notEqual(cookie(done),a.cookie);
