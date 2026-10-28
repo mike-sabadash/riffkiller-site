@@ -641,6 +641,9 @@ class AuthManager {
     }
 
     updateAuthButtons() {
+        // The styles go in before the first paint of the buttons: the saved session paints them while the page
+        // is still loading its scripts, long before DOMContentLoaded on a cold cache.
+        this.addProfileStyles();
         const authButtons = document.querySelector('.auth-buttons');
         const mobileAuth = document.querySelector('.mobile-auth');
         if (!authButtons && !mobileAuth) return;
@@ -658,7 +661,7 @@ class AuthManager {
                     <a href="profile.html" class="profile-mini">
                         <span class="profile-mini-name">${firstName}</span>
                         <div class="profile-mini-avatar">
-                            <img src="${avatarUrl}" alt="Avatar" class="mini-avatar-img">
+                            <img src="${avatarUrl}" alt="Avatar" class="mini-avatar-img" width="32" height="32">
                         </div>
                     </a>
                 `;
