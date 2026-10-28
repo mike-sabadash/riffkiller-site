@@ -1285,7 +1285,9 @@ body.riffs-hub .riffs-section-head--row {
 .fav-collection-star.active .favorite-icon path { fill: currentColor; }
 
 /* Коллекция = группа: над карточкой две тёмные плашки её формы, уже и ниже по тону — стопка. Уходят за карточку. */
-body.riffs-hub .collection-card { overflow: visible; isolation: isolate; }
+body.riffs-hub .collection-card { overflow: visible; isolation: isolate; border-color: transparent; outline: 1px solid rgba(255, 255, 255, 0.06); outline-offset: -1px; }
+/* Обводка — outline: она рисуется поверх плашек, а border остался бы под ними */
+body.riffs-hub .collection-card:hover { border-color: transparent; outline-color: rgba(147, 85, 229, 0.2); }
 body.riffs-hub .collection-card > .collection-image { border-radius: inherit; }
 body.riffs-hub .collection-card > .collection-overlay { border-radius: 0 0 16px 16px; }
 body.riffs-hub .collection-card::before,
@@ -1296,6 +1298,6 @@ body.riffs-hub .collection-card::after {
     pointer-events: none;
 }
 /* ближняя — светлее */
-body.riffs-hub .collection-card::before { left: 10px; right: 10px; top: -7px; border-radius: 15px 15px 0 0; background: #2a2a33; z-index: -1; }
+body.riffs-hub .collection-card::before { left: 10px; right: 10px; top: -7px; border-radius: 15px 15px 0 0; background: #222229; z-index: -1; }
 /* дальняя — темнее, лежит под ближней */
 body.riffs-hub .collection-card::after { left: 22px; right: 22px; top: -13px; border-radius: 13px 13px 0 0; background: #18181e; z-index: -2; }
