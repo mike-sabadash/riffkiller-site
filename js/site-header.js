@@ -134,7 +134,7 @@
             themeToggleHeader +
             '<div class="auth-buttons" id="authButtons">' +
             '<span class="login-text">Log in</span>' +
-            '<button type="button" class="btn btn-primary btn-signup">Sign up</button>' +
+            '<button type="button" class="btn btn-primary btn-signup">Start free</button>' +
             '</div>' +
             langHeader +
             '<span class="burger-anchor"><button type="button" class="burger-menu" id="burgerMenu" aria-label="Open menu" aria-expanded="false" aria-controls="mobileMenu"></button></span></div></div></header>';
@@ -157,7 +157,7 @@
             langMobile +
             '<div class="mobile-auth">' +
             '<button type="button" class="mobile-login-btn">Log in</button>' +
-            '<button type="button" class="btn btn-primary mobile-signup-btn">Sign up</button>' +
+            '<button type="button" class="btn btn-primary mobile-signup-btn">Start free</button>' +
             '</div></div></div>';
     }
 

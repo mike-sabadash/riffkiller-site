@@ -376,13 +376,13 @@ class AuthManager {
         modal.className = 'auth-modal';
         const base = getApiBase();
         modal.innerHTML = '<div class="auth-modal-header">' +
-            '<h2 class="auth-modal-title">Sign in</h2>' +
+            '<h2 class="auth-modal-title">Log in</h2>' +
             '<button type="button" class="auth-modal-close" aria-label="Close">' +
             '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">' +
             '<path d="M18 6L6 18M6 6l12 12"/></svg></button>' +
             '</div>' +
             '<div class="auth-modal-body">' +
-            '<p class="auth-modal-subtitle">Sign in or create an account to save progress and manage subscription.</p>' +
+            '<p class="auth-modal-subtitle">Free riffs, your progress on every device and premium in one account.</p>' +
             '<div class="auth-modal-segment-wrap">' +
             '<div class="auth-email-toggle" role="tablist" aria-label="Account">' +
             '<button type="button" class="auth-toggle-btn active" id="authTabLogin" role="tab">Log in</button>' +
@@ -476,6 +476,7 @@ class AuthManager {
         document.getElementById('authTabLogin').addEventListener('click', function () {
             document.getElementById('authModalNameInput').style.display = 'none';
             document.getElementById('authModalConsent').style.display = 'none';
+            document.querySelector('.auth-modal-title').textContent = 'Log in';
             document.getElementById('authModalEmailBtn').textContent = 'Log in';
             document.querySelectorAll('.auth-toggle-btn').forEach(function (t) { t.classList.remove('active'); });
             this.classList.add('active');
@@ -483,7 +484,8 @@ class AuthManager {
         document.getElementById('authTabSignup').addEventListener('click', function () {
             document.getElementById('authModalNameInput').style.display = 'block';
             document.getElementById('authModalConsent').style.display = 'flex';
-            document.getElementById('authModalEmailBtn').textContent = 'Sign up';
+            document.querySelector('.auth-modal-title').textContent = 'Create account';
+            document.getElementById('authModalEmailBtn').textContent = 'Create account';
             document.querySelectorAll('.auth-toggle-btn').forEach(function (t) { t.classList.remove('active'); });
             this.classList.add('active');
         });
@@ -733,7 +735,7 @@ class AuthManager {
             if (authButtons) {
                 authButtons.innerHTML = plansLink + `
                     <button class="btn btn-outline auth-header-btn" id="authLoginBtn">Log in</button>
-                    <button class="btn btn-primary auth-header-btn" id="authSignupBtn">Sign up</button>
+                    <button class="btn btn-primary auth-header-btn" id="authSignupBtn">Start free</button>
                 `;
                 const loginBtn = document.getElementById('authLoginBtn');
                 const signupBtn = document.getElementById('authSignupBtn');
@@ -743,7 +745,7 @@ class AuthManager {
             if (mobileAuth) {
                 mobileAuth.innerHTML = mobilePlans + `
                     <button class="btn btn-outline mobile-signup-btn" id="mobileAuthLoginBtn">Log in</button>
-                    <button class="btn btn-primary mobile-signup-btn" id="mobileAuthSignupBtn">Sign up</button>
+                    <button class="btn btn-primary mobile-signup-btn" id="mobileAuthSignupBtn">Start free</button>
                 `;
                 const mobileLoginBtn = document.getElementById('mobileAuthLoginBtn');
                 const mobileSignupBtn = document.getElementById('mobileAuthSignupBtn');

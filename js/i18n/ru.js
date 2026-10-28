@@ -878,7 +878,9 @@
             "Could not delete the account. Try again.": "Не удалось удалить аккаунт. Попробуй ещё раз.",
             "Could not cancel your subscription on lava.top. Nothing was deleted; try again in a few minutes.": "Не удалось отменить подписку в lava.top. Ничего не удалено; попробуй через несколько минут.",
             "Could not delete the account. Write to support@riffkiller.fun.": "Не удалось удалить аккаунт. Напиши на support@riffkiller.fun.",
-            "Please accept the Terms and the Privacy Policy to create an account.": "Чтобы создать аккаунт, прими Соглашение и Политику конфиденциальности."
+            "Please accept the Terms and the Privacy Policy to create an account.": "Чтобы создать аккаунт, прими Соглашение и Политику конфиденциальности.",
+            "Start free": "Попробовать",
+            "Free riffs, your progress on every device and premium in one account.": "Бесплатные риффы, прогресс на всех устройствах и premium — в одном аккаунте."
         },
         patterns: [
         [/^(\d{4}-\d\d-\d\d) · (\d+) min$/, '$1 · $2 мин'],

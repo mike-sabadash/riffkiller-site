@@ -947,4 +947,7 @@ T = [
 ('Could not cancel your subscription on lava.top. Nothing was deleted; try again in a few minutes.', 'Не удалось отменить подписку в lava.top. Ничего не удалено; попробуй через несколько минут.', 'No se pudo cancelar tu suscripción en lava.top. No se eliminó nada; inténtalo en unos minutos.'),
 ('Could not delete the account. Write to support@riffkiller.fun.', 'Не удалось удалить аккаунт. Напиши на support@riffkiller.fun.', 'No se pudo eliminar la cuenta. Escribe a support@riffkiller.fun.'),
 ('Please accept the Terms and the Privacy Policy to create an account.', 'Чтобы создать аккаунт, прими Соглашение и Политику конфиденциальности.', 'Para crear una cuenta, acepta los Términos y la Política de privacidad.'),
+# --- header CTA
+("Start free", "Попробовать", "Empezar gratis"),
+("Free riffs, your progress on every device and premium in one account.", "Бесплатные риффы, прогресс на всех устройствах и premium — в одном аккаунте.", "Riffs gratis, tu progreso en todos tus dispositivos y premium en una sola cuenta."),
 ]

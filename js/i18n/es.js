@@ -869,7 +869,9 @@
             "Could not delete the account. Try again.": "No se pudo eliminar la cuenta. Inténtalo de nuevo.",
             "Could not cancel your subscription on lava.top. Nothing was deleted; try again in a few minutes.": "No se pudo cancelar tu suscripción en lava.top. No se eliminó nada; inténtalo en unos minutos.",
             "Could not delete the account. Write to support@riffkiller.fun.": "No se pudo eliminar la cuenta. Escribe a support@riffkiller.fun.",
-            "Please accept the Terms and the Privacy Policy to create an account.": "Para crear una cuenta, acepta los Términos y la Política de privacidad."
+            "Please accept the Terms and the Privacy Policy to create an account.": "Para crear una cuenta, acepta los Términos y la Política de privacidad.",
+            "Start free": "Empezar gratis",
+            "Free riffs, your progress on every device and premium in one account.": "Riffs gratis, tu progreso en todos tus dispositivos y premium en una sola cuenta."
         },
         patterns: [
         [/^(\d+) of (\d+) stars$/, '$1 de $2 estrellas'],
