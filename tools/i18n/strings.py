@@ -922,4 +922,11 @@ T = [
 ("1 riff killed", "1 рифф добит", "1 riff dominado"),
 ("New rank:", "Новый ранг:", "Nuevo rango:"),
 ("Train it in", "Тренируй в", "Practícala en"),
+# --- favorites
+("See all", "Все", "Ver todo"),
+("Added to favorites", "Добавлено в избранное", "Añadido a favoritos"),
+("Collection added to favorites", "Коллекция добавлена в избранное", "Colección añadida a favoritos"),
+("Removed from favorites", "Убрано из избранного", "Quitado de favoritos"),
+("Saved on this device. Sign in to keep favorites everywhere.", "Сохранено на этом устройстве. Войди, чтобы избранное было на всех устройствах.", "Guardado en este dispositivo. Inicia sesión para tener tus favoritos en todas partes."),
+("No favorites yet. Tap the star on any riff or collection to keep it here.", "Пока пусто. Нажми звёздочку на любом риффе или коллекции, и они появятся здесь.", "Aún no hay favoritos. Toca la estrella de cualquier riff o colección para guardarlo aquí."),
 ]

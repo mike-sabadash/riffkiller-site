@@ -204,3 +204,24 @@ test('the weekly goal is a win once a week; wins merge from both copies without 
     assert.deepEqual(junk.wins,[{t:'kill',at:5},{t:'star',at:3}]);
     assert.equal(P.recentWins(m,2).length,2);
 });
+
+test('favorites: latest change wins when two devices merge, removals stick', () => {
+    const a = P.empty(), b = P.empty();
+    P.setFavorite(a, 'riff', 1, true, 1000);
+    P.setFavorite(a, 'collection', 2, true, 1100);
+    P.setFavorite(b, 'riff', 1, true, 900);
+    P.setFavorite(b, 'riff', 1, false, 2000);   // removed later on the other device
+    P.setFavorite(b, 'riff', 7, true, 1500);
+    const m = P.merge(a, b);
+    assert.equal(P.isFavorite(m, 'riff', 1), false);
+    assert.deepEqual(P.favorites(m, 'riff'), ['7']);
+    assert.deepEqual(P.favorites(m, 'collection'), ['2']);
+    // Junk keys and values do not survive normalize.
+    const n = P.normalize({ v: 2, riffs: {}, days: {}, fav: { 'r:1': { on: true, at: 5 }, 'x:2': { on: true, at: 5 }, 'r:<b>': { on: true, at: 5 }, 'r:3': 'yes' } });
+    assert.deepEqual(Object.keys(n.fav), ['r:1']);
+    // Toggling twice at the same millisecond still moves time forward, so the last click wins.
+    const c = P.empty();
+    P.setFavorite(c, 'riff', 4, true, 3000); P.setFavorite(c, 'riff', 4, false, 3000);
+    assert.equal(P.isFavorite(c, 'riff', 4), false);
+    assert.ok(c.fav['r:4'].at > 3000);
+});

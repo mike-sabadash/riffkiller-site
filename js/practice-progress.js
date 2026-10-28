@@ -418,7 +418,7 @@
             box.setAttribute('aria-modal', 'true');
             box.setAttribute('aria-labelledby', 'killTitle');
             var rankLine = rankBefore && rankNow.index > rankBefore.index
-                ? '<p class="kill-rank is-new">New rank: <b>' + esc(rankNow.label) + '</b></p>'
+                ? '<p class="kill-rank is-new">New rank: <b translate="no">' + esc(rankNow.label) + '</b></p>'
                 : rankNow.next ? '<p class="kill-rank">' + (rankNow.next.toGo === 1 ? '1 more kill to ' : rankNow.next.toGo + ' more kills to ') + esc(rankNow.next.label) + '</p>' : '';
             var dnaLine = sum.stageNext === 'decode' ? 'Finish its DNA: read the rule that holds it together, then turn it into your own riff.'
                 : sum.stageNext === 'mutate' ? 'Finish its DNA: change one thing and keep the riff recognisable.' : '';

@@ -45,7 +45,7 @@ test('patterns translate the known part and keep admin text as typed',()=>{
     assert.equal(translate(ru,'Black Dog'),null);
 });
 test('every public page loads the language script before the header',()=>{
-    const pages=['index.html','app.html','landing.html','practice.html','profile.html','collection.html','favorites.html','billing.html','billing-wallet.html','billing-stripe.html','billing-cryptomus.html','cryptomus-success.html','stripe-success.html','stripe-cancel.html','patreon-callback.html','coming-soon.html','privacy.html','terms.html'];
+    const pages=['index.html','app.html','landing.html','practice.html','profile.html','collection.html','billing.html','billing-wallet.html','billing-stripe.html','billing-cryptomus.html','cryptomus-success.html','stripe-success.html','stripe-cancel.html','patreon-callback.html','coming-soon.html','privacy.html','terms.html'];
     for(const p of pages){
         const html=fs.readFileSync(path.join(__dirname,'..',p),'utf8');
         const at=html.indexOf('js/i18n.js');

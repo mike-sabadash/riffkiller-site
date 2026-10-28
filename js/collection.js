@@ -360,13 +360,6 @@ function createRiffCard(riff) {
         return document.createElement('div');
     }
     return window.RiffKillerRiffGallery.createCard(riff, {
-        onFavoriteClick(e, favBtn) {
-            e.stopPropagation();
-            favBtn.classList.toggle('active');
-            riff.isFavorite = favBtn.classList.contains('active');
-            favBtn.setAttribute('aria-label', riff.isFavorite ? 'Remove from favorites' : 'Add to favorites');
-            saveAppState();
-        },
         onNavigate() {
             const saved = localStorage.getItem('riffKillerState');
             let state = {};

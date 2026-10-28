@@ -340,31 +340,6 @@ function showPatreonUpgradeModal() {
     backdrop.addEventListener('click', closeModal);
 }
 
-// Модальное окно «Войдите в Patreon, чтобы сохранять избранное»
-function showFavoritesLoginModal() {
-    if (document.getElementById('favoritesLoginModal')) return;
-    const backdrop = document.createElement('div');
-    backdrop.id = 'favoritesLoginBackdrop';
-    backdrop.style.cssText = `position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.8); z-index: 9999; backdrop-filter: blur(5px);`;
-    const modal = document.createElement('div');
-    modal.id = 'favoritesLoginModal';
-    modal.style.cssText = `position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #1a1f33; border-radius: 24px; padding: 40px; width: min(360px, 90vw); z-index: 10000; text-align: center; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 20px 60px rgba(0,0,0,0.5);`;
-    modal.innerHTML = `
-        <p style="color: rgba(255,255,255,0.95); margin-bottom: 24px; line-height: 1.5;">Sign in with Patreon to save favorites.</p>
-        <button id="favoritesLoginPatreonBtn" style="width: 100%; padding: 14px; background: #FF424D; color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; margin-bottom: 12px;">Sign in with Patreon</button>
-        <button id="favoritesLoginCloseBtn" style="background: transparent; border: none; color: rgba(255,255,255,0.6); cursor: pointer; font-size: 14px;">Cancel</button>
-    `;
-    document.body.appendChild(backdrop);
-    document.body.appendChild(modal);
-    const closeModal = () => { backdrop.remove(); modal.remove(); };
-    document.getElementById('favoritesLoginPatreonBtn').addEventListener('click', () => {
-        closeModal();
-        if (window.patreonAuth && typeof window.patreonAuth.login === 'function') window.patreonAuth.login();
-    });
-    document.getElementById('favoritesLoginCloseBtn').addEventListener('click', closeModal);
-    backdrop.addEventListener('click', closeModal);
-}
-
 // Инициализация: риффы и коллекции из API (data/*.json), иначе встроенные константы в appState
 document.addEventListener('DOMContentLoaded', () => {
     console.log('Main page initialized');
@@ -376,10 +351,12 @@ document.addEventListener('DOMContentLoaded', () => {
         initRiffs();
         renderHomeHero();
         renderContinueRow();
+        renderFavoritesRow();
+        if (window.RKFavorites) window.RKFavorites.onChange(renderFavoritesRow);
         // Подписка известна только после загрузки сессии — перерисовываем замки и CTA
         const auth = window.authManager;
         if (auth && auth.ready && typeof auth.ready.then === 'function') {
-            auth.ready.then(() => { initRiffs(); renderHomeHero(); renderContinueRow(); }).catch(() => {});
+            auth.ready.then(() => { initRiffs(); renderHomeHero(); renderContinueRow(); if (document.getElementById('favoritesGrid')) document.getElementById('favoritesGrid').dataset.ids = ''; renderFavoritesRow(); }).catch(() => {});
         }
     }
     function applyCollectionsFromApi(cols) {
@@ -465,7 +442,6 @@ function createCollectionCard(collection) {
     card.dataset.id = collection.id;
     
     const cameraIcon = `<svg class="camera-icon" viewBox="0 0 12 12" fill="none"><path d="M11 9.5C11 10.0523 10.5523 10.5 10 10.5H2C1.44772 10.5 1 10.0523 1 9.5V4C1 3.44772 1.44772 3 2 3H3.5L4.5 1.5H7.5L8.5 3H10C10.5523 3 11 3.44772 11 4V9.5Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><circle cx="6" cy="6.5" r="2" stroke="currentColor"/></svg>`;
-    const favoriteIcon = `<svg class="favorite-icon" viewBox="0 0 16 16" fill="none"><path d="M8 2L9.79611 5.52786L13.6574 6.21885L10.8287 9.16714L11.4721 13L8 11.1279L4.52786 13L5.17127 9.16714L2.3426 6.21885L6.20389 5.52786L8 2Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
     
     card.innerHTML = `
         <img src="${collection.imageUrl}"${collection.imageSrcset ? ` srcset="${String(collection.imageSrcset).replace(/"/g, '')}" sizes="300px"` : ''} alt="${collection.name}" class="collection-image" 
@@ -479,19 +455,14 @@ function createCollectionCard(collection) {
                     <span class="video-count">${collection.videoCount} ${collection.videoCount === 1 ? 'riff' : 'riffs'}</span>
                 </span>
             </div>
-            <button class="favorite-btn ${collection.isFavorite ? 'active' : ''}" 
-                    aria-label="${collection.isFavorite ? 'Remove from favorites' : 'Add to favorites'}">
-                ${favoriteIcon}
-            </button>
+            ${window.RKFavorites ? window.RKFavorites.button('collection', collection.id, 'favorite-btn') : ''}
         </div>
     `;
     
     const favBtn = card.querySelector('.favorite-btn');
-    favBtn.addEventListener('click', (e) => {
+    if (favBtn) favBtn.addEventListener('click', (e) => {
         e.stopPropagation();
-        favBtn.classList.toggle('active');
-        collection.isFavorite = favBtn.classList.contains('active');
-        favBtn.setAttribute('aria-label', collection.isFavorite ? 'Remove from favorites' : 'Add to favorites');
+        window.RKFavorites.toggle('collection', collection.id);
     });
     
     card.addEventListener('click', () => {
@@ -578,6 +549,24 @@ function renderContinueRow() {
     section.hidden = riffs.length === 0;
 }
 
+// Favorites row: the riffs with a star, latest first (RKFavorites in js/riff-gallery-card.js).
+function renderFavoritesRow() {
+    const section = document.getElementById('favoritesSection');
+    const grid = document.getElementById('favoritesGrid');
+    if (!section || !grid || !window.RKFavorites) return;
+    const byId = new Map(appState.riffsDatabase.map(r => [String(r.id), r]));
+    const ids = window.RKFavorites.list('riff').filter(id => byId.has(id));
+    const shown = ids.slice(0, 5);
+    if (grid.dataset.ids !== shown.join(',')) {
+        grid.dataset.ids = shown.join(',');
+        grid.innerHTML = '';
+        shown.forEach(id => grid.appendChild(createRiffCard(byId.get(id))));
+    }
+    section.hidden = shown.length === 0;
+    const more = section.querySelector('.riffs-section-link');
+    if (more) more.hidden = ids.length <= shown.length;
+}
+
 function createRiffCard(riff) {
     if (!window.RiffKillerRiffGallery || typeof window.RiffKillerRiffGallery.createCard !== 'function') {
         console.error('RiffKillerRiffGallery missing; include js/riff-gallery-card.js before main.js');
@@ -585,17 +574,6 @@ function createRiffCard(riff) {
     }
     return window.RiffKillerRiffGallery.createCard(riff, {
         locked: !riff.isFree && !hasActiveSubscription(),
-        onFavoriteClick(e, favBtn) {
-            e.stopPropagation();
-            if (!window.patreonAuth || !window.patreonAuth.isAuthenticated) {
-                if (typeof showFavoritesLoginModal === 'function') showFavoritesLoginModal();
-                return;
-            }
-            favBtn.classList.toggle('active');
-            riff.isFavorite = favBtn.classList.contains('active');
-            favBtn.setAttribute('aria-label', riff.isFavorite ? 'Remove from favorites' : 'Add to favorites');
-            saveAppState();
-        },
         onNavigate() {
             if (riff.isFree) {
                 appState.currentRiffId = riff.id;

@@ -138,9 +138,9 @@ test('three clean loops at ×1 ask whether the part was clean; yes puts it at te
     assert.match(await page.locator('.progress-card-title').innerText(),/Three loops at full speed/);
     await page.click('#progressCleanYes');
     await page.waitForFunction(()=>document.querySelectorAll('.segment-btn:not(.all-riff)')[2].querySelector('.part-progress')?.dataset.state==='tempo');
-    assert.match(await page.locator('#partsProgress').innerText(),/^1 of 10 parts at tempo/);
+    assert.match(await page.locator('#partsProgress').innerText(),/^3 of 30 stars/);
     await page.reload({waitUntil:'domcontentloaded'});await page.waitForFunction(()=>document.getElementById('partsProgress'),{timeout:20000});
-    assert.match(await page.locator('#partsProgress').innerText(),/^1 of 10 parts at tempo/);
+    assert.match(await page.locator('#partsProgress').innerText(),/^3 of 30 stars/);
     assert.equal(await page.evaluate(()=>RKProgress.load().days[RKProgress.dayKey(Date.now())].sec>0),true,'playing time was counted');
 });
 test('profile shows the week, what to play next, riffs and techniques from practice progress; the goal can be changed',async t=>{
@@ -151,7 +151,7 @@ test('profile shows the week, what to play next, riffs and techniques from pract
     await page.goto(site.base+'/profile.html',{waitUntil:'domcontentloaded'});
     await page.waitForSelector('#profileProgress .pp-riffs li');
     const text=await page.locator('#profileProgress').innerText();
-    assert.match(text,/1\s*of 3 days/);assert.match(text,/Review: Black Dog/);assert.match(text,/2 of 10 parts at tempo/);assert.match(text,/1 part to review/);
+    assert.match(text,/1\s*of 3 days/);assert.match(text,/Review: Black Dog/);assert.match(text,/6 of 30 stars/);assert.equal(await page.locator('.pp-shot-tag',{hasText:'Review'}).count(),1);
     assert.match(await page.locator('.pp-next .pp-btn').getAttribute('href'),/practice\.html\?riff=1&part=1$/);
     await page.click('#ppChangeGoal');await page.click('.pp-goal-btn[data-goal="5"]');
     await page.waitForFunction(()=>/of 5 days/.test(document.getElementById('profileProgress').innerText));
@@ -159,7 +159,7 @@ test('profile shows the week, what to play next, riffs and techniques from pract
     await page.evaluate(()=>{localStorage.removeItem('rkProgressV2');});
     await page.waitForTimeout(800);
     await page.reload({waitUntil:'domcontentloaded'});
-    await page.waitForFunction(()=>/2 of 10 parts at tempo/.test(document.getElementById('profileProgress').innerText),{timeout:10000});
+    await page.waitForFunction(()=>/6 of 30 stars/.test(document.getElementById('profileProgress').innerText),{timeout:10000});
 });
 test('editor captures boundaries, edits Atoms, saves and reopens without losing metadata',async t=>{
     const page=await pageFor(t);const [name,value]=(await site.adminCookie()).split('=');await page.context().addCookies([{name,value,url:site.base}]);await page.goto(site.base+'/admin/riffs.html',{waitUntil:'domcontentloaded'});await page.click('.admin-tab[data-tab="edit"]');await page.selectOption('#riffSelect','1');
@@ -669,7 +669,7 @@ test('in Russian and Spanish every interface string on the main pages is transla
         const page=await pageFor(t);await page.addInitScript(l=>localStorage.setItem('rk-lang',l),lang);
         const missing=new Set();
         const collect=async()=>{for(const s of await page.evaluate(()=>RK_I18N.missing()))if(!brands.test(s)&&!fromContent(s))missing.add(s);};
-        for(const p of ['index.html','landing.html','billing.html','profile.html','favorites.html']){await page.goto(site.base+'/'+p,{waitUntil:'load'});await collect();}
+        for(const p of ['index.html','landing.html','billing.html','profile.html']){await page.goto(site.base+'/'+p,{waitUntil:'load'});await collect();}
         await practice(page);
         for(const stage of ['scan','split','isolate','decode','mutate']){await page.locator('[data-dna-stage='+stage+']').click();await collect();}
         assert.deepEqual([...missing],[],lang+': add these to tools/i18n/strings.py and run python3 tools/i18n/build.py');

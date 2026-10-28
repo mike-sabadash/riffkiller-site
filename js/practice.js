@@ -1720,25 +1720,6 @@ function createRecentlyPracticedCard(riffData) {
             setTimeout(function () {
                 window.location.href = 'practice.html?riff=' + riffData.id;
             }, 200);
-        },
-        onFavoriteClick: function (e, favBtn, riff) {
-            e.stopPropagation();
-            if (!window.patreonAuth || !window.patreonAuth.isAuthenticated) {
-                if (typeof showFavoritesLoginModal === 'function') showFavoritesLoginModal();
-                return;
-            }
-            favBtn.classList.toggle('active');
-            riff.isFavorite = favBtn.classList.contains('active');
-            favBtn.setAttribute(
-                'aria-label',
-                riff.isFavorite ? 'Remove from favorites' : 'Add to favorites'
-            );
-            var st = loadAppState();
-            if (!st.riffsDatabase) st.riffsDatabase = [];
-            var idx = st.riffsDatabase.findIndex(function (r) { return r.id === riff.id; });
-            if (idx !== -1) st.riffsDatabase[idx].isFavorite = riff.isFavorite;
-            else st.riffsDatabase.push({ id: riff.id, isFavorite: riff.isFavorite });
-            saveAppState(st);
         }
     });
 }

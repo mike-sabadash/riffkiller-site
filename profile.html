@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <script src="js/rk-theme-init.js"></script>
     <style>html{background:#0a0a0a;color:#fff}html[data-theme="light"]{background:#f4f4f8;color:#12121a}</style>
-    <script src="js/i18n.js?v=i15"></script>
+    <script src="js/i18n.js?v=i16"></script>
     <meta name="theme-color" content="#0a0a0a" id="rk-theme-color">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Riff Killer - Profile</title>
@@ -25,7 +25,7 @@
     <link rel="stylesheet" href="css/rk-header.css?v=ctl1">
     <link rel="stylesheet" href="css/rk-site-footer.css">
     <link rel="stylesheet" href="css/profile.css?v=d20261021">
-    <link rel="stylesheet" href="css/riffs-hub.css?v=prog1">
+    <link rel="stylesheet" href="css/riffs-hub.css?v=fav1">
     <link rel="stylesheet" href="css/rk-theme-light.css?v=ctl1">
     
     <!-- Favicon -->
@@ -963,6 +963,18 @@
                 </div>
             </section>
 
+            <!-- Favorites: звёзды с карточек риффов и коллекций (RKFavorites в js/riff-gallery-card.js), заполняет profile.js -->
+            <section class="recent-section favorites-section" id="favorites" aria-labelledby="favoritesTitle">
+                <h2 class="section-title" id="favoritesTitle">Favorites</h2>
+                <ul class="fav-collections" id="favoriteCollections" hidden></ul>
+                <div class="rk-riff-gallery">
+                <div class="riffs-grid" id="favoritesRiffsGrid"></div>
+                </div>
+                <div class="load-more-container" id="favoritesLoadMore" style="display: none;">
+                    <button class="load-more-btn">Load More</button>
+                </div>
+            </section>
+
             <!-- Recent Practice (галерея как на главной, карточки подставляет profile.js) -->
             <section class="recent-section">
                 <h2 class="section-title">Recent practice</h2>
@@ -1020,11 +1032,11 @@
     <script src="js/auth-manager.js?v=plan1"></script>
     <script src="js/site-header-behaviors.js?v=u1"></script>
     <script src="js/rk-theme.js"></script>
-    <script src="js/riff-gallery-card.js?v=prog1"></script>
+    <script src="js/riff-gallery-card.js?v=fav1"></script>
     <script src="js/rk-hint.js?v=1"></script>
     <script src="js/riff-dna-vocab.js?v=dna7"></script>
     <script src="js/rk-progress.js?v=dna1"></script>
-    <script src="js/profile-progress.js?v=dna1"></script>
-    <script src="js/profile.js?v=plan1"></script>
+    <script src="js/profile-progress.js?v=fav1"></script>
+    <script src="js/profile.js?v=fav1"></script>
 </body>
 </html>
