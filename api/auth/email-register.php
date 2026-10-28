@@ -31,13 +31,18 @@ if (strlen($password) < 6) {
     echo json_encode(['success' => false, 'error' => 'Password at least 6 characters']);
     exit();
 }
+if (($body['consent'] ?? false) !== true) {
+    http_response_code(400);
+    echo json_encode(['success' => false, 'error' => 'Please accept the Terms and the Privacy Policy to create an account.']);
+    exit();
+}
 if (user_find_by_email($email)) {
     http_response_code(400);
     echo json_encode(['success' => false, 'error' => 'Email already registered. Use Log in.']);
     exit();
 }
 
-$user = user_create(['email' => $email, 'name' => $name, 'picture' => '', 'provider' => 'email', 'provider_id' => '', 'password' => $password]);
+$user = user_create(['email' => $email, 'name' => $name, 'picture' => '', 'provider' => 'email', 'provider_id' => '', 'password' => $password, 'consent' => legal_consent('checkbox')]);
 if (!$user) {
     http_response_code(500);
     echo json_encode(['success' => false, 'error' => 'Registration failed']);

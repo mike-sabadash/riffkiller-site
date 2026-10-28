@@ -30,6 +30,9 @@ test('home opens the library; normal sign-up and login survive reload without a 
     assert.ok((await page.locator('body').innerText()).includes('Kill every riff'));assert.ok(await page.locator('#homeHeroPrimary').getAttribute('href'));
     await page.getByText('Sign up',{exact:true}).first().click();
     await page.fill('#authModalNameInput','Browser Practice');await page.fill('#authModalEmailInput','browser-test@example.com');await page.fill('#authModalPasswordInput','browser-test-password');
+    // Without the consent box the account is not created.
+    await page.click('#authModalEmailBtn');await page.waitForSelector('#authModalEmailMessage',{state:'visible'});assert.match(await page.locator('#authModalEmailMessage').innerText(),/accept the Terms/);
+    await page.check('#authModalConsentInput');
     await page.click('#authModalEmailBtn');await page.waitForFunction(()=>window.authManager.isAuthenticated);
     const id=await page.evaluate(()=>window.authManager.userData.id);
     await page.reload({waitUntil:'domcontentloaded'});await page.evaluate(()=>window.authManager.ready);
@@ -54,7 +57,7 @@ test('collection page lists its riffs and the profile shows no placeholder payme
 test('email submits with Enter, blocks duplicate requests and recovers after a wrong password',async t=>{
     const page=await pageFor(t);await page.goto(site.base+'/',{waitUntil:'domcontentloaded'});
     await page.getByText('Sign up',{exact:true}).first().click();
-    await page.fill('#authModalNameInput','Email UX');await page.fill('#authModalEmailInput','email-ux@example.com');await page.fill('#authModalPasswordInput','email-ux-password');
+    await page.fill('#authModalNameInput','Email UX');await page.fill('#authModalEmailInput','email-ux@example.com');await page.fill('#authModalPasswordInput','email-ux-password');await page.check('#authModalConsentInput');
     let requests=0;
     await page.route('**/api/auth/email-register.php',async route=>{requests++;await new Promise(r=>setTimeout(r,350));await route.continue()});
     await page.press('#authModalPasswordInput','Enter');
@@ -145,7 +148,7 @@ test('three clean loops at ×1 ask whether the part was clean; yes puts it at te
 });
 test('profile shows the week, what to play next, riffs and techniques from practice progress; the goal can be changed',async t=>{
     const page=await pageFor(t);await page.goto(site.base+'/index.html',{waitUntil:'domcontentloaded'});
-    await page.evaluate(()=>fetch('api/auth/email-register.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:'progress-profile@example.com',password:'progress-profile-pw',name:'Progress'})}));
+    await page.evaluate(()=>fetch('api/auth/email-register.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({consent:true,email:'progress-profile@example.com',password:'progress-profile-pw',name:'Progress'})}));
     await page.evaluate(async()=>{const r=(await (await fetch('api/riffs/list.php')).json())[0];const D=86400000,now=Date.now();
         RKProgress.update(s=>{RKProgress.setGoal(s,3,now);RKProgress.addPlayTime(s,r.id,400,now);RKProgress.markClean(s,r.id,r.segments,0,1,now-4*D);RKProgress.markClean(s,r.id,r.segments,1,1,now);});});
     await page.goto(site.base+'/profile.html',{waitUntil:'domcontentloaded'});

@@ -730,3 +730,34 @@ setInterval(() => {
     console.log(REDIRECT_LOG, 'Periodic check: redirecting to index (logged out)');
     window.location.href = 'index.html';
 }, 60000);
+
+// Delete account (api/profile/delete.php): typed DELETE, then the server cancels a card subscription and erases the account.
+(function initDeleteAccount() {
+    const btn = document.getElementById('deleteAccountBtn');
+    const dialog = document.getElementById('deleteAccountDialog');
+    if (!btn || !dialog || typeof dialog.showModal !== 'function') return;
+    const input = document.getElementById('deleteAccountConfirm');
+    const go = document.getElementById('deleteAccountGo');
+    const err = document.getElementById('deleteAccountError');
+    btn.addEventListener('click', () => { input.value = ''; go.disabled = true; err.hidden = true; dialog.showModal(); input.focus(); });
+    document.getElementById('deleteAccountCancel').addEventListener('click', () => dialog.close());
+    input.addEventListener('input', () => { go.disabled = input.value.trim().toUpperCase() !== 'DELETE'; });
+    document.getElementById('deleteAccountForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (go.disabled) return;
+        go.disabled = true;
+        err.hidden = true;
+        try {
+            const r = await fetch('/api/profile/delete.php', { method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ confirm: 'DELETE' }) });
+            const d = await r.json().catch(() => ({}));
+            if (!r.ok || !d.success) throw new Error(d.error || 'Could not delete the account. Try again.');
+            // Nothing of the account stays in this browser either.
+            ['rkProgressV2', 'riffKillerAuth', 'riffKillerState', 'rkFavMoved'].forEach(k => { try { localStorage.removeItem(k); } catch (x) {} });
+            window.location.href = 'index.html?deleted=1';
+        } catch (x) {
+            err.textContent = x.message;
+            err.hidden = false;
+            go.disabled = false;
+        }
+    });
+})();

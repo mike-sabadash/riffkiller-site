@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/legal.php';
 /**
  * User store: data/users.json (id, email, name, picture, provider, provider_id, created_at).
  */
@@ -70,6 +71,8 @@ function user_create($data) {
         'provider_id' => isset($data['provider_id']) ? trim((string)$data['provider_id']) : '',
         'created_at' => date('c'),
         'updated_at' => date('c'),
+        // What the account agreed to (config/legal.php): the version of the Terms, Privacy Policy and consent, and how.
+        'consent' => isset($data['consent']) && is_array($data['consent']) ? $data['consent'] : legal_consent('continue'),
     ];
     if ($user['provider_id'] !== '') $user['identities'] = [$user['provider'] => $user['provider_id']];
     if (isset($data['password']) && (string)$data['password'] !== '') {

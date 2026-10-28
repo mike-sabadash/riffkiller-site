@@ -343,6 +343,10 @@ function showPatreonUpgradeModal() {
 // Инициализация: риффы и коллекции из API (data/*.json), иначе встроенные константы в appState
 document.addEventListener('DOMContentLoaded', () => {
     console.log('Main page initialized');
+    if (/[?&]deleted=1\b/.test(location.search)) {
+        setTimeout(() => showNotification('Your account has been deleted.'), 300);
+        try { history.replaceState(null, '', location.pathname + location.hash); } catch (e) {}
+    }
     function runInit() {
         loadAppState();
         initCollections();

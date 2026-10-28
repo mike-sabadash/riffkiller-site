@@ -56,7 +56,7 @@ const renewals=()=>JSON.parse(fs.readFileSync(path.join(site.dir,'data/billing/r
 let userSeq=0;
 async function signUp() {
     const email=`buyer${++userSeq}@example.com`;
-    const r=await fetch(site.base+'/api/auth/email-register.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password:'secret123'})});
+    const r=await fetch(site.base+'/api/auth/email-register.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({consent:true,email,password:'secret123'})});
     const body=await r.json();assert.equal(body.success,true);
     return {id:body.user.id,email,cookie:r.headers.getSetCookie().at(-1).split(';')[0]};
 }

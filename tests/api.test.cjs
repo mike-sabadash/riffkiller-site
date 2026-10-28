@@ -6,7 +6,7 @@ let site,admin;
 before(async()=>{site=await startSite();admin=await site.adminCookie()});after(()=>site?.stop());
 async function post(url,data,cookie='') {return fetch(site.base+url,{method:'POST',headers:{'Content-Type':'application/json',Cookie:cookie},body:JSON.stringify(data)});}
 test('ordinary email sign-up, reload, logout and login use the server session',async()=>{
-    const reg=await post('/api/auth/email-register.php',{email:'practice-test@example.com',password:'riffkiller-test-password',name:'Practice Test'});
+    const reg=await post('/api/auth/email-register.php',{consent:true,email:'practice-test@example.com',password:'riffkiller-test-password',name:'Practice Test'});
     assert.equal(reg.status,200);const user=(await reg.json()).user;assert.ok(user.id);
     const cookie=reg.headers.getSetCookie().at(-1).split(';')[0];
     let me=await (await fetch(site.base+'/api/me.php',{headers:{Cookie:cookie}})).json();assert.equal(me.authenticated,true);assert.equal(me.user.id,user.id);
@@ -62,7 +62,7 @@ test('practice progress is saved per account and refused without a session',asyn
     assert.deepEqual(await (await fetch(site.base+'/api/progress.php')).json(),{success:true,authenticated:false});
     const state=P.empty();P.markClean(state,1,[{start:0,end:2}],0,1,Date.now());P.addPlayTime(state,1,320,Date.now());
     assert.equal((await post('/api/progress.php',{progress:state})).status,401);
-    const reg=async email=>{const r=await post('/api/auth/email-register.php',{email,password:'riffkiller-test-password',name:'P'});return r.headers.getSetCookie().at(-1).split(';')[0];};
+    const reg=async email=>{const r=await post('/api/auth/email-register.php',{consent:true,email,password:'riffkiller-test-password',name:'P'});return r.headers.getSetCookie().at(-1).split(';')[0];};
     const a=await reg('progress-a@example.com'),b=await reg('progress-b@example.com');
     assert.deepEqual((await (await fetch(site.base+'/api/progress.php',{headers:{Cookie:a}})).json()).progress,null);
     assert.equal((await post('/api/progress.php',{progress:{v:1}},a)).status,400);
