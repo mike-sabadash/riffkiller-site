@@ -245,7 +245,7 @@ test('lava.top refuses an email: the page asks for another one and it is used',a
     const user=await signUp();
     const refused=await api(user,'create.php',{provider:'lava',plan:'monthly',email:'seller@example.com'});
     assert.equal(refused.status,400);assert.equal(refused.body.needEmail,true);
-    assert.match(refused.body.error,/did not accept this email/);
+    assert.match(refused.body.error,/did not accept seller@example\.com/);assert.equal(refused.body.refusedEmail,'seller@example.com');
     const ok=await api(user,'create.php',{provider:'lava',plan:'monthly',email:'other@example.com'});
     assert.equal(ok.status,200);
     assert.equal(JSON.parse(calls.filter(c=>c.path==='/api/v3/invoice').at(-1).body).email,'other@example.com','the typed email wins over the account one');
