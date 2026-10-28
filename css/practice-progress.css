@@ -119,3 +119,8 @@ html[data-theme='light'] .parts-progress-kill { color: rgba(20, 20, 30, 0.6); }
 .kill-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 10px; }
 .kill-actions a.progress-card-btn { display: inline-flex; align-items: center; text-decoration: none; }
 @media (prefers-reduced-motion: reduce) { .kill-screen { animation: none; } }
+
+/* Desktop parts column: the panel has 14px on top and 10px on the sides; the card on top gets the same 10px all round. */
+@media (min-width: 1160px) {
+    .practice-parts .segment-controls-container > .progress-card:first-child { margin-top: -4px; }
+}
