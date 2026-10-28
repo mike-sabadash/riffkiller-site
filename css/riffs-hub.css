@@ -1284,7 +1284,7 @@ body.riffs-hub .riffs-section-head--row {
 .fav-collection-star .favorite-icon { width: 16px; height: 16px; }
 .fav-collection-star.active .favorite-icon path { fill: currentColor; }
 
-/* Коллекция = группа: две тонкие линии над карточкой повторяют её форму и уходят за неё (стопка) */
+/* Коллекция = группа: над карточкой две тёмные плашки её формы, уже и ниже по тону — стопка. Уходят за карточку. */
 body.riffs-hub .collection-card { overflow: visible; isolation: isolate; }
 body.riffs-hub .collection-card > .collection-image { border-radius: inherit; }
 body.riffs-hub .collection-card > .collection-overlay { border-radius: 0 0 16px 16px; }
@@ -1293,10 +1293,9 @@ body.riffs-hub .collection-card::after {
     content: '';
     position: absolute;
     height: 48px;
-    border: 1.5px solid rgba(255, 255, 255, 0.42);
-    border-bottom: 0;
     pointer-events: none;
-    z-index: -1;
 }
-body.riffs-hub .collection-card::before { left: 10px; right: 10px; top: -7px; border-radius: 15px 15px 0 0; }
-body.riffs-hub .collection-card::after { left: 22px; right: 22px; top: -13px; border-radius: 13px 13px 0 0; border-color: rgba(255, 255, 255, 0.22); }
+/* ближняя — светлее */
+body.riffs-hub .collection-card::before { left: 10px; right: 10px; top: -7px; border-radius: 15px 15px 0 0; background: #2a2a33; z-index: -1; }
+/* дальняя — темнее, лежит под ближней */
+body.riffs-hub .collection-card::after { left: 22px; right: 22px; top: -13px; border-radius: 13px 13px 0 0; background: #18181e; z-index: -2; }
