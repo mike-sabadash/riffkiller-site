@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <script src="js/rk-theme-init.js"></script>
     <style>html{background:#0a0a0a;color:#fff}html[data-theme="light"]{background:#f4f4f8;color:#12121a}</style>
-    <script src="js/i18n.js?v=i13"></script>
+    <script src="js/i18n.js?v=i14"></script>
     <meta name="theme-color" content="#0a0a0a" id="rk-theme-color">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Riff Killer - Premium Billing</title>
@@ -105,16 +105,48 @@
         html[data-theme='light'] .billing-notice.is-ok { color: #166534; }
         html[data-theme='light'] .billing-notice.is-error { color: #991b1b; }
         .billing-email button { min-height: 44px; padding: 0 18px; border-radius: 12px; border: none; background: #9355E5; color: #fff; font: inherit; font-weight: 500; cursor: pointer; }
-        .billing-includes[hidden], .billing-header > p[hidden], .account-panel[hidden], .plan-section[hidden], .methods-section[hidden], .switch-note[hidden] { display: none; }
-        .account-panel { max-width: 640px; margin: 0 auto 40px; padding: 24px; border-radius: 20px; border: 1px solid rgba(147, 85, 229, 0.55); background: linear-gradient(180deg, rgba(147, 85, 229, 0.12), rgba(147, 85, 229, 0.03)); text-align: center; }
-        .account-eyebrow { font-size: 0.6875rem; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(196, 181, 252, 0.98); margin-bottom: 8px; }
-        .account-title { font-size: 1.375rem; font-weight: 700; margin-bottom: 8px; }
-        .account-line { font-size: 0.9375rem; color: var(--color-text-secondary); line-height: 1.6; }
-        .account-line + .account-line { margin-top: 2px; }
-        .account-actions { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin-top: 16px; }
-        .account-actions a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 18px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.22); color: inherit; text-decoration: none; font-size: 0.875rem; font-weight: 500; }
-        .account-actions a:hover { background: rgba(255, 255, 255, 0.08); }
-        html[data-theme='light'] .account-actions a { border-color: rgba(18, 18, 26, 0.2); }
+        .billing-includes[hidden], .billing-header > p[hidden], .sub-card[hidden], .plan-section[hidden], .methods-section[hidden], .switch-note[hidden], .sub-hint[hidden] { display: none; }
+        /* Subscriber view: a compact account header and one subscription card, left-aligned like account settings */
+        .billing-header.is-account { text-align: left; max-width: 720px; margin: 0 auto 24px; }
+        .billing-header.is-account h1 { font-size: clamp(1.75rem, 3vw, 2.25rem); margin-bottom: 0; }
+        .sub-card { max-width: 720px; margin: 0 auto 48px; border-radius: 20px; border: 1px solid var(--color-border-light); background: rgba(255, 255, 255, 0.03); overflow: hidden; }
+        .sub-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 24px; background: linear-gradient(135deg, rgba(147, 85, 229, 0.22), rgba(147, 85, 229, 0.04)); border-bottom: 1px solid var(--color-border-light); }
+        .sub-head-main { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+        .sub-name { font-size: 1.5rem; font-weight: 700; line-height: 1.2; margin: 0; }
+        .sub-badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; font-size: 0.75rem; font-weight: 600; color: #86efac; background: rgba(34, 197, 94, 0.14); }
+        .sub-badge::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+        .sub-badge.is-warn { color: #fcd34d; background: rgba(245, 158, 11, 0.14); }
+        .sub-price { font-size: 1.125rem; font-weight: 600; white-space: nowrap; }
+        .sub-price small { font-size: 0.875rem; font-weight: 400; color: var(--color-text-tertiary); margin-left: 2px; }
+        .sub-rows { margin: 0; padding: 8px 24px; }
+        .sub-row { display: flex; justify-content: space-between; gap: 16px; padding: 12px 0; border-bottom: 1px solid var(--color-border-light); font-size: 0.9375rem; }
+        .sub-row:last-child { border-bottom: none; }
+        .sub-row dt { color: var(--color-text-tertiary); }
+        .sub-row dd { margin: 0; text-align: right; font-weight: 500; }
+        .sub-hint { margin: 0 24px 8px; padding: 12px 14px; border-radius: 12px; font-size: 0.875rem; line-height: 1.5; color: var(--color-text-secondary); background: rgba(255, 255, 255, 0.04); }
+        .sub-included { padding: 16px 24px; border-top: 1px solid var(--color-border-light); }
+        .sub-included-title { font-size: 0.75rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-text-tertiary); margin-bottom: 12px; }
+        .sub-included ul { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 24px; font-size: 0.875rem; color: var(--color-text-secondary); }
+        .sub-included li { display: flex; align-items: flex-start; gap: 8px; }
+        .sub-included li::before { content: ''; flex: none; margin-top: 2px; width: 16px; height: 16px; border-radius: 50%; background: rgba(147, 85, 229, 0.18) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M4.5 8.2l2.2 2.2 4.8-4.8' fill='none' stroke='%23c4b5fc' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / 16px no-repeat; }
+        .sub-actions { display: flex; flex-wrap: wrap; gap: 12px; padding: 20px 24px 24px; border-top: 1px solid var(--color-border-light); }
+        .sub-actions a { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 20px; border-radius: 12px; font-size: 0.875rem; font-weight: 500; text-decoration: none; color: inherit; border: 1px solid rgba(255, 255, 255, 0.22); }
+        .sub-actions a:hover { background: rgba(255, 255, 255, 0.08); }
+        .sub-actions a.is-primary { background: #9355E5; border-color: #9355E5; color: #fff; }
+        .sub-actions a.is-primary:hover { background: #7B3FC7; }
+        html[data-theme='light'] .sub-card { background: #fff; }
+        html[data-theme='light'] .sub-badge { color: #166534; background: rgba(34, 197, 94, 0.14); }
+        html[data-theme='light'] .sub-badge.is-warn { color: #92400e; }
+        html[data-theme='light'] .sub-actions a { border-color: rgba(18, 18, 26, 0.2); }
+        html[data-theme='light'] .sub-hint { background: rgba(18, 18, 26, 0.04); }
+        @media (max-width: 640px) {
+            .sub-head { padding: 20px 16px; align-items: flex-start; }
+            .sub-rows, .sub-included { padding-left: 16px; padding-right: 16px; }
+            .sub-actions { padding: 16px; }
+            .sub-actions a { flex: 1 1 100%; }
+            .sub-hint { margin-left: 16px; margin-right: 16px; }
+            .sub-included ul { grid-template-columns: 1fr; }
+        }
         .plan-current { display: inline-block; margin-left: 8px; padding: 2px 8px; border-radius: 999px; font-size: 0.6875rem; font-weight: 600; vertical-align: middle; color: #e9d5ff; background: rgba(147, 85, 229, 0.35); }
         html[data-theme='light'] .plan-current { color: #5b21b6; background: rgba(147, 85, 229, 0.15); }
         .switch-note { max-width: 640px; margin: -8px auto 20px; font-size: 0.875rem; color: var(--color-text-secondary); text-align: center; line-height: 1.5; }
@@ -153,11 +185,26 @@
                     </ul>
                 </header>
 
-                <section class="account-panel" id="accountPanel" aria-live="polite" hidden>
-                    <p class="account-eyebrow">Your subscription</p>
-                    <p class="account-title" id="accountTitle"></p>
-                    <div id="accountLines"></div>
-                    <div class="account-actions" id="accountActions"></div>
+                <section class="sub-card" id="accountPanel" aria-labelledby="subName" hidden>
+                    <div class="sub-head">
+                        <div class="sub-head-main">
+                            <h2 class="sub-name" id="subName">Premium</h2>
+                            <span class="sub-badge" id="subBadge"></span>
+                        </div>
+                        <div class="sub-price" id="subPrice" translate="no"></div>
+                    </div>
+                    <dl class="sub-rows" id="subRows"></dl>
+                    <p class="sub-hint" id="subHint" hidden></p>
+                    <div class="sub-included">
+                        <p class="sub-included-title">What's included</p>
+                        <ul>
+                            <li>Full riff library, new riffs monthly</li>
+                            <li>Left + right hand cameras</li>
+                            <li>Slow motion, loops, Speed Trainer</li>
+                            <li>Synced tabs and Riff DNA breakdowns</li>
+                        </ul>
+                    </div>
+                    <div class="sub-actions" id="subActions"></div>
                 </section>
 
                 <section class="plan-section" id="planSection">
@@ -457,24 +504,13 @@
             var SOURCE_LABEL = { lava: 'Card', robokassa: 'Russian card', yookassa: 'Russian card', usdt: 'USDT' };
             var METHOD_ID = { lava: 'methodLava', robokassa: 'methodRobokassa', yookassa: 'methodYookassa', usdt: 'methodUsdt' };
             var planChosenByUser = !!planParam;
+            // A link with ?plan= or a return from checkout opens the plans right away.
+            var plansOpen = !!planParam || /[?&](paid|failed)=/.test(window.location.search);
             function kind() { return (account && account.kind) || 'none'; }
             function fmtDate(sec) {
                 var d = new Date(sec * 1000);
                 try { return d.toLocaleDateString(document.documentElement.lang || undefined, { month: 'short', day: 'numeric', year: 'numeric' }); }
                 catch (e) { return d.toDateString(); }
-            }
-            // Each phrase is its own text node so the translations match it exactly; dates stay as formatted.
-            function accountLine(parts) {
-                var p = document.createElement('p');
-                p.className = 'account-line';
-                parts.forEach(function(part, i) {
-                    if (i) p.appendChild(document.createTextNode(part.date || parts[i - 1].date ? ' ' : ' \u00b7 '));
-                    var span = document.createElement('span');
-                    span.textContent = part.date ? fmtDate(part.date) : part;
-                    if (part.date) span.setAttribute('translate', 'no');
-                    p.appendChild(span);
-                });
-                return p;
             }
             function renderButtons() {
                 var k = kind();
@@ -516,15 +552,18 @@
                 var k = kind();
                 var premium = k !== 'none';
                 var panel = document.getElementById('accountPanel');
-                var lines = document.getElementById('accountLines');
-                var actions = document.getElementById('accountActions');
                 document.getElementById('billingTitle').textContent = premium ? 'Your plan' : 'Unlock every riff';
+                document.querySelector('.billing-header').classList.toggle('is-account', premium);
                 document.getElementById('billingLead').hidden = premium;
                 document.getElementById('billingIncludes').hidden = premium;
                 panel.hidden = !premium;
+                // Subscribers start from their card; plans and checkout open only when they ask to change, renew or extend.
                 var manageOutside = k === 'external' || k === 'gift';
-                document.getElementById('planSection').hidden = manageOutside;
-                document.getElementById('methodsSection').hidden = manageOutside;
+                var showPlans = !premium || (!manageOutside && plansOpen);
+                document.getElementById('planSection').hidden = !showPlans;
+                document.getElementById('methodsSection').hidden = !showPlans;
+                var back = document.getElementById('backLink');
+                if (back) back.hidden = premium;
                 document.getElementById('planHeading').textContent = k === 'renewing' ? 'Change your plan' : k === 'gift' ? 'Plans' : '1. Choose a plan';
                 document.getElementById('methodsHeading').textContent = k === 'renewing' ? 'Pay for the new plan'
                     : (k === 'ending' || k === 'oneoff') ? 'Extend your premium' : '2. Choose how to pay';
@@ -537,49 +576,84 @@
                 // The header already links to the profile; the subscription panel has its own actions.
                 if (profileLink && premium) profileLink.style.display = 'none';
                 if (!premium) { renderButtons(); return; }
-                document.getElementById('accountTitle').textContent = 'Premium is on';
-                lines.textContent = '';
-                actions.textContent = '';
                 var until = account.until;
-                if (k === 'renewing' || k === 'ending') {
-                    lines.appendChild(accountLine([PLAN_LABEL[account.plan] || account.plan, SOURCE_LABEL[account.source] || account.source]));
-                    if (until) lines.appendChild(accountLine([k === 'renewing' ? 'Renews on' : 'Premium until', { date: until }]));
-                    if (k === 'ending') lines.appendChild(accountLine(['Auto-renewal is off.']));
-                } else if (k === 'oneoff') {
-                    lines.appendChild(accountLine(['Paid with USDT']));
-                    if (until) lines.appendChild(accountLine(['Premium until', { date: until }]));
-                    lines.appendChild(accountLine(['It does not renew by itself.']));
+                var period = { monthly: ' / month', quarterly: ' / 3 months', yearly: ' / year' };
+                var onSite = k === 'renewing' || k === 'ending' || k === 'oneoff';
+                var badge = document.getElementById('subBadge');
+                badge.textContent = k === 'ending' ? 'Auto-renewal off' : 'Active';
+                badge.classList.toggle('is-warn', k === 'ending');
+                var price = document.getElementById('subPrice');
+                price.textContent = '';
+                if (onSite && USD_PRICE[account.plan]) {
+                    price.appendChild(document.createTextNode('$' + USD_PRICE[account.plan]));
+                    var per = document.createElement('small');
+                    per.textContent = period[account.plan];
+                    price.appendChild(per);
+                }
+                var rows = document.getElementById('subRows');
+                rows.textContent = '';
+                function row(label, value) {
+                    var wrap = document.createElement('div');
+                    wrap.className = 'sub-row';
+                    var dt = document.createElement('dt'); dt.textContent = label;
+                    var dd = document.createElement('dd');
+                    if (value && value.date) { dd.textContent = fmtDate(value.date); dd.setAttribute('translate', 'no'); }
+                    else dd.textContent = value;
+                    wrap.appendChild(dt); wrap.appendChild(dd);
+                    rows.appendChild(wrap);
+                }
+                if (onSite) {
+                    row('Plan', PLAN_LABEL[account.plan] || account.plan);
+                    row('Payment', SOURCE_LABEL[account.source] || account.source);
+                    row('Renewal', k === 'renewing' ? 'Automatic' : k === 'ending' ? 'Off' : 'One-time payment');
+                    if (until) row(k === 'renewing' ? 'Next payment' : 'Ends on', { date: until });
                 } else if (k === 'external') {
-                    lines.appendChild(accountLine([account.source === 'patreon' ? 'Your premium comes from Patreon.' : 'Your premium comes from an earlier payment.']));
-                    if (until) lines.appendChild(accountLine(['Premium until', { date: until }]));
-                } else if (k === 'gift') {
-                    lines.appendChild(accountLine([account.source === 'test' ? 'Test access' : 'Promo code']));
-                    lines.appendChild(until ? accountLine(['Premium until', { date: until }]) : accountLine(['No end date']));
-                    if (until) lines.appendChild(accountLine(['When it ends, choose a plan here.']));
+                    row('Access', account.source === 'patreon' ? 'Patreon' : 'Earlier payment');
+                    if (account.source === 'patreon') row('Renewal', 'Managed on Patreon');
+                    row('Ends on', until ? { date: until } : 'No end date');
+                } else {
+                    row('Access', account.source === 'test' ? 'Test access' : 'Promo code');
+                    row('Ends on', until ? { date: until } : 'No end date');
                 }
-                function action(text, href, external) {
-                    var a = document.createElement('a');
-                    a.href = href; a.textContent = text;
-                    if (external) { a.target = '_blank'; a.rel = 'noopener noreferrer'; }
-                    actions.appendChild(a);
+                var hint = document.getElementById('subHint');
+                hint.textContent = k === 'ending' ? 'Premium stays on until the end date. Press Renew to keep it going; no days are lost.'
+                    : k === 'oneoff' ? 'USDT payments do not renew by themselves. Press Extend before the end date; no days are lost.'
+                    : (k === 'gift' && until) ? 'When it ends, choose a plan here.' : '';
+                hint.hidden = !hint.textContent;
+                var actions = document.getElementById('subActions');
+                actions.textContent = '';
+                function action(text, href, opts) {
+                    opts = opts || {};
+                    var el = document.createElement('a');
+                    el.href = href; el.textContent = text;
+                    if (opts.primary) el.className = 'is-primary';
+                    if (opts.external) { el.target = '_blank'; el.rel = 'noopener noreferrer'; }
+                    if (opts.onClick) el.addEventListener('click', opts.onClick);
+                    actions.appendChild(el);
                 }
-                if (k === 'renewing' || k === 'ending') action('Manage in profile', 'profile.html');
-                // Promo with an end date: prices can be looked at in advance; paying waits until it ends.
-                if (k === 'gift' && until) {
-                    var see = document.createElement('a');
-                    see.href = '#planSection';
-                    see.textContent = 'See plans';
-                    see.addEventListener('click', function(e) {
+                // The next step for someone who already has premium is to play, so that is the primary action.
+                var lastRiff = null;
+                try { var saved = JSON.parse(localStorage.getItem('riffKillerState') || 'null'); lastRiff = saved && saved.currentRiffId; } catch (e) {}
+                if (lastRiff) action('Continue practicing', 'practice.html?riff=' + encodeURIComponent(lastRiff), { primary: true });
+                else action('Browse riffs', 'index.html', { primary: true });
+                function scrollTo(id) {
+                    return function(e) {
                         e.preventDefault();
-                        var plans = document.getElementById('planSection');
-                        plans.hidden = !plans.hidden;
-                        if (!plans.hidden) plans.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                    });
-                    actions.appendChild(see);
+                        if (k !== 'gift') { plansOpen = true; document.getElementById('methodsSection').hidden = false; }
+                        var t = document.getElementById(id);
+                        t.hidden = false;
+                        t.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    };
                 }
+                if (k === 'renewing') action('Change plan', '#planSection', { onClick: scrollTo('planSection') });
+                if (k === 'ending') action('Renew', '#planSection', { onClick: scrollTo('planSection') });
+                if (k === 'oneoff') action('Extend', '#planSection', { onClick: scrollTo('planSection') });
+                if (k === 'renewing' || k === 'ending') action('Manage in profile', 'profile.html');
                 if (k === 'external' && account.source === 'patreon') {
-                    action('Manage on Patreon', (typeof PATREON_CONFIG !== 'undefined' && PATREON_CONFIG.campaignUrl) || 'https://www.patreon.com/cw/MikeSabadash?vanity=MikeSabadash', true);
+                    action('Manage on Patreon', (typeof PATREON_CONFIG !== 'undefined' && PATREON_CONFIG.campaignUrl) || 'https://www.patreon.com/cw/MikeSabadash?vanity=MikeSabadash', { external: true });
                 }
+                // Promo with an end date: prices can be looked at in advance; paying waits until it ends.
+                if (k === 'gift' && until) action('See plans', '#planSection', { onClick: scrollTo('planSection') });
                 if ((k === 'renewing' || k === 'ending') && account.plan) {
                     var card = document.querySelector('.plan-card[data-plan="' + account.plan + '"] .plan-name');
                     if (card) {

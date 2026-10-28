@@ -751,7 +751,23 @@
             "Test access": "Тестовый доступ",
             "Promo code": "Промокод",
             "No end date": "Без срока окончания",
-            "When it ends, choose a plan here.": "Когда срок закончится, выбери тариф здесь."
+            "When it ends, choose a plan here.": "Когда срок закончится, выбери тариф здесь.",
+            "Payment": "Оплата",
+            "Renewal": "Продление",
+            "Automatic": "Автоматически",
+            "Off": "Выключено",
+            "One-time payment": "Разовая оплата",
+            "Next payment": "Следующее списание",
+            "Ends on": "Действует до",
+            "Access": "Доступ",
+            "Earlier payment": "Прежняя оплата",
+            "Managed on Patreon": "Управляется на Patreon",
+            "Patreon": "Patreon",
+            "What's included": "Что входит",
+            "Browse riffs": "К риффам",
+            "Auto-renewal off": "Автопродление выключено",
+            "Premium stays on until the end date. Press Renew to keep it going; no days are lost.": "Premium работает до даты окончания. Чтобы он не прерывался, нажми «Продлить» — ни один день не пропадёт.",
+            "USDT payments do not renew by themselves. Press Extend before the end date; no days are lost.": "Оплата в USDT сама не продлевается. Нажми «Продлить» до даты окончания — ни один день не пропадёт."
         },
         patterns: [
         // Russian plural: 1 фрагмент, 2 фрагмента, 5 фрагментов.
