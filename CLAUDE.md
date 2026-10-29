@@ -31,7 +31,7 @@
 - Сервер общий с другими проектами (ghost.riffkiller.fun, rechord.online, banners.rechord.online): трогать только RiffKiller. Секреты CLAUDE_DEPLOY_* в репозитории не перезаписывать.
 
 ## Секреты
-Токены, ключи и пароли не писать в репозиторий, Notion, документы проекта и логи. Названия всех ключей — в `.env.example`, значения — только в `.env` на сервере. В claude.ai/code доступ к GitHub даёт Claude GitHub App (токен не нужен). В чатах проекта Cowork токен Mike присылает в чат; хранить его только в файле сессии (`~/.secrets/`). Подробно — документ проекта `claude/riffkiller-dev-setup.md`.
+Токены, ключи и пароли не писать в репозиторий, Notion, документы проекта и логи. Названия всех ключей — в `.env.example`, значения — только в `.env` на сервере. В claude.ai/code доступ к GitHub даёт Claude GitHub App (токен не нужен). В чатах проекта Cowork токен лежит в закрытом файле на Google Drive Mike («RiffKiller — токен GitHub для Claude (не передавать)»): Claude сам берёт его коннектором Drive в `~/.secrets/` и пушит, у Mike ничего не просит. Коннектор GitHub в Cowork только читает. Подробно — документ проекта `claude/riffkiller-dev-setup.md`.
 - В облачной среде claude.ai/code домен riffkiller.fun должен быть в разрешённых (Network access → Custom), иначе живые файлы после деплоя не сверить.
 
 ## Где контекст
