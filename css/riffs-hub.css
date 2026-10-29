@@ -1285,9 +1285,8 @@ body.riffs-hub .riffs-section-head--row {
 .fav-collection-star.active .favorite-icon path { fill: currentColor; }
 
 /* Коллекция = группа: над карточкой две тёмные плашки её формы, уже и ниже по тону — стопка. Уходят за карточку. */
-body.riffs-hub .collection-card { overflow: visible; isolation: isolate; border-color: transparent; outline: 1px solid rgba(255, 255, 255, 0.06); outline-offset: -1px; }
-/* Обводка — outline: она рисуется поверх плашек, а border остался бы под ними */
-body.riffs-hub .collection-card:hover { border-color: transparent; outline-color: rgba(147, 85, 229, 0.2); }
+body.riffs-hub .collection-card { overflow: visible; isolation: isolate; border-color: transparent; }
+body.riffs-hub .collection-card:hover { border-color: transparent; }
 body.riffs-hub .collection-card > .collection-image { border-radius: inherit; }
 body.riffs-hub .collection-card > .collection-overlay { border-radius: 0 0 16px 16px; }
 body.riffs-hub .collection-card::before,
