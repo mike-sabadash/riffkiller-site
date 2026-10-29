@@ -120,6 +120,7 @@
                 '<label class="ed-field"><span>Что делает эта часть в этом риффе</span><input type="text" class="function" placeholder="Например: влетает после паузы и крутится вокруг 7 лада"><small>Своё для каждого риффа. Ученик видит это в панели Riff DNA под названием части.</small></label>' +
                 '<div class="ed-row2"><label class="ed-field"><span>Начало, сек</span><input type="number" class="start" step="0.01" min="0"></label>' +
                 '<label class="ed-field"><span>Конец, сек</span><input type="number" class="end" step="0.01" min="0"></label></div>' +
+                '<details class="seg-more"><summary>Ещё: подпись кнопки, такты, цвет</summary>' +
                 '<label class="ed-field"><span>Подпись кнопки в плеере</span><input type="text" class="name"></label>' +
                 '<div class="ed-row2"><label class="ed-field"><span>Такты в файле табов</span><input type="text" class="tab-bars" inputmode="numeric" placeholder="например 1–2"></label>' +
                 '<label class="ed-field"><span>Картинка табов, если нет файла</span><input type="text" class="tab-image" placeholder="assets/tabs/artist/song/1.png"></label></div>' +
@@ -129,6 +130,7 @@
                     '<select class="color-select" tabindex="-1" aria-hidden="true">' + COLORS.map(function (c) { return '<option value="' + c.hex + '">' + c.name + '</option>'; }).join('') + '<option value="custom">Свой</option></select>' +
                     '<input type="text" class="color-hex ed-input" maxlength="7" placeholder="#hex">' +
                 '</div></div>' +
+                '</details>' +
                 '<div class="seg-actions"><button type="button" class="ed-btn danger rm-seg">Удалить часть</button><button type="button" class="ed-btn seg-merge">Склеить со следующей</button></div>' +
             '</div>';
         row.querySelector('.role').value = d.role || '';

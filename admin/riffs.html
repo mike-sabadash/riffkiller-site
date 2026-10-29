@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="../css/reset.css">
     <link rel="stylesheet" href="../css/variables.css?v=flat1">
     <!-- Не подключаем base.css и components.css — там стили заглушки; админка риффов самодостаточна -->
-    <link rel="stylesheet" href="../css/admin-editor.css?v=tabai1">
+    <link rel="stylesheet" href="../css/admin-editor.css?v=edflow1">
     <link rel="icon" type="image/svg+xml" href="../assets/icons/favicon.svg">
     <style>
         html, body { background: #111629 !important; background-image: none !important; color: #fff; font-family: Roboto, sans-serif; min-height: 100vh; min-height: 100dvh; padding: 24px; margin: 0; padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px) + 52px); }
@@ -54,6 +54,7 @@
         .riff-move-btns button:disabled { opacity: 0.3; cursor: not-allowed; }
         .riff-list-song { font-weight: 500; flex: 1; min-width: 0; }
         .riff-list-draft { margin-left: 8px; font-size: 12px; font-weight: 400; color: var(--color-text-tertiary); white-space: nowrap; }
+        .riff-list-missing { display: block; margin-top: 2px; font-size: 12px; font-weight: 400; color: #f2c94c; opacity: .85; }
         .riff-list-thumb { flex: none; width: 60px; height: 36px; border-radius: 6px; overflow: hidden; background: rgba(255,255,255,0.06); }
         .riff-list-thumb img { display: block; width: 100%; height: 100%; object-fit: cover; }
         .riff-list-artist { color: var(--color-text-tertiary); font-size: 13px; flex: 1; min-width: 0; }
@@ -80,6 +81,8 @@
         .lint-list li { margin-bottom: 8px; }
         .lint-list li[data-segment] { cursor: pointer; text-decoration: underline dotted; text-underline-offset: 3px; }
         .lint-actions { display: flex; justify-content: flex-end; gap: 10px; padding: 12px 18px 16px; }
+        #dnaAiPanel { margin: 20px 0 0; padding: 18px 0 0; border-bottom: 0; border-top: 1px solid var(--color-border-light); }
+        .dna-ai-pointer { margin: 0 0 16px; }
         .dna-ai { margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid var(--color-border-light); }
         .dna-ai-title { display: block; font-size: 14px; color: #fff; font-weight: 500; }
         .dna-ai .coll-pick-hint { max-width: none; margin-bottom: 10px; }
@@ -148,9 +151,12 @@
             <div class="ed-bar">
                 <select id="riffSelect" aria-label="Какой рифф редактировать"><option value="">— Новый рифф —</option></select>
                 <button type="button" class="ed-id" id="edRiffId" hidden title="Номер риффа. Пришлите его вместе со скрином таба, по нему таб попадёт в этот рифф">ID <b></b><span class="ed-id-copy">скопировать</span></button>
+                <button type="button" class="ed-btn ed-claude" id="edCopyClaude" hidden title="Копирует номер, название и ссылку на рифф. Вставьте в чат с Claude и приложите скрин таба"><span class="ed-claude-long">Скопировать для Claude</span><span class="ed-claude-short">Для Claude</span></button>
+                <span class="ed-id-pending" id="edIdPending">ID появится после первого сохранения</span>
                 <span class="ed-bar-title" id="edTitle">Новый рифф</span>
                 <span class="ed-bar-status" id="edStatus" aria-live="polite"></span>
                 <button type="submit" class="ed-btn primary" id="submitBtn">Сохранить <kbd>⌘S</kbd></button>
+                <nav class="ed-ready" id="edReady" aria-label="Готовность риффа"></nav>
             </div>
 
             <section class="ed-section" aria-labelledby="hRiff">
@@ -160,7 +166,6 @@
                     <label class="ed-field span-2"><span>Исполнитель</span><input type="text" id="artist" required placeholder="Led Zeppelin"></label>
                     <label class="ed-field"><span>Сложность</span><select id="difficulty"><option value="beginner">beginner</option><option value="intermediate" selected>intermediate</option><option value="advanced">advanced</option></select></label>
                     <label class="ed-field"><span>Жанр</span><select id="genre"><option value="rock" selected>rock</option><option value="metal">metal</option><option value="blues">blues</option><option value="country">country</option><option value="punk">punk</option><option value="funk">funk</option><option value="jazz">jazz</option><option value="pop">pop</option><option value="other">other</option></select></label>
-                    <label class="ed-field"><span>Длительность, сек</span><input type="number" id="duration" step="any" min="0" placeholder="берётся из видео"></label>
                     <div class="ed-checks">
                         <label class="ed-check"><input type="checkbox" id="isFree" name="isFree"> Бесплатный, без подписки</label>
                         <label class="ed-check" id="hiddenLabel"><input type="checkbox" id="hidden" name="hidden"> <span id="hiddenText">Скрыть с сайта</span></label>
@@ -170,19 +175,21 @@
             </section>
 
             <section class="ed-section" aria-labelledby="hVideo">
-                <header><h2 id="hVideo">Видео</h2><p>Две камеры одной записи: в плеере они идут синхронно, ученик переключает руки.</p></header>
+                <header><h2 id="hVideo">Видео</h2><p>Две камеры одной записи: в плеере они идут синхронно, ученик переключает руки. Файл начинает загружаться сразу, как только вы его выбрали; пока он грузится, можно размечать.</p></header>
                 <div class="ed-cams">
                     <div class="ed-cam">
                         <h3>Левая рука</h3>
                         <input type="text" id="videoFile" class="ed-input" placeholder="assets/video/artist/song/song-left.mp4" aria-label="Путь к видео левой руки">
                         <input type="file" id="videoFileUpload" accept="video/mp4,.mp4,video/quicktime,.mov" aria-label="Загрузить видео левой руки">
                         <div class="ed-upload-progress" id="videoFileProgress"><i></i></div>
+                        <p class="ed-help ed-upload-note" id="videoFileNote" role="status"></p>
                     </div>
                     <div class="ed-cam">
                         <h3>Правая рука</h3>
                         <input type="text" id="videoFileRight" class="ed-input" placeholder="assets/video/artist/song/song-right.mp4" aria-label="Путь к видео правой руки">
                         <input type="file" id="videoFileRightUpload" accept="video/mp4,.mp4,video/quicktime,.mov" aria-label="Загрузить видео правой руки">
                         <div class="ed-upload-progress" id="videoFileRightProgress"><i></i></div>
+                        <p class="ed-help ed-upload-note" id="videoFileRightNote" role="status"></p>
                     </div>
                 </div>
                 <div class="ed-cutter-cta">
@@ -190,54 +197,12 @@
                     <button type="button" class="ed-btn" id="openCutter">Нарезать из одного видео</button>
                 </div>
                 <details class="ed-more">
-                    <summary>Видео-разбор</summary>
+                    <summary>Ещё: видео-разбор, длительность</summary>
                     <div class="ed-grid">
-                        <div class="ed-field span-2"><span>Видео-разбор, одно на весь урок (необязательно)</span><input type="text" id="lessonVideo" class="ed-input" placeholder="assets/video/artist/song/lesson.mp4"><input type="file" id="lessonVideoUpload" accept="video/mp4,.mp4"><div class="ed-upload-progress" id="lessonVideoProgress"><i></i></div></div>
+                        <label class="ed-field"><span>Длительность, сек</span><input type="number" id="duration" step="any" min="0" placeholder="берётся из видео"><small>Сайт берёт её из видео сам. Заполнять, только если видео нет.</small></label>
+                        <div class="ed-field span-2"><span>Видео-разбор, одно на весь урок (необязательно)</span><input type="text" id="lessonVideo" class="ed-input" placeholder="assets/video/artist/song/lesson.mp4"><input type="file" id="lessonVideoUpload" accept="video/mp4,.mp4"><div class="ed-upload-progress" id="lessonVideoProgress"><i></i></div><p class="ed-help ed-upload-note" id="lessonVideoNote" role="status"></p></div>
                     </div>
                 </details>
-            </section>
-
-            <section class="ed-section" aria-labelledby="hCover">
-                <header><h2 id="hCover">Обложка</h2><p>Картинка на карточке риффа: в библиотеке, коллекциях и профиле.</p></header>
-                <div class="ed-cover">
-                    <div class="ed-cover-frame"><img id="coverPreview" alt="Обложка риффа" hidden><span id="coverEmpty">Обложки пока нет</span></div>
-                    <div class="ed-cover-side">
-                        <div class="ed-cover-actions">
-                            <button type="button" class="ed-btn" id="coverFromVideo">Взять кадр из видео</button>
-                            <label class="ed-btn" for="thumbnailUpload">Загрузить картинку</label>
-                            <input type="file" id="thumbnailUpload" accept="image/png,image/jpeg,image/webp" hidden>
-                        </div>
-                        <p class="ed-help ed-cover-size">Лучше <b>1200×720</b> (5:3), JPG или PNG. В библиотеке карточка 5:3, в профиле она уже, края обрезаются: главное держите в центре.</p>
-                        <p class="ed-help" id="coverStatus" role="status">Кадр берётся из видео в разметке ниже, с того места, где оно стоит. Под видео есть такая же кнопка «В обложку».</p>
-                        <label class="ed-field"><span>Файл на сайте</span><input type="text" id="thumbnail" class="ed-input" placeholder="assets/img/riffs/artist-song.jpg"></label>
-                    </div>
-                </div>
-            </section>
-
-            <section class="ed-section" aria-labelledby="hTabs">
-                <header><h2 id="hTabs">Табы</h2><p>Это не картинка, а сами ноты: один файл табов на весь рифф. Сайт сам рисует под видео такты текущей части и ведёт по ним курсор. Картинки табов у частей тогда не нужны.</p></header>
-                <ol class="ed-tab-howto">
-                    <li>Возьмите файл Guitar Pro (.gp, .gp5, .gpx) с этим риффом. Если файла нет, наберите рифф на rechord.online: Tab Builder, режим Notation, кнопка «Экспорт GP».</li>
-                    <li>Загрузите файл ниже. Под полем появится, сколько в нём тактов.</li>
-                    <li>Нажмите «Синхронизировать по звуку»: сайт услышит в видео, какие такты играет каждая часть и где звучит каждая нота. Если звука в видео нет или он грязный, нажмите «Расставить такты по ролям». Проверьте такты у частей и сохраните.</li>
-                </ol>
-                <div class="ed-tab-ai">
-                    <p class="ed-tab-ai-lead"><b>Со скриншота.</b> Загрузите картинку таба ровно того, что звучит в видео (зачёркнутое не играется, пометки ручкой учитываются). ИИ наберёт таб по тем же правилам, что Claude в чате, сверит его со скриншотом и синхронизирует со звуком. Ничего не сохраняется, пока вы не нажмёте «Сохранить».</p>
-                    <div class="ed-tab-ai-row">
-                        <input type="file" id="tabAiImage" accept="image/png,image/jpeg,image/webp" aria-label="Скриншот таба">
-                        <input type="text" id="tabAiHint" class="ed-input" maxlength="1500" placeholder="Пояснение, если нужно: «такты 26–38», «повтор играется 2 раза»">
-                        <button type="button" class="ed-btn primary" id="tabAiRun">Распознать таб</button>
-                    </div>
-                    <p class="ed-tab-status" id="tabAiStatus" role="status"></p>
-                    <div class="ed-tab-ai-notes" id="tabAiNotes" hidden></div>
-                </div>
-                <div class="ed-grid">
-                    <div class="ed-field span-2"><span>Файл табов</span><input type="file" id="tabFileUpload" accept=".gp,.gp3,.gp4,.gp5,.gpx,.mxl,.musicxml,.xml" aria-label="Загрузить файл табов"><input type="text" id="tabFile" class="ed-input" placeholder="или путь к файлу на сайте: assets/tabs/artist/song/song.gp"></div>
-                    <details class="ed-more span-2" id="tabTexBox"><summary>Вместо файла: текст табов из rechord (Notation, кнопка «Код»)</summary><textarea id="tabTex" class="ed-input ed-tab-tex" rows="6" spellcheck="false" aria-label="Текст табов alphaTex" placeholder="\tempo 120&#10;.&#10;5.3 7.3 5.4 7.4 |"></textarea></details>
-                    <label class="ed-field"><span>Дорожка с гитарой</span><select id="tabTrack" class="ed-input"></select></label>
-                </div>
-                <p class="ed-tab-status" id="tabStatus" role="status"></p>
-                <div class="dna-atom-actions"><button type="button" class="ed-btn" id="tabSyncAudio">Синхронизировать по звуку</button><button type="button" class="ed-btn" id="tabAutoMap">Расставить такты по ролям</button></div>
             </section>
 
             <section class="ed-section" aria-labelledby="hMarkup">
@@ -248,12 +213,12 @@
                         <p>Включите видео и нажимайте <kbd>S</kbd> в конце каждой части, прямо на ходу. Неточную границу потом подвиньте мышкой на таймлайне или стрелками <kbd>←</kbd> <kbd>→</kbd> по кадру и <kbd>I</kbd> / <kbd>O</kbd>.</p>
                     </div>
                     <div>
-                        <h3>2. Назовите роль</h3>
-                        <p>Роль — что часть делает во фразе: <b>Call</b> открывает мысль, <b>Answer</b> отвечает на неё, <b>Land</b> приходит на тонику. Фраза может быть из двух частей (Call → Answer), трёх (Launch → Push → Land) или больше; сайт сам найдёт повторяющийся блок и покажет его с ×2, ×3. Список ролей общий для всех риффов. Своими словами пишется только поле «Что делает эта часть».</p>
+                        <h3>2. Роли: опишите словами</h3>
+                        <p>Под частями есть «Черновик с ИИ»: опишите рифф своими словами, и ИИ сам раздаст частям роли и напишет, что делает каждая. Вам останется проверить. Роль — что часть делает во фразе: <b>Call</b> открывает мысль, <b>Answer</b> отвечает на неё, <b>Land</b> приходит на тонику. Роль можно поменять и вручную в списке частей. Фраза может быть из двух частей (Call → Answer), трёх (Launch → Push → Land) или больше; сайт сам найдёт повторяющийся блок и покажет его с ×2, ×3. Список ролей общий для всех риффов.</p>
                     </div>
                     <div>
                         <h3>3. Отметьте приёмы</h3>
-                        <p>Остановите видео на бенде, слайде или hammer-on и нажмите <kbd>A</kbd>. Точка появится на нижней дорожке, детали приёма заполняются ниже, в Riff DNA.</p>
+                        <p>Остановите видео на бенде, слайде или hammer-on и нажмите <kbd>A</kbd>. Точка появится на нижней дорожке, детали приёма заполняются ниже, в Riff DNA. Приёмы из таба встают сами, когда таб синхронизирован.</p>
                     </div>
                     <div class="ed-guide-roles">
                         <div class="ed-roles" id="rolesLegend"></div>
@@ -309,18 +274,13 @@
                     </div>
                     <aside class="ed-parts" aria-label="Части риффа">
                         <div class="ed-parts-head"><b>Части</b><span id="segCount"></span></div>
-                        <div class="ed-parts-empty" id="segEmpty">Частей пока нет. Включите видео и нажимайте <kbd>S</kbd> в конце каждой части.</div>
+                        <div class="ed-parts-empty" id="segEmpty">Частей пока нет. Включите видео и нажимайте <kbd>S</kbd> в конце каждой части. Роли потом раздаст «Черновик с ИИ» под частями.</div>
                         <div id="segmentRows"></div>
                     </aside>
                 </div>
-            </section>
-
-            <section class="ed-section" aria-labelledby="hDna">
-                <header><h2 id="hDna">Riff DNA</h2><p>Почему рифф звучит именно так. Это видит ученик в панели DNA рядом с плеером.</p></header>
-                <label class="ed-check dna-reference"><input type="checkbox" id="dnaReference"> Эталон для ИИ: разметка этого риффа проверена, ИИ берёт её за образец</label>
                 <div id="dnaAiPanel" class="dna-ai">
-                    <label for="dnaAiNotes" class="dna-ai-title">Черновик с ИИ</label>
-                    <p class="coll-pick-hint">Опишите рифф своими словами: что происходит по сегментам, где пауза, куда садится, какие приёмы и примерно когда. ИИ раздаст роли сегментам и заполнит поля ниже по правилам методологии. Ничего не сохраняется, пока вы не проверите черновик и не нажмёте «Сохранить». Само описание сохраняется с риффом: по нему сверяются приёмы, которые встали из таба.</p>
+                    <label for="dnaAiNotes" class="dna-ai-title">Черновик с ИИ: роли частей и Riff DNA</label>
+                    <p class="coll-pick-hint">Нарезали части? Опишите рифф своими словами: что происходит по частям, где пауза, куда садится, какие приёмы и примерно когда. ИИ раздаст частям роли, напишет, что делает каждая, и заполнит Riff DNA ниже по правилам методологии. Вам останется проверить. Ничего не сохраняется, пока вы не нажмёте «Сохранить». Само описание сохраняется с риффом: по нему сверяются приёмы, которые встали из таба.</p>
                     <textarea id="dnaAiNotes" rows="4" placeholder="Вокал поёт фразу и замолкает, гитара врывается не в долю. Сегменты 1, 3, 5, 9 — вход, 2, 4, 6, 10 — разворот и посадка на E5. 7 и 8 — разбор деталей. На ~2 c четвертьтоновый бенд на 5 ладу G, легато 7–5–6–7 в начале."></textarea>
                     <div class="dna-ai-actions">
                         <button type="button" class="ed-btn" id="dnaAiRun">Составить черновик</button>
@@ -328,6 +288,12 @@
                     </div>
                     <div id="dnaAiResult" class="dna-ai-result" hidden></div>
                 </div>
+            </section>
+
+            <section class="ed-section" aria-labelledby="hDna">
+                <header><h2 id="hDna">Riff DNA</h2><p>Почему рифф звучит именно так. Это видит ученик в панели DNA рядом с плеером.</p></header>
+                <label class="ed-check dna-reference"><input type="checkbox" id="dnaReference"> Эталон для ИИ: разметка этого риффа проверена, ИИ берёт её за образец</label>
+                <p class="ed-help dna-ai-pointer">Черновик этих полей составляет ИИ: опишите рифф словами в блоке «Черновик с ИИ» под частями, в «Разметке».</p>
                 <div class="dna-admin-grid">
                     <label class="wide">Как рифф звучит целиком (Organism)<textarea id="dnaOverviewInput" placeholder="Голос оставляет паузу, гитара врывается, крутится на коротких клетках и садится на E"></textarea></label>
                     <div class="wide"><label>Приёмы (Atoms) — бенды, слайды, hammer-on в конкретный момент</label><details class="ed-more atom-legend"><summary>Справочник приёмов: сокращение на кнопке части, название и как играть</summary><p class="atom-legend-note">На сайте ученик видит то же самое: на телефоне на кнопке части стоит сокращение, а значок «Techniques» над частями открывает этот список с объяснениями.</p><div id="atomLegendList" class="atom-legend-list"></div></details><div id="dnaNotesCheck" class="dna-notes-check" role="status" hidden></div><div id="dnaAtomsEditor"></div><div class="dna-atom-actions"><button type="button" class="ed-btn" id="dnaAddAtom">+ Приём в текущий момент видео</button><button type="button" class="ed-btn" id="dnaTabAtoms">Приёмы из табов</button><span id="dnaTabAtomsStatus" class="ed-tab-status" role="status"></span></div></div>
@@ -339,6 +305,53 @@
                     <label>Упражнение: название<input type="text" id="dnaMutationTitleInput" placeholder="Write a riff in the same spirit"></label>
                     <label>Упражнение: суть<textarea id="dnaMutationDescriptionInput" placeholder="Что сохранить, что поменять"></textarea></label>
                     <label class="wide">Упражнение: шаги (по строке)<textarea id="dnaMutationStepsInput" placeholder="Один шаг на строку"></textarea></label>
+                </div>
+            </section>
+
+            <section class="ed-section" aria-labelledby="hTabs">
+                <header><h2 id="hTabs">Табы</h2><p>Сами ноты на весь рифф: сайт рисует их под видео и ведёт по ним курсор.</p></header>
+                <p class="ed-tab-claude"><b>Таб делает Claude.</b> Сохраните рифф, нажмите вверху «Скопировать для Claude», вставьте в чат и приложите скрин таба. Таб появится здесь сам, вместе с тактами у частей и приёмами.</p>
+                <div class="ed-tab-ai">
+                    <p class="ed-tab-ai-lead"><b>Со скриншота.</b> Загрузите картинку таба ровно того, что звучит в видео (зачёркнутое не играется, пометки ручкой учитываются). ИИ наберёт таб по тем же правилам, что Claude в чате, сверит его со скриншотом и синхронизирует со звуком. Ничего не сохраняется, пока вы не нажмёте «Сохранить».</p>
+                    <div class="ed-tab-ai-row">
+                        <input type="file" id="tabAiImage" accept="image/png,image/jpeg,image/webp" aria-label="Скриншот таба">
+                        <input type="text" id="tabAiHint" class="ed-input" maxlength="1500" placeholder="Пояснение, если нужно: «такты 26–38», «повтор играется 2 раза»">
+                        <button type="button" class="ed-btn primary" id="tabAiRun">Распознать таб</button>
+                    </div>
+                    <p class="ed-tab-status" id="tabAiStatus" role="status"></p>
+                    <div class="ed-tab-ai-notes" id="tabAiNotes" hidden></div>
+                </div>
+                <details class="ed-more ed-tab-manual" id="tabManual">
+                    <summary>Свой файл Guitar Pro или текст табов</summary>
+                    <ol class="ed-tab-howto">
+                        <li>Возьмите файл Guitar Pro (.gp, .gp5, .gpx) с этим риффом. Если файла нет, наберите рифф на rechord.online: Tab Builder, режим Notation, кнопка «Экспорт GP».</li>
+                        <li>Загрузите файл ниже. Под полем появится, сколько в нём тактов.</li>
+                        <li>Нажмите «Синхронизировать по звуку»: сайт услышит в видео, какие такты играет каждая часть и где звучит каждая нота. Если звука в видео нет или он грязный, нажмите «Расставить такты по ролям». Проверьте такты у частей и сохраните.</li>
+                    </ol>
+                    <div class="ed-grid">
+                        <div class="ed-field span-2"><span>Файл табов</span><input type="file" id="tabFileUpload" accept=".gp,.gp3,.gp4,.gp5,.gpx,.mxl,.musicxml,.xml" aria-label="Загрузить файл табов"><input type="text" id="tabFile" class="ed-input" placeholder="или путь к файлу на сайте: assets/tabs/artist/song/song.gp"></div>
+                        <details class="ed-more span-2" id="tabTexBox"><summary>Вместо файла: текст табов из rechord (Notation, кнопка «Код»)</summary><textarea id="tabTex" class="ed-input ed-tab-tex" rows="6" spellcheck="false" aria-label="Текст табов alphaTex" placeholder="\tempo 120&#10;.&#10;5.3 7.3 5.4 7.4 |"></textarea></details>
+                        <label class="ed-field"><span>Дорожка с гитарой</span><select id="tabTrack" class="ed-input"></select></label>
+                    </div>
+                </details>
+                <p class="ed-tab-status" id="tabStatus" role="status"></p>
+                <div class="dna-atom-actions"><button type="button" class="ed-btn" id="tabSyncAudio">Синхронизировать по звуку</button><button type="button" class="ed-btn" id="tabAutoMap">Расставить такты по ролям</button></div>
+            </section>
+
+            <section class="ed-section" aria-labelledby="hCover">
+                <header><h2 id="hCover">Обложка</h2><p>Картинка на карточке риффа: в библиотеке, коллекциях и профиле.</p></header>
+                <div class="ed-cover">
+                    <div class="ed-cover-frame"><img id="coverPreview" alt="Обложка риффа" hidden><span id="coverEmpty">Обложки пока нет</span></div>
+                    <div class="ed-cover-side">
+                        <div class="ed-cover-actions">
+                            <button type="button" class="ed-btn" id="coverFromVideo">Взять кадр из видео</button>
+                            <label class="ed-btn" for="thumbnailUpload">Загрузить картинку</label>
+                            <input type="file" id="thumbnailUpload" accept="image/png,image/jpeg,image/webp" hidden>
+                        </div>
+                        <p class="ed-help ed-cover-size">Лучше <b>1200×720</b> (5:3), JPG или PNG. В библиотеке карточка 5:3, в профиле она уже, края обрезаются: главное держите в центре.</p>
+                        <p class="ed-help" id="coverStatus" role="status">Кадр берётся из видео в «Разметке» выше, с того места, где оно стоит. Под тем видео есть такая же кнопка «В обложку».</p>
+                        <label class="ed-field"><span>Файл на сайте</span><input type="text" id="thumbnail" class="ed-input" placeholder="assets/img/riffs/artist-song.jpg"></label>
+                    </div>
                 </div>
             </section>
 
@@ -418,7 +431,7 @@
     <script src="../js/admin-tabs.js?v=5"></script>
     <script src="../js/tab-listing.js?v=1"></script>
     <script src="../js/admin-tab-ai.js?v=1"></script>
-    <script src="../js/admin-segments.js?v=ed4"></script>
+    <script src="../js/admin-segments.js?v=ed5"></script>
     <script src="../js/admin-cutter.js?v=ed1"></script>
     <script src="../js/image-shrink.js?v=1"></script>
     <script>
@@ -595,6 +608,16 @@
         if (r.hidden) return noVideo ? 'черновик, нет видео' : 'скрыт';
         return noVideo ? 'на сайте без видео' : '';
     }
+    // Work still missing, shown next to the riff in the list.
+    function missingLabel(r) {
+        var segs = Array.isArray(r.segments) ? r.segments : [];
+        var out = [];
+        if (!segs.length) out.push('нет частей');
+        else if (!segs.some(function (s) { return s.role; })) out.push('нет ролей');
+        if (!(r.tab && (r.tab.file || r.tab.tex)) && !segs.some(function (s) { return s.tab; })) out.push('нет таба');
+        if (!String(r.thumbnail || '').trim() || r.thumbnail === 'assets/img/riff-1.png') out.push('общая обложка');
+        return out.join(' · ');
+    }
     function hasVideo() {
         return !!(document.getElementById('videoFile').value.trim() || document.getElementById('videoFileUpload').files[0]);
     }
@@ -636,7 +659,7 @@
                 '<span class="riff-grip" title="Перетащить" aria-label="Перетащить">' + GripSvg + '</span>' +
                 '<div class="riff-move-btns"><button type="button" class="move-up" title="Выше">▲</button><button type="button" class="move-down" title="Ниже">▼</button></div></div>' +
                 '<span class="riff-list-thumb"></span>' +
-                '<span class="riff-list-song">' + (r.song||'') + (draftLabel(r) ? ' <span class="riff-list-draft">' + draftLabel(r) + '</span>' : '') + '</span>' +
+                '<span class="riff-list-song">' + (r.song||'') + (draftLabel(r) ? ' <span class="riff-list-draft">' + draftLabel(r) + '</span>' : '') + (missingLabel(r) ? '<span class="riff-list-missing">' + missingLabel(r) + '</span>' : '') + '</span>' +
                 '<span class="riff-list-artist">' + (r.artist||'') + '</span>' +
                 '<div class="riff-list-actions"><button type="button" class="btn btn-primary btn-small btn-edit">Редактировать</button><button type="button" class="btn btn-secondary btn-small btn-del">Удалить</button></div>';
             setListThumb(card.querySelector('.riff-list-thumb'), r.thumbnail);
@@ -722,6 +745,55 @@
         s.className = 'ed-bar-status' + (cls ? ' ' + cls : '');
         s.title = '';
     }
+    // Readiness strip under the Save bar: what the riff has and what is still missing; a click goes to that block.
+    var DEFAULT_COVER = 'assets/img/riff-1.png';
+    function hasOwnCover() {
+        var th = document.getElementById('thumbnail').value.trim();
+        return !!(coverBlob || (th && th !== DEFAULT_COVER));
+    }
+    function readyItems() {
+        var items = [], rowsEls = document.querySelectorAll('#segmentRows .segment-row');
+        var withRole = Array.prototype.filter.call(rowsEls, function (r) { return r.querySelector('.role').value; }).length;
+        var upKeys = Object.keys(videoUploads);
+        var upPct = upKeys.length ? Math.round(Math.min.apply(null, upKeys.map(function (k) { return videoUploads[k].progress; })) * 100) : 0;
+        var vL = document.getElementById('videoFile').value.trim(), vR = document.getElementById('videoFileRight').value.trim();
+        var pickL = !!document.getElementById('videoFileUpload').files[0], pickR = !!document.getElementById('videoFileRightUpload').files[0];
+        var cams = (vL || pickL ? 1 : 0) + (vR || pickR ? 1 : 0);
+        if (upKeys.length) items.push({ ok: false, wait: true, text: 'Видео грузится ' + upPct + '%', go: 'hVideo' });
+        else items.push({ ok: cams === 2, text: cams === 2 ? 'Видео: 2 камеры' : cams === 1 ? 'Видео: 1 камера из 2' : 'Видео нет', go: 'hVideo' });
+        items.push({ ok: rowsEls.length > 0 && withRole > 0, text: rowsEls.length ? 'Частей ' + rowsEls.length + ', роли ' + withRole + '/' + rowsEls.length : 'Частей нет', go: 'hMarkup' });
+        var dnaFilled = ['dnaOverviewInput', 'dnaRuleInput'].some(function (id) { return document.getElementById(id).value.trim(); });
+        items.push({ ok: dnaFilled, text: dnaFilled ? 'Riff DNA' : 'Riff DNA пусто', go: 'hDna' });
+        var tab = document.getElementById('tabTex').value.trim() || document.getElementById('tabFile').value.trim() || document.getElementById('tabFileUpload').files[0];
+        items.push({ ok: !!tab, text: tab ? 'Таб есть' : 'Таба нет', go: 'hTabs' });
+        items.push({ ok: hasOwnCover(), text: hasOwnCover() ? 'Обложка' : 'Обложка общая', go: 'hCover' });
+        var hidden = document.getElementById('hidden').checked;
+        items.push({ ok: !hidden, text: hidden ? 'Скрыт с сайта' : 'На сайте', go: 'hRiff', focus: 'hidden' });
+        return items;
+    }
+    var readyQueued = false;
+    function scheduleReady() {
+        if (readyQueued) return;
+        readyQueued = true;
+        requestAnimationFrame(function () { readyQueued = false; renderReady(); });
+    }
+    function renderReady() {
+        var box = document.getElementById('edReady');
+        box.replaceChildren();
+        readyItems().forEach(function (it) {
+            var b = document.createElement('button');
+            b.type = 'button';
+            b.className = 'ed-ready-item ' + (it.ok ? 'ok' : it.wait ? 'wait' : 'todo');
+            b.textContent = (it.ok ? '✓ ' : it.wait ? '… ' : '○ ') + it.text;
+            b.addEventListener('click', function () {
+                var h = document.getElementById(it.go), sec = h && h.closest('.ed-section');
+                if (sec) sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                if (it.focus) document.getElementById(it.focus).focus({ preventScroll: true });
+            });
+            box.appendChild(b);
+        });
+    }
+    new MutationObserver(scheduleReady).observe(document.getElementById('segmentRows'), { childList: true });
     function markDirty() {
         if (isDirty) return;
         isDirty = true;
@@ -731,7 +803,7 @@
         isDirty = false;
         setStatus(text || '', text ? 'saved' : '');
     }
-    window.RiffEditorDirty = markDirty;
+    window.RiffEditorDirty = function () { markDirty(); scheduleReady(); };
     function setTitle() {
         var song = document.getElementById('song').value.trim(), artist = document.getElementById('artist').value.trim();
         // The picker already names a saved riff; the title only helps while a new one has no entry yet.
@@ -741,11 +813,46 @@
         idBtn.hidden = isNew;
         idBtn.querySelector('b').textContent = document.getElementById('riffForm').dataset.editId || '';
         idBtn.querySelector('.ed-id-copy').textContent = 'скопировать';
+        document.getElementById('edCopyClaude').hidden = isNew;
+        document.getElementById('edCopyClaude').innerHTML = CLAUDE_LABEL;
+        document.getElementById('edIdPending').hidden = !isNew;
     }
+    // Clipboard API first; the old textarea trick where it is not available.
+    function copyText(text) {
+        if (navigator.clipboard && window.isSecureContext) return navigator.clipboard.writeText(text);
+        return new Promise(function (resolve, reject) {
+            var ta = document.createElement('textarea');
+            ta.value = text; ta.setAttribute('readonly', ''); ta.style.position = 'fixed'; ta.style.opacity = '0';
+            document.body.appendChild(ta); ta.select();
+            var ok = false;
+            try { ok = document.execCommand('copy'); } catch (err) {}
+            ta.remove();
+            if (ok) resolve(); else reject(new Error('copy'));
+        });
+    }
+    var CLAUDE_LABEL = '<span class="ed-claude-long">Скопировать для Claude</span><span class="ed-claude-short">Для Claude</span>';
+    // What Mike pastes into the chat with Claude next to the tab screenshot (docs/TAB_AGENT.md).
+    function claudeNote() {
+        var id = document.getElementById('riffForm').dataset.editId;
+        var song = document.getElementById('song').value.trim(), artist = document.getElementById('artist').value.trim();
+        var parts = document.querySelectorAll('#segmentRows .segment-row').length;
+        return 'Рифф ID ' + id + ' — «' + song + '»' + (artist ? ', ' + artist : '') + '\n' +
+            location.origin + '/practice.html?riff=' + id + '\n' +
+            (parts ? 'Частей размечено: ' + parts + '.' : 'Части ещё не размечены.') + ' Сделай таб по скрину ниже.';
+    }
+    document.getElementById('edCopyClaude').addEventListener('click', function () {
+        var btn = this;
+        copyText(claudeNote()).then(function () {
+            btn.textContent = 'Скопировано ✓';
+            setTimeout(function () { btn.innerHTML = CLAUDE_LABEL; }, 4000);
+        }, function () {
+            window.prompt('Скопируйте этот текст для Claude:', claudeNote());
+        });
+    });
     document.getElementById('edRiffId').addEventListener('click', function () {
         var btn = this, id = btn.querySelector('b').textContent;
         var done = function () { btn.querySelector('.ed-id-copy').textContent = 'скопировано'; };
-        if (navigator.clipboard) navigator.clipboard.writeText(id).then(done, function () {}); else done();
+        copyText(id).then(done, function () {});
     });
     // The DNA assistant reads the riff being edited from window.
     function setEditing(riff) { editingRiff = riff; window.editingRiff = riff; }
@@ -771,9 +878,11 @@
         setCover(null, riff.thumbnail || '');
         document.getElementById('lessonVideo').value = riff.lessonVideo || '';
         ['videoFileUpload', 'videoFileRightUpload', 'thumbnailUpload', 'lessonVideoUpload'].forEach(function (id) { document.getElementById(id).value = ''; });
+        resetVideoUploads();
         syncHidden();
         SegmentEditor.load(riff);
         TabEditor.load(riff);
+        document.getElementById('tabManual').open = !!(riff.tab && (riff.tab.file || riff.tab.tex));
         RiffDNAEditor.load(riff);
         SegmentEditor.render();
         document.getElementById('riffForm').dataset.editId = riff.id || '';
@@ -782,6 +891,7 @@
         else loadCollectionsMeta(function () { renderCollChecks(riff.collectionIds || []); });
         setTitle();
         markClean();
+        scheduleReady();
     }
     function loadRiff(id) {
         return fetch(listUrl).then(function(r){return r.json();}).then(function(list){
@@ -831,18 +941,86 @@
         if (variants) fd.append('variants', variants);
         return fetch(uploadUrl, { method: 'POST', body: fd }).then(apiJson).then(function(d){ return d.success&&d.path ? d.path : Promise.reject(new Error(d.error === 'No file or upload error' ? 'Сервер не принял файл: он больше 2 МБ или загрузка оборвалась.' : (d.error||'Upload failed'))); });
     }
-    // Videos go up in chunks: the server takes at most 2 MB per request.
-    function uploadVideo(file, path, barId) {
-        var bar = document.getElementById(barId);
-        if (bar) bar.classList.add('on');
-        return RiffCutter.upload(file, path, function (p) { if (bar) bar.firstElementChild.style.width = Math.round(p * 100) + '%'; })
-            .then(function (saved) { if (bar) bar.classList.remove('on'); return saved; }, function (err) { if (bar) bar.classList.remove('on'); throw err; });
+    // Videos go up in chunks (RiffCutter.upload): the server takes at most 2 MB per request.
+    // Camera and lesson videos start going up as soon as a file is picked; Save only waits for what is still on its way.
+    var VIDEO_SLOTS = {
+        videoFileUpload: { field: 'videoFile', suffix: '-left.mp4', bar: 'videoFileProgress', note: 'videoFileNote' },
+        videoFileRightUpload: { field: 'videoFileRight', suffix: '-right.mp4', bar: 'videoFileRightProgress', note: 'videoFileRightNote' },
+        lessonVideoUpload: { field: 'lessonVideo', suffix: '-lesson.mp4', bar: 'lessonVideoProgress', note: 'lessonVideoNote' }
+    };
+    var videoUploads = {};
+    function uploadNote(inputId, text, warn) {
+        var n = document.getElementById(VIDEO_SLOTS[inputId].note);
+        n.textContent = text || '';
+        n.classList.toggle('warn', !!warn);
     }
+    function uploadBar(inputId, p) {
+        var bar = document.getElementById(VIDEO_SLOTS[inputId].bar);
+        bar.classList.toggle('on', p != null);
+        bar.firstElementChild.style.width = Math.round((p || 0) * 100) + '%';
+    }
+    function namesReady() { return !!(document.getElementById('song').value.trim() && document.getElementById('artist').value.trim()); }
+    // Promise of the saved path for a picked file, or null when no file is picked (or names are still missing).
+    function videoUpload(inputId) {
+        var slot = VIDEO_SLOTS[inputId], input = document.getElementById(inputId), file = input.files[0], cur = videoUploads[inputId];
+        if (!file) return null;
+        if (cur && cur.file === file) return cur.promise;
+        if (cur) cur.state.cancelled = true;
+        if (!namesReady()) { uploadNote(inputId, 'Файл выбран. Загрузка начнётся, как только будут указаны песня и исполнитель: по ним называется папка.'); return null; }
+        var job = { file: file, state: { cancelled: false }, progress: 0 };
+        var path = videoBase() + slugOf(document.getElementById('song').value.trim()) + slot.suffix;
+        videoUploads[inputId] = job;
+        uploadBar(inputId, 0);
+        uploadNote(inputId, 'Загружается… 0%. Пока можно размечать.');
+        job.promise = RiffCutter.upload(file, path, function (p) {
+            if (videoUploads[inputId] !== job) return;
+            job.progress = p;
+            uploadBar(inputId, p);
+            uploadNote(inputId, 'Загружается… ' + Math.round(p * 100) + '%. Пока можно размечать.');
+            scheduleReady();
+        }, job.state).then(function (saved) {
+            if (videoUploads[inputId] !== job) return saved;
+            delete videoUploads[inputId];
+            uploadBar(inputId, null);
+            document.getElementById(slot.field).value = saved;
+            input.value = '';
+            uploadNote(inputId, 'Загружено. Нажмите «Сохранить», чтобы рифф его использовал.');
+            scheduleReady();
+            return saved;
+        }, function (err) {
+            if (videoUploads[inputId] === job) {
+                delete videoUploads[inputId];
+                uploadBar(inputId, null);
+                uploadNote(inputId, 'Не загрузилось: ' + err.message + '. «Сохранить» попробует ещё раз.', true);
+                scheduleReady();
+            }
+            throw err;
+        });
+        job.promise.catch(function () {});
+        scheduleReady();
+        return job.promise;
+    }
+    function uploadsWaiting() { return Object.keys(videoUploads).length > 0; }
+    function resetVideoUploads() {
+        Object.keys(VIDEO_SLOTS).forEach(function (id) {
+            if (videoUploads[id]) videoUploads[id].state.cancelled = true;
+            uploadBar(id, null);
+            uploadNote(id, '');
+        });
+        videoUploads = {};
+    }
+    Object.keys(VIDEO_SLOTS).forEach(function (id) {
+        document.getElementById(id).addEventListener('change', function () { videoUpload(id); });
+    });
+    ['song', 'artist'].forEach(function (id) {
+        document.getElementById(id).addEventListener('change', function () { Object.keys(VIDEO_SLOTS).forEach(videoUpload); });
+    });
     // Cover: a picked image or a frame from the markup video waits here and goes up on save.
     // Each upload gets its own file name, so a shared default cover is never overwritten and cards skip stale caches.
     var coverBlob = null, coverObjectUrl = null;
     function setCover(blob, path) {
         coverBlob = blob;
+        scheduleReady();
         if (coverObjectUrl) { URL.revokeObjectURL(coverObjectUrl); coverObjectUrl = null; }
         var img = document.getElementById('coverPreview'), src = '';
         if (blob) src = coverObjectUrl = URL.createObjectURL(blob);
@@ -928,7 +1106,7 @@
         var form = document.getElementById('riffForm');
         var editId = form.dataset.editId||'', song = document.getElementById('song').value.trim(), artist = document.getElementById('artist').value.trim();
         if(!song||!artist){ showMsg('Укажите песню и исполнителя', true); document.getElementById(song ? 'artist' : 'song').focus(); return; }
-        var songSlug = slugOf(song), basePath = videoBase();
+        var basePath = videoBase();
         var vL = document.getElementById('videoFile').value.trim(), vR = document.getElementById('videoFileRight').value.trim(), th = document.getElementById('thumbnail').value.trim(), vLesson = document.getElementById('lessonVideo').value.trim();
         var uL = document.getElementById('videoFileUpload').files[0], uR = document.getElementById('videoFileRightUpload').files[0], uLesson = document.getElementById('lessonVideoUpload').files[0];
         var bad = SegmentEditor.validate();
@@ -938,14 +1116,15 @@
         try { dna = RiffDNAEditor.read(editingRiff && editingRiff.dna); }
         catch (err) { showMsg(err.message, true); return; }
         var warnings = checked === true ? [] : RiffDNALint.check({ segments: segs, dna: dna });
+        if (checked !== true && hasVideo() && !hasOwnCover()) warnings.push({ text: 'Обложки нет: на карточке будет общая картинка. Кадр берётся кнопкой «В обложку» под видео в «Разметке».' });
         if (warnings.length) { confirmLint(warnings).then(function (ok) { if (ok) save(true); }); return; }
         var submitBtn = document.getElementById('submitBtn'); submitBtn.disabled = true;
-        setStatus('Сохраняю…');
+        setStatus((uL || uR || uLesson) ? 'Сохраняю, жду загрузку видео…' : 'Сохраняю…');
         Promise.all([
-            uL ? uploadVideo(uL, basePath + songSlug + '-left.mp4', 'videoFileProgress') : Promise.resolve(vL),
-            uR ? uploadVideo(uR, basePath + songSlug + '-right.mp4', 'videoFileRightProgress') : Promise.resolve(vR),
+            videoUpload('videoFileUpload') || Promise.resolve(vL),
+            videoUpload('videoFileRightUpload') || Promise.resolve(vR),
             coverBlob ? shrinkImage(coverBlob).then(function (b) { return uploadImage(b, coverPath(b), 'card'); }) : Promise.resolve(th),
-            uLesson ? uploadVideo(uLesson, basePath + songSlug + '-lesson.mp4', 'lessonVideoProgress') : Promise.resolve(vLesson),
+            videoUpload('lessonVideoUpload') || Promise.resolve(vLesson),
             TabEditor.collect(uploadImage, basePath.replace(/^assets\/video\//, 'assets/tabs/'))
         ]).then(function(r){
             var riff = Object.assign({}, editingRiff || {}, { song:song, artist:artist, duration: SegmentEditor.duration() || parseFloat(document.getElementById('duration').value)||0, difficulty: document.getElementById('difficulty').value||'intermediate', genre: document.getElementById('genre').value.trim()||'rock', isFree: document.getElementById('isFree').checked, hidden: document.getElementById('hidden').checked, dnaReference: document.getElementById('dnaReference').checked, videoFile: r[0]||'', videoFileRight: r[1]||'', thumbnail: r[2]||'assets/img/riff-1.png', lessonVideo: r[3]||vLesson||null, segments: segs, dna: dna, collectionIds: getSelectedCollectionIds() });
@@ -983,8 +1162,9 @@
         if (e.target.id === 'riffSelect') return;
         if (e.target.id === 'song' || e.target.id === 'artist') setTitle();
         markDirty();
+        scheduleReady();
     });
-    document.getElementById('riffForm').addEventListener('change', function (e) { if (e.target.id !== 'riffSelect' && e.isTrusted) markDirty(); });
+    document.getElementById('riffForm').addEventListener('change', function (e) { if (e.target.id !== 'riffSelect' && e.isTrusted) markDirty(); scheduleReady(); });
     document.getElementById('videoFile').addEventListener('change', function () { SegmentEditor.setVideo(this.value || document.getElementById('videoFileRight').value); });
     document.getElementById('videoFile').addEventListener('input', syncHidden);
     // A chosen file plays here right away, before it is uploaded on save.
@@ -993,6 +1173,8 @@
         syncHidden();
         if (f) SegmentEditor.setVideo(URL.createObjectURL(f));
     });
+
+    document.getElementById('tabTexBox').addEventListener('toggle', function () { if (this.open) document.getElementById('tabManual').open = true; });
 
     RiffCutter.init({
         base: function () { return videoBase(); },
@@ -1011,6 +1193,7 @@
             videoSource = { file: result.source, left: result.boxes.left, right: result.boxes.right };
             SegmentEditor.setVideo(result.left);
             markDirty();
+            scheduleReady();
             showMsg('Готово: два видео нарезаны и подставлены. Нажмите «Сохранить», чтобы рифф их использовал.');
         }
     });

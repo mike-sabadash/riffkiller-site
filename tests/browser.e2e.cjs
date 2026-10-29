@@ -171,6 +171,7 @@ test('editor captures boundaries, edits Atoms, saves and reopens without losing 
     await page.waitForFunction(()=>document.getElementById('segmentEditorVideo').readyState>=2);
     await page.evaluate(()=>{segmentEditorVideo.currentTime=.1;});await page.waitForFunction(()=>!segmentEditorVideo.seeking);await page.click('#segmentSetStart');
     assert.equal(Number(await page.locator('#segmentRows .start').first().inputValue()),.1);
+    await page.locator('#segmentRows .segment-row').first().locator('.seg-more summary').click();
     await page.locator('#segmentRows .name').first().fill('Edited in browser');
     await page.locator('#dnaAtomsEditor [data-field="label"]').first().fill('Edited Atom');
     var firstSave = page.waitForResponse(r=>r.url().endsWith('/api/riffs/save.php'));
@@ -208,6 +209,8 @@ async function editor(t,width=1440,video=webm()){
     await page.waitForFunction(()=>segmentEditorVideo.readyState>=1&&segmentEditorVideo.duration>0);
     return page;
 }
+// The alphaTex box sits in the collapsed «own file or text» block of the Tabs section.
+const openTabText=page=>page.evaluate(()=>{document.getElementById('tabManual').open=true;document.getElementById('tabTexBox').open=true;});
 const bounds=page=>page.evaluate(()=>[...document.querySelectorAll('#segmentRows .segment-row')].map(r=>[Number(r.querySelector('.start').value),Number(r.querySelector('.end').value)]));
 test('markup editor: S splits at the playhead, undo restores, dragging a boundary trims, keys pick roles and save persists',async t=>{
     const page=await editor(t);
@@ -326,6 +329,49 @@ test('draft: a new riff starts hidden; shown without a video it has a card and a
     assert.match(await home.locator('.breadcrumb-current').innerText(),/Paranoid/);
     assert.ok(!await home.locator('#videoErrorState').isVisible(),'no download error');
     await home.close();
+});
+test('riff editor flow: blocks in working order, readiness strip, video goes up once picked, copy for Claude, list shows what is missing',async t=>{
+    const store=path.join(site.dir,'data/riffs.json'),original=fs.readFileSync(store);t.after(()=>fs.writeFileSync(store,original));
+    const page=await pageFor(t);const [name,value]=(await site.adminCookie()).split('=');await page.context().addCookies([{name,value,url:site.base}]);
+    await page.goto(site.base+'/admin/riffs.html',{waitUntil:'domcontentloaded'});await page.click('.admin-tab[data-tab="edit"]');
+    await page.waitForSelector('#collChecks input');
+    assert.deepEqual(await page.$$eval('#riffForm .ed-section > header h2',hs=>hs.map(h=>h.id)),['hRiff','hVideo','hMarkup','hDna','hTabs','hCover']);
+    assert.equal(await page.$eval('#dnaAiPanel',e=>e.closest('.ed-section').querySelector('h2').id),'hMarkup','the AI draft sits right under the parts');
+    assert.ok(await page.isVisible('#edIdPending')&&!await page.isVisible('#edCopyClaude'),'a new riff has no ID to copy yet');
+    let ready=await page.innerText('#edReady');
+    for(const re of [/Видео нет/,/Частей нет/,/Таба нет/,/Обложка общая/,/Скрыт с сайта/])assert.match(ready,re);
+    assert.ok(!await page.isVisible('#duration'),'duration is tucked away: it comes from the video');
+    assert.ok(!await page.isVisible('#tabFileUpload')&&await page.isVisible('#tabAiRun'),'own tab file is tucked away, the screenshot reader is in view');
+    // The file goes up as soon as it is picked, before Save.
+    await page.fill('#song','Iron Man');await page.fill('#artist','Black Sabbath');
+    await page.setInputFiles('#videoFileUpload',webm());
+    await page.waitForFunction(()=>/^assets\/video\/black-sabbath\/iron-man\/iron-man-left(-\d+)?\.mp4$/.test(document.getElementById('videoFile').value),null,{timeout:30000});
+    const uploaded=await page.inputValue('#videoFile');t.after(()=>fs.rmSync(path.join(site.dir,uploaded),{force:true}));
+    assert.ok(fs.existsSync(path.join(site.dir,uploaded)),'on the server before Save');
+    assert.equal(await page.$eval('#videoFileUpload',i=>i.files.length),0);
+    assert.match(await page.innerText('#videoFileNote'),/Загружено/);
+    await page.waitForFunction(()=>/1 камера из 2/.test(document.getElementById('edReady').innerText));
+    // No cover yet: the check before saving says so; save anyway.
+    const save=page.waitForResponse(r=>r.url().endsWith('/api/riffs/save.php'));await page.click('#submitBtn');
+    await page.waitForSelector('#dnaLintDialog[open]');assert.match(await page.innerText('#dnaLintList'),/Обложки нет/);
+    await page.click('#dnaLintSave');assert.equal((await save).status(),200);
+    await page.waitForFunction(()=>/Сохранено/.test(document.getElementById('edStatus').textContent));
+    const riff=JSON.parse(fs.readFileSync(store)).find(r=>r.song==='Iron Man');
+    assert.equal(riff.videoFile,uploaded);
+    assert.ok(await page.isVisible('#edCopyClaude')&&!await page.isVisible('#edIdPending'));
+    await page.evaluate(()=>{navigator.clipboard.writeText=text=>{window.__copied=text;return Promise.resolve();};});
+    await page.click('#edCopyClaude');
+    const note=await page.evaluate(()=>window.__copied);
+    assert.match(note,new RegExp('^Рифф ID '+riff.id+' — «Iron Man», Black Sabbath\\n'));
+    assert.match(note,new RegExp('/practice\\.html\\?riff='+riff.id+'\\n'));
+    assert.match(await page.innerText('#edCopyClaude'),/Скопировано/);
+    // The strip jumps to the block it names.
+    await page.click('#edReady .ed-ready-item:has-text("Таба нет")');
+    await page.waitForFunction(()=>{const r=document.querySelector('section[aria-labelledby="hTabs"]').getBoundingClientRect();return r.top<window.innerHeight&&r.bottom>0;});
+    if(process.env.QA_SCREENSHOTS)await page.screenshot({path:path.join(process.env.QA_SCREENSHOTS,'editor-flow.png')});
+    await page.click('.admin-tab[data-tab="list"]');
+    const missing=await page.innerText('.riff-card[data-id="'+riff.id+'"] .riff-list-missing');
+    assert.match(missing,/нет частей/);assert.match(missing,/нет таба/);assert.match(missing,/общая обложка/);
 });
 test('admin collection list shows each card picture; recent riffs leave out ones deleted from the catalog',async t=>{
     const page=await pageFor(t);const [name,value]=(await site.adminCookie()).split('=');await page.context().addCookies([{name,value,url:site.base}]);
@@ -742,7 +788,7 @@ test('on a phone a looped part turns back before its end even when the page is c
 });
 test('tab block reads alphaTex, maps bars to parts by role and length, and saves them with the riff',async t=>{
     const page=await editor(t);
-    await page.click('#tabTexBox summary');
+    await openTabText(page);
     await page.fill('#tabTex','\\tempo 171\n.\n\\ts 5 8 7.4.8 5.3.8 6.3.8 7.3.8 7.4.8 |\n\\ts 4 4 \\tempo 160 5.2.4{v} 7.3.4 5.3.8 7.4.8 5.4.4');
     await page.waitForFunction(()=>/Прочитано: 2 такта/.test(document.getElementById('tabStatus').textContent),null,{timeout:20000});
     await page.click('#tabAutoMap');
@@ -760,7 +806,7 @@ test('tab block reads alphaTex, maps bars to parts by role and length, and saves
 });
 test('DNA atoms are suggested from the tab at their moment in the part that plays the bar',async t=>{
     const page=await editor(t);
-    await page.click('#tabTexBox summary');
+    await openTabText(page);
     await page.fill('#tabTex','\\tempo 120\n.\n5.3{b (0 4)} 7.3{h} 9.3 5.6{pm} 5.6{pm} |\n7.3{sl} 9.3 r.2 |');
     await page.waitForFunction(()=>/Прочитано: 2 такта/.test(document.getElementById('tabStatus').textContent),null,{timeout:20000});
     await page.evaluate(()=>{document.getElementById('dnaAtomsEditor').replaceChildren();document.querySelectorAll('#segmentRows .tab-bars').forEach((i,k)=>{i.value=k===0?'1-2':''})});
@@ -798,7 +844,7 @@ test('sound sync finds each part bars and note times in the video, skips silent 
     require('node:child_process').execFileSync('ffmpeg',['-hide_banner','-loglevel','error','-y','-f','lavfi','-i','testsrc2=size=320x180:rate=30','-i',wav,'-t','18.57','-c:v','libvpx-vp9','-b:v','100k','-deadline','realtime','-c:a','libopus','-b:a','96k',file]);
     t.after(()=>fs.rmSync(dir,{recursive:true,force:true}));
     const page=await editor(t,1440,file);
-    await page.click('#tabTexBox summary');await page.fill('#tabTex',tex);
+    await openTabText(page);await page.fill('#tabTex',tex);
     await page.waitForFunction(()=>/Прочитано: 2 такта/.test(document.getElementById('tabStatus').textContent),null,{timeout:20000});
     await page.click('#tabSyncAudio');
     await page.waitForFunction(()=>/По звуку синхронизировано/.test(document.getElementById('tabStatus').textContent),null,{timeout:60000});
