@@ -551,7 +551,8 @@ function initPracticePage() {
         if (found && !found.videoFile && (found.song || found.title || found.name)) {
             currentRiff = found;
             updateTitle();
-            showVideoSoonState(found);
+            var soonLock = window.RiffKillerRiffGallery && RiffKillerRiffGallery.lockOf ? RiffKillerRiffGallery.lockOf(found) : (found.lock || '');
+            if (soonLock) showRiffLockedState(found); else showVideoSoonState(found);
             loadRecentlyPracticedRiffs();
             return;
         }
