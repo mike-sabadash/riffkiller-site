@@ -424,12 +424,12 @@ class Renderer:
                 d.line([x0, y, self.PX1 - 24, y], fill=(255, 255, 255, 70), width=2)
         d.line([self.inner0 - 26, self.ys[0] - 2, self.inner0 - 26, self.ys[-1] + 2], fill=(255, 255, 255, 110), width=3)
 
-        # cursor (same look as the practice page: soft lime band with an even outline)
+        # cursor: a quiet frosted-white bar, softly rounded, no outline (Mike, 30.10.2026)
         x = X(cx)
-        band = [x - 19, self.ys[0] - 22, x + 19, self.ys[-1] + 22]
+        band = [x - 21, self.ys[0] - 20, x + 21, self.ys[-1] + 20]
         base = Image.alpha_composite(base, ov)
         ov = Image.new('RGBA', (W, H), (0, 0, 0, 0)); d = ImageDraw.Draw(ov)
-        d.rounded_rectangle(band, 11, fill=LIME + (46,), outline=LIME + (190,), width=3)
+        d.rounded_rectangle(band, 6, fill=(255, 255, 255, 40))
         base = Image.alpha_composite(base, ov)
         ov = Image.new('RGBA', (W, H), (0, 0, 0, 0)); d = ImageDraw.Draw(ov)
         bent = {m[1] for m in self._bend_marks() if m[0] == 'bend'}
