@@ -390,10 +390,9 @@ function enterDropMode(riff, key) {
     bar.className = 'drop-bar';
     bar.id = 'dropBar';
     bar.innerHTML =
-        '<span class="drop-bar-badge">Full breakdown</span>' +
         '<span class="drop-bar-text" id="dropBarText"></span>' +
         '<button type="button" class="drop-bar-btn" id="dropBarSignup">Start free</button>' +
-        '<a class="drop-bar-btn drop-bar-btn--ghost" id="dropBarMore" href="index.html" hidden>More riffs →</a>';
+        '<a class="drop-bar-link" id="dropBarMore" href="index.html" hidden>More riffs →</a>';
     header.appendChild(bar);
     const auth = window.authManager;
     const signedIn = function() { return !!(auth && auth.isAuthenticated); };

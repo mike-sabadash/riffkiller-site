@@ -2144,32 +2144,29 @@ html.rk-drop .recently-practiced,
 html.rk-drop .btn-plans-nav,
 html.rk-drop .footer-link[href="billing.html"] { display: none !important; }
 html.rk-drop:not(.rk-drop-member) .topbar-logo-wrap { pointer-events: none; }
+/* Teaser link: one quiet line under the title, no box, no badge. */
 .drop-bar {
-    display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px;
-    margin-top: 12px; padding: 10px 12px; border-radius: 12px;
-    background: rgba(147, 85, 229, 0.14); border: 1px solid rgba(147, 85, 229, 0.35);
-    font-size: 14px; color: rgba(244, 247, 255, 0.85);
+    display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px;
+    margin-top: 10px; font-size: 15px; color: rgba(244, 247, 255, 0.6);
 }
-.drop-bar-badge { font-weight: 700; color: #fff; text-transform: uppercase; letter-spacing: 0.04em; font-size: 12px; }
-.drop-bar-text { flex: 1 1 180px; }
 .drop-bar-btn {
-    flex: none; padding: 8px 14px; border-radius: 999px; border: 0; cursor: pointer;
-    font: inherit; font-weight: 600; color: #0b0b0f; background: #fff; text-decoration: none;
+    flex: none; padding: 9px 16px; border-radius: 10px; border: 0; cursor: pointer;
+    font: inherit; font-weight: 600; color: #0b0b0f; background: #fff;
 }
-.drop-bar-btn--ghost { color: #fff; background: transparent; border: 1px solid rgba(255, 255, 255, 0.35); }
-.drop-bar-btn[hidden] { display: none; }
-html[data-theme='light'] .drop-bar { color: #12121a; background: rgba(147, 85, 229, 0.1); }
-html[data-theme='light'] .drop-bar-badge { color: #12121a; }
+.drop-bar-link { color: #fff; font-weight: 600; text-decoration: none; }
+.drop-bar-link:hover { text-decoration: underline; text-underline-offset: 3px; }
+.drop-bar-btn[hidden], .drop-bar-link[hidden] { display: none; }
+html[data-theme='light'] .drop-bar { color: rgba(18, 18, 26, 0.6); }
 html[data-theme='light'] .drop-bar-btn { color: #fff; background: #12121a; }
-html[data-theme='light'] .drop-bar-btn--ghost { color: #12121a; background: transparent; border-color: rgba(18, 18, 26, 0.3); }
-/* On a phone the page opens scrolled to the video: the sign-up bar stays at the bottom of the screen. */
+html[data-theme='light'] .drop-bar-link { color: #12121a; }
+/* On a phone the page opens scrolled to the video: the sign-up line stays pinned to the bottom edge. */
 @media (max-width: 760px) {
     html.rk-drop:not(.rk-drop-member) .drop-bar {
-        position: fixed; left: 12px; right: 12px; bottom: calc(12px + env(safe-area-inset-bottom, 0px)); z-index: 60; margin: 0;
-        background: rgba(28, 20, 44, 0.94); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.45);
+        position: fixed; left: 0; right: 0; bottom: 0; z-index: 60; margin: 0;
+        padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
+        justify-content: space-between; flex-wrap: nowrap;
+        background: #0b0b0f; border-top: 1px solid rgba(255, 255, 255, 0.1);
     }
-    html.rk-drop:not(.rk-drop-member) .drop-bar-badge { display: none; }
-    html.rk-drop:not(.rk-drop-member) body { padding-bottom: 96px; }
-    html[data-theme='light'].rk-drop:not(.rk-drop-member) .drop-bar { background: rgba(244, 240, 252, 0.96); }
+    html.rk-drop:not(.rk-drop-member) body { padding-bottom: 80px; }
+    html[data-theme='light'].rk-drop:not(.rk-drop-member) .drop-bar { background: #fff; border-top-color: rgba(18, 18, 26, 0.12); }
 }
