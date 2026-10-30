@@ -58,3 +58,15 @@ Hammer-on и pull-off не подписываются: мягкий удар м�
 по центру с отступами, правый край левее колонки иконок, низ выше подписи.
 Курсор как в практике на сайте: мягкая лаймовая полоса с обводкой (`.tab-live-cursor`).
 Шрифт — Inter с сайта (`assets/fonts`, SIL OFL).
+
+## Patreon (всегда вместе с Reels)
+Каждый лик выходит в два места: Reels (вертикальное видео) и пост на Patreon.
+Для Patreon тем же видео + обложка + текст поста + PDF-карточка таба во вложении.
+```
+python3 tools/reels/patreon.py --tab lick.tab.txt --timings lick.timings.json \
+    --meta lick.lick.json --video lick.mov --out-dir out/ --name blues-lick-01
+```
+- `lick.lick.json` — номер, название, тональность, части (Split), советы (Practice) и текст поста; образец `examples/blues-lick-01.lick.json`.
+- Выход: `-card.pdf` (A4, белый, таб в нотной манере, части лика, практика), `-cover.png` (1920×1080, кадр из видео + заголовок),
+  `-post.md` (заголовок и текст поста на английском).
+- Величина подтяжек («full») берётся из timings, как в ролике.
