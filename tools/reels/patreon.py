@@ -154,7 +154,7 @@ ol.tips li::marker {{ color: #9a9a9a; font-weight: 600; }}
 <div class="meta"><div><b>Key</b>{html.escape(meta.get('key', ''))}</div><div><b>Position</b>{html.escape(meta.get('position', ''))}</div><div><b>Techniques</b>{html.escape(tech)}</div></div>
 <div class="rule"></div>
 <div class="tab">{svg}</div>
-<div class="cols"><div><h2>Parts</h2><ol class="parts">{parts}</ol></div><div><h2>Practice</h2><ol class="tips">{tips}</ol></div></div>
+<div class="cols"><div><h2>Split</h2><ol class="parts">{parts}</ol></div><div><h2>The Riff DNA way</h2><ol class="tips">{tips}</ol></div></div>
 <div class="foot"><div>Watch it played: full speed, then slow — in the post video.</div><div>{site}</div></div>
 </div></body></html>"""
 

@@ -30,15 +30,15 @@
     }
   ],
   "practice": [
-    "Watch the slow take a couple of times before you play.",
-    "Learn it in three chunks, one at a time.",
+    "Scan — watch the slow take twice. Hear the whole lick before you play.",
+    "Split — three parts: Call, Turn, Landing (left).",
     {
-      "no_app": "Start slow; speed up only when a chunk is clean.",
-      "app": "Loop each chunk in {app_name} at x0.5, then x0.75, then x1."
+      "no_app": "Isolate — the two bends alone until the 3rd fret sounds like the 5th. Slow first, speed up only when clean.",
+      "app": "Isolate — loop each part in {app_name} at x0.5, x0.75, x1; the bends alone until the 3rd fret sounds like the 5th."
     },
-    "Bend until the 3rd fret sounds like the 5th. No half-way.",
-    "Join the chunks and play along with the fast take.",
-    "Make it yours: end on E7 (0-3-0-1-2-0) or move the turn up an octave."
+    "Decode — E minor pentatonic that lands on E major: the G–G# climb goes from the blue third to the major third, so the chord sounds like home.",
+    "Mutate — end on E7 (0-3-0-1-2-0) or move the turn up an octave. Keep the bends.",
+    "Return — play it whole along with the fast take."
   ],
   "post": {
     "title": "Blues Licks Series — Ending in E",
@@ -46,8 +46,8 @@
       "A short blues ending in E that sits in open position: a full bend on the high E, a chromatic turn on the B string, and a walk down to the E chord with one more bend on the low E.",
       "The video plays it twice: full speed first, then slow. The tab runs with the playing, and in the slow take the open top strings light up on the guitar, so you see exactly when they ring.",
       {
-        "no_app": "How to learn it:\n1. Watch the slow take a couple of times before you play.\n2. Learn it in three chunks: notes 1–7, 8–11, 12–19.\n3. Start slow and speed up only when each chunk is clean.\n4. Bend until the 3rd fret sounds like the 5th. No half-way.\n5. Join the chunks and play along with the fast take.\n6. Make it yours: end on E7 or move the B-string turn up an octave.",
-        "app": "How to learn it:\n1. Watch the slow take a couple of times before you play.\n2. Learn it in three chunks: notes 1–7, 8–11, 12–19.\n3. Loop each chunk in {app_name} at x0.5, then x0.75, then x1.\n4. Bend until the 3rd fret sounds like the 5th. No half-way.\n5. Join the chunks and play along with the fast take.\n6. Make it yours: end on E7 or move the B-string turn up an octave."
+        "no_app": "How to learn it, the Riff DNA way:\n1. Scan — watch the slow take twice. Hear the whole lick before you touch the guitar.\n2. Split — three parts: Call (notes 1–7), Turn (8–11), Landing (12–19).\n3. Isolate — practice the two bends alone until the 3rd fret sounds like the 5th. Start slow, speed up only when each part is clean.\n4. Decode — it's E minor pentatonic that lands on E major: the G–G# climb moves from the blue third to the major third, that's why the last chord sounds like home.\n5. Mutate — end on E7 or move the turn up an octave. Keep the bends.\n6. Return — play it whole along with the fast take.",
+        "app": "How to learn it, the Riff DNA way:\n1. Scan — watch the slow take twice. Hear the whole lick before you touch the guitar.\n2. Split — three parts: Call (notes 1–7), Turn (8–11), Landing (12–19).\n3. Isolate — loop each part in {app_name} at x0.5, then x0.75, then x1. Bend until the 3rd fret sounds like the 5th.\n4. Decode — it's E minor pentatonic that lands on E major: the G–G# climb moves from the blue third to the major third, that's why the last chord sounds like home.\n5. Mutate — end on E7 or move the turn up an octave. Keep the bends.\n6. Return — play it whole along with the fast take."
       },
       "The printable tab card is attached as a PDF.",
       {
