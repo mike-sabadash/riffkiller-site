@@ -149,26 +149,34 @@ ol.tips li::marker {{ color: #9a9a9a; font-weight: 600; }}
 </div></body></html>"""
 
 
-def cover_html(meta, frame_path, svg):
+def cover_html(meta, frame_path, svg, style='paper'):
+    """Post cover 1920x1080. Clean split, no gradients: the photo is a crisp block, type sits on a
+    flat colour. style: 'paper' (white, like the PDF card), 'ink' (black), 'mono' (black, b/w photo)."""
+    dark = style != 'paper'
+    bg = '#0b0b0d' if dark else '#ffffff'
+    fg = '#ffffff' if dark else '#111111'
+    soft = 'rgba(255,255,255,.55)' if dark else '#8a8a8a'
+    accent = '#b8f05a' if dark else '#111111'
+    photo_filter = 'grayscale(1) contrast(1.08) brightness(.95)' if style == 'mono' else 'saturate(.9) contrast(1.04)'
     return f"""<!doctype html><html><head><meta charset="utf-8"><style>
 {FONTS}
 * {{ box-sizing: border-box; margin: 0; padding: 0; }}
-html, body {{ width: 1920px; height: 1080px; background: #0b0b0d; color: #fff; font-family: 'Inter', sans-serif; overflow: hidden; }}
-.wrap {{ position: relative; width: 1920px; height: 1080px; display: grid; grid-template-columns: 760px 1fr; }}
-.shot {{ position: relative; background: url('file://{frame_path}') center 42% / cover no-repeat; }}
-.shot::after {{ content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(11,11,13,0) 55%, #0b0b0d 100%); }}
-.txt {{ padding: 120px 120px 110px 70px; display: flex; flex-direction: column; }}
-.logo {{ font-family: 'Zen Dots'; font-size: 30px; letter-spacing: .06em; }}
-.logo i {{ font-style: normal; color: rgba(255,255,255,.45); }}
-.series {{ margin-top: auto; font-size: 24px; letter-spacing: .36em; text-transform: uppercase; color: rgba(255,255,255,.6); font-weight: 600; }}
-h1 {{ margin-top: auto; font-size: 124px; line-height: .94; font-weight: 700; letter-spacing: -.035em; max-width: 900px; }}
-.no {{ margin-top: 30px; font-size: 30px; color: rgba(255,255,255,.6); letter-spacing: .04em; }}
-.no b {{ color: #b8f05a; font-weight: 600; }}
-.tab {{ margin-top: 70px; opacity: .92; }}
+html, body {{ width: 1920px; height: 1080px; background: {bg}; color: {fg}; font-family: 'Inter', sans-serif; overflow: hidden; }}
+.wrap {{ width: 1920px; height: 1080px; display: grid; grid-template-columns: 820px 1fr; }}
+.shot {{ background: url('file://{frame_path}') 38% 46% / 175% auto no-repeat; filter: {photo_filter}; }}
+.txt {{ padding: 96px 110px 100px 100px; display: flex; flex-direction: column; }}
+.row {{ display: flex; justify-content: space-between; align-items: baseline; }}
+.logo {{ font-family: 'Zen Dots'; font-size: 28px; letter-spacing: .06em; }}
+.logo i {{ font-style: normal; color: {soft}; }}
+.no {{ font-size: 20px; letter-spacing: .32em; text-transform: uppercase; color: {soft}; font-weight: 600; }}
+h1 {{ margin-top: auto; font-size: 118px; line-height: .93; font-weight: 700; letter-spacing: -.04em; }}
+.name {{ margin-top: 30px; font-size: 34px; letter-spacing: -.01em; color: {soft}; }}
+.name b {{ color: {accent}; font-weight: 600; }}
+.tab {{ margin-top: 64px; }}
 </style></head><body><div class="wrap"><div class="shot"></div><div class="txt">
-<div class="logo">RIFF <i>DNA</i></div>
+<div class="row"><div class="logo">RIFF <i>DNA</i></div><div class="no">Lick {meta['number']:02d}</div></div>
 <h1>{html.escape(meta['series'])}</h1>
-<div class="no"><b>No. {meta['number']:02d}</b> &nbsp;—&nbsp; {html.escape(meta['name'])} &nbsp;·&nbsp; Tab + video</div>
+<div class="name"><b>No. {meta['number']:02d}</b> — {html.escape(meta['name'])}</div>
 <div class="tab">{svg}</div>
 </div></div></body></html>"""
 
@@ -211,6 +219,7 @@ def main():
     ap.add_argument('--meta', required=True, help='lick JSON: series, number, name, key, parts, practice, post')
     ap.add_argument('--video', required=True)
     ap.add_argument('--out-dir', required=True)
+    ap.add_argument('--cover-style', default='paper', choices=['paper', 'ink', 'mono'])
     ap.add_argument('--name', required=True, help='file name prefix, e.g. blues-lick-01')
     a = ap.parse_args()
 
@@ -226,12 +235,13 @@ def main():
 
     frame = base + '-frame.png'
     best_frame(a.video, timings, events, frame)
-    svg_dark, _ = tab_svg(names, events, amounts, 1000, ink='#fff', soft='rgba(255,255,255,.45)', paper='#0b0b0d',
-                          gap=26, font=22, label_names=False)
-    svg_dark = svg_dark.replace('font-size="9"', 'font-size="17"').replace('stroke-width="0.6"', 'stroke-width="1"') \
-                       .replace('stroke-width="0.9"', 'stroke-width="1.6"').replace('l-3 5 h6 z', 'l-5 8 h10 z') \
-                       .replace('l-3 -5 h6 z', 'l-5 -8 h10 z')
-    render(cover_html(meta, frame, svg_dark), base + '-cover.png', 'png')
+    dark = a.cover_style != 'paper'
+    svg_c, _ = tab_svg(names, events, amounts, 890, ink='#fff' if dark else '#111', soft='#888',
+                       paper='#0b0b0d' if dark else '#fff', gap=22, font=19, label_names=False)
+    svg_c = svg_c.replace('font-size="9"', 'font-size="15"').replace('stroke-width="0.6"', 'stroke-width="1"') \
+                 .replace('stroke-width="0.9"', 'stroke-width="1.5"').replace('l-3 5 h6 z', 'l-4.5 7 h9 z') \
+                 .replace('l-3 -5 h6 z', 'l-4.5 -7 h9 z')
+    render(cover_html(meta, frame, svg_c, a.cover_style), base + '-cover.png', 'png')
     os.unlink(frame)
 
     post = meta.get('post', {})

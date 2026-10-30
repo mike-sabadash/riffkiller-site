@@ -67,6 +67,6 @@ python3 tools/reels/patreon.py --tab lick.tab.txt --timings lick.timings.json \
     --meta lick.lick.json --video lick.mov --out-dir out/ --name blues-lick-01
 ```
 - `lick.lick.json` — номер, название, тональность, части (Split), советы (Practice) и текст поста; образец `examples/blues-lick-01.lick.json`.
-- Выход: `-card.pdf` (A4, белый, таб в нотной манере, части лика, практика), `-cover.png` (1920×1080, кадр из видео + заголовок),
+- Выход: `-card.pdf` (A4, белый, таб в нотной манере, части лика, практика), `-cover.png` (1920×1080, чёткий кадр слева без градиентов + заголовок; `--cover-style paper|ink|mono`),
   `-post.md` (заголовок и текст поста на английском).
 - Величина подтяжек («full») берётся из timings, как в ролике.
