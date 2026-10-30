@@ -5,6 +5,8 @@
 #   riff-tab-remote.sh apply <patch.json> → writes the tab and sync into the riff (backup first)
 #   riff-tab-remote.sh loopdebug           → last lines of data/loop-debug.log (practice.html?debug=loop)
 #   riff-tab-remote.sh probe <video path>  → stream timing of a video (start times, durations, edit lists)
+#   riff-tab-remote.sh media <request.json>  → puts a riff's videos (files next to this script) in place and writes
+#                                             its parts, DNA and tab (scripts/riff-media-apply.php, backups first)
 #   riff-tab-remote.sh rekey <riff id|all>  → re-encodes the riff's videos with a keyframe at every part start and
 #                                             every 0.2 s (sound copied as is), first original kept in data/video-work
 set -euo pipefail
@@ -45,7 +47,12 @@ case "${1:-}" in
     if [ "$id" = all ]; then php "$root/config/video-rekey-cli.php" --all; else php "$root/config/video-rekey-cli.php" --riff "$id"; fi
     # Run over SSH as another user than the web server: let the site keep writing its work files.
     chown -R --reference="$root/data" "$root/data/video-work" 2>/dev/null || true ;;
+  media)
+    php "$here/riff-media-apply.php" "$root" "${2:?request}" "$here" "${RIFFKILLER_MEDIA_BACKUPS:-/var/backups/riffkiller-data}"
+    # Same owner as the site's other videos and data, so the admin can still replace them.
+    chown -R --reference="$root/assets/video" "$root/assets/video" 2>/dev/null || true
+    chown --reference="$root/data" "$root/data/riffs.json" 2>/dev/null || true ;;
   apply)
     php "$here/riff-tab-apply.php" "$root" "${2:?patch}" "${RIFFKILLER_DATA_BACKUPS:-/var/backups/riffkiller-data}" ;;
-  *) fail "usage: riff-tab-remote.sh riffs|audio <video>|apply <patch>|loopdebug [lines]|probe <video>|rekey <riff id|all>" ;;
+  *) fail "usage: riff-tab-remote.sh riffs|audio <video>|apply <patch>|media <request>|loopdebug [lines]|probe <video>|rekey <riff id|all>" ;;
 esac

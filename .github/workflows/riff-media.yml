@@ -1,0 +1,81 @@
+name: Riff media
+
+# Agent tool: builds a whole riff on production from Mike's video: the two camera videos (left hand, right hand),
+# parts, Riff DNA and tab. Trigger: push a commit with content/riff-media/<name>.json and the video files it names
+# (in content/riff-media/<name>/) to branch riff-media/<name>. That branch is never merged into main.
+# The server script (scripts/riff-media-apply.php) checks the riff id against the song, backs up data/riffs.json and any
+# replaced video, then the videos get keyframes at the part starts (same as saving in the admin).
+on:
+  push:
+    branches: ['riff-media/**']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: riffkiller-production
+  cancel-in-progress: false
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://riffkiller.fun
+    env:
+      DEPLOY_HOST: ${{ secrets.CLAUDE_DEPLOY_HOST }}
+      DEPLOY_USER: ${{ secrets.CLAUDE_DEPLOY_USER }}
+      DEPLOY_PORT: ${{ secrets.CLAUDE_DEPLOY_PORT || '22' }}
+      RIFFKILLER_ROOT: ${{ vars.RIFFKILLER_ROOT }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Find the request
+        run: |
+          name="${GITHUB_REF_NAME#riff-media/}"
+          [[ "$name" =~ ^[A-Za-z0-9._-]+$ ]] || { echo "::error::branch must be riff-media/<name>"; exit 1; }
+          file="content/riff-media/$name.json"
+          [ -f "$file" ] || { echo "::error::$file is not in this commit"; exit 1; }
+          node -e '
+            const fs=require("fs"),p=JSON.parse(fs.readFileSync(process.argv[1]));
+            if(!(p.id>0)||!p.song||!p.riff)process.exit(1);
+            for(const n of Object.values(p.videos||{}))if(!fs.existsSync(process.argv[2]+"/"+n)){console.log("::error::missing "+n);process.exit(1)}
+            console.log("::notice::Riff "+p.id+" "+p.song+": "+Object.keys(p.riff).join(", ")+"; videos "+Object.keys(p.videos||{}).join(", "))' "$file" "content/riff-media/$name"
+          echo "REQUEST=$file" >> "$GITHUB_ENV"
+          echo "MEDIA=content/riff-media/$name" >> "$GITHUB_ENV"
+          echo "RIFF_ID=$(node -p 'JSON.parse(require("fs").readFileSync(process.argv[1])).id' "$file")" >> "$GITHUB_ENV"
+
+      - name: Configure SSH
+        env:
+          SSH_KEY: ${{ secrets.CLAUDE_DEPLOY_SSH_KEY }}
+          KNOWN_HOSTS: ${{ secrets.CLAUDE_DEPLOY_KNOWN_HOSTS }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/deploy_key
+          printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/deploy_key ~/.ssh/known_hosts
+          printf 'Host prod\n  HostName %s\n  User %s\n  Port %s\n  IdentityFile ~/.ssh/deploy_key\n  IdentitiesOnly yes\n  StrictHostKeyChecking yes\n' \
+            "$DEPLOY_HOST" "$DEPLOY_USER" "$DEPLOY_PORT" > ~/.ssh/config
+          dir="/tmp/riffkiller-media-$GITHUB_RUN_ID"
+          ssh prod "install -d -m 755 '$dir'"
+          scp -q scripts/riff-tab-remote.sh scripts/riff-media-apply.php "$REQUEST" "prod:$dir/"
+          if [ -d "$MEDIA" ]; then scp -q "$MEDIA"/* "prod:$dir/"; fi
+          echo "REMOTE_DIR=$dir" >> "$GITHUB_ENV"
+
+      - name: Write to production
+        run: ssh prod "RIFFKILLER_ROOT='$RIFFKILLER_ROOT' bash '$REMOTE_DIR/riff-tab-remote.sh' media '$REMOTE_DIR/$(basename "$REQUEST")'"
+
+      - name: Keyframes at the part starts
+        run: ssh prod "RIFFKILLER_ROOT='$RIFFKILLER_ROOT' bash '$REMOTE_DIR/riff-tab-remote.sh' rekey '$RIFF_ID'"
+
+      - name: Check
+        run: |
+          ssh prod "RIFFKILLER_ROOT='$RIFFKILLER_ROOT' bash '$REMOTE_DIR/riff-tab-remote.sh' riffs" > riffs.json
+          node -e 'const l=require("./riffs.json");const r=l.find(x=>String(x.id)===process.argv[1]);console.log(r.song,"|",r.videoFile,"|",r.videoFileRight,"|",r.segments.length,"parts |",(r.dna.atoms||[]).length,"atoms | tab",!!(r.tab&&r.tab.tex))' "$RIFF_ID"
+          for v in $(node -p 'const l=require("./riffs.json");const r=l.find(x=>String(x.id)===process.argv[1]);[r.videoFile,r.videoFileRight].join(" ")' "$RIFF_ID"); do
+            echo "== $v"; ssh -n prod "RIFFKILLER_ROOT='$RIFFKILLER_ROOT' bash '$REMOTE_DIR/riff-tab-remote.sh' probe '$v'" | head -3 || true
+          done
+
+      - name: Clean up
+        if: always()
+        run: '[ -z "${REMOTE_DIR:-}" ] || ssh prod "rm -rf ''$REMOTE_DIR''" || true'
