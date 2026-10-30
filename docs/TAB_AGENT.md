@@ -70,3 +70,15 @@
 ## Кнопка «Распознать таб» в админке
 
 То же самое без чата: в блоке «Табы» загружается скриншот, сайт отправляет его модели `TAB_AI_MODEL` (по умолчанию `anthropic/claude-opus-5.5`, через OpenRouter) с правилами `config/tab-ai-rules.txt` и табом Black Dog как образцом стиля. Модель набирает таб, сайт читает его обратно по тактам (`js/tab-listing.js`) и даёт модели сверить со скриншотом (до двух проверок, если такт не сходится по длине), затем синхронизирует со звуком. Ничего не сохраняется до «Сохранить». Нужен баланс на OpenRouter: бесплатные модели для этого не годятся.
+
+## Рифф целиком из видео Mike (Riff media)
+
+Если Mike присылает одно видео с обеими руками в кадре (первый так — Paranoid, рифф 9, 31.10.2026), Claude сам:
+1. режет его на два видео: левая рука (гриф, `videoFile`) и правая рука (`videoFileRight`), 30 fps, H.264, звук копируется как есть; хвост CapCut и прочие заставки отрезаются;
+2. размечает части по фразам, роли Riff DNA, описания частей, Rule / Law / Failure / Preserve / Change / Mutation и приёмы;
+3. набирает таб по скриншоту, синхронизирует `tools/tab-sync-cli.cjs` по звуку исходного видео;
+4. кладёт запрос `content/riff-media/<имя>.json` и видео в `content/riff-media/<имя>/` и пушит в ветку `riff-media/<имя>` (в main не сливается).
+
+Workflow `.github/workflows/riff-media.yml` копирует видео на сервер, записывает поля риффа (`scripts/riff-media-apply.php`: сверка id и названия, бэкап `data/riffs.json` и заменяемых видео в `/var/backups/riffkiller-data`) и ставит ключевые кадры на начала частей. Меняются только `videoFile`, `videoFileRight`, `duration`, `segments`, `dna`, `tab`; обложка, доступ (замок), коллекции и ссылка для тизера не трогаются.
+
+Видео Mike лежат на его Google Drive в папке «video for claud»: https://drive.google.com/drive/folders/1GpSN9YSJgXUzRWre5IEAaZIVoEmuqqpa (список файлов — `drive.google.com/embeddedfolderview?id=<папка>`, скачивание — `drive.usercontent.google.com/download?id=<id>&export=download&confirm=t`).
