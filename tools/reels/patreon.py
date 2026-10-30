@@ -138,9 +138,9 @@ ol.tips li::marker {{ color: #9a9a9a; font-weight: 600; }}
 .foot {{ margin-top: auto; display: flex; justify-content: space-between; align-items: flex-end; font-size: 7.5pt; color: #9a9a9a; letter-spacing: .04em; }}
 .foot .logo {{ font-size: 9pt; color: #111; }}
 </style></head><body><div class="page">
-<div class="top"><div class="logo">RIFF <i>DNA</i></div><div class="no">Lick {meta['number']:02d}</div></div>
+<div class="top"><div class="logo">RIFF <i>DNA</i></div><div class="no">{meta.get('tagline_short', 'Understand its DNA')}</div></div>
 <h1>{html.escape(meta['series'])}</h1>
-<div class="sub"><b>No. {meta['number']:02d}</b> — {html.escape(meta['name'])}</div>
+<div class="sub">{html.escape(meta['name'])}</div>
 <div class="meta"><div><b>Key</b>{html.escape(meta.get('key', ''))}</div><div><b>Position</b>{html.escape(meta.get('position', ''))}</div><div><b>Techniques</b>{html.escape(tech)}</div></div>
 <div class="rule"></div>
 <div class="tab">{svg}</div>
@@ -166,6 +166,10 @@ html, body {{ width: 1920px; height: 1080px; background: {bg}; color: {fg}; font
 .shot {{ background: url('file://{frame_path}') 38% 46% / 175% auto no-repeat; filter: {photo_filter}; }}
 .txt {{ padding: 96px 110px 100px 100px; display: flex; flex-direction: column; }}
 .row {{ display: flex; justify-content: space-between; align-items: baseline; }}
+.tag {{ position: absolute; top: 0; right: 0; width: 560px; height: 300px; background: #b8f05a; color: #0b0b0d;
+  padding: 0 56px 46px; display: flex; align-items: flex-end; font-size: 38px; line-height: 1.08;
+  font-weight: 600; letter-spacing: -.02em; }}
+.wrap {{ position: relative; }}
 .logo {{ font-family: 'Zen Dots'; font-size: 28px; letter-spacing: .06em; }}
 .logo i {{ font-style: normal; color: {soft}; }}
 .no {{ font-size: 20px; letter-spacing: .32em; text-transform: uppercase; color: {soft}; font-weight: 600; }}
@@ -174,9 +178,10 @@ h1 {{ margin-top: auto; font-size: 118px; line-height: .93; font-weight: 700; le
 .name b {{ color: {accent}; font-weight: 600; }}
 .tab {{ margin-top: 64px; }}
 </style></head><body><div class="wrap"><div class="shot"></div><div class="txt">
-<div class="row"><div class="logo">RIFF <i>DNA</i></div><div class="no">Lick {meta['number']:02d}</div></div>
+<div class="row"><div class="logo">RIFF <i>DNA</i></div></div>
+<div class="tag">{meta.get('tagline', 'Don’t just learn the riff.<br>Understand its DNA.')}</div>
 <h1>{html.escape(meta['series'])}</h1>
-<div class="name"><b>No. {meta['number']:02d}</b> — {html.escape(meta['name'])}</div>
+<div class="name">{html.escape(meta['name'])}</div>
 <div class="tab">{svg}</div>
 </div></div></body></html>"""
 
