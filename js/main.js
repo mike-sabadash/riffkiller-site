@@ -347,6 +347,16 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => showNotification('Your account has been deleted.'), 300);
         try { history.replaceState(null, '', location.pathname + location.hash); } catch (e) {}
     }
+    // Signed up from a teaser link through Google/Yandex (they land on app.html): back to that riff.
+    try {
+        const back = JSON.parse(localStorage.getItem('rkDropReturn') || 'null');
+        if (back && (Date.now() - back.at > 15 * 60 * 1000 || !/^\/practice\.html\?[\w=&%-]*$/.test(back.url))) localStorage.removeItem('rkDropReturn');
+        else if (back) {
+            Promise.resolve(window.authManager && window.authManager.ready).then(() => {
+                if (window.authManager && window.authManager.isAuthenticated) location.replace(back.url);
+            });
+        }
+    } catch (e) {}
     function runInit() {
         loadAppState();
         initCollections();
@@ -530,8 +540,9 @@ function renderHomeHero() {
     const secondary = document.getElementById('homeHeroSecondary');
     if (!primary) return;
     const byId = id => appState.riffsDatabase.find(r => String(r.id) === String(id));
-    const last = (appState.recentlyPracticed || []).map(r => byId(r.id)).find(Boolean);
-    const free = appState.riffsDatabase.find(r => r.isFree);
+    const open = r => r && !(r.lock && !r.adminView);
+    const last = (appState.recentlyPracticed || []).map(r => byId(r.id)).find(open);
+    const free = appState.riffsDatabase.find(r => r.isFree && open(r));
     const target = last || free;
     if (target) {
         primary.textContent = last ? `Continue ${target.song}` : `Start free: ${target.song}`;
@@ -577,9 +588,9 @@ function createRiffCard(riff) {
         return document.createElement('div');
     }
     return window.RiffKillerRiffGallery.createCard(riff, {
-        locked: !riff.isFree && !hasActiveSubscription(),
+        locked: !riff.isFree && !riff.adminView && !hasActiveSubscription(),
         onNavigate() {
-            if (riff.isFree) {
+            if (riff.isFree || riff.adminView) {
                 appState.currentRiffId = riff.id;
                 saveAppState();
                 document.body.style.opacity = '0.7';
