@@ -100,11 +100,21 @@ def tab_svg(names, events, amounts, width, ink='#111', soft='#9a9a9a', paper='#f
     return '\n'.join(out), h
 
 
-def card_html(meta, svg):
+def pick(item, app):
+    """Text that depends on the app switch: a plain string always shows; a dict shows its 'app'
+    text when the app is live, else its 'no_app' text (a missing key means show nothing)."""
+    if isinstance(item, dict):
+        txt = item.get('app' if app['app_live'] else 'no_app')
+        return txt.format(**app) if txt else None
+    return item.format(**app)
+
+
+def card_html(meta, svg, app):
     tech = ' · '.join(meta.get('techniques', []))
     parts = ''.join(f'<li><b>{i + 1} · {html.escape(p["title"])}</b><span class="rng">notes {p["from"]}–{p["to"]}</span>'
                     f'<p>{html.escape(p["text"])}</p></li>' for i, p in enumerate(meta.get('parts', [])))
-    tips = ''.join(f'<li>{html.escape(t)}</li>' for t in meta.get('practice', []))
+    tips = ''.join(f'<li>{html.escape(t)}</li>' for t in (pick(x, app) for x in meta.get('practice', [])) if t)
+    site = html.escape(app['app_url'].replace('https://', '')) if app['app_live'] else ''
     return f"""<!doctype html><html><head><meta charset="utf-8"><style>
 {FONTS}
 @page {{ size: A4; margin: 0; }}
@@ -145,7 +155,7 @@ ol.tips li::marker {{ color: #9a9a9a; font-weight: 600; }}
 <div class="rule"></div>
 <div class="tab">{svg}</div>
 <div class="cols"><div><h2>Parts</h2><ol class="parts">{parts}</ol></div><div><h2>Practice</h2><ol class="tips">{tips}</ol></div></div>
-<div class="foot"><div>Watch it played: full speed, then slow — in the post video.</div><div>riffkiller.fun</div></div>
+<div class="foot"><div>Watch it played: full speed, then slow — in the post video.</div><div>{site}</div></div>
 </div></body></html>"""
 
 
@@ -224,6 +234,7 @@ def main():
     ap.add_argument('--meta', required=True, help='lick JSON: series, number, name, key, parts, practice, post')
     ap.add_argument('--video', required=True)
     ap.add_argument('--out-dir', required=True)
+    ap.add_argument('--app', choices=['on', 'off'], help='override series.json app_live for this run')
     ap.add_argument('--cover-style', default='paper', choices=['paper', 'ink', 'mono'])
     ap.add_argument('--name', required=True, help='file name prefix, e.g. blues-lick-01')
     a = ap.parse_args()
@@ -231,12 +242,17 @@ def main():
     names, events = parse_tab(open(a.tab, encoding='utf-8').read())
     timings = json.load(open(a.timings))
     meta = json.load(open(a.meta, encoding='utf-8'))
+    app = json.load(open(os.path.join(HERE, 'series.json'), encoding='utf-8'))
+    app.update(meta.get('app', {}))  # a lick can override, e.g. its own riff link
+    if a.app is not None:
+        app['app_live'] = a.app == 'on'
+    print(f"app link: {'ON' if app['app_live'] else 'off'}", file=sys.stderr)
     amounts = bend_amounts(timings)
     os.makedirs(a.out_dir, exist_ok=True)
     base = os.path.join(os.path.abspath(a.out_dir), a.name)
 
     svg, _ = tab_svg(names, events, amounts, 643, parts=meta.get('parts'), gap=17, font=14, label_names=False)
-    render(card_html(meta, svg), base + '-card.pdf', 'pdf')
+    render(card_html(meta, svg, app), base + '-card.pdf', 'pdf')
 
     frame = base + '-frame.png'
     best_frame(a.video, timings, events, frame)
@@ -251,7 +267,8 @@ def main():
 
     post = meta.get('post', {})
     with open(base + '-post.md', 'w', encoding='utf-8') as f:
-        f.write(post.get('title', '') + '\n\n' + '\n\n'.join(post.get('body', [])) + '\n')
+        body = [t for t in (pick(x, app) for x in post.get('body', [])) if t]
+        f.write(post.get('title', '') + '\n\n' + '\n\n'.join(body) + '\n')
     print('\n'.join([base + '-card.pdf', base + '-cover.png', base + '-post.md']))
 
 

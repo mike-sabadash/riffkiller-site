@@ -1,0 +1,6 @@
+{
+  "_comment": "Switch for linking content to the RiffKiller app. false = standalone video/post (no app mechanics, no links). Set to true when the app is launched and we want to send traffic there.",
+  "app_live": false,
+  "app_name": "RiffKiller",
+  "app_url": "https://riffkiller.fun"
+}
