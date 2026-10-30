@@ -78,6 +78,18 @@ if ($idx !== null) {
     foreach ($list as $existing) $id = max($id, (int)($existing['id'] ?? 0) + 1);
     $riff['id'] = $id;
 }
+require_once $base . '/config/riff-access.php';
+$accessError = riff_access_error($riff, $list);
+if ($accessError !== null) {
+    flock($lock, LOCK_UN);
+    fclose($lock);
+    http_response_code(400);
+    echo json_encode(['success' => false, 'error' => $accessError]);
+    exit();
+}
+$riff['lock'] = riff_lock($riff);
+$riff['dropKey'] = riff_drop_key_normalize($riff['dropKey'] ?? '');
+unset($riff['adminView']);
 $riff['collectionIds'] = array_values(array_unique(array_filter(array_map('intval', $riff['collectionIds'] ?? []), function($n) { return $n > 0; })));
 $riff['duration'] = max((float)($riff['duration'] ?? 0), count($riff['segments']) ? (float)end($riff['segments'])['end'] : 0);
 if ($idx !== null) $list[$idx] = $riff;

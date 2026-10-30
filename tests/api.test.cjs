@@ -73,3 +73,35 @@ test('practice progress is saved per account and refused without a session',asyn
     const big='x'.repeat(600*1024);
     assert.equal((await post('/api/progress.php',{progress:{...state,pad:big}},a)).status,413);
 });
+test('locked riffs, teaser links and the one-time data migration',async()=>{
+    const file=path.join(site.dir,'data/riffs.json');const original=fs.readFileSync(file,'utf8');
+    try {
+        const raw=await (await fetch(site.base+'/api/riffs/list.php?raw=1',{headers:{Cookie:admin}})).json();
+        const riff=raw.find(r=>r.id===2);
+        let response=await post('/api/riffs/save.php',{riff:{...riff,lock:'later'}},admin);assert.equal(response.status,400,'unknown lock reason');
+        response=await post('/api/riffs/save.php',{riff:{...riff,dropKey:'Bad key!'}},admin);assert.equal(response.status,400,'bad link');
+        response=await post('/api/riffs/save.php',{riff:{...riff,lock:'soon',dropKey:'Satisfaction'},expectedRiff:riff},admin);assert.equal(response.status,200);
+        const other=raw.find(r=>r.id===6);
+        response=await post('/api/riffs/save.php',{riff:{...other,dropKey:'satisfaction'}},admin);assert.equal(response.status,400,'link used twice');
+        const pub=await (await fetch(site.base+'/api/riffs/list.php')).json();const saved=pub.find(r=>r.id===2);
+        assert.equal(saved.lock,'soon');assert.equal(saved.dropKey,undefined,'visitors never see the links');assert.equal(saved.adminView,undefined);
+        const asAdmin=(await (await fetch(site.base+'/api/riffs/list.php',{headers:{Cookie:admin}})).json()).find(r=>r.id===2);
+        assert.equal(asAdmin.adminView,true);assert.equal(asAdmin.dropKey,'satisfaction');
+        const ok=await (await fetch(site.base+'/api/riffs/drop.php?k=satisfaction')).json();assert.equal(ok.riffId,2);
+        assert.equal((await fetch(site.base+'/api/riffs/drop.php?k=nope')).status,404);
+        const go=await fetch(site.base+'/drop/?r=satisfaction',{redirect:'manual'});assert.equal(go.status,302);
+        assert.equal(go.headers.get('location'),'/practice.html?riff=2&drop=satisfaction');
+        assert.equal((await fetch(site.base+'/drop/?r=nope',{redirect:'manual'})).headers.get('location'),'/index.html');
+        assert.equal((await post('/api/riffs/drop.php',{k:'satisfaction',event:'signup'})).status,200);
+        assert.equal((await fetch(site.base+'/api/riffs/drop.php?stats=1')).status,403,'stats are for the admin');
+        const stats=(await (await fetch(site.base+'/api/riffs/drop.php?stats=1',{headers:{Cookie:admin}})).json()).stats;
+        assert.deepEqual([stats.satisfaction.opens,stats.satisfaction.signups],[1,1]);
+    } finally {fs.writeFileSync(file,original);}
+    const {execFileSync}=require('node:child_process');
+    const out=execFileSync('php',[path.join(site.dir,'config/data-migrate-cli.php'),site.dir]).toString();
+    assert.match(out,/2026-10-30-lock-soon/);
+    const after=JSON.parse(fs.readFileSync(file,'utf8'));
+    for(const r of after) assert.deepEqual([r.lock,r.isFree],r.song==='Black Dog'?['',r.isFree]:['soon',false],r.song);
+    assert.equal(execFileSync('php',[path.join(site.dir,'config/data-migrate-cli.php'),site.dir]).toString(),'','runs once');
+    fs.writeFileSync(file,original);fs.rmSync(path.join(site.dir,'data/migrations.json'));
+});

@@ -103,7 +103,15 @@
                 '" aria-pressed="' + on + '" aria-label="' + label(on) + '">' + FAVORITE_SVG + '</button>';
         }
         function onChange(fn) { ready(); listeners.push(fn); }
-        return { has: has, toggle: toggle, list: list, onChange: onChange, button: button, paint: paint };
+        // Same toast for any short message (a locked riff: «Coming soon»).
+        function notice(text, sub) {
+            var d = global.document;
+            if (!d || !d.body) return;
+            toast(true, 'riff');
+            var el = d.getElementById('rkFavToast');
+            el.innerHTML = '<span class="rk-fav-toast-text">' + esc(text) + (sub ? '<span class="rk-fav-toast-sub">' + esc(sub) + '</span>' : '') + '</span>';
+        }
+        return { has: has, toggle: toggle, list: list, onChange: onChange, button: button, paint: paint, notice: notice };
     })();
     global.RKFavorites = Fav;
 
@@ -119,8 +127,24 @@
         return note ? '<div class="riff-progress-note">' + esc(note) + '</div>' : '';
     }
 
+    /**
+     * Access on top of price (config/riff-access.php): riff.lock 'soon' — padlock «Soon», the riff does not open.
+     * The admin signed in at /admin/ gets riff.adminView from the API and opens everything.
+     */
+    var LOCK_ICON = '<svg viewBox="0 0 16 16" width="12" height="12" fill="none" aria-hidden="true"><rect x="3" y="7" width="10" height="7" rx="1.5" stroke="currentColor" stroke-width="1.5"/><path d="M5.5 7V5a2.5 2.5 0 015 0v2" stroke="currentColor" stroke-width="1.5"/></svg>';
+    function lockOf(riff) {
+        if (!riff || riff.adminView) return '';
+        return riff.lock === 'soon' ? 'soon' : '';
+    }
+
     function createCard(riff, hooks) {
         hooks = hooks || {};
+        var lock = lockOf(riff);
+        if (lock) {
+            // Locked riff: no Free/Premium mark, the padlock tells why; a click explains instead of opening.
+            riff = Object.assign({}, riff, { isFree: false });
+            hooks = Object.assign({}, hooks, { locked: false, onNavigate: function () { Fav.notice('Coming soon', 'This breakdown is on its way.'); } });
+        }
 
         var stack = document.createElement('div');
         stack.className = 'riff-card-stack' + (riff.isFree ? ' riff-card-stack--free' : '');
@@ -139,6 +163,13 @@
             ? '<div class="riff-lock-tag" title="Premium"><svg viewBox="0 0 16 16" width="12" height="12" fill="none" aria-hidden="true"><rect x="3" y="7" width="10" height="7" rx="1.5" stroke="currentColor" stroke-width="1.5"/><path d="M5.5 7V5a2.5 2.5 0 015 0v2" stroke="currentColor" stroke-width="1.5"/></svg>Premium</div>'
             : '';
         if (hooks.locked) card.className += ' riff-card--locked';
+        if (lock === 'soon') {
+            lockTag = '<div class="riff-lock-tag riff-soon-tag" title="Coming soon">' + LOCK_ICON + 'Soon</div>';
+            card.className += ' riff-card--soon';
+        } else if (riff.adminView && riff.lock === 'soon') {
+            // The admin sees which riffs are closed for everyone else.
+            lockTag = '<div class="riff-lock-tag riff-soon-tag riff-soon-tag--admin" title="Locked for students: Soon">' + LOCK_ICON + 'Soon · admin</div>';
+        }
 
         card.innerHTML =
             '<div class="riff-image-container" style="position:relative; width:100%; height:100%;">' +
@@ -204,5 +235,5 @@
         return stack;
     }
 
-    global.RiffKillerRiffGallery = { createCard: createCard };
+    global.RiffKillerRiffGallery = { createCard: createCard, lockOf: lockOf };
 })(typeof window !== 'undefined' ? window : this);

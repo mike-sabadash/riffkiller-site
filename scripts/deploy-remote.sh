@@ -195,6 +195,16 @@ install_release() {
 }
 install_release || { restore "$root" "$backup"; fail "Install failed; restored previous files"; }
 
+# One-time changes to the live data/ (config/data-migrate-cli.php): each runs once, with a backup in data/backups/.
+if [ -f "$root/config/data-migrate-cli.php" ] && command -v php >/dev/null; then
+  if [ "$(id -u)" = 0 ] && [ -n "$web_user" ]; then
+    migrated="$(timeout 120 runuser -u "$web_user" -- php "$root/config/data-migrate-cli.php" "$root" 2>&1)" || echo "::warning::Data migration failed: $migrated"
+  else
+    migrated="$(timeout 120 php "$root/config/data-migrate-cli.php" "$root" 2>&1)" || echo "::warning::Data migration failed: $migrated"
+  fi
+  note "${migrated:-Data migrations: nothing new}"
+fi
+
 # Light WebP copies of the cover pictures (config/image-variants.php), written as the web user like admin uploads.
 # Only adds files next to the originals; a failure here never fails the deploy.
 if [ -f "$root/config/image-variants-cli.php" ] && command -v php >/dev/null; then

@@ -365,6 +365,72 @@ function showVideoSoonState(riff) {
     document.getElementById('videoWrapper')?.setAttribute('aria-busy', 'false');
 }
 
+// A locked riff (riff.lock, config/riff-access.php): the same card as a riff without video, with its own words.
+function showRiffLockedState(riff) {
+    showVideoSoonState(riff);
+    const el = document.getElementById('videoSoonState');
+    if (!el) return;
+    const title = el.querySelector('.video-soon-title');
+    const text = el.querySelector('.video-soon-text');
+    if (title) title.textContent = 'Coming soon';
+    if (text) text.textContent = 'This breakdown is on its way. Pick another riff for now.';
+    el.classList.add('video-soon-state--locked');
+}
+
+/**
+ * Focus mode for a teaser link: only this riff, no site navigation (css: html.rk-drop). A guest plays the whole
+ * riff; «Start free» saves the progress. Once signed in, one way out appears: «More riffs».
+ */
+function enterDropMode(riff, key) {
+    const root = document.documentElement;
+    root.classList.add('rk-drop');
+    const header = document.querySelector('.practice-header');
+    if (!header || document.getElementById('dropBar')) return;
+    const bar = document.createElement('div');
+    bar.className = 'drop-bar';
+    bar.id = 'dropBar';
+    bar.innerHTML =
+        '<span class="drop-bar-badge">Full breakdown</span>' +
+        '<span class="drop-bar-text" id="dropBarText"></span>' +
+        '<button type="button" class="drop-bar-btn" id="dropBarSignup">Start free</button>' +
+        '<a class="drop-bar-btn drop-bar-btn--ghost" id="dropBarMore" href="index.html" hidden>More riffs →</a>';
+    header.appendChild(bar);
+    const auth = window.authManager;
+    const signedIn = function() { return !!(auth && auth.isAuthenticated); };
+    // Google/Yandex sign-in comes back to app.html: main.js returns the student here (rkDropReturn, 15 minutes).
+    let pending = false;
+    try { pending = !!localStorage.getItem('rkDropReturn'); } catch (e) {}
+    const startedAsGuest = !signedIn() || pending;
+    if (signedIn()) { try { localStorage.removeItem('rkDropReturn'); } catch (e) {} }
+    const paint = function() {
+        const on = signedIn();
+        root.classList.toggle('rk-drop-member', on);
+        document.getElementById('dropBarText').textContent = on ? 'Your progress is saved.' : 'Sign up free to save your progress.';
+        document.getElementById('dropBarSignup').hidden = on;
+        document.getElementById('dropBarMore').hidden = !on;
+        if (on) { try { localStorage.removeItem('rkDropReturn'); } catch (e) {} }
+        // A sign-up that came from this link, counted once per browser (admin sees it next to the link).
+        if (on && startedAsGuest) {
+            try {
+                const flag = 'rkDropSignup:' + key;
+                if (localStorage.getItem(flag)) return;
+                localStorage.setItem(flag, '1');
+            } catch (e) { return; }
+            fetch('/api/riffs/drop.php', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ k: key, event: 'signup' }) }).catch(function() {});
+        }
+    };
+    document.getElementById('dropBarSignup').addEventListener('click', function() {
+        try { localStorage.setItem('rkDropReturn', JSON.stringify({ url: location.pathname + location.search, at: Date.now() })); } catch (e) {}
+        if (auth && typeof auth.showAuthModal === 'function') auth.showAuthModal('signup');
+    });
+    if (auth && typeof auth.addListener === 'function') auth.addListener(paint);
+    paint();
+}
+
+function leaveDropMode() {
+    document.documentElement.classList.remove('rk-drop', 'rk-drop-member');
+}
+
 function hideVideoErrorState() {
     const errorEl = document.getElementById('videoErrorState');
     if (errorEl) { errorEl.style.display = 'none'; errorEl.setAttribute('aria-hidden', 'true'); }
@@ -465,6 +531,9 @@ function initPracticePage() {
     var riffId = parseInt(urlParams.get('riff')) || 1;
     // ?part=N (from the profile's "Next") selects that part once the recordings are ready.
     var partParam = parseInt(urlParams.get('part'), 10);
+    // ?drop=<key>: opened from a teaser link (drop/index.php). The key is checked by the API before the riff opens.
+    var dropKey = (urlParams.get('drop') || '').trim();
+    var dropValid = false;
     var state = loadAppState();
     // Fallback только полные риффы (riffsDatabase): в state.riffsDatabase только id/isFavorite — нет song, artist, videoFile
     var fallbackRiffs = riffsDatabase;
@@ -497,6 +566,19 @@ function initPracticePage() {
             showVideoErrorState();
             loadRecentlyPracticedRiffs();
             return;
+        }
+        if (dropValid) {
+            enterDropMode(currentRiff, dropKey);
+        } else {
+            leaveDropMode();
+            // Locked for everyone but the admin (config/riff-access.php): name and cover, no player.
+            var lock = window.RiffKillerRiffGallery && RiffKillerRiffGallery.lockOf ? RiffKillerRiffGallery.lockOf(currentRiff) : (currentRiff.lock || '');
+            if (lock) {
+                updateTitle();
+                showRiffLockedState(currentRiff);
+                loadRecentlyPracticedRiffs();
+                return;
+            }
         }
         if (currentRiff.segments && currentRiff.segments.length) {
             console.log('[RiffKiller] SEGMENTS_FROM_DATA (admin timing):', JSON.stringify(currentRiff.segments.map(function(s, i) { return (i + 1) + ': ' + Number(s.start) + '-' + Number(s.end); })));
@@ -566,12 +648,16 @@ function initPracticePage() {
         var hasPremiumAccess = window.patreonAuth &&
             typeof window.patreonAuth.hasActiveSubscription === 'function' &&
             window.patreonAuth.hasActiveSubscription();
-        if (!currentRiff.isFree && !hasPremiumAccess) {
+        if (!currentRiff.isFree && !hasPremiumAccess && !dropValid && !currentRiff.adminView) {
             showPatreonUpgradeModal();
         }
     }
 
-    Promise.resolve(window.authManager && window.authManager.ready).then(function() {
+    var dropCheck = !dropKey ? Promise.resolve() : fetch('/api/riffs/drop.php?k=' + encodeURIComponent(dropKey))
+        .then(function(r) { return r.ok ? r.json() : null; })
+        .then(function(d) { dropValid = !!(d && d.success && parseInt(d.riffId, 10) === riffId); })
+        .catch(function() {});
+    Promise.all([Promise.resolve(window.authManager && window.authManager.ready), dropCheck]).then(function() {
         return fetch('/api/riffs/list.php').then(function(r) { if (!r.ok) throw new Error('Riff list unavailable'); return r.json(); });
     }).then(function(list) {
         var riffs = (Array.isArray(list) && list.length > 0) ? list : fallbackRiffs;
@@ -1695,7 +1781,7 @@ function loadRecentlyPracticedRiffs() {
             grid.innerHTML = '';
             recent.slice(0, 4).forEach(function (rp) {
                 var cat = liveById[String(rp.id)] || riffsDatabase.find(function (r) { return r.id === rp.id; });
-                var merged = Object.assign({}, rp, cat ? { isFree: !!cat.isFree, song: cat.song || rp.song, artist: cat.artist || rp.artist, thumbnail: cat.thumbnail || rp.thumbnail } : {});
+                var merged = Object.assign({}, rp, cat ? { isFree: !!cat.isFree, lock: cat.lock || '', adminView: !!cat.adminView, song: cat.song || rp.song, artist: cat.artist || rp.artist, thumbnail: cat.thumbnail || rp.thumbnail } : {});
                 var favEntry = (state.riffsDatabase || []).find(function (r) { return r.id === rp.id; });
                 if (favEntry && typeof favEntry.isFavorite === 'boolean') {
                     merged.isFavorite = favEntry.isFavorite;

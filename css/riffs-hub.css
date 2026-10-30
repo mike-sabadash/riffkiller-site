@@ -1315,3 +1315,11 @@ body.riffs-hub .collection-card::after { left: 22px; right: 22px; top: -13px; bo
 .collection-crumb a { color: inherit; text-decoration: none; transition: color 0.15s ease; }
 .collection-crumb a::before { content: '← '; }
 .collection-crumb a:hover { color: rgba(244, 247, 255, 0.95); }
+
+/* Locked riff «Soon» (config/riff-access.php): the cover dims, the padlock says why. */
+.riff-card--soon .riff-image { filter: grayscale(0.55) brightness(0.7); }
+body.riffs-hub .riff-soon-tag,
+.rk-riff-gallery .riff-soon-tag { gap: 4px; display: inline-flex; align-items: center; color: #fff; background: rgba(8, 8, 12, 0.78); }
+body.riffs-hub .riff-soon-tag--admin,
+.rk-riff-gallery .riff-soon-tag--admin { background: rgba(147, 85, 229, 0.85); }
+.riff-card-stack:has(.riff-card--soon) { cursor: default; }

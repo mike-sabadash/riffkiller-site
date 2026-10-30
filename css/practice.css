@@ -2132,3 +2132,44 @@ html[data-theme='light'] .st-ladder, html[data-theme='light'] .st-track { border
 .tab-toggle-btn.active .tab-icon-on { display: none; }
 .tab-toggle-btn:hover .tab-icon,
 .tab-toggle-btn.active .tab-icon { opacity: 1 !important; }
+
+/* Teaser link focus mode (js/practice.js enterDropMode): only this riff, no way around the site until sign-up. */
+html.rk-drop .topbar-links,
+html.rk-drop .burger-anchor,
+html.rk-drop .mobile-menu-overlay,
+html.rk-drop .breadcrumb-arrow,
+html.rk-drop .breadcrumb-link,
+html.rk-drop .breadcrumb-separator,
+html.rk-drop .recently-practiced,
+html.rk-drop .btn-plans-nav,
+html.rk-drop .footer-link[href="billing.html"] { display: none !important; }
+html.rk-drop:not(.rk-drop-member) .topbar-logo-wrap { pointer-events: none; }
+.drop-bar {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px;
+    margin-top: 12px; padding: 10px 12px; border-radius: 12px;
+    background: rgba(147, 85, 229, 0.14); border: 1px solid rgba(147, 85, 229, 0.35);
+    font-size: 14px; color: rgba(244, 247, 255, 0.85);
+}
+.drop-bar-badge { font-weight: 700; color: #fff; text-transform: uppercase; letter-spacing: 0.04em; font-size: 12px; }
+.drop-bar-text { flex: 1 1 180px; }
+.drop-bar-btn {
+    flex: none; padding: 8px 14px; border-radius: 999px; border: 0; cursor: pointer;
+    font: inherit; font-weight: 600; color: #0b0b0f; background: #fff; text-decoration: none;
+}
+.drop-bar-btn--ghost { color: #fff; background: transparent; border: 1px solid rgba(255, 255, 255, 0.35); }
+.drop-bar-btn[hidden] { display: none; }
+html[data-theme='light'] .drop-bar { color: #12121a; background: rgba(147, 85, 229, 0.1); }
+html[data-theme='light'] .drop-bar-badge { color: #12121a; }
+html[data-theme='light'] .drop-bar-btn { color: #fff; background: #12121a; }
+html[data-theme='light'] .drop-bar-btn--ghost { color: #12121a; background: transparent; border-color: rgba(18, 18, 26, 0.3); }
+/* On a phone the page opens scrolled to the video: the sign-up bar stays at the bottom of the screen. */
+@media (max-width: 760px) {
+    html.rk-drop:not(.rk-drop-member) .drop-bar {
+        position: fixed; left: 12px; right: 12px; bottom: calc(12px + env(safe-area-inset-bottom, 0px)); z-index: 60; margin: 0;
+        background: rgba(28, 20, 44, 0.94); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.45);
+    }
+    html.rk-drop:not(.rk-drop-member) .drop-bar-badge { display: none; }
+    html.rk-drop:not(.rk-drop-member) body { padding-bottom: 96px; }
+    html[data-theme='light'].rk-drop:not(.rk-drop-member) .drop-bar { background: rgba(244, 240, 252, 0.96); }
+}

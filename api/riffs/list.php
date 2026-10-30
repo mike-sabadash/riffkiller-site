@@ -28,11 +28,19 @@ if (!is_array($data)) {
 // Drafts and hidden riffs go only to a signed-in admin asking for the raw list.
 require_once $base . '/config/riff-visibility.php';
 $isAdmin = false;
-if (isset($_GET['raw'])) {
+if (!empty($_COOKIE['RIFFKILLER_SID'])) {
     require_once $base . '/config/session-start.php';
     $isAdmin = isset($_SESSION['admin_promo_logged']) && $_SESSION['admin_promo_logged'] === true;
+    session_write_close();
 }
-if (!$isAdmin) $data = riff_public_list($data);
+if (!isset($_GET['raw']) || !$isAdmin) $data = riff_public_list($data);
+// Teaser links stay secret: a visitor gets a riff by its link (api/riffs/drop.php), never the list of links.
+// The admin signed in at /admin/ opens every riff on the site, locked or paid (adminView).
+foreach ($data as $i => $riff) {
+    if (!is_array($riff)) continue;
+    if ($isAdmin) { if (!isset($_GET['raw'])) $data[$i]['adminView'] = true; }
+    else unset($data[$i]['dropKey']);
+}
 
 // Light WebP copies of each cover for the cards. The admin asks for the raw list (?raw=1): it saves riffs back
 // and compares them with the stored ones.

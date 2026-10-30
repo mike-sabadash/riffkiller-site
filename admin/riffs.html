@@ -54,6 +54,12 @@
         .riff-move-btns button:disabled { opacity: 0.3; cursor: not-allowed; }
         .riff-list-song { font-weight: 500; flex: 1; min-width: 0; }
         .riff-list-draft { margin-left: 8px; font-size: 12px; font-weight: 400; color: var(--color-text-tertiary); white-space: nowrap; }
+        .ed-grid .span-3 { grid-column: span 3; }
+        @media (max-width: 720px) { .ed-grid .span-3 { grid-column: 1 / -1; } }
+        .ed-drop { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+        .ed-drop-prefix { font-size: 13px; opacity: .7; }
+        .ed-drop input { flex: 1 1 140px; min-width: 120px; }
+        .riff-list-lock { margin-left: 6px; font-size: 12px; font-weight: 600; color: #c4b5fc; }
         .riff-list-missing { display: block; margin-top: 2px; font-size: 12px; font-weight: 400; color: #f2c94c; opacity: .85; }
         .riff-list-thumb { flex: none; width: 60px; height: 36px; border-radius: 6px; overflow: hidden; background: rgba(255,255,255,0.06); }
         .riff-list-thumb img { display: block; width: 100%; height: 100%; object-fit: cover; }
@@ -169,6 +175,11 @@
                     <div class="ed-checks">
                         <label class="ed-check"><input type="checkbox" id="isFree" name="isFree"> Бесплатный, без подписки</label>
                         <label class="ed-check" id="hiddenLabel"><input type="checkbox" id="hidden" name="hidden"> <span id="hiddenText">Скрыть с сайта</span></label>
+                    </div>
+                    <label class="ed-field"><span>Доступ</span><select id="lock"><option value="">Открыт</option><option value="soon">🔒 Закрыт: Soon</option></select></label>
+                    <div class="ed-field span-3"><span>Ссылка для тизера в Instagram</span>
+                        <div class="ed-drop"><span class="ed-drop-prefix">riffkiller.fun/drop/?r=</span><input type="text" id="dropKey" maxlength="40" placeholder="paranoid" autocomplete="off" spellcheck="false"><button type="button" class="ed-btn" id="dropMake">Придумать</button><button type="button" class="ed-btn" id="dropCopy">Скопировать ссылку</button></div>
+                        <small id="dropInfo">По ссылке человек попадает только в этот рифф и проходит его целиком, даже если рифф закрыт или платный. Ссылка заработает после сохранения.</small>
                     </div>
                     <div class="ed-field span-4"><span>Коллекции</span><div id="collChecks" class="coll-picks"></div><small>Сами коллекции создаются в разделе «Коллекции» админки.</small></div>
                 </div>
@@ -659,7 +670,7 @@
                 '<span class="riff-grip" title="Перетащить" aria-label="Перетащить">' + GripSvg + '</span>' +
                 '<div class="riff-move-btns"><button type="button" class="move-up" title="Выше">▲</button><button type="button" class="move-down" title="Ниже">▼</button></div></div>' +
                 '<span class="riff-list-thumb"></span>' +
-                '<span class="riff-list-song">' + (r.song||'') + (draftLabel(r) ? ' <span class="riff-list-draft">' + draftLabel(r) + '</span>' : '') + (missingLabel(r) ? '<span class="riff-list-missing">' + missingLabel(r) + '</span>' : '') + '</span>' +
+                '<span class="riff-list-song">' + (r.song||'') + (draftLabel(r) ? ' <span class="riff-list-draft">' + draftLabel(r) + '</span>' : '') + (r.lock === 'soon' ? '<span class="riff-list-lock">🔒 Soon</span>' : '') + (missingLabel(r) ? '<span class="riff-list-missing">' + missingLabel(r) + '</span>' : '') + '</span>' +
                 '<span class="riff-list-artist">' + (r.artist||'') + '</span>' +
                 '<div class="riff-list-actions"><button type="button" class="btn btn-primary btn-small btn-edit">Редактировать</button><button type="button" class="btn btn-secondary btn-small btn-del">Удалить</button></div>';
             setListThumb(card.querySelector('.riff-list-thumb'), r.thumbnail);
@@ -858,6 +869,45 @@
     function setEditing(riff) { editingRiff = riff; window.editingRiff = riff; }
     function confirmLeave() { return !isDirty || confirm('Есть несохранённые изменения. Уйти без сохранения?'); }
 
+    // Teaser link (config/riff-access.php): slug from the song, copy the full link, visits and sign-ups.
+    var dropStats = null;
+    function dropSlug(text) {
+        return String(text || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40).replace(/-+$/, '');
+    }
+    function dropUrl() {
+        var key = document.getElementById('dropKey').value.trim().toLowerCase();
+        return key ? 'https://riffkiller.fun/drop/?r=' + key : '';
+    }
+    function showDropStats() {
+        var info = document.getElementById('dropInfo');
+        var base = 'По ссылке человек попадает только в этот рифф и проходит его целиком, даже если рифф закрыт или платный. Ссылка заработает после сохранения.';
+        var key = (editingRiff && editingRiff.dropKey) || '';
+        if (!key) { info.textContent = base; return; }
+        var paint = function () {
+            var st = dropStats && dropStats[key] || {};
+            info.textContent = 'Переходов по ссылке: ' + (st.opens || 0) + ' · регистраций: ' + (st.signups || 0) + '. ' + base;
+        };
+        paint();
+        if (dropStats === null) {
+            dropStats = {};
+            fetch('../api/riffs/drop.php?stats=1', { credentials: 'same-origin' }).then(function (r) { return r.json(); })
+                .then(function (d) { if (d && d.success) { dropStats = d.stats || {}; paint(); } }).catch(function () {});
+        }
+    }
+    document.getElementById('dropMake').addEventListener('click', function () {
+        var input = document.getElementById('dropKey');
+        input.value = dropSlug(document.getElementById('song').value) || dropSlug(document.getElementById('artist').value);
+        input.focus();
+    });
+    document.getElementById('dropCopy').addEventListener('click', function () {
+        var btn = this, url = dropUrl();
+        if (!url) { document.getElementById('dropMake').click(); url = dropUrl(); }
+        if (!url) return;
+        var done = function () { var t = btn.textContent; btn.textContent = 'Скопировано'; setTimeout(function () { btn.textContent = t; }, 1500); };
+        if (navigator.clipboard) navigator.clipboard.writeText(url).then(done, function () { prompt('Ссылка для тизера', url); });
+        else prompt('Ссылка для тизера', url);
+    });
+
     function fillForm(riff) {
         setEditing(riff && riff.id ? riff : null);
         videoSource = riff.videoSource || null;
@@ -870,6 +920,9 @@
         if (g && !Array.prototype.some.call(ge.options, function (o) { return o.value === g; })) { var o = document.createElement('option'); o.value = g; o.textContent = g; ge.appendChild(o); }
         ge.value = g || 'rock';
         document.getElementById('isFree').checked = !!riff.isFree;
+        document.getElementById('lock').value = riff.lock === 'soon' ? 'soon' : '';
+        document.getElementById('dropKey').value = riff.dropKey || '';
+        showDropStats();
         document.getElementById('hidden').checked = riff.id ? !!riff.hidden : true;
         document.getElementById('dnaReference').checked = !!riff.dnaReference;
         document.getElementById('videoFile').value = riff.videoFile || '';
@@ -1127,7 +1180,7 @@
             videoUpload('lessonVideoUpload') || Promise.resolve(vLesson),
             TabEditor.collect(uploadImage, basePath.replace(/^assets\/video\//, 'assets/tabs/'))
         ]).then(function(r){
-            var riff = Object.assign({}, editingRiff || {}, { song:song, artist:artist, duration: SegmentEditor.duration() || parseFloat(document.getElementById('duration').value)||0, difficulty: document.getElementById('difficulty').value||'intermediate', genre: document.getElementById('genre').value.trim()||'rock', isFree: document.getElementById('isFree').checked, hidden: document.getElementById('hidden').checked, dnaReference: document.getElementById('dnaReference').checked, videoFile: r[0]||'', videoFileRight: r[1]||'', thumbnail: r[2]||'assets/img/riff-1.png', lessonVideo: r[3]||vLesson||null, segments: segs, dna: dna, collectionIds: getSelectedCollectionIds() });
+            var riff = Object.assign({}, editingRiff || {}, { song:song, artist:artist, duration: SegmentEditor.duration() || parseFloat(document.getElementById('duration').value)||0, difficulty: document.getElementById('difficulty').value||'intermediate', genre: document.getElementById('genre').value.trim()||'rock', isFree: document.getElementById('isFree').checked, lock: document.getElementById('lock').value, dropKey: document.getElementById('dropKey').value.trim().toLowerCase(), hidden: document.getElementById('hidden').checked, dnaReference: document.getElementById('dnaReference').checked, videoFile: r[0]||'', videoFileRight: r[1]||'', thumbnail: r[2]||'assets/img/riff-1.png', lessonVideo: r[3]||vLesson||null, segments: segs, dna: dna, collectionIds: getSelectedCollectionIds() });
             if (r[4]) riff.tab = r[4]; else delete riff.tab;
             if (videoSource) riff.videoSource = videoSource;
             if(editId) riff.id = parseInt(editId,10);
