@@ -1,0 +1,177 @@
+{
+ "id": 9,
+ "song": "Paranoid",
+ "riff": {
+  "dna": {
+   "overview": "Paranoid is two organisms. The intro hook works inside one E5 shape at the 12th fret: three hits with a 12–14 hammer-on, then a short run across the A and D strings. The verse riff is an engine: palm-muted, down-picked E5 eighths, a whole step down to D5, and a quick G5 – D5 – E5 turn back home. Later passes hold the E5 and slide down into G5 instead.",
+   "rule": "Muted E5 eighths + drop to D5 + G5–D5 turn home",
+   "law": "The eighths never stop and never change length, so the only movement you hear is harmonic: home, a step down, a short turn up and back. Because the pulse is fixed, the turn feels like an engine changing gear, not a new idea.",
+   "failure": "Alternate-pick or open up the palm mute and the riff loses its weight; skip the G5 before the D5 and the turn no longer pulls home.",
+   "authorNotes": "",
+   "preserve": [
+    "Down-picked, palm-muted E5 eighths",
+    "The drop a whole step to D5",
+    "The G5 – D5 – E5 turn back home",
+    "The 12–14 hammer-on inside the E5 shape in the intro"
+   ],
+   "change": [
+    "How many E5 bars come before the drop",
+    "How long the E5 is held in the tag",
+    "Which top-string chord answers the E5",
+    "Where the slide into G5 starts"
+   ],
+   "mutation": {
+    "title": "Build a Paranoid relative — without copying the riff",
+    "description": "Keep the engine, not the notes: one home power chord in steady eighths, a step down, and a short turn home.",
+    "steps": [
+     "Pick a home power chord and play 16 palm-muted, down-picked eighths on it.",
+     "Drop a whole step for one bar with the same eighths.",
+     "Write a two-chord turn — a fourth above, then the step down — and land home on beat 3.",
+     "On the last pass hold the home chord for a bar and slide down into the turn instead."
+    ]
+   },
+   "atoms": [
+    {
+     "technique": "power",
+     "type": "Power chord",
+     "label": "E5: 12th fret low E + 14th fret A",
+     "tip": "One shape carries the whole riff: index on the 12th fret, ring finger on the 14th.",
+     "view": "left",
+     "speed": 0.5,
+     "segmentIndex": 0,
+     "time": 0.18
+    },
+    {
+     "technique": "hammer",
+     "type": "Hammer-on",
+     "label": "12–14 on the A string",
+     "tip": "Pick the E5, then hammer the ring finger onto the 14th fret without picking again.",
+     "view": "left",
+     "speed": 0.5,
+     "segmentIndex": 0,
+     "time": 0.3
+    },
+    {
+     "technique": "legato",
+     "type": "Legato run",
+     "label": "12h14 on A, then D, then A",
+     "tip": "Each pair is one pick stroke: pick the 12th, hammer the 14th, move one string.",
+     "view": "left",
+     "speed": 0.5,
+     "segmentIndex": 0,
+     "time": 1.67
+    },
+    {
+     "technique": "ghost",
+     "type": "Ghost note",
+     "label": "(14) on the A string",
+     "tip": "The last note is barely there: a soft touch that leads into the next pass.",
+     "view": "left",
+     "speed": 0.75,
+     "segmentIndex": 0,
+     "time": 2.93
+    },
+    {
+     "technique": "palm",
+     "type": "Palm mute",
+     "label": "E5 eighths under P.M.",
+     "tip": "Rest the side of the picking hand on the strings at the bridge and play every eighth with a down stroke, all the same length.",
+     "view": "right",
+     "speed": 0.75,
+     "segmentIndex": 4,
+     "time": 12.03
+    },
+    {
+     "technique": "power",
+     "type": "Power chord",
+     "label": "D5: 10th fret low E + 12th fret A",
+     "tip": "Slide the same shape two frets down, keep the palm mute.",
+     "view": "left",
+     "speed": 0.5,
+     "segmentIndex": 5,
+     "time": 14.99
+    },
+    {
+     "technique": "slide",
+     "type": "Slide",
+     "label": "Slide into G5 (10–12–12)",
+     "tip": "Hit the G5 slightly from below and slide into the 10th fret.",
+     "view": "left",
+     "speed": 0.5,
+     "segmentIndex": 6,
+     "time": 16.46
+    },
+    {
+     "technique": "dead",
+     "type": "Dead note",
+     "label": "Muted D string in the D5 shape",
+     "tip": "The x is the D string touched by the finger: it adds a click, not a note.",
+     "view": "left",
+     "speed": 0.5,
+     "segmentIndex": 6,
+     "time": 16.66
+    },
+    {
+     "technique": "chord",
+     "type": "Chord",
+     "label": "12th fret on D, G and B",
+     "tip": "One finger flat across the 12th fret: a short top-string answer to the E5.",
+     "view": "left",
+     "speed": 0.5,
+     "segmentIndex": 6,
+     "time": 17.62
+    },
+    {
+     "technique": "ring",
+     "type": "Let ring",
+     "label": "E5 held over the bar line",
+     "tip": "Let the E5 ring two bars instead of chugging.",
+     "view": "split",
+     "speed": 0.75,
+     "segmentIndex": 9,
+     "time": 23.19
+    },
+    {
+     "technique": "slide",
+     "type": "Slide",
+     "label": "From E5 down into G5",
+     "tip": "Slide the whole shape down from the 14th to the 10th fret, no new pick stroke.",
+     "view": "left",
+     "speed": 0.5,
+     "segmentIndex": 10,
+     "time": 25.12
+    },
+    {
+     "technique": "anchor",
+     "type": "Home note",
+     "label": "E5 held for a bar",
+     "tip": "The riff hangs on its home chord before the last turn.",
+     "view": "split",
+     "speed": 0.75,
+     "segmentIndex": 12,
+     "time": 29.85
+    },
+    {
+     "technique": "slide",
+     "type": "Slide",
+     "label": "From E5 down into G5",
+     "tip": "Same slide as before: the shape travels down, the sound never stops.",
+     "view": "left",
+     "speed": 0.5,
+     "segmentIndex": 13,
+     "time": 31.14
+    },
+    {
+     "technique": "palm",
+     "type": "Palm mute",
+     "label": "Back to the muted E5 eighths",
+     "tip": "Drop the palm back on the strings right after the D5.",
+     "view": "right",
+     "speed": 0.75,
+     "segmentIndex": 14,
+     "time": 32.85
+    }
+   ]
+  }
+ }
+}
