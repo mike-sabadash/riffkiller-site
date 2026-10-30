@@ -198,6 +198,26 @@ def analyse(y, sr, events, n_takes=None):
         conf = [round(float(local[i, j]), 2) for i, j in enumerate(path)]
         return {'start': round(float(a), 3), 'end': round(float(b), 3), 'times': times, 'confidence': conf}
 
+    def atoms(tk):
+        """Bends (and their release) confirmed by the pitch curve. Hammer-ons and pull-offs are not
+        labelled: a soft pick and a legato note sound too alike to say it for sure."""
+        T, out = tk['times'], []
+        for i, ev in enumerate(events):
+            end = T[i + 1] if i + 1 < len(T) else tk['end']
+            a, b = fr(T[i] + 0.02), fr(end - 0.02)
+            seg = midi[a:b + 1]; seg = seg[~np.isnan(seg)]
+            if ev['bend'] and len(ev['midi']) == 1 and len(seg) >= 6:
+                start = float(np.median(seg[:4])); rise = float(np.percentile(seg, 95)) - start
+                if abs(((start - ev['midi'][0] + 6) % 12) - 6) < 0.7 and rise >= 0.8:
+                    amt = '1½' if rise >= 2.5 else ('full' if rise >= 1.4 else '½')
+                    out.append({'kind': 'bend', 'note': i, 't0': T[i], 't1': end, 'amount': amt})
+            elif (out and out[-1]['kind'] == 'bend' and out[-1]['note'] == i - 1 and ev['legato']
+                  and len(seg) >= 3 and abs(((np.median(seg[:4]) - ev['midi'][0] + 6) % 12) - 6) < 0.7):
+                out.append({'kind': 'release', 'note': i, 't0': T[i], 't1': end})
+        for o in out:
+            o['t0'], o['t1'] = round(o['t0'], 3), round(o['t1'], 3)
+        return out
+
     # pass 1: each take on its own; pass 2: the clearest take lends its rhythm to the others
     result = [align(a, b) for a, b in takes]
     if len(result) > 1 and len(events) > 2:
@@ -209,6 +229,8 @@ def analyse(y, sr, events, n_takes=None):
             span = first['times'][-1] - first['times'][0]
             scale = span / (ref[-1] - ref[0]) if ref[-1] > ref[0] else 1.0
             result[ti] = align(a, b, list(ref_gaps * scale))
+    for tk in result:
+        tk['atoms'] = atoms(tk)
     return result
 
 
@@ -256,7 +278,7 @@ def text_spaced(d, xy, s, font, fill, spacing, anchor='center'):
 
 class Renderer:
     PX0, PX1 = 112, 968          # panel: clear of the Reels icon column on the right
-    PY0 = 1384                   # panel top: below the fretboard (--panel-top to move it)
+    PY0 = 1362                   # panel top: below the fretboard (--panel-top to move it)
 
     def __init__(self, names, events, takes, title, subtitle, panel_top=None):
         if panel_top: self.PY0 = panel_top
@@ -264,18 +286,23 @@ class Renderer:
         self.title, self.subtitle = title, subtitle
         F = Fonts()
         self.f_title = F.get(50, 600); self.f_sub = F.get(22, 500)
-        self.f_head = F.get(22, 600); self.f_str = F.get(24, 500)
+        self.f_head = F.get(22, 600); self.f_str = F.get(24, 500); self.f_bend = F.get(21, 450); self._f_bend_ss = F.get(21 * 3, 450)
         self.f_num = F.get(32, 650); self.f_tech = F.get(22, 600)
-        self.sdy = 38
-        self.ph = 82 + self.sdy * (len(names) - 1) + 40
+        self.sdy = 36
+        self.ph = 116 + self.sdy * (len(names) - 1) + 36   # room above the top string for bend arrows
         self.PY1 = self.PY0 + self.ph
         self.inner0, self.inner1 = self.PX0 + 92, self.PX1 - 40
         span = self.inner1 - self.inner0
         n = len(events)
-        self.step = max(40.0, span / max(1, n - 1)) if n > 1 else 0
-        self.xs = [self.inner0 + i * self.step for i in range(n)]
+        # a bend needs room for its curve: the gap after a bent note is wider
+        gaps = [1.0 + (0.6 if events[i]['bend'] else 0.0) for i in range(n - 1)]
+        unit = max(32.0, span / max(1e-9, sum(gaps))) if n > 1 else 0
+        self.step = unit
+        self.xs = [self.inner0]
+        for gp in gaps:
+            self.xs.append(self.xs[-1] + gp * unit)
         self.content_w = self.xs[-1] - self.inner0 if n else 0
-        self.ys = [self.PY0 + 82 + i * self.sdy for i in range(len(names))]
+        self.ys = [self.PY0 + 116 + i * self.sdy for i in range(len(names))]
         self.static = self._static()
         mask = Image.new('L', (W, H), 0)
         ImageDraw.Draw(mask).rounded_rectangle([self.PX0, self.PY0, self.PX1, self.PY1], 30, fill=255)
@@ -309,7 +336,44 @@ class Renderer:
         f = (t - T[k]) / (T[k + 1] - T[k])
         return ti, self.xs[k] + f * (self.xs[k + 1] - self.xs[k]), k
 
+    def light_open_strings(self, take_indices):
+        """Open strings (fret 0) of these takes are painted red on the real guitar while they sound."""
+        import strings
+        self._strings = strings
+        self.open_spans, self.track_windows = [], []
+        for ti in take_indices:
+            tk = self.takes[ti]
+            T = tk['times']
+            for i, ev in enumerate(self.events):
+                end = T[i + 1] if i + 1 < len(T) else tk['end'] + 0.4
+                for s, lab in ev['notes']:
+                    if lab == '0':
+                        self.open_spans.append((T[i], end, s))
+            self.track_windows.append((tk['start'] - 0.3, tk['end'] + 0.6))
+        self.tracker = None
+
+    def _paint_strings(self, rgb, t):
+        if not getattr(self, 'open_spans', None):
+            return rgb
+        if not any(a <= t <= b for a, b in self.track_windows):
+            self.tracker = None
+            return rgb
+        S = self._strings
+        if self.tracker is None or self.tracker.lines is None:
+            self.tracker = S.Tracker()
+            if not self.tracker.init(rgb):
+                self.tracker = None
+                return rgb
+        th = self.tracker.update(rgb)
+        out = rgb
+        for t0, t1, s in self.open_spans:
+            if t0 - 0.02 <= t <= t1 + 0.12:
+                k = min(1.0, (t - t0 + 0.02) / 0.06, (t1 + 0.12 - t) / 0.12)
+                out = S.paint(out, th, self.tracker.string_line(s), self.tracker.nut, 0.9 * max(0.0, k))
+        return out
+
     def frame(self, video_rgb, t):
+        video_rgb = self._paint_strings(video_rgb, t)
         base = Image.fromarray(video_rgb).convert('RGBA')
         # frosted glass under the tab
         box = (self.PX0, self.PY0, self.PX1, self.PY1)
@@ -331,11 +395,6 @@ class Renderer:
         label = self.takes[ti].get('label', '')
         if label:
             d.text((self.PX0 + 40, self.PY0 + 38), label.upper(), font=self.f_head, fill=(255, 255, 255, 170), anchor='lm')
-        dots_x = self.PX1 - 40
-        for i in reversed(range(len(self.takes))):
-            on = i == ti
-            d.ellipse([dots_x - 6, self.PY0 + 32, dots_x + 6, self.PY0 + 44], fill=LIME + (255,) if on else (255, 255, 255, 60))
-            dots_x -= 24
 
         # strings with gaps around the numbers
         gaps = {s: [] for s in range(len(self.names))}
@@ -346,7 +405,7 @@ class Renderer:
                 wnum = self._num_width(d, lab)
                 gaps[s].append((x - wnum / 2 - 7, x + wnum / 2 + 7)); labels.append((i, s, lab, x))
         for s, y in enumerate(self.ys):
-            d.text((self.PX0 + 46, y), self.names[s], font=self.f_str, fill=(255, 255, 255, 120), anchor='mm')
+            d.text((self.PX0 + 46, y), self.names[s].upper(), font=self.f_str, fill=(255, 255, 255, 120), anchor='mm')
             x0 = self.inner0 - 26
             for g0, g1 in sorted(gaps[s]):
                 if g1 < x0: continue
@@ -364,12 +423,107 @@ class Renderer:
         d.rounded_rectangle(band, 11, fill=LIME + (46,), outline=LIME + (190,), width=3)
         base = Image.alpha_composite(base, ov)
         ov = Image.new('RGBA', (W, H), (0, 0, 0, 0)); d = ImageDraw.Draw(ov)
+        bent = {m[1] for m in self._bend_marks() if m[0] == 'bend'}
         for i, s, lab, lx in labels:
-            if lx < self.inner0 - 30 or lx > self.PX1 - 20: continue
+            if lx < self.inner0 - 8 or lx > self.PX1 - 20: continue
+            if i in bent:
+                lab = re.match(r'\d+', lab).group(0)  # the curve says "bend"; no letter needed
             col = LIME + (255,) if i == k else ((255, 255, 255, 105) if i < k else (255, 255, 255, 245))
             self._num(d, lx, self.ys[s], lab, col)
         base = Image.alpha_composite(base, ov)
+        base = self._bends(base, ti, t, k, X)
         return np.asarray(base.convert('RGB'))
+
+    def _bend_marks(self):
+        """Bends written the way engraved tab writes them: a thin curve from the note up over the
+        staff with the amount ('full', '½'), and the release curving back down. Amount comes
+        from the audio (any take that confirmed it); no amount if no take did."""
+        if hasattr(self, '_marks'):
+            return self._marks
+        amount = {}
+        for tk in self.takes:
+            for at in tk.get('atoms', []):
+                if at['kind'] == 'bend':
+                    amount.setdefault(at['note'], at['amount'])
+        marks = []
+        for i, ev in enumerate(self.events):
+            if ev['bend'] and len(ev['notes']) == 1:
+                marks.append(('bend', i, ev['notes'][0][0], amount.get(i)))
+            elif marks and marks[-1][0] == 'bend' and marks[-1][1] == i - 1 and ev['legato'] \
+                    and ev['notes'][0][0] == marks[-1][2]:
+                marks.append(('release', i, ev['notes'][0][0], None))
+        self._marks = marks
+        return marks
+
+    def _bends(self, base, ti, t, k, X):
+        marks = self._bend_marks()
+        if not marks:
+            return base
+        SS = 3  # draw supersampled for smooth thin curves
+        x0p, y0p = self.PX0, self.PY0
+        wp, hp = self.PX1 - self.PX0, self.PY1 - self.PY0
+        lay = Image.new('RGBA', (wp * SS, hp * SS), (0, 0, 0, 0))
+        d = ImageDraw.Draw(lay)
+        T = self.takes[ti]['times']
+        top = self.ys[0] - 30  # arrow tip height, above the top string
+        d_digit = ImageDraw.Draw(base)
+        tips = {}
+
+        def P(x, y):
+            return ((x - x0p) * SS, (y - y0p) * SS)
+
+        def curve(p0, c, p1, frac):
+            pts = []
+            n = 40
+            for j in range(int(n * frac) + 1):
+                u = j / n
+                pts.append(((1 - u) ** 2 * p0[0] + 2 * (1 - u) * u * c[0] + u * u * p1[0],
+                            (1 - u) ** 2 * p0[1] + 2 * (1 - u) * u * c[1] + u * u * p1[1]))
+            return pts
+
+        for kind, i, s, amt in marks:
+            xi, ys_ = X(self.xs[i]), self.ys[s]
+            if xi < self.inner0 - 30 or xi > self.PX1 - 20:
+                continue
+            end = T[i + 1] if i + 1 < len(T) else self.takes[ti]['end']
+            if i == k and t >= T[i]:
+                col = LIME + (255,)
+                frac = min(1.0, (t - T[i]) / max(0.12, 0.45 * (end - T[i])))
+            else:
+                col = (255, 255, 255, 110) if i < k else (255, 255, 255, 215)
+                frac = 1.0
+            if kind == 'bend':
+                wnum = d_digit.textlength(re.match(r'\d+', self.events[i]['notes'][0][1]).group(0), font=self.f_num)
+                p0 = (xi + wnum / 2 + 3, ys_ - 4)
+                tip = (xi + 0.85 * self.step, top)
+                c = (tip[0], p0[1])
+                tips[i] = tip
+                pts = curve(p0, c, tip, frac)
+                head_up = True
+            else:
+                tip0 = tips.get(i - 1, (X(self.xs[i - 1]) + 0.85 * self.step, top))
+                p1 = (xi, ys_ - 15)
+                c = (p1[0], tip0[1])
+                pts = curve(tip0, c, p1, frac)
+                head_up = False
+            if len(pts) >= 2:
+                d.line([P(*q) for q in pts], fill=col, width=2 * SS, joint='curve')
+            if frac >= 0.999:
+                hx, hy = pts[-1]
+                if head_up:
+                    tri = [(hx, hy - 7), (hx - 5, hy + 2), (hx + 5, hy + 2)]
+                else:
+                    tri = [(hx, hy + 6), (hx - 5, hy - 3), (hx + 5, hy - 3)]
+                d.polygon([P(*q) for q in tri], fill=col)
+                if kind == 'bend' and amt:
+                    lab = {'full': 'full', '½': '½', '1½': '1½'}.get(amt, amt)
+                    tw = d_digit.textlength(lab, font=self.f_bend)
+                    fbig = self._f_bend_ss
+                    d.text(P(hx - tw / 2, hy - 20), lab, font=fbig, fill=col, anchor='lm')
+        small = lay.resize((wp, hp), Image.LANCZOS)
+        layer = Image.new('RGBA', (W, H), (0, 0, 0, 0))
+        layer.paste(small, (x0p, y0p))
+        return Image.alpha_composite(base, layer)
 
     def _split(self, lab):
         m = re.match(r'(\d+)(.*)', lab)
@@ -398,10 +552,15 @@ def render(video, out, rend, still=None):
     dur = video_size(video)
     vf = f'scale={W}:{H}:force_original_aspect_ratio=increase,crop={W}:{H},fps={FPS}'
     if still is not None:
-        args = ['ffmpeg', '-v', 'error', '-ss', str(still), '-i', video, '-frames:v', '1', '-vf', vf,
-                '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-']
+        warm = 1.0 if getattr(rend, 'open_spans', None) else 0.0  # string tracking needs a few frames before
+        t0 = max(0.0, still - warm)
+        args = ['ffmpeg', '-v', 'error', '-ss', f'{t0:.3f}', '-i', video, '-t', f'{still - t0 + 0.5 / FPS:.3f}',
+                '-vf', vf, '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-']
         raw = subprocess.run(args, capture_output=True, check=True).stdout
-        Image.fromarray(rend.frame(np.frombuffer(raw, np.uint8).reshape(H, W, 3), still)).save(out)
+        frames = [np.frombuffer(raw[i:i + W * H * 3], np.uint8).reshape(H, W, 3) for i in range(0, len(raw) - W * H * 3 + 1, W * H * 3)]
+        for i, f in enumerate(frames[:-1]):
+            rend._paint_strings(f, t0 + i / FPS)
+        Image.fromarray(rend.frame(frames[-1], still)).save(out)
         return
     dec = subprocess.Popen(['ffmpeg', '-v', 'error', '-i', video, '-vf', vf, '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-'],
                            stdout=subprocess.PIPE)
@@ -432,6 +591,8 @@ def main():
     ap.add_argument('--labels', help='comma-separated take labels, e.g. "Take 1 · Fast,Take 2 · Slow"')
     ap.add_argument('--timings', help='use this timings JSON instead of analysing the audio')
     ap.add_argument('--panel-top', type=int, help='y of the tab panel top in a 1080x1920 frame (default 1384)')
+    ap.add_argument('--open-strings', default='slow', choices=['slow', 'all', 'none'],
+                    help='paint sounding open strings red on the guitar: in the slowest take (default), every take, or none')
     ap.add_argument('--still', type=float, help='write one PNG frame at this second instead of the video')
     a = ap.parse_args()
 
@@ -454,6 +615,9 @@ def main():
         for tk, lab in zip(takes, a.labels.split(',')):
             tk['label'] = lab.strip()
     rend = Renderer(names, events, takes, a.title, a.subtitle, a.panel_top)
+    if a.open_strings != 'none':
+        slowest = max(range(len(takes)), key=lambda i: takes[i]['end'] - takes[i]['start'])
+        rend.light_open_strings(range(len(takes)) if a.open_strings == 'all' else [slowest])
     render(a.video, a.out, rend, a.still)
 
 

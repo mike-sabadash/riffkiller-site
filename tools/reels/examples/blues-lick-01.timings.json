@@ -46,6 +46,21 @@
     0.58,
     1.26
    ],
+   "atoms": [
+    {
+     "kind": "bend",
+     "note": 4,
+     "t0": 0.929,
+     "t1": 1.533,
+     "amount": "full"
+    },
+    {
+     "kind": "release",
+     "note": 5,
+     "t0": 1.533,
+     "t1": 1.788
+    }
+   ],
    "label": "Take 1 · Fast"
   },
   {
@@ -92,6 +107,28 @@
     2.09,
     1.43,
     1.79
+   ],
+   "atoms": [
+    {
+     "kind": "bend",
+     "note": 4,
+     "t0": 6.641,
+     "t1": 7.326,
+     "amount": "full"
+    },
+    {
+     "kind": "release",
+     "note": 5,
+     "t0": 7.326,
+     "t1": 7.767
+    },
+    {
+     "kind": "bend",
+     "note": 17,
+     "t0": 12.411,
+     "t1": 13.27,
+     "amount": "full"
+    }
    ],
    "label": "Take 2 · Slow"
   }

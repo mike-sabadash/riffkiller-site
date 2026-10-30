@@ -1,5 +1,7 @@
 librosa>=0.10
 numpy
 pillow>=10
+opencv-python-headless
+scipy
 fonttools
 brotli
