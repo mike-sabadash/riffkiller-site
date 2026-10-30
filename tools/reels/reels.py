@@ -20,7 +20,7 @@ OPEN_MIDI = {'e': 64, 'B': 59, 'G': 55, 'D': 50, 'A': 45, 'E': 40}
 LIME = (184, 240, 90)          # cursor colour from the practice page (.tab-live-cursor)
 
 # ---------------------------------------------------------------- tab parsing
-TOKEN = re.compile(r'(\d{1,2})([bhpr/\\~]*)(\d{0,2})')
+TOKEN = re.compile(r'(\(\d{1,2}\)|\d{1,2}|[xX])([bhpr/\\~]*)(\d{0,2})')
 
 
 def parse_tab(text):
@@ -41,20 +41,23 @@ def parse_tab(text):
     for s, body in enumerate(bodies):
         prev_tech = ''
         for m in TOKEN.finditer(body):
-            fret, tech, target = int(m.group(1)), m.group(2), m.group(3)
+            g, tech, target = m.group(1), m.group(2), m.group(3)
             legato = any(c in prev_tech for c in 'bhp/\\r') or 'r' in tech[:1]
             label = m.group(0).replace('~', '')
-            hits.append((m.start(), s, label, OPEN_MIDI.get(names[s], 40) + fret, legato, 'b' in tech))
+            # (14) ghost note: drawn in brackets; x dead note: drawn as X, no pitch to look for
+            midi = None if g in 'xX' else OPEN_MIDI.get(names[s], 40) + int(g.strip('()'))
+            hits.append((m.start(), s, label, midi, legato, 'b' in tech))
             prev_tech = tech
     hits.sort()
     events = []
     for col, s, label, midi, legato, bend in hits:
         if events and col - events[-1]['col'] <= 1 and s not in [n[0] for n in events[-1]['notes']]:
             e = events[-1]
-            e['notes'].append((s, label)); e['midi'].append(midi)
+            e['notes'].append((s, label))
+            if midi is not None: e['midi'].append(midi)
             e['legato'] = e['legato'] and legato; e['bend'] = e['bend'] or bend
         else:
-            events.append({'col': col, 'notes': [(s, label)], 'midi': [midi], 'legato': legato, 'bend': bend})
+            events.append({'col': col, 'notes': [(s, label)], 'midi': [midi] if midi is not None else [], 'legato': legato, 'bend': bend})
     return names, events
 
 
@@ -532,8 +535,11 @@ class Renderer:
         return Image.alpha_composite(base, layer)
 
     def _split(self, lab):
+        if lab in ('x', 'X'): return 'X', ''
+        if lab.startswith('('): return lab, ''
         m = re.match(r'(\d+)(.*)', lab)
-        return m.group(1), m.group(2)
+        # hammer-on / pull-off: no letter on the plate (README), the legato only changes the timing
+        return m.group(1), '' if m.group(2) in ('h', 'p') else m.group(2)
 
     def _num_width(self, d, lab):
         a, b = self._split(lab)
@@ -572,7 +578,7 @@ def render(video, out, rend, still=None):
                            stdout=subprocess.PIPE)
     enc = subprocess.Popen(['ffmpeg', '-v', 'error', '-y', '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-s', f'{W}x{H}',
                             '-r', str(FPS), '-i', '-', '-i', video, '-map', '0:v', '-map', '1:a?',
-                            '-c:v', 'libx264', '-preset', 'medium', '-crf', '18', '-pix_fmt', 'yuv420p',
+                            '-c:v', 'libx264', '-preset', 'medium', *(['-qp', '0'] if os.environ.get('RK_LOSSLESS') else ['-crf', '18']), '-pix_fmt', 'yuv420p',
                             '-c:a', 'aac', '-b:a', '192k', '-shortest', '-movflags', '+faststart', out],
                            stdin=subprocess.PIPE)
     n, size = 0, W * H * 3

@@ -1,0 +1,23 @@
+{
+ "tab": "paranoid-phrase2.tab.txt",
+ "takes": [
+  {
+   "start": 0.023,
+   "end": 2.194,
+   "times": [
+    0.093,
+    0.383,
+    1.173,
+    1.718
+   ],
+   "confidence": [
+    1.99,
+    1.56,
+    1.87,
+    1.87
+   ],
+   "atoms": [],
+   "label": ""
+  }
+ ]
+}
