@@ -4,25 +4,45 @@
   "name": "Ending in E",
   "key": "E",
   "position": "Open position",
-  "techniques": ["Full bends", "Release", "Open strings"],
+  "techniques": [
+    "Full bends",
+    "Release",
+    "Open strings"
+  ],
   "parts": [
-    {"from": 1, "to": 7, "title": "Call", "text": "Open B, a quick step up to the high E, then the full bend on the 3rd fret and its release."},
-    {"from": 8, "to": 11, "title": "Turn", "text": "Chromatic 2-3-2-0 on the B string. Same finger on the 2nd fret both times."},
-    {"from": 12, "to": 19, "title": "Landing", "text": "Down through G and D, the G-G# climb, a full bend on the low E, and the E chord."}
+    {
+      "from": 1,
+      "to": 7,
+      "title": "Call",
+      "text": "Open B, a quick step up to the high E, then the full bend on the 3rd fret and its release."
+    },
+    {
+      "from": 8,
+      "to": 11,
+      "title": "Turn",
+      "text": "Chromatic 2-3-2-0 on the B string. Same finger on the 2nd fret both times."
+    },
+    {
+      "from": 12,
+      "to": 19,
+      "title": "Landing",
+      "text": "Down through G and D, the G-G# climb, a full bend on the low E, and the E chord."
+    }
   ],
   "practice": [
-    "Watch the slow take twice before you touch the guitar.",
-    "Loop one part at a time: x0.5, then x0.75, then x1.",
-    "Check the bend: 3rd fret pushed up should sound like the 5th fret.",
-    "Glue the parts, then play along with the fast take.",
-    "Mutate it: end on E7 (0-3-0-1-2-0) or move the turn up an octave."
+    "Watch the slow take a couple of times before you play.",
+    "Learn it in three chunks, one at a time.",
+    "Start slow; speed up only when a chunk is clean.",
+    "Bend until the 3rd fret sounds like the 5th. No half-way.",
+    "Join the chunks and play along with the fast take.",
+    "Make it yours: end on E7 (0-3-0-1-2-0) or move the turn up an octave."
   ],
   "post": {
     "title": "Blues Licks Series — Ending in E",
     "body": [
       "A short blues ending in E that sits in open position: a full bend on the high E, a chromatic turn on the B string, and a walk down to the E chord with one more bend on the low E.",
       "The video plays it twice: full speed first, then slow. The tab runs with the playing, and in the slow take the open top strings light up on the guitar, so you see exactly when they ring.",
-      "How to learn it, Riff DNA way:\n1. Split it into three parts: Call (notes 1–7), Turn (8–11), Landing (12–19).\n2. Loop each part at x0.5, x0.75, x1.\n3. Bend until the 3rd fret sounds like the 5th. No half-way.\n4. Glue the parts and play along with the fast take.\n5. Mutate: end on E7 or move the turn up an octave.",
+      "How to learn it:\n1. Watch the slow take a couple of times before you play.\n2. Learn it in three chunks: notes 1–7, 8–11, 12–19.\n3. Start slow and speed up only when each chunk is clean.\n4. Bend until the 3rd fret sounds like the 5th. No half-way.\n5. Join the chunks and play along with the fast take.\n6. Make it yours: end on E7 or move the B-string turn up an octave.",
       "The printable tab card is attached as a PDF.",
       "More licks in the series are on the way. Tell me in the comments which blues move you want broken down next."
     ]
