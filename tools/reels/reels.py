@@ -310,12 +310,15 @@ class Renderer:
 
     def _static(self):
         im = Image.new('RGBA', (W, H), (0, 0, 0, 0))
+        if not self.title and not self.subtitle:
+            return im
         # top shade for the title
         sh = np.linspace(150, 0, 560).astype(np.uint8)
         shade = Image.fromarray(np.repeat(sh[:, None], W, axis=1), 'L')
         im.paste(Image.new('RGBA', (W, 560), (0, 0, 0, 255)), (0, 0), shade)
         d = ImageDraw.Draw(im)
-        text_spaced(d, (W / 2, 292), self.title.upper(), self.f_title, (255, 255, 255, 255), 7)
+        if self.title:
+            text_spaced(d, (W / 2, 292), self.title.upper(), self.f_title, (255, 255, 255, 255), 7)
         if self.subtitle:
             text_spaced(d, (W / 2, 350), self.subtitle.upper(), self.f_sub, (255, 255, 255, 150), 9)
         return im
@@ -336,8 +339,9 @@ class Renderer:
         f = (t - T[k]) / (T[k + 1] - T[k])
         return ti, self.xs[k] + f * (self.xs[k + 1] - self.xs[k]), k
 
-    def light_open_strings(self, take_indices):
-        """Open strings (fret 0) of these takes are painted red on the real guitar while they sound."""
+    def light_open_strings(self, take_indices, on_strings=None, chords=True):
+        """Open strings (fret 0) of these takes are painted red on the real guitar while they sound.
+        on_strings: tab string indices to light (0 = high e); chords=False skips chord columns."""
         import strings
         self._strings = strings
         self.open_spans, self.track_windows = [], []
@@ -346,8 +350,10 @@ class Renderer:
             T = tk['times']
             for i, ev in enumerate(self.events):
                 end = T[i + 1] if i + 1 < len(T) else tk['end'] + 0.4
+                if not chords and len(ev['notes']) > 1:
+                    continue
                 for s, lab in ev['notes']:
-                    if lab == '0':
+                    if lab == '0' and (on_strings is None or s in on_strings):
                         self.open_spans.append((T[i], end, s))
             self.track_windows.append((tk['start'] - 0.3, tk['end'] + 0.6))
         self.tracker = None
@@ -591,6 +597,8 @@ def main():
     ap.add_argument('--labels', help='comma-separated take labels, e.g. "Take 1 · Fast,Take 2 · Slow"')
     ap.add_argument('--timings', help='use this timings JSON instead of analysing the audio')
     ap.add_argument('--panel-top', type=int, help='y of the tab panel top in a 1080x1920 frame (default 1384)')
+    ap.add_argument('--open-on', help='which strings to light, 1 = high e, e.g. "123" for the top three')
+    ap.add_argument('--no-chord-strings', action='store_true', help='do not light open strings inside chords')
     ap.add_argument('--open-strings', default='slow', choices=['slow', 'all', 'none'],
                     help='paint sounding open strings red on the guitar: in the slowest take (default), every take, or none')
     ap.add_argument('--still', type=float, help='write one PNG frame at this second instead of the video')
@@ -617,7 +625,8 @@ def main():
     rend = Renderer(names, events, takes, a.title, a.subtitle, a.panel_top)
     if a.open_strings != 'none':
         slowest = max(range(len(takes)), key=lambda i: takes[i]['end'] - takes[i]['start'])
-        rend.light_open_strings(range(len(takes)) if a.open_strings == 'all' else [slowest])
+        on = {int(c) - 1 for c in a.open_on if c.isdigit()} if a.open_on else None
+        rend.light_open_strings(range(len(takes)) if a.open_strings == 'all' else [slowest], on, not a.no_chord_strings)
     render(a.video, a.out, rend, a.still)
 
 
