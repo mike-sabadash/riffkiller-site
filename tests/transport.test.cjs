@@ -215,3 +215,24 @@ test('the right camera catching up after its sync seek does not stop the clock c
     clock+=5000; right.dispatchEvent(new Event('waiting'));
     assert.ok(left.paused && right.paused, 'a real stall later still pauses the pair');
 });
+test('the right camera follows the clock at the clock own nudged speed, so it can catch up', async () => {
+    const {left,right,t}=setup(); let clock=0; t.now=()=>clock; await t.play();
+    left.playbackRate=1.05; // the clock is sped up to keep up with a part's sound
+    left.currentTime=5; right.currentTime=5; t.tick(); assert.equal(right.playbackRate,1.05);
+    for(let i=0;i<30;i++){ clock+=33; right.currentTime=4.9; t.tick(); }
+    assert.ok(right.playbackRate>1.05, 'behind: faster than the clock '+right.playbackRate);
+});
+test('a sync seek aims where the clock will be once the phone lands it', async () => {
+    const {left,right,t}=setup(); let clock=10000; t.now=()=>clock; await t.play();
+    left.currentTime=6; right.currentTime=5; t.tick(); assert.equal(right.currentTime,6);
+    clock+=200; right.dispatchEvent(new Event('seeked')); // took 0.2 s
+    clock+=5000; left.currentTime=8; right.currentTime=7; t.tick();
+    assert.ok(Math.abs(right.currentTime-8.2)<1e-9, String(right.currentTime));
+});
+test('with a part sound the picture jumps to where the sound will be when the seek lands', async () => {
+    const {left,t}=setup(); let clock=0; t.now=()=>clock; const a=new Sound();
+    t.setVoice(a, 3, 5); left.currentTime=3.5; await t.play();
+    a.currentTime=.1; t.loopTo(3); assert.ok(Math.abs(left.currentTime-3.1)<1e-9);
+    clock+=150; left.dispatchEvent(new Event('seeked'));
+    a.currentTime=.1; t.loopTo(3); assert.ok(Math.abs(left.currentTime-3.25)<1e-9, String(left.currentTime));
+});

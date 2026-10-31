@@ -39,6 +39,14 @@
             this.rate = 1;
             this.lastSyncSeek = -Infinity;
             this.followNudge = new DriftNudge();
+            // Counted for ?debug=loop: how often each camera's speed changed and the right one was re-seeked.
+            this.counts = { syncSeeks: 0, rightRate: 0, leftRate: 0 };
+            // How long the right camera takes to land a sync seek (seconds), learnt from the last ones.
+            this.syncSeekLead = 0;
+            this.syncSeekAt = null;
+            // The same for the clock camera jumping to where a part's sound is.
+            this.loopSeekLead = 0;
+            this.loopSeekAt = null;
             // Media time advanced per check: on a phone checks are sparse (30 fps, throttled rAF).
             this.step = 0;
             this.lastTime = null;
@@ -80,6 +88,18 @@
                 };
                 listen(video, 'canplay', resume);
                 listen(video, 'seeked', resume);
+            });
+            listen(left, 'seeked', () => {
+                if (this.loopSeekAt == null) return;
+                const took = (this.now() - this.loopSeekAt) / 1000;
+                this.loopSeekAt = null;
+                if (took > 0 && took < 1.5) this.loopSeekLead = this.loopSeekLead ? this.loopSeekLead * 0.5 + took * 0.5 : took;
+            });
+            listen(right, 'seeked', () => {
+                if (this.syncSeekAt == null) return;
+                const took = (this.now() - this.syncSeekAt) / 1000;
+                this.syncSeekAt = null;
+                if (took > 0 && took < 1.5) this.syncSeekLead = this.syncSeekLead ? this.syncSeekLead * 0.5 + took * 0.5 : took;
             });
             listen(left, 'timeupdate', () => this.tick());
             listen(left, 'ended', () => {
@@ -189,7 +209,7 @@
             const now = this.now();
             v.nudge.update(drift, now);
             const rate = v.nudge.rate(this.rate);
-            if (this.left.playbackRate !== rate) this.left.playbackRate = rate;
+            if (this.left.playbackRate !== rate) { this.left.playbackRate = rate; this.counts.leftRate++; }
             if (Math.abs(drift) < 0.8 || now - v.lastFix < 3000) return;
             v.lastFix = now;
             if (this.options.onVoice) this.options.onVoice('resync', drift);
@@ -200,33 +220,44 @@
         seekVideos(target) {
             clearTimeout(this.timer);
             this.followNudge.reset();
+            this.syncSeekAt = null;
+            this.loopSeekAt = this.now();
             this.anchor = null;
             this.lastTime = null;
             this.videos.forEach(video => { video.currentTime = target; });
             if (this.options.onTick) this.options.onTick(target);
             return target;
         }
+        // The right camera follows the clock camera at the clock's own current speed: while the clock is
+        // nudged to keep up with a part's sound (×1.05), a follower held to the base speed could never catch up
+        // and was re-seeked every few seconds, a visible jerk whenever the right camera is on screen.
         follow() {
             const drift = this.right.currentTime - this.time;
             const now = this.now();
+            const base = this.left.playbackRate || this.rate;
             if (Math.abs(drift) >= SEEK_FROM) {
                 if (now - this.lastSyncSeek >= SEEK_COOLDOWN_MS) {
                     this.lastSyncSeek = now;
                     this.followNudge.reset();
-                    if (this.right.playbackRate !== this.rate) this.right.playbackRate = this.rate;
-                    this.right.currentTime = this.time;
+                    if (this.right.playbackRate !== base) this.right.playbackRate = base;
+                    this.counts.syncSeeks++;
+                    // A phone needs a moment to land a seek while the clock keeps going: aim where it will be.
+                    this.syncSeekAt = now;
+                    this.right.currentTime = this.time + this.syncSeekLead * base;
                     return;
                 }
             }
             this.followNudge.update(drift, now);
-            const target = this.followNudge.rate(this.rate);
-            if (this.right.playbackRate !== target) this.right.playbackRate = target;
+            const target = this.followNudge.rate(base);
+            if (this.right.playbackRate !== target) { this.right.playbackRate = target; this.counts.rightRate++; }
         }
         seek(time) {
             if (!Number.isFinite(time)) return this.time;
             const target = Math.max(0, this.duration ? Math.min(time, this.duration) : time);
             clearTimeout(this.timer);
             this.followNudge.reset();
+            this.syncSeekAt = null;
+            this.loopSeekAt = null;
             if (this.voice) this.voice.nudge.reset();
             this.anchor = null;
             this.videos.forEach(v => { v.currentTime = target; });
@@ -268,7 +299,10 @@
                 // The sound has looped by itself (or is about to): the picture goes to where the sound is.
                 const v = this.voice, len = v.end - v.start, at = this.voiceOffset();
                 v.lastFix = this.now();
-                return this.seekVideos(time + (at < len / 2 ? at : 0));
+                // The picture lands a moment later while the sound plays on: aim where the sound will be then,
+                // or the clock camera starts every pass behind and has to be sped up again.
+                const ahead = at < len / 2 ? at + this.loopSeekLead * this.rate : 0;
+                return this.seekVideos(time + Math.min(ahead, len / 2));
             }
             const left = this.left;
             if (!left.muted && !this.silenced) {
