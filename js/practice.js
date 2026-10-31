@@ -1195,6 +1195,8 @@ function handleVideoEnd() {
         // All Riff played to the end without the loop still counts as hearing the whole riff.
         if (loopAllRiff && window.PracticeProgress) window.PracticeProgress.wholePass();
         practiceTransport.pause();
+        // Back to the start: the last frame of a recording can be dark, and the next Play should start the riff.
+        practiceTransport.seek(0);
     }
 }
 
