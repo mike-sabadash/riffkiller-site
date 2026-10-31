@@ -442,6 +442,8 @@
             if (this.frame != null) root.cancelAnimationFrame(this.frame);
         }
     }
+    // Shown by ?debug=loop, so a screenshot tells which build the phone ran (Safari can keep an old page).
+    PracticeTransport.version = 13;
     root.PracticeTransport = PracticeTransport;
     if (typeof module !== 'undefined' && module.exports) module.exports = PracticeTransport;
 })(typeof window !== 'undefined' ? window : globalThis);
