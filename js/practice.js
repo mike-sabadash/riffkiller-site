@@ -159,7 +159,7 @@ function startPracticeProgress() {
             notify: (text) => showNotification(text)
         });
         setInterval(() => {
-            const playing = !!(practiceTransport && isPlaying && !lessonModeActive && leftVideo && !leftVideo.paused);
+            const playing = !!(practiceTransport && isPlaying && !lessonModeActive && leftVideo && !clockVideo().paused);
             window.PracticeProgress.tick(playing);
         }, 1000);
     }
@@ -789,6 +789,9 @@ function initVideoPlayers() {
     isInitialized = true;
 
     practiceTransport = new PracticeTransport(leftVideo, rightVideo, {
+        // Phones play only the camera on screen (see js/practice-transport.js).
+        solo: PHONE_SOLO,
+        view: currentMode === 'split' ? 'both' : currentMode,
         onTick: updateVideoProgress,
         onEnded: handleVideoEnd,
         onState: function(playing) {
@@ -802,6 +805,19 @@ function initVideoPlayers() {
     practiceTransport.setRate(playbackSpeed);
 
 
+}
+
+// A phone (touch screen) plays one camera at a time when one hand is shown: two videos playing and seeking at
+// once made an iPhone stall both. Any device can be forced either way with ?cameras=one or ?cameras=two.
+const PHONE_SOLO = (function () {
+    const forced = new URLSearchParams(location.search).get('cameras');
+    if (forced === 'one') return true;
+    if (forced === 'two') return false;
+    return !!(window.matchMedia && window.matchMedia('(pointer: coarse)').matches);
+})();
+// The camera that keeps time: the left one, or on a phone the one on screen.
+function clockVideo() {
+    return practiceTransport ? practiceTransport.clock : leftVideo;
 }
 
 // Установка режима видео
@@ -828,7 +844,7 @@ function setVideoMode(mode) {
         video.style.opacity = String(show[i]);
         video.style.pointerEvents = show[i] ? 'auto' : 'none';
     });
-    if (practiceTransport) practiceTransport.applyVoice();
+    if (practiceTransport) practiceTransport.setView(mode === 'split' ? 'both' : mode);
     else { leftVideo.muted = false; rightVideo.muted = true; }
 }
 
@@ -945,7 +961,7 @@ function updateVideoProgress() {
     syncPartVoice();
     if (LOOP_DEBUG && !loopDebug && leftVideo && rightVideo) loopDebug = makeLoopDebug();
     if (!leftVideo || !rightVideo || !currentRiff || lessonModeActive) return;
-    const time = leftVideo.currentTime;
+    const time = clockVideo().currentTime;
     updateTimelineProgress(time);
     if (!window._jumpToSegmentInProgress && !(loopActive && !loopAllRiff)) {
         updateCurrentSegmentFromTime();
@@ -1036,7 +1052,7 @@ function playPracticeSegment(index, options) {
 function updateCurrentSegmentFromTime() {
     if (!currentRiff || !leftVideo || window._jumpToSegmentInProgress) return;
     
-    const currentTime = leftVideo.currentTime;
+    const currentTime = clockVideo().currentTime;
     
     for (let i = 0; i < currentRiff.segments.length; i++) {
         const seg = currentRiff.segments[i];
@@ -1058,10 +1074,11 @@ const HARD_LOOP = false;
 function loopSegmentEnd() {
     if (!currentRiff || !practiceTransport || !practiceTransport.intendedPlaying ||
         practiceTransport.pending || practiceTransport.buffering ||
-        leftVideo.seeking || leftVideo.paused || !loopActive || loopAllRiff || currentSegment < 0) return null;
+        clockVideo().seeking || clockVideo().paused || !loopActive || loopAllRiff || currentSegment < 0) return null;
     const segment = currentRiff.segments[currentSegment];
-    // One frame early, so the first note of the next part never starts before the jump.
-    return segment ? getSegmentEndRaw(segment) - 0.02 * (practiceTransport.rate || 1) : null;
+    // One frame early, so the first note of the next part never starts before the jump. With the part's own
+    // sound, earlier still by the time a seek takes here, so the picture lands on the start as the sound loops.
+    return segment ? getSegmentEndRaw(segment) - 0.02 * (practiceTransport.rate || 1) - practiceTransport.loopLead() : null;
 }
 function loopBack(byTimer) {
     if (loopSegmentEnd() == null) return;
@@ -1104,7 +1121,7 @@ function makeLoopDebug() {
     const soundSource = () => {
         const v = practiceTransport && practiceTransport.voice;
         if (v) return v.audio.paused ? 'part file (paused)' : 'part file';
-        return leftVideo.muted ? 'none' : 'video';
+        return clockVideo().muted ? 'none' : 'video';
     };
     // The two cameras: drift of the right one, speed changes and re-sync seeks since the page opened,
     // frames the browser dropped, and the view, so a stutter on a phone can be read off a screenshot.
@@ -1113,7 +1130,7 @@ function makeLoopDebug() {
         const q = v => v.getVideoPlaybackQuality ? v.getVideoPlaybackQuality() : null;
         const ql = q(leftVideo), qr = q(rightVideo);
         const fr = x => x ? x.droppedVideoFrames + '/' + x.totalVideoFrames : '?';
-        return 'view ' + currentMode + ' · right drift ' + Math.round((rightVideo.currentTime - leftVideo.currentTime) * 1000) + ' ms' +
+        return 'view ' + currentMode + ' · clock ' + (clockVideo() === rightVideo ? 'R' : 'L') + (PHONE_SOLO ? ' (one camera)' : '') + ' · R−L ' + Math.round((rightVideo.currentTime - leftVideo.currentTime) * 1000) + ' ms' +
             ' · speed L ' + leftVideo.playbackRate + ' R ' + rightVideo.playbackRate +
             ' · changes L ' + (c.leftRate || 0) + ' R ' + (c.rightRate || 0) + ' · R re-sync ' + (c.syncSeeks || 0) +
             ' · dropped L ' + fr(ql) + ' R ' + fr(qr);
@@ -1127,21 +1144,21 @@ function makeLoopDebug() {
     };
     setInterval(() => {
         // Furthest the clock camera got past the part's end while playing: should stay 0.
-        if (!currentRiff || currentSegment < 0 || !loopActive || loopAllRiff || leftVideo.paused || leftVideo.seeking) return;
+        if (!currentRiff || currentSegment < 0 || !loopActive || loopAllRiff || clockVideo().paused || clockVideo().seeking) return;
         const seg = currentRiff.segments[currentSegment];
-        if (seg) maxPast = Math.max(maxPast, leftVideo.currentTime - seg.end);
-        const t = leftVideo.currentTime, now = performance.now();
+        if (seg) maxPast = Math.max(maxPast, clockVideo().currentTime - seg.end);
+        const t = clockVideo().currentTime, now = performance.now();
         if (t !== seenTime) {
             if (seenAt && t > seenTime && t - seenTime < 0.5) { gaps.push(now - seenAt); if (gaps.length > 60) gaps.shift(); }
             seenTime = t; seenAt = now;
         }
     }, 5);
     send('start', stats());
-    leftVideo.addEventListener('seeking', () => { seekAt = performance.now(); });
-    leftVideo.addEventListener('seeked', () => {
-        if (!pending) return;
+    [leftVideo, rightVideo].forEach(v => v.addEventListener('seeking', () => { if (v === clockVideo()) seekAt = performance.now(); }));
+    [leftVideo, rightVideo].forEach(v => v.addEventListener('seeked', () => {
+        if (!pending || v !== clockVideo()) return;
         pending.seek = performance.now() - seekAt;
-        pending.landed = leftVideo.currentTime;
+        pending.landed = clockVideo().currentTime;
         send('pass', Object.assign({ n: pending.n, end: pending.end, start: pending.start, jumpAt: pending.at, estimate: pending.est, by: pending.by,
             pastEnd: pending.past, seekMs: Math.round(pending.seek), landed: pending.landed, rightAt: rightVideo.currentTime,
             soundAt: practiceTransport && practiceTransport.voice ? practiceTransport.voice.audio.currentTime : null }, stats()));
@@ -1149,19 +1166,19 @@ function makeLoopDebug() {
             lines.unshift('#' + p.n + ' end ' + p.end.toFixed(3) + ' jump at ' + p.at.toFixed(3) + ' (' + ((p.at - p.end) * 1000).toFixed(0) + ' ms) by ' + p.by +
                 ' · past end ' + (p.past * 1000).toFixed(0) + ' ms · seek ' + p.seek.toFixed(0) + ' ms → ' + p.landed.toFixed(3) + ' (start ' + p.start.toFixed(3) + ')');
             lines.length = Math.min(lines.length, 12); show(); }, 0);
-    });
+    }));
     return {
         tick() { const now = performance.now(); if (last) { ticks.push(now - last); if (ticks.length > 60) ticks.shift(); } last = now; },
         jump(seg, byTimer) {
-            pending = { n: ++n, end: seg.end, start: seg.start, at: leftVideo.currentTime, est: practiceTransport.estimate(), by: byTimer ? 'timer' : 'check', past: Math.max(0, maxPast) };
+            pending = { n: ++n, end: seg.end, start: seg.start, at: clockVideo().currentTime, est: practiceTransport.estimate(), by: byTimer ? 'timer' : 'check', past: Math.max(0, maxPast) };
             maxPast = 0;
             show();
         },
         voice(kind, drift) {
             const v = practiceTransport && practiceTransport.voice;
             send('voice', Object.assign({ event: kind, drift: drift == null ? null : Math.round(drift * 1000),
-                soundAt: v ? v.audio.currentTime : null, videoAt: leftVideo.currentTime }, stats()));
-            lines.unshift('sound ' + kind + (drift == null ? '' : ' · drift ' + Math.round(drift * 1000) + ' ms') + ' · video ' + leftVideo.currentTime.toFixed(3));
+                soundAt: v ? v.audio.currentTime : null, videoAt: clockVideo().currentTime }, stats()));
+            lines.unshift('sound ' + kind + (drift == null ? '' : ' · drift ' + Math.round(drift * 1000) + ' ms') + ' · video ' + clockVideo().currentTime.toFixed(3));
             lines.length = Math.min(lines.length, 12); show();
         }
     };
@@ -1713,7 +1730,7 @@ function liveTabForCurrentRiff(overlay) {
 
 function tabLiveTick() {
     if (!tabsVisible || !tabLive || !leftVideo) { tabLiveRaf = 0; return; }
-    tabLive.update(leftVideo.currentTime);
+    tabLive.update(clockVideo().currentTime);
     tabLiveRaf = requestAnimationFrame(tabLiveTick);
 }
 
