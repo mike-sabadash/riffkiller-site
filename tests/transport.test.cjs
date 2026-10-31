@@ -157,8 +157,10 @@ test('a looped part sounds from its own file, which loops by itself and leads th
     a.currentTime=1.3; left.currentTime=4.8; t.voice.lastFix=-Infinity; t.tick(); assert.equal(a.currentTime,1.3); assert.equal(left.currentTime,4.8);
     // the jump back before the sound wrapped goes to the part start; the sound is left alone
     a.currentTime=1.9; t.loopTo(3.64); assert.equal(left.currentTime,3.64); assert.equal(right.currentTime,3.64); assert.equal(a.currentTime,1.9);
-    // the sound already wrapped: the picture goes to where the sound is
-    a.currentTime=.1; t.loopTo(3.64); assert.ok(Math.abs(left.currentTime-3.74)<1e-9);
+    // the sound has only just looped: the picture goes to the part's first frame (a keyframe, fastest on a phone)
+    a.currentTime=.05; t.loopTo(3.64); assert.equal(left.currentTime,3.64);
+    // the sound clearly looped already: the picture goes to where the sound is
+    a.currentTime=.3; t.loopTo(3.64); assert.ok(Math.abs(left.currentTime-3.94)<1e-9);
     // the picture clearly off (a slow phone seek): it is moved to the sound, once per cooldown
     a.currentTime=1; left.currentTime=3.7; t.voice.lastFix=-Infinity; t.tick(); assert.ok(Math.abs(left.currentTime-4.64)<1e-9);
     left.currentTime=3.7; t.tick(); assert.equal(left.currentTime,3.7);
@@ -232,7 +234,31 @@ test('a sync seek aims where the clock will be once the phone lands it', async (
 test('with a part sound the picture jumps to where the sound will be when the seek lands', async () => {
     const {left,t}=setup(); let clock=0; t.now=()=>clock; const a=new Sound();
     t.setVoice(a, 3, 5); left.currentTime=3.5; await t.play();
-    a.currentTime=.1; t.loopTo(3); assert.ok(Math.abs(left.currentTime-3.1)<1e-9);
+    a.currentTime=.3; t.loopTo(3); assert.ok(Math.abs(left.currentTime-3.3)<1e-9);
     clock+=150; left.dispatchEvent(new Event('seeked'));
-    a.currentTime=.1; t.loopTo(3); assert.ok(Math.abs(left.currentTime-3.25)<1e-9, String(left.currentTime));
+    a.currentTime=.3; t.loopTo(3); assert.ok(Math.abs(left.currentTime-3.45)<1e-9, String(left.currentTime));
+    // the jump starts that much before the part's end, so it lands on the first frame as the sound loops
+    assert.ok(Math.abs(t.loopLead()-0.15)<1e-9);
+    a.currentTime=1.85; t.loopTo(3); assert.equal(left.currentTime,3);
+});
+test('solo: with one hand on screen only that camera plays and is the clock; the other waits paused', async () => {
+    const {left,right,t}=setup({solo:true}); let clock=0; t.now=()=>clock;
+    left.muted=false; await t.play();
+    assert.ok(!left.paused && right.paused, 'only the shown camera plays');
+    left.currentTime=4; t.seek(5); assert.equal(left.currentTime,5); assert.equal(right.currentTime,0, 'the hidden one is not seeked');
+    t.setView('right');
+    assert.equal(t.clock,right); assert.ok(right.currentTime>=5, 'shown camera brought to the clock'); assert.ok(!right.paused && left.paused);
+    assert.equal(right.muted,false); assert.equal(left.muted,true, 'the sound moves with the clock');
+    right.currentTime=6; assert.equal(t.time,6);
+    let ended=0; t.options.onEnded=()=>ended++; left.dispatchEvent(new Event('ended')); right.dispatchEvent(new Event('ended')); assert.equal(ended,1);
+    t.setView('both');
+    assert.equal(t.clock,left); assert.ok(!left.paused && !right.paused, 'Split plays both'); assert.ok(left.currentTime>=6);
+    assert.equal(left.muted,false); assert.equal(right.muted,true);
+    t.setView('left'); assert.ok(!left.paused && right.paused);
+    t.pause(); t.setView('right'); assert.equal(t.clock,right); assert.equal(right.currentTime,left.currentTime);
+    t.destroy();
+});
+test('without solo (desktop) both cameras always play and the left one stays the clock', async () => {
+    const {left,right,t}=setup(); await t.play(); t.setView('right');
+    assert.equal(t.clock,left); assert.ok(!left.paused && !right.paused);
 });

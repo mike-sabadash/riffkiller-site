@@ -341,7 +341,7 @@
     /* ---------- live sync with the video ---------- */
 
     function videoState() {
-        var v = typeof leftVideo !== 'undefined' ? leftVideo : null; // eslint-disable-line no-undef
+        var v = typeof clockVideo === 'function' ? clockVideo() : (typeof leftVideo !== 'undefined' ? leftVideo : null); // eslint-disable-line no-undef
         return v ? { time: v.currentTime || 0, playing: !v.paused } : null;
     }
 

@@ -1,4 +1,7 @@
-/* One clock for both camera angles. Switching the visible angle never changes time. */
+/* One clock for both camera angles. Switching the visible angle never changes time.
+ * solo (phones): with one hand on screen only that camera plays and is the clock; the hidden one waits,
+ * paused. An iPhone playing and seeking two videos at once falls behind and stalls both (iPhone 11:
+ * seeks of 0.2–0.8 s, the picture a second behind the sound). In Split both play, the left one leads. */
 (function (root) {
     'use strict';
     // Small drift is pulled in by nudging the follower's speed; a seek stalls the decoder
@@ -32,6 +35,9 @@
             this.right = right;
             this.videos = [left, right];
             this.options = options;
+            this.solo = !!options.solo;
+            this.view = options.view || 'left';
+            this.clock = this.solo && this.view === 'right' ? right : left;
             this.intendedPlaying = false;
             this.buffering = false;
             this.pending = false;
@@ -53,13 +59,15 @@
             // Where the clock camera was at a known moment: the next part's start can then be met by a timer,
             // not by polling currentTime, which phones update in coarse steps.
             this.anchor = null;
-            if (left.requestVideoFrameCallback) {
+            this.videoFrames = new Map();
+            this.videos.forEach(video => {
+                if (!video.requestVideoFrameCallback) return;
                 const onFrame = (now, meta) => {
-                    if (meta && Number.isFinite(meta.mediaTime)) this.anchor = { media: meta.mediaTime, wall: meta.expectedDisplayTime || now };
-                    this.videoFrame = left.requestVideoFrameCallback(onFrame);
+                    if (video === this.clock && meta && Number.isFinite(meta.mediaTime)) this.anchor = { media: meta.mediaTime, wall: meta.expectedDisplayTime || now };
+                    this.videoFrames.set(video, video.requestVideoFrameCallback(onFrame));
                 };
-                this.videoFrame = left.requestVideoFrameCallback(onFrame);
-            }
+                this.videoFrames.set(video, video.requestVideoFrameCallback(onFrame));
+            });
             this.listeners = [];
             const listen = (video, event, fn) => {
                 video.addEventListener(event, fn);
@@ -68,43 +76,37 @@
             this.videos.forEach(video => {
                 listen(video, 'waiting', () => {
                     if (!this.intendedPlaying || video.readyState >= 3) return;
+                    // A camera that waits off screen (solo) has nothing to stall.
+                    if (!this.active().includes(video)) return;
                     // The right camera catching up after its own sync seek: the clock camera and the sound
                     // keep going (stopping both made the left camera stall too on every re-sync).
-                    if (video === this.right && this.now() - this.lastSyncSeek < SEEK_COOLDOWN_MS) return;
+                    if (video !== this.clock && this.now() - this.lastSyncSeek < SEEK_COOLDOWN_MS) return;
                     // The part's own sound leads: a camera catching up after a seek must not stop it
                     // (on a phone every loop jump would cut the sound for half a second).
                     if (this.voice) return;
                     ++this.revision;
                     this.pending = false;
                     this.buffering = true;
-                    this.videos.forEach(v => v.pause());
+                    this.active().forEach(v => v.pause());
                 });
                 const resume = () => {
                     if (this.buffering && this.intendedPlaying &&
-                        this.videos.every(v => v.readyState >= 3 && !v.seeking)) {
+                        this.active().every(v => v.readyState >= 3 && !v.seeking)) {
                         this.buffering = false;
                         this.play();
                     }
                 };
                 listen(video, 'canplay', resume);
                 listen(video, 'seeked', resume);
-            });
-            listen(left, 'seeked', () => {
-                if (this.loopSeekAt == null) return;
-                const took = (this.now() - this.loopSeekAt) / 1000;
-                this.loopSeekAt = null;
-                if (took > 0 && took < 1.5) this.loopSeekLead = this.loopSeekLead ? this.loopSeekLead * 0.5 + took * 0.5 : took;
-            });
-            listen(right, 'seeked', () => {
-                if (this.syncSeekAt == null) return;
-                const took = (this.now() - this.syncSeekAt) / 1000;
-                this.syncSeekAt = null;
-                if (took > 0 && took < 1.5) this.syncSeekLead = this.syncSeekLead ? this.syncSeekLead * 0.5 + took * 0.5 : took;
-            });
-            listen(left, 'timeupdate', () => this.tick());
-            listen(left, 'ended', () => {
-                if (!this.intendedPlaying) return;
-                if (options.onEnded) options.onEnded();
+                listen(video, 'seeked', () => {
+                    if (video === this.clock) this.landed('loop');
+                    else this.landed('sync');
+                });
+                listen(video, 'timeupdate', () => { if (video === this.clock) this.tick(); });
+                listen(video, 'ended', () => {
+                    if (video !== this.clock || !this.intendedPlaying) return;
+                    if (options.onEnded) options.onEnded();
+                });
             });
             const frame = () => {
                 this.tick();
@@ -114,28 +116,78 @@
                 this.frame = root.requestAnimationFrame(frame);
             }
         }
-        get time() { return this.left.currentTime || 0; }
+        // How long a seek took to land, learnt from the last ones: 'loop' for the clock camera, 'sync' for the follower.
+        landed(kind) {
+            const key = kind + 'SeekAt', lead = kind + 'SeekLead';
+            if (this[key] == null) return;
+            const took = (this.now() - this[key]) / 1000;
+            this[key] = null;
+            if (took > 0 && took < 1.5) this[lead] = this[lead] ? this[lead] * 0.5 + took * 0.5 : took;
+        }
+        // The cameras that play: in solo with one hand on screen only the clock.
+        active() { return this.solo && this.view !== 'both' ? [this.clock] : this.videos; }
+        // The camera that follows the clock, when two play.
+        get follower() { return this.active().length > 1 ? this.videos.find(v => v !== this.clock) : null; }
+        // Which hand is on screen: 'left', 'right' or 'both'. In solo the shown camera becomes the clock; the
+        // other one is paused and is brought to the clock's time only when it is shown again.
+        setView(view) {
+            this.view = view === 'right' || view === 'both' ? view : 'left';
+            const next = this.solo && this.view === 'right' ? this.right : this.left;
+            const lead = (this.loopSeekLead || this.syncSeekLead || 0.15) * (this.clock.playbackRate || this.rate);
+            if (next !== this.clock) {
+                const prev = this.clock;
+                const time = prev.currentTime || 0;
+                this.clock = next;
+                this.anchor = null;
+                this.lastTime = null;
+                this.followNudge.reset();
+                if (this.voice) this.voice.nudge.reset();
+                next.playbackRate = this.rate;
+                if (this.intendedPlaying) {
+                    this.loopSeekAt = this.now();
+                    next.currentTime = time + lead;
+                    const p = next.play();
+                    if (p && p.catch) p.catch(() => {});
+                } else next.currentTime = time;
+            }
+            const follower = this.follower;
+            if (follower && this.intendedPlaying && follower.paused) {
+                // Split again: the other camera starts where the clock will be once it has landed.
+                this.lastSyncSeek = this.now();
+                this.syncSeekAt = this.now();
+                follower.playbackRate = this.clock.playbackRate || this.rate;
+                follower.currentTime = this.time + lead;
+                const p = follower.play();
+                if (p && p.catch) p.catch(() => {});
+            }
+            this.videos.forEach(v => { if (!this.active().includes(v) && !v.paused) v.pause(); });
+            this.applyVoice();
+        }
+        // In a looped part the sound loops by itself: the picture's jump back starts this much before the part's
+        // end, so it lands on the part's first frame as the sound starts it again.
+        loopLead() { return this.voice ? Math.min(0.5, this.loopSeekLead) * this.rate : 0; }
+        get time() { return this.clock.currentTime || 0; }
         now() { return root.performance ? root.performance.now() : Date.now(); }
         // Best guess of the clock camera's time right now, never behind what it reports.
         estimate() {
             const t = this.time, a = this.anchor;
-            if (!a || !this.intendedPlaying || this.left.paused || this.left.seeking) return t;
+            if (!a || !this.intendedPlaying || this.clock.paused || this.clock.seeking) return t;
             const age = (this.now() - a.wall) / 1000;
             if (age < 0 || age > 0.3) return t;
             // A frame from before a seek (Safari can report one after the seek lands) says nothing about now.
             if (Math.abs(a.media - t) > 0.5) return t;
-            return Math.max(t, a.media + age * (this.left.playbackRate || this.rate));
+            return Math.max(t, a.media + age * (this.clock.playbackRate || this.rate));
         }
         // Calls fn when the clock camera reaches media time `time` (once; a later call replaces it).
         // Only arms within half a second, so a seek or a pause in between cannot fire a stale jump.
         at(time, fn) {
             clearTimeout(this.timer);
             this.timer = null;
-            const wait = (time - this.estimate()) / (this.left.playbackRate || this.rate || 1);
+            const wait = (time - this.estimate()) / (this.clock.playbackRate || this.rate || 1);
             if (wait > 0.5) return;
             this.timer = setTimeout(() => { this.timer = null; fn(); }, Math.max(0, wait * 1000));
         }
-        get duration() { return Number.isFinite(this.left.duration) ? this.left.duration : 0; }
+        get duration() { return Number.isFinite(this.clock.duration) ? this.clock.duration : 0; }
         setRate(rate) {
             if (!Number.isFinite(rate) || rate <= 0) return;
             this.rate = rate;
@@ -151,7 +203,7 @@
         setVoice(audio, start, end) {
             this.clearVoice(true);
             this.voice = { audio, start, end, lastFix: -Infinity, nudge: new DriftNudge() };
-            this.left.muted = true;
+            this.clock.muted = true;
             audio.loop = true;
             audio.playbackRate = this.rate;
             if (this.intendedPlaying) this.syncVoice(true);
@@ -159,16 +211,15 @@
         // One voice at a time: the part's file while it plays, otherwise the left camera (the clock);
         // the right camera is always silent. A view change must not unmute the left camera over the part file.
         applyVoice() {
-            this.right.muted = true;
-            this.left.muted = !!(this.voice || this.silenced);
+            this.videos.forEach(v => { v.muted = v !== this.clock || !!(this.voice || this.silenced); });
         }
         clearVoice(keepMuted) {
             const v = this.voice;
             if (!v) return;
             this.voice = null;
             v.audio.pause();
-            this.left.playbackRate = this.rate;
-            if (!keepMuted) this.left.muted = false;
+            this.clock.playbackRate = this.rate;
+            if (!keepMuted) this.clock.muted = false;
         }
         // Where the picture should be inside the part, by the sound.
         voiceOffset() {
@@ -191,10 +242,10 @@
                 }
                 return;
             }
-            if (this.left.seeking || this.pending) return;
+            if (this.clock.seeking || this.pending) return;
             // Stopped by the system (another sound, a route change): it is the clock, so it starts again.
             if (a.paused) {
-                if (this.intendedPlaying && !this.left.paused) {
+                if (this.intendedPlaying && !this.clock.paused) {
                     const p = a.play();
                     if (p && p.catch) p.catch(() => {});
                     if (this.options.onVoice) this.options.onVoice('restart');
@@ -209,12 +260,12 @@
             const now = this.now();
             v.nudge.update(drift, now);
             const rate = v.nudge.rate(this.rate);
-            if (this.left.playbackRate !== rate) { this.left.playbackRate = rate; this.counts.leftRate++; }
+            if (this.clock.playbackRate !== rate) { this.clock.playbackRate = rate; this.counts.leftRate++; }
             if (Math.abs(drift) < 0.8 || now - v.lastFix < 3000) return;
             v.lastFix = now;
             if (this.options.onVoice) this.options.onVoice('resync', drift);
             v.nudge.reset();
-            this.left.playbackRate = this.rate;
+            this.clock.playbackRate = this.rate;
             this.seekVideos(v.start + this.voiceOffset());
         }
         seekVideos(target) {
@@ -224,7 +275,7 @@
             this.loopSeekAt = this.now();
             this.anchor = null;
             this.lastTime = null;
-            this.videos.forEach(video => { video.currentTime = target; });
+            this.active().forEach(video => { video.currentTime = target; });
             if (this.options.onTick) this.options.onTick(target);
             return target;
         }
@@ -232,24 +283,26 @@
         // nudged to keep up with a part's sound (×1.05), a follower held to the base speed could never catch up
         // and was re-seeked every few seconds, a visible jerk whenever the right camera is on screen.
         follow() {
-            const drift = this.right.currentTime - this.time;
+            const f = this.follower;
+            if (!f) return;
+            const drift = f.currentTime - this.time;
             const now = this.now();
-            const base = this.left.playbackRate || this.rate;
+            const base = this.clock.playbackRate || this.rate;
             if (Math.abs(drift) >= SEEK_FROM) {
                 if (now - this.lastSyncSeek >= SEEK_COOLDOWN_MS) {
                     this.lastSyncSeek = now;
                     this.followNudge.reset();
-                    if (this.right.playbackRate !== base) this.right.playbackRate = base;
+                    if (f.playbackRate !== base) f.playbackRate = base;
                     this.counts.syncSeeks++;
                     // A phone needs a moment to land a seek while the clock keeps going: aim where it will be.
                     this.syncSeekAt = now;
-                    this.right.currentTime = this.time + this.syncSeekLead * base;
+                    f.currentTime = this.time + this.syncSeekLead * base;
                     return;
                 }
             }
             this.followNudge.update(drift, now);
             const target = this.followNudge.rate(base);
-            if (this.right.playbackRate !== target) { this.right.playbackRate = target; this.counts.rightRate++; }
+            if (f.playbackRate !== target) { f.playbackRate = target; this.counts.rightRate++; }
         }
         seek(time) {
             if (!Number.isFinite(time)) return this.time;
@@ -260,7 +313,7 @@
             this.loopSeekAt = null;
             if (this.voice) this.voice.nudge.reset();
             this.anchor = null;
-            this.videos.forEach(v => { v.currentTime = target; });
+            this.active().forEach(v => { v.currentTime = target; });
             if (this.voice) {
                 const t = target - this.voice.start;
                 if (t >= 0 && t < this.voice.end - this.voice.start) this.voice.audio.currentTime = t;
@@ -279,7 +332,7 @@
             if (hard && this.intendedPlaying && !this.pending) {
                 const revision = ++this.revision;
                 this.pending = true;
-                this.videos.forEach(v => v.pause());
+                this.active().forEach(v => v.pause());
                 this.lastTime = null;
                 const target = this.seek(time);
                 const landed = v => new Promise(resolve => {
@@ -288,7 +341,7 @@
                     const timer = setTimeout(done, 1500);
                     v.addEventListener('seeked', done);
                 });
-                Promise.all(this.videos.map(landed)).then(() => {
+                Promise.all(this.active().map(landed)).then(() => {
                     if (revision !== this.revision) return;
                     this.pending = false;
                     this.play();
@@ -296,15 +349,15 @@
                 return target;
             }
             if (this.voice) {
-                // The sound has looped by itself (or is about to): the picture goes to where the sound is.
+                // The jump starts loopLead() before the part's end (the sound is about to loop): the picture goes
+                // to the part's first frame, a keyframe, which a phone lands fastest, as the sound starts again.
+                // Only a picture that fell behind (the sound already looped) goes to where the sound will be.
                 const v = this.voice, len = v.end - v.start, at = this.voiceOffset();
                 v.lastFix = this.now();
-                // The picture lands a moment later while the sound plays on: aim where the sound will be then,
-                // or the clock camera starts every pass behind and has to be sped up again.
-                const ahead = at < len / 2 ? at + this.loopSeekLead * this.rate : 0;
+                const ahead = at < len / 2 && at > 0.1 * this.rate ? at + this.loopSeekLead * this.rate : 0;
                 return this.seekVideos(time + Math.min(ahead, len / 2));
             }
-            const left = this.left;
+            const left = this.clock;
             if (!left.muted && !this.silenced) {
                 this.silenced = true;
                 left.muted = true;
@@ -325,13 +378,14 @@
             this.intendedPlaying = true;
             this.buffering = false;
             this.pending = true;
-            if (Math.abs(this.right.currentTime - this.time) > 0.04) this.right.currentTime = this.time;
+            const f = this.follower;
+            if (f && Math.abs(f.currentTime - this.time) > 0.04) f.currentTime = this.time;
             this.setRate(this.rate);
             // Inside the same user activation as the cameras, so Safari lets the part's sound start.
             if (this.voice) this.syncVoice(true);
             try {
                 // Call both play() methods within the same user activation (mobile browsers).
-                await Promise.all(this.videos.map(v => v.play()));
+                await Promise.all(this.active().map(v => v.play()));
                 if (revision !== this.revision) return false;
                 this.pending = false;
                 if (this.options.onState) this.options.onState(true);
@@ -355,26 +409,27 @@
         }
         tick() {
             // The left camera is the clock: a catch-up seek of the right one must not stop the loop check.
-            if (this.pending || this.buffering || this.left.seeking) return;
+            if (this.pending || this.buffering || this.clock.seeking) return;
             const now = this.time;
             // Without frame callbacks the moment currentTime changes is the best anchor there is.
-            if (now !== this.lastTime && this.intendedPlaying && !this.left.paused && !this.left.requestVideoFrameCallback) {
+            if (now !== this.lastTime && this.intendedPlaying && !this.clock.paused && !this.clock.requestVideoFrameCallback) {
                 this.anchor = { media: now, wall: this.now() };
             }
-            if (this.intendedPlaying && !this.left.paused && this.lastTime != null) {
+            if (this.intendedPlaying && !this.clock.paused && this.lastTime != null) {
                 const d = now - this.lastTime;
                 if (d > 0 && d < 0.3) this.step = this.step ? this.step * 0.8 + d * 0.2 : d;
             }
             this.lastTime = now;
-            if (this.intendedPlaying && !this.left.paused && !this.right.paused && !this.right.seeking) this.follow();
-            if (this.voice && this.intendedPlaying && !this.left.paused) this.syncVoice();
+            const f = this.follower;
+            if (f && this.intendedPlaying && !this.clock.paused && !f.paused && !f.seeking) this.follow();
+            if (this.voice && this.intendedPlaying && !this.clock.paused) this.syncVoice();
             if (this.options.onTick) this.options.onTick(this.time);
         }
         destroy() {
             this.pause();
             if (this.unsilence) this.unsilence();
             this.clearVoice(true);
-            if (this.videoFrame != null && this.left.cancelVideoFrameCallback) this.left.cancelVideoFrameCallback(this.videoFrame);
+            this.videoFrames.forEach((handle, video) => { if (video.cancelVideoFrameCallback) video.cancelVideoFrameCallback(handle); });
             this.listeners.forEach(remove => remove());
             if (this.frame != null) root.cancelAnimationFrame(this.frame);
         }
