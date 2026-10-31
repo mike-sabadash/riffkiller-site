@@ -1136,7 +1136,7 @@ function makeLoopDebug() {
             ' · dropped L ' + fr(ql) + ' R ' + fr(qr);
     };
     setInterval(() => { if (!pending) show(); }, 500);
-    const env = 'rVFC ' + (leftVideo.requestVideoFrameCallback ? 'yes' : 'no') + ' · ' + navigator.userAgent.replace(/^.*?\(([^)]*)\).*$/, '$1').slice(0, 40);
+    const env = 'build ' + (PracticeTransport.version || '?') + ' · rVFC ' + (leftVideo.requestVideoFrameCallback ? 'yes' : 'no') + ' · ' + navigator.userAgent.replace(/^.*?\(([^)]*)\).*$/, '$1').slice(0, 40);
     const show = () => {
         const avg = ticks.length ? ticks.reduce((a, b) => a + b, 0) / ticks.length : 0;
         box.textContent = env + ' · check every ' + avg.toFixed(0) + ' ms · sound: ' + soundSource() +
