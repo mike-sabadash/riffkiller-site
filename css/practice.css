@@ -2176,14 +2176,16 @@ html[data-theme='light'] .drop-bar-link { color: #12121a; }
 .segment-btn.all-riff.all-riff-glint::before {
     content: ''; position: absolute; inset: 0; border-radius: inherit; padding: 1px; pointer-events: none;
     background: linear-gradient(100deg, transparent 40%, rgba(255, 255, 255, 0.9) 50%, transparent 60%) no-repeat;
-    background-size: 300% 100%; background-position: 120% 0;
+    background-size: 300% 100%; background-position: 90% 0;
     -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
     -webkit-mask-composite: xor; mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
-    animation: rk-all-riff-glint 5s ease-in-out 1.5s infinite;
+    /* easeInOutCubic-like: starts slowly, speeds up through the middle, settles at the end; 2.2 s every 5.5 s. */
+    animation: rk-all-riff-glint 5.5s cubic-bezier(0.7, 0, 0.3, 1) 1.5s infinite;
 }
 @keyframes rk-all-riff-glint {
-    0% { background-position: 120% 0; }
-    28%, 100% { background-position: -20% 0; }
+    /* 90% → 10% is exactly from just off the left edge to just off the right one, so the easing is seen on the button. */
+    0% { background-position: 90% 0; }
+    40%, 100% { background-position: 10% 0; }
 }
 @media (prefers-reduced-motion: reduce) {
     .segment-btn.all-riff.all-riff-glint::before { animation: none; background: rgba(255, 255, 255, 0.35); }
