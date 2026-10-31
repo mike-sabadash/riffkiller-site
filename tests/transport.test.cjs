@@ -58,17 +58,31 @@ test('only the master camera can finish a loop', async () => {
     t.destroy();left.dispatchEvent(new Event('ended'));assert.equal(loops,1);
 });
 test('small drift is pulled in by speed, never by a seek', async () => {
-    const {left,right,t} = setup(); t.setRate(.5); await t.play();
+    const {left,right,t} = setup(); let clock = 0; t.now = () => clock; t.setRate(.5); await t.play();
     left.currentTime = 4; right.currentTime = 4.08; t.tick();
     assert.equal(right.currentTime, 4.08);
-    assert.ok(right.playbackRate < .5 && right.playbackRate >= .45, String(right.playbackRate));
+    assert.equal(right.playbackRate, .475, 'ahead: one step slower');
     assert.equal(left.playbackRate, .5);
-    right.currentTime = 3.95; t.tick();
-    assert.ok(right.playbackRate > .5 && right.playbackRate <= .55, String(right.playbackRate));
-    right.currentTime = 4.005; t.tick();
+    // Pulled in: back to the exact speed once the smoothed drift is small.
+    for (let i = 0; i < 30; i++) { clock += 33; right.currentTime = 4.005; t.tick(); }
     assert.equal(right.playbackRate, .5);
-    right.currentTime = 4.1; t.tick(); t.pause(); await t.play();
+    // Behind for a while: one step faster.
+    for (let i = 0; i < 30; i++) { clock += 33; right.currentTime = 3.9; t.tick(); }
+    assert.equal(right.playbackRate, .525);
+    t.pause(); await t.play();
     assert.equal(right.playbackRate, .5);
+});
+test('frame-sized jitter of a phone camera does not keep changing its speed', async () => {
+    const {left,right,t} = setup(); let clock = 0; t.now = () => clock; await t.play();
+    let changes = 0, rate = 1;
+    Object.defineProperty(right, 'playbackRate', {get: () => rate, set: v => { changes++; rate = v; }});
+    // 10 s at 30 fps: each camera reports whole frames on its own beat, so the drift jumps between -1 and +1 frame.
+    for (let i = 0; i < 300; i++) {
+        clock += 33; left.currentTime = Math.floor(i / 2) / 30; right.currentTime = Math.floor((i + 1 + (i % 3 === 0 ? 1 : 0)) / 2) / 30;
+        t.tick();
+    }
+    assert.equal(changes, 0, 'speed changed ' + changes + ' times');
+    assert.equal(right.currentTime > 0, true);
 });
 test('a large drift seeks the follower once, then waits instead of seeking in a loop', async () => {
     const {left,right,t} = setup(); await t.play();
@@ -184,11 +198,20 @@ test('a camera catching up after a loop jump does not stop the part sound', asyn
     assert.equal(a.paused,false); assert.ok(!left.paused && !right.paused); assert.equal(t.buffering,false);
 });
 test('small drift from the part sound is closed by camera speed, not by a seek', async () => {
-    const {left,t}=setup(); const a=new Sound();
+    const {left,t}=setup(); let clock=0; t.now=()=>clock; const a=new Sound();
     t.setVoice(a, 1.7, 3.44); left.currentTime=2; await t.play();
     a.currentTime=.1; left.currentTime=2; t.tick(); // picture 0.2 s ahead of the sound
-    assert.equal(left.currentTime,2); assert.ok(left.playbackRate<1 && left.playbackRate>=.92);
-    a.currentTime=.5; left.currentTime=2; t.tick(); assert.ok(left.playbackRate>1); // behind: faster
+    assert.equal(left.currentTime,2); assert.equal(left.playbackRate,.95);
+    for (let i=0;i<30;i++){ clock+=33; a.currentTime=.5; left.currentTime=2; t.tick(); } // behind: faster
+    assert.equal(left.playbackRate,1.05);
     a.paused=true; t.tick(); assert.equal(a.paused,false, 'a sound stopped by the system starts again');
     t.clearVoice(); assert.equal(left.playbackRate,1);
+});
+test('the right camera catching up after its sync seek does not stop the clock camera', async () => {
+    const {left,right,t}=setup(); let clock=10000; t.now=()=>clock; await t.play();
+    left.currentTime=6; right.currentTime=6.6; t.tick(); assert.equal(right.currentTime,6);
+    right.readyState=2; right.dispatchEvent(new Event('waiting'));
+    assert.ok(!left.paused, 'left keeps playing'); assert.equal(t.buffering,false);
+    clock+=5000; right.dispatchEvent(new Event('waiting'));
+    assert.ok(left.paused && right.paused, 'a real stall later still pauses the pair');
 });
