@@ -99,6 +99,8 @@ let tabsImage = null;
 let videosFullyLoaded = false;
 let lessonModeActive = false;
 let lessonVideoEl = null;
+// Split as one video for phones (config/video-split.php): downloaded the first time Split is chosen.
+let splitVideo = null, splitLoader = null;
 /** Debounce segment taps on mobile so touch + click don't fire twice or hit wrong target */
 let lastSegmentTapTime = 0;
 const SEGMENT_TAP_DEBOUNCE_MS = 220;
@@ -747,6 +749,9 @@ function initVideoPlayers() {
     if (!videoWrapper) return;
     
     if (practiceTransport) practiceTransport.destroy();
+    if (splitLoader) splitLoader.destroy();
+    splitVideo = null;
+    splitLoader = null;
     // Удаляем старые видео, если есть
     const oldVideos = videoWrapper.querySelectorAll('.video-element');
     oldVideos.forEach(v => v.remove());
@@ -844,8 +849,58 @@ function setVideoMode(mode) {
         video.style.opacity = String(show[i]);
         video.style.pointerEvents = show[i] ? 'auto' : 'none';
     });
+    if (videoWrapper) videoWrapper.classList.toggle('has-split-video', !!splitVideo);
+    if (splitVideo) splitVideo.style.display = mode === 'split' ? '' : 'none';
+    if (mode === 'split') prepareSplitVideo();
     if (practiceTransport) practiceTransport.setView(mode === 'split' ? 'both' : mode);
     else { leftVideo.muted = false; rightVideo.muted = true; }
+}
+
+// On a phone, Split plays one video with both hands (left in full, right in a window) instead of the two
+// cameras at once, which an iPhone cannot keep smooth or together. Until it has downloaded, both cameras play.
+function prepareSplitVideo() {
+    if (!PHONE_SOLO || splitVideo || splitLoader || !practiceTransport || !currentRiff || !currentRiff.videoFileSplit) return;
+    const riff = currentRiff, transport = practiceTransport, path = currentRiff.videoFileSplit;
+    const status = document.getElementById('practiceMediaStatus');
+    const said = status ? status.textContent : '';
+    const loader = splitLoader = new PracticeMediaLoader({onProgress: function(state) {
+        if (!status || splitLoader !== loader) return;
+        const percent = state.total ? Math.min(100, Math.floor(state.loaded / state.total * 100)) : null;
+        status.textContent = 'Preparing Split' + (percent === null ? '…' : ' · ' + percent + '%');
+    }});
+    loader.load([{label: 'Split', sources: [buildVideoSrcDirect(path), buildVideoSrc(path)]}]).then(function(urls) {
+        if (splitLoader !== loader || practiceTransport !== transport || currentRiff !== riff) return;
+        const video = document.createElement('video');
+        video.id = 'splitVideo';
+        video.className = 'video-element split-video';
+        video.setAttribute('playsinline', '');
+        video.setAttribute('preload', 'auto');
+        video.muted = true;
+        video.style.display = 'none';
+        video.src = urls[0];
+        document.getElementById('videoWrapper').appendChild(video);
+        video.load();
+        return new Promise(function(resolve, reject) {
+            const done = function() { if (video.readyState >= 3) { clearTimeout(timer); resolve(video); } };
+            const timer = setTimeout(function() { reject(new Error('Split video did not load')); }, 30000);
+            video.addEventListener('canplay', done);
+            video.addEventListener('error', function() { clearTimeout(timer); reject(new Error('Split video could not be decoded')); });
+            done();
+        });
+    }).then(function(video) {
+        if (!video || splitLoader !== loader || practiceTransport !== transport) return;
+        splitVideo = video;
+        if (status) status.textContent = said;
+        const wrapper = document.getElementById('videoWrapper');
+        if (wrapper) wrapper.classList.toggle('has-split-video', true);
+        if (!lessonModeActive) video.style.display = currentMode === 'split' ? '' : 'none';
+        transport.setSplitVideo(video);
+    }).catch(function() {
+        // Stays on the two cameras; a later Split tries again.
+        if (splitLoader === loader) { splitLoader = null; if (status) status.textContent = said; }
+        const stale = document.getElementById('splitVideo');
+        if (stale && stale !== splitVideo) stale.remove();
+    });
 }
 
 // Сообщение при попытке использовать управление в lesson mode
@@ -1130,7 +1185,7 @@ function makeLoopDebug() {
         const q = v => v.getVideoPlaybackQuality ? v.getVideoPlaybackQuality() : null;
         const ql = q(leftVideo), qr = q(rightVideo);
         const fr = x => x ? x.droppedVideoFrames + '/' + x.totalVideoFrames : '?';
-        return 'view ' + currentMode + ' · clock ' + (clockVideo() === rightVideo ? 'R' : 'L') + (PHONE_SOLO ? ' (one camera)' : '') + ' · R−L ' + Math.round((rightVideo.currentTime - leftVideo.currentTime) * 1000) + ' ms' +
+        return 'view ' + currentMode + ' · clock ' + (clockVideo() === rightVideo ? 'R' : clockVideo() === splitVideo ? 'Split video' : 'L') + (PHONE_SOLO ? ' (one camera)' : '') + ' · R−L ' + Math.round((rightVideo.currentTime - leftVideo.currentTime) * 1000) + ' ms' +
             ' · speed L ' + leftVideo.playbackRate + ' R ' + rightVideo.playbackRate +
             ' · changes L ' + (c.leftRate || 0) + ' R ' + (c.rightRate || 0) + ' · R re-sync ' + (c.syncSeeks || 0) +
             ' · dropped L ' + fr(ql) + ' R ' + fr(qr);
@@ -1557,6 +1612,7 @@ function initLessonMode() {
             if (practiceTransport) practiceTransport.pause();
             if (leftVideo) leftVideo.style.display = 'none';
             if (rightVideo) rightVideo.style.display = 'none';
+            if (splitVideo) splitVideo.style.display = 'none';
             if (lessonVideoEl) {
                 lessonVideoEl.style.display = 'block';
                 lessonVideoEl.style.opacity = '1';
@@ -1576,6 +1632,7 @@ function initLessonMode() {
             wrapper.classList.remove('lesson-mode');
             if (leftVideo) leftVideo.style.display = '';
             if (rightVideo) rightVideo.style.display = '';
+            if (splitVideo) splitVideo.style.display = currentMode === 'split' ? '' : 'none';
             if (lessonVideoEl) {
                 lessonVideoEl.style.display = 'none';
                 lessonVideoEl.pause();

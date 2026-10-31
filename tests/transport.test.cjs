@@ -274,3 +274,17 @@ test('solo (phone): drift from the part sound never changes a camera speed; a se
     clock+=5000; a.currentTime=3.2; left.currentTime=2.2; t.tick(); assert.equal(left.currentTime,2.2, 'near the end: the jump back fixes it');
     t.destroy();
 });
+test('solo: once the Split video is there, Split plays it alone and it keeps time', async () => {
+    const {left,right,t}=setup({solo:true}); let clock=0; t.now=()=>clock;
+    await t.play(); t.setView('both');
+    assert.ok(!left.paused && !right.paused, 'two cameras until the Split video arrives');
+    left.currentTime=7; right.currentTime=7;
+    const split=new Video(); t.setSplitVideo(split);
+    assert.equal(t.clock,split); assert.ok(split.currentTime>=7); assert.ok(!split.paused && left.paused && right.paused);
+    assert.equal(split.muted,false); assert.ok(left.muted && right.muted);
+    split.currentTime=8; t.seek(9); assert.equal(split.currentTime,9); assert.equal(left.currentTime,7, 'hidden cameras are not seeked');
+    let ended=0; t.options.onEnded=()=>ended++; split.dispatchEvent(new Event('ended')); assert.equal(ended,1);
+    t.setView('right'); assert.equal(t.clock,right); assert.ok(right.currentTime>=9 && !right.paused && split.paused);
+    t.setView('both'); assert.equal(t.clock,split); assert.ok(!split.paused && right.paused);
+    t.destroy();
+});

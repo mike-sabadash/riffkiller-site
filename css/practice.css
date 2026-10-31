@@ -2193,3 +2193,14 @@ html[data-theme='light'] .drop-bar-link { color: #12121a; }
 html[data-theme='light'] .segment-btn.all-riff.all-riff-glint::before {
     background-image: linear-gradient(100deg, transparent 40%, rgba(147, 85, 229, 0.9) 50%, transparent 60%);
 }
+
+/* Split as one video on phones (js/practice.js prepareSplitVideo): it covers the player, the cameras stay hidden
+   underneath (visibility, so the Tabs overlay's opacity rule cannot show them through it). */
+.video-element.split-video {
+    z-index: 4;
+    pointer-events: auto;
+}
+.split-mode.has-split-video .video-element.left-hand,
+.split-mode.has-split-video .video-element.right-hand {
+    visibility: hidden;
+}
