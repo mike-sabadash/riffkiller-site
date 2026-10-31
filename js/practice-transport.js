@@ -60,20 +60,31 @@
             // not by polling currentTime, which phones update in coarse steps.
             this.anchor = null;
             this.videoFrames = new Map();
-            this.videos.forEach(video => {
-                if (!video.requestVideoFrameCallback) return;
+            this.listeners = [];
+            this.splitVideo = null;
+            this.videos.forEach(video => this.attach(video));
+            const frame = () => {
+                this.tick();
+                this.frame = root.requestAnimationFrame(frame);
+            };
+            if (options.autoTick !== false && root.requestAnimationFrame) {
+                this.frame = root.requestAnimationFrame(frame);
+            }
+        }
+        // Listeners and frame callbacks of one video (each camera, and the Split video when it arrives).
+        attach(video) {
+            if (video.requestVideoFrameCallback) {
                 const onFrame = (now, meta) => {
                     if (video === this.clock && meta && Number.isFinite(meta.mediaTime)) this.anchor = { media: meta.mediaTime, wall: meta.expectedDisplayTime || now };
                     this.videoFrames.set(video, video.requestVideoFrameCallback(onFrame));
                 };
                 this.videoFrames.set(video, video.requestVideoFrameCallback(onFrame));
-            });
-            this.listeners = [];
+            }
             const listen = (video, event, fn) => {
                 video.addEventListener(event, fn);
                 this.listeners.push(() => video.removeEventListener(event, fn));
             };
-            this.videos.forEach(video => {
+            {
                 listen(video, 'waiting', () => {
                     if (!this.intendedPlaying || video.readyState >= 3) return;
                     // A camera that waits off screen (solo) has nothing to stall.
@@ -105,15 +116,8 @@
                 listen(video, 'timeupdate', () => { if (video === this.clock) this.tick(); });
                 listen(video, 'ended', () => {
                     if (video !== this.clock || !this.intendedPlaying) return;
-                    if (options.onEnded) options.onEnded();
+                    if (this.options.onEnded) this.options.onEnded();
                 });
-            });
-            const frame = () => {
-                this.tick();
-                this.frame = root.requestAnimationFrame(frame);
-            };
-            if (options.autoTick !== false && root.requestAnimationFrame) {
-                this.frame = root.requestAnimationFrame(frame);
             }
         }
         // How long a seek took to land, learnt from the last ones: 'loop' for the clock camera, 'sync' for the follower.
@@ -124,15 +128,30 @@
             this[key] = null;
             if (took > 0 && took < 1.5) this[lead] = this[lead] ? this[lead] * 0.5 + took * 0.5 : took;
         }
-        // The cameras that play: in solo with one hand on screen only the clock.
-        active() { return this.solo && this.view !== 'both' ? [this.clock] : this.videos; }
+        // The videos that play: in solo only the clock (one camera, or the Split video when it is there);
+        // otherwise both cameras.
+        active() {
+            if (this.solo && (this.view !== 'both' || this.clock === this.splitVideo)) return [this.clock];
+            return [this.left, this.right];
+        }
         // The camera that follows the clock, when two play.
-        get follower() { return this.active().length > 1 ? this.videos.find(v => v !== this.clock) : null; }
+        get follower() { const a = this.active(); return a.length > 1 ? a.find(v => v !== this.clock) : null; }
+        // Split as one video (config/video-split.php): a phone plays it alone in Split instead of both cameras.
+        setSplitVideo(video) {
+            if (!video || this.splitVideo === video) return;
+            this.splitVideo = video;
+            this.videos.push(video);
+            this.attach(video);
+            video.playbackRate = this.rate;
+            if (this.view === 'both') this.setView('both');
+            else this.applyVoice();
+        }
         // Which hand is on screen: 'left', 'right' or 'both'. In solo the shown camera becomes the clock; the
         // other one is paused and is brought to the clock's time only when it is shown again.
         setView(view) {
             this.view = view === 'right' || view === 'both' ? view : 'left';
-            const next = this.solo && this.view === 'right' ? this.right : this.left;
+            const next = !this.solo ? this.left : this.view === 'right' ? this.right
+                : this.view === 'both' && this.splitVideo ? this.splitVideo : this.left;
             const lead = (this.loopSeekLead || this.syncSeekLead || 0.15) * (this.clock.playbackRate || this.rate);
             if (next !== this.clock) {
                 const prev = this.clock;
@@ -443,7 +462,7 @@
         }
     }
     // Shown by ?debug=loop, so a screenshot tells which build the phone ran (Safari can keep an old page).
-    PracticeTransport.version = 13;
+    PracticeTransport.version = 14;
     root.PracticeTransport = PracticeTransport;
     if (typeof module !== 'undefined' && module.exports) module.exports = PracticeTransport;
 })(typeof window !== 'undefined' ? window : globalThis);

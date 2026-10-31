@@ -864,3 +864,30 @@ test('sound sync finds each part bars and note times in the video, skips silent 
     assert.ok(worst<0.03,'every note within 30 ms of where it sounds, worst '+worst);
     assert.equal(riff.segments[6].tabSync,undefined);
 });
+test('phone: one camera plays at a time; Split downloads one video with both hands and plays it alone',async t=>{
+    // The Split video of riff 1, as the server builds it in the background (config/video-split-cli.php).
+    require('node:child_process').execFileSync('php',[path.join(site.dir,'config/video-split-cli.php'),'--riff','1'],{cwd:site.dir});
+    const context=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true});t.after(()=>context.close());
+    const page=await context.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));
+    await page.route(/fonts\.(googleapis|gstatic)\.com/,route=>route.abort());
+    await page.addInitScript(()=>localStorage.setItem('rkPracticeTourSeen2','1'));
+    await page.goto(site.base+'/practice.html?riff=1&cameras=one',{waitUntil:'domcontentloaded'});
+    await page.waitForFunction(()=>Array.from(document.querySelectorAll('#videoWrapper video')).slice(0,2).every(v=>v.readyState>=3));
+    assert.match(await page.evaluate(()=>currentRiff.videoFileSplit||''),/-split\.mp4$/);
+    await page.locator('.segment-btn').nth(2).click();await page.waitForTimeout(500);
+    const state=()=>page.evaluate(()=>({clock:practiceTransport.clock.id,playing:Array.from(document.querySelectorAll('#videoWrapper video.video-element')).filter(v=>!v.paused).map(v=>v.id)}));
+    assert.deepEqual(await state(),{clock:'leftVideo',playing:['leftVideo']});
+    await page.click('.mode-btn[data-mode="right"]');await page.waitForTimeout(400);
+    assert.deepEqual(await state(),{clock:'rightVideo',playing:['rightVideo']});
+    await page.click('.mode-btn[data-mode="split"]');
+    await page.waitForFunction(()=>practiceTransport.clock.id==='splitVideo',null,{timeout:20000});await page.waitForTimeout(400);
+    assert.deepEqual(await state(),{clock:'splitVideo',playing:['splitVideo']});
+    const look=await page.evaluate(()=>({split:getComputedStyle(splitVideo).display,left:getComputedStyle(leftVideo).visibility,right:getComputedStyle(rightVideo).visibility,
+        t0:splitVideo.currentTime}));
+    assert.deepEqual([look.split,look.left,look.right],['block','hidden','hidden']);
+    await page.waitForTimeout(600);assert.ok(await page.evaluate(t0=>splitVideo.currentTime!==t0,look.t0),'the Split video plays');
+    await page.click('.mode-btn[data-mode="left"]');await page.waitForTimeout(400);
+    assert.deepEqual(await state(),{clock:'leftVideo',playing:['leftVideo']});
+    assert.equal(await page.evaluate(()=>getComputedStyle(splitVideo).display),'none');
+    assert.deepEqual(errors,[]);
+});

@@ -109,6 +109,9 @@ $rekey = [];
 try {
     require_once $base . '/config/video-rekey.php';
     $rekey = video_rekey_schedule($riff);
+    // Split as one video for phones, after those keyframes (config/video-split.php).
+    require_once $base . '/config/video-split.php';
+    if (video_split_path($riff) && !video_split_ready($riff)) video_split_schedule($riff['id'] ?? null);
 } catch (Throwable $e) {
 }
 echo json_encode(['success' => true, 'riff' => $riff, 'rekey' => $rekey]);

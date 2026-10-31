@@ -32,6 +32,11 @@ function migrate_riffs($root, $name, callable $change) {
 }
 
 $migrations = [
+    // 31.10.2026: Split as one video for phones (config/video-split.php), built for every riff in the background.
+    '2026-10-31-split-videos' => function ($root) {
+        require_once $root . '/config/video-split.php';
+        return video_split_schedule(null) ? 'build started in the background (data/video-work/split/build.log)' : 'ffmpeg or php not found, skipped';
+    },
     // 30.10.2026, Mike: every riff except Black Dog gets the padlock «Soon» and is no longer free.
     '2026-10-30-lock-soon' => function ($root) {
         return migrate_riffs($root, '2026-10-30-lock-soon', function ($riff) {

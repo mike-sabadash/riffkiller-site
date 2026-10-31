@@ -53,4 +53,8 @@ if (!isset($_GET['raw'])) {
     }
 }
 
+// Split as one video for phones (config/video-split.php), only while it matches the current camera videos.
+require_once $base . '/config/video-split.php';
+foreach ($data as $i => $riff) $data[$i] = video_split_offer($riff);
+
 echo json_encode($data);
