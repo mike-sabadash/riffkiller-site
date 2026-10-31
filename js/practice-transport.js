@@ -3,7 +3,29 @@
     'use strict';
     // Small drift is pulled in by nudging the follower's speed; a seek stalls the decoder
     // (back to the last keyframe), and repeated seeks on every frame of drift read as stutter.
-    const NUDGE_FROM = 0.02, SEEK_FROM = 0.25, SEEK_COOLDOWN_MS = 1500, MAX_NUDGE = 0.1;
+    // A phone reports currentTime in whole frames and each camera on its own beat, so the measured drift
+    // jitters by a frame or two. Every playbackRate change makes a phone (iPhone above all) re-time its
+    // decoder, so following that jitter frame by frame made the visible camera stutter. The drift is
+    // therefore smoothed, the speed has only three values (slower, exact, faster) with a gap between
+    // starting and stopping a correction, and it changes at most a few times a second.
+    const SEEK_FROM = 0.25, SEEK_COOLDOWN_MS = 2500;
+    const DRIFT_SMOOTH = 0.2, NUDGE_START = 0.06, NUDGE_STOP = 0.02, NUDGE_STEP = 0.05, RATE_HOLD_MS = 400;
+    class DriftNudge {
+        constructor() { this.reset(); }
+        reset() { this.drift = null; this.dir = 0; this.changed = -Infinity; }
+        // drift > 0: the video is ahead and should run slower. Returns -1, 0 or 1 (slower, exact, faster).
+        update(drift, now) {
+            this.drift = this.drift == null ? drift : this.drift + (drift - this.drift) * DRIFT_SMOOTH;
+            const d = this.drift, size = Math.abs(d);
+            let dir = this.dir;
+            if (dir === 0) { if (size >= NUDGE_START) dir = -Math.sign(d); }
+            // Pulled in (or past the other way): back to the exact speed, or the other way if clearly off.
+            else if (size <= NUDGE_STOP || Math.sign(d) === dir) dir = size >= NUDGE_START ? -Math.sign(d) : 0;
+            if (dir !== this.dir && now - this.changed >= RATE_HOLD_MS) { this.dir = dir; this.changed = now; }
+            return this.dir;
+        }
+        rate(base) { return Math.round(base * (1 + this.dir * NUDGE_STEP) * 1000) / 1000; }
+    }
     class PracticeTransport {
         constructor(left, right, options = {}) {
             this.left = left;
@@ -16,6 +38,7 @@
             this.revision = 0;
             this.rate = 1;
             this.lastSyncSeek = -Infinity;
+            this.followNudge = new DriftNudge();
             // Media time advanced per check: on a phone checks are sparse (30 fps, throttled rAF).
             this.step = 0;
             this.lastTime = null;
@@ -37,6 +60,9 @@
             this.videos.forEach(video => {
                 listen(video, 'waiting', () => {
                     if (!this.intendedPlaying || video.readyState >= 3) return;
+                    // The right camera catching up after its own sync seek: the clock camera and the sound
+                    // keep going (stopping both made the left camera stall too on every re-sync).
+                    if (video === this.right && this.now() - this.lastSyncSeek < SEEK_COOLDOWN_MS) return;
                     // The part's own sound leads: a camera catching up after a seek must not stop it
                     // (on a phone every loop jump would cut the sound for half a second).
                     if (this.voice) return;
@@ -93,7 +119,9 @@
         setRate(rate) {
             if (!Number.isFinite(rate) || rate <= 0) return;
             this.rate = rate;
-            this.videos.forEach(v => { v.playbackRate = rate; });
+            this.followNudge.reset();
+            if (this.voice) this.voice.nudge.reset();
+            this.videos.forEach(v => { if (v.playbackRate !== rate) v.playbackRate = rate; });
             if (this.voice) this.voice.audio.playbackRate = rate;
         }
         // The sound of a looped part from its own file (js/part-audio.js): it ends exactly where the part
@@ -102,7 +130,7 @@
         // a video; re-seeking the sound to wherever the picture is would chop it into pieces.
         setVoice(audio, start, end) {
             this.clearVoice(true);
-            this.voice = { audio, start, end, lastFix: -Infinity };
+            this.voice = { audio, start, end, lastFix: -Infinity, nudge: new DriftNudge() };
             this.left.muted = true;
             audio.loop = true;
             audio.playbackRate = this.rate;
@@ -158,18 +186,20 @@
             if (drift < -len / 2) drift += len;
             // Small drift: the clock camera runs a little faster or slower (no seek: a phone stalls the
             // picture for half a second on every seek). Only a big gap is closed by a seek.
-            const nudge = Math.abs(drift) < 0.04 ? 0 : Math.max(-0.08, Math.min(0.08, drift));
-            const rate = Math.round(this.rate * (1 - nudge) * 1000) / 1000;
-            if (this.left.playbackRate !== rate) this.left.playbackRate = rate;
             const now = this.now();
+            v.nudge.update(drift, now);
+            const rate = v.nudge.rate(this.rate);
+            if (this.left.playbackRate !== rate) this.left.playbackRate = rate;
             if (Math.abs(drift) < 0.8 || now - v.lastFix < 3000) return;
             v.lastFix = now;
             if (this.options.onVoice) this.options.onVoice('resync', drift);
+            v.nudge.reset();
             this.left.playbackRate = this.rate;
             this.seekVideos(v.start + this.voiceOffset());
         }
         seekVideos(target) {
             clearTimeout(this.timer);
+            this.followNudge.reset();
             this.anchor = null;
             this.lastTime = null;
             this.videos.forEach(video => { video.currentTime = target; });
@@ -178,21 +208,26 @@
         }
         follow() {
             const drift = this.right.currentTime - this.time;
-            const now = root.performance ? root.performance.now() : Date.now();
-            if (Math.abs(drift) >= SEEK_FROM && now - this.lastSyncSeek >= SEEK_COOLDOWN_MS) {
-                this.lastSyncSeek = now;
-                this.right.playbackRate = this.rate;
-                this.right.currentTime = this.time;
-                return;
+            const now = this.now();
+            if (Math.abs(drift) >= SEEK_FROM) {
+                if (now - this.lastSyncSeek >= SEEK_COOLDOWN_MS) {
+                    this.lastSyncSeek = now;
+                    this.followNudge.reset();
+                    if (this.right.playbackRate !== this.rate) this.right.playbackRate = this.rate;
+                    this.right.currentTime = this.time;
+                    return;
+                }
             }
-            const nudge = Math.abs(drift) < NUDGE_FROM ? 0 : Math.max(-MAX_NUDGE, Math.min(MAX_NUDGE, drift));
-            const target = Math.round(this.rate * (1 - nudge) * 1000) / 1000;
+            this.followNudge.update(drift, now);
+            const target = this.followNudge.rate(this.rate);
             if (this.right.playbackRate !== target) this.right.playbackRate = target;
         }
         seek(time) {
             if (!Number.isFinite(time)) return this.time;
             const target = Math.max(0, this.duration ? Math.min(time, this.duration) : time);
             clearTimeout(this.timer);
+            this.followNudge.reset();
+            if (this.voice) this.voice.nudge.reset();
             this.anchor = null;
             this.videos.forEach(v => { v.currentTime = target; });
             if (this.voice) {

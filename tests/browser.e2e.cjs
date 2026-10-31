@@ -15,7 +15,7 @@ async function pageFor(t,width=1440) {
     const page=await context.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));
     t.after(()=>assert.deepEqual(errors,[],'No browser JavaScript errors'));
     await page.route(/fonts\.(googleapis|gstatic)\.com/,route=>route.abort());
-    await page.addInitScript(()=>localStorage.setItem('rkPracticeTourSeen','1'));
+    await page.addInitScript(()=>localStorage.setItem('rkPracticeTourSeen2','1'));
     return page;
 }
 async function practice(page,id=1) {
@@ -486,9 +486,9 @@ test('practice tour: first visit lights up one control at a time, skips hidden o
             }
             await page.click('.tour-next');
         }
-        assert.deepEqual(steps.slice(0,2),['Riff parts','Parts on the video']);assert.equal(steps.at(-1),'Help');
+        assert.deepEqual(steps.slice(0,3),['Start here','Riff parts','Parts on the video']);assert.equal(steps.at(-1),'Help');
         assert.ok(steps.length>=6,steps.join());
-        assert.equal(await page.evaluate(()=>localStorage.getItem('rkPracticeTourSeen')),'1');
+        assert.equal(await page.evaluate(()=>localStorage.getItem('rkPracticeTourSeen2')),'1');
         await page.reload({waitUntil:'domcontentloaded'});await page.waitForFunction(()=>document.querySelectorAll('#segmentControls .segment-btn').length>1);
         await page.waitForTimeout(300);assert.equal(await page.locator('.tour').count(),0,'shown once');
         await page.click('#practiceHelp');await page.waitForSelector('.tour .tour-card');
@@ -769,7 +769,7 @@ test('on a phone a looped part turns back before its end even when the page is c
     await page.route(/fonts\.(googleapis|gstatic)\.com/,route=>route.abort());
     // iPhone Safari at its worst: no frame callbacks, coarse time checks. The jump must not depend on catching the end.
     await page.addInitScript(()=>{
-        localStorage.setItem('rkPracticeTourSeen','1');
+        localStorage.setItem('rkPracticeTourSeen2','1');
         window.requestAnimationFrame=fn=>setTimeout(()=>fn(performance.now()),250);
         delete HTMLVideoElement.prototype.requestVideoFrameCallback;
     });
