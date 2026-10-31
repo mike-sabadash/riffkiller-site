@@ -162,8 +162,10 @@ test('a looped part sounds from its own file, which loops by itself and leads th
     // the sound clearly looped already: the picture goes to where the sound is
     a.currentTime=.3; t.loopTo(3.64); assert.ok(Math.abs(left.currentTime-3.94)<1e-9);
     // the picture clearly off (a slow phone seek): it is moved to the sound, once per cooldown
-    a.currentTime=1; left.currentTime=3.7; t.voice.lastFix=-Infinity; t.tick(); assert.ok(Math.abs(left.currentTime-4.64)<1e-9);
-    left.currentTime=3.7; t.tick(); assert.equal(left.currentTime,3.7);
+    a.currentTime=.3; left.currentTime=3.09; t.voice.lastFix=-Infinity; t.tick(); assert.ok(Math.abs(left.currentTime-3.94)<1e-9);
+    left.currentTime=3.09; t.tick(); assert.equal(left.currentTime,3.09);
+    // close to the part's end the jump back fixes it: no extra seek
+    a.currentTime=1; left.currentTime=3.7; t.voice.lastFix=-Infinity; t.tick(); assert.equal(left.currentTime,3.7);
     t.setRate(.5); assert.equal(a.playbackRate,.5);
     t.pause(); assert.equal(a.paused,true);
     // switching the view (left, right, both hands) keeps a single voice: the part file, not the camera as well
@@ -261,4 +263,14 @@ test('solo: with one hand on screen only that camera plays and is the clock; the
 test('without solo (desktop) both cameras always play and the left one stays the clock', async () => {
     const {left,right,t}=setup(); await t.play(); t.setView('right');
     assert.equal(t.clock,left); assert.ok(!left.paused && !right.paused);
+});
+test('solo (phone): drift from the part sound never changes a camera speed; a seek only when far off and not near the end', async () => {
+    const {left,t}=setup({solo:true}); let clock=0; t.now=()=>clock; const a=new Sound();
+    t.setVoice(a, 0, 4); left.currentTime=1; await t.play();
+    let changes=0, rate=1; Object.defineProperty(left,'playbackRate',{get:()=>rate,set:v=>{changes++;rate=v;}});
+    for(let i=0;i<60;i++){ clock+=33; a.currentTime=1.3; left.currentTime=1; t.tick(); }
+    assert.equal(changes,0); assert.equal(left.currentTime,1);
+    clock+=5000; a.currentTime=2; left.currentTime=1; t.tick(); assert.equal(left.currentTime,2, 'a second behind with time left: seek');
+    clock+=5000; a.currentTime=3.2; left.currentTime=2.2; t.tick(); assert.equal(left.currentTime,2.2, 'near the end: the jump back fixes it');
+    t.destroy();
 });
