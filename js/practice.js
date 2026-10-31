@@ -943,6 +943,7 @@ function unlockPartVoice() {
 // Left camera is the clock in every display mode; tabs follow it in All Riff too.
 function updateVideoProgress() {
     syncPartVoice();
+    if (LOOP_DEBUG && !loopDebug && leftVideo && rightVideo) loopDebug = makeLoopDebug();
     if (!leftVideo || !rightVideo || !currentRiff || lessonModeActive) return;
     const time = leftVideo.currentTime;
     updateTimelineProgress(time);
@@ -1105,11 +1106,24 @@ function makeLoopDebug() {
         if (v) return v.audio.paused ? 'part file (paused)' : 'part file';
         return leftVideo.muted ? 'none' : 'video';
     };
+    // The two cameras: drift of the right one, speed changes and re-sync seeks since the page opened,
+    // frames the browser dropped, and the view, so a stutter on a phone can be read off a screenshot.
+    const cameras = () => {
+        const c = practiceTransport ? practiceTransport.counts : {};
+        const q = v => v.getVideoPlaybackQuality ? v.getVideoPlaybackQuality() : null;
+        const ql = q(leftVideo), qr = q(rightVideo);
+        const fr = x => x ? x.droppedVideoFrames + '/' + x.totalVideoFrames : '?';
+        return 'view ' + currentMode + ' · right drift ' + Math.round((rightVideo.currentTime - leftVideo.currentTime) * 1000) + ' ms' +
+            ' · speed L ' + leftVideo.playbackRate + ' R ' + rightVideo.playbackRate +
+            ' · changes L ' + (c.leftRate || 0) + ' R ' + (c.rightRate || 0) + ' · R re-sync ' + (c.syncSeeks || 0) +
+            ' · dropped L ' + fr(ql) + ' R ' + fr(qr);
+    };
+    setInterval(() => { if (!pending) show(); }, 500);
     const env = 'rVFC ' + (leftVideo.requestVideoFrameCallback ? 'yes' : 'no') + ' · ' + navigator.userAgent.replace(/^.*?\(([^)]*)\).*$/, '$1').slice(0, 40);
     const show = () => {
         const avg = ticks.length ? ticks.reduce((a, b) => a + b, 0) / ticks.length : 0;
         box.textContent = env + ' · check every ' + avg.toFixed(0) + ' ms · sound: ' + soundSource() +
-            ' · rate ' + (practiceTransport ? practiceTransport.rate : 1) + '\n' + lines.join('\n');
+            ' · rate ' + (practiceTransport ? practiceTransport.rate : 1) + '\n' + cameras() + '\n' + lines.join('\n');
     };
     setInterval(() => {
         // Furthest the clock camera got past the part's end while playing: should stay 0.
