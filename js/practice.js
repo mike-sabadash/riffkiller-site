@@ -1367,6 +1367,19 @@ function initSegmentControls() {
     });
     
     container.appendChild(allBtn);
+    // A soft glint runs along «All Riff» every 5 s until the student plays anything (once per device).
+    const HINT_KEY = 'rkAllRiffHintDone';
+    let hintDone = true;
+    try { hintDone = localStorage.getItem(HINT_KEY) === '1'; } catch (e) {}
+    if (!hintDone) {
+        allBtn.classList.add('all-riff-glint');
+        container.addEventListener('click', function stopHint(e) {
+            if (!e.target.closest('.segment-btn')) return;
+            allBtn.classList.remove('all-riff-glint');
+            try { localStorage.setItem(HINT_KEY, '1'); } catch (err) {}
+            container.removeEventListener('click', stopHint, true);
+        }, true);
+    }
     
     currentRiff.segments.forEach((segment, index) => {
         const segmentNumber = index + 1;

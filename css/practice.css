@@ -2170,3 +2170,24 @@ html[data-theme='light'] .drop-bar-link { color: #12121a; }
     html.rk-drop:not(.rk-drop-member) body { padding-bottom: 80px; }
     html[data-theme='light'].rk-drop:not(.rk-drop-member) .drop-bar { background: #fff; border-top-color: rgba(18, 18, 26, 0.12); }
 }
+
+/* «All Riff» hint for a first visit: a light glint travels along the outline every 5 s (js: .all-riff-glint). */
+.segment-btn.all-riff.all-riff-glint { position: relative; }
+.segment-btn.all-riff.all-riff-glint::before {
+    content: ''; position: absolute; inset: 0; border-radius: inherit; padding: 1px; pointer-events: none;
+    background: linear-gradient(100deg, transparent 40%, rgba(255, 255, 255, 0.9) 50%, transparent 60%) no-repeat;
+    background-size: 300% 100%; background-position: 120% 0;
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor; mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+    animation: rk-all-riff-glint 5s ease-in-out 1.5s infinite;
+}
+@keyframes rk-all-riff-glint {
+    0% { background-position: 120% 0; }
+    28%, 100% { background-position: -20% 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .segment-btn.all-riff.all-riff-glint::before { animation: none; background: rgba(255, 255, 255, 0.35); }
+}
+html[data-theme='light'] .segment-btn.all-riff.all-riff-glint::before {
+    background-image: linear-gradient(100deg, transparent 40%, rgba(147, 85, 229, 0.9) 50%, transparent 60%);
+}

@@ -6,8 +6,10 @@
 (function (global) {
     'use strict';
 
-    var KEY = 'rkPracticeTourSeen';
+    // 2: a new first step («Start here»), so everyone sees the tour once more.
+    var KEY = 'rkPracticeTourSeen2';
     var STEPS = [
+        { target: '.segment-btn.all-riff', title: 'Start here', text: 'Play the whole riff once and just listen. Then tap a part to loop it.' },
         { target: '.practice-parts', title: 'Riff parts', text: 'The riff is cut into short parts. Tap one and it keeps repeating while you learn it.' },
         { target: '#riffTimeline', title: 'Parts on the video', text: 'The bars on the video are the same parts. They show where you are now.' },
         { target: '.hand-controls', title: 'Cameras', text: 'Watch the left hand, the right hand or both at once.' },
