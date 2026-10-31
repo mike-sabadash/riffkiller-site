@@ -1,0 +1,1269 @@
+{
+ "id": 9,
+ "song": "Paranoid",
+ "riff": {
+  "segments": [
+   {
+    "start": 0.1,
+    "end": 3.06,
+    "name": "1",
+    "displayName": "1",
+    "color": "#F2D94E",
+    "function": "Sets the hook: three E5 hits with a 12–14 hammer-on, then the run across the A and D strings",
+    "role": "call",
+    "tabBars": [
+     1,
+     2
+    ],
+    "tabSync": [
+     [
+      1,
+      0,
+      0.1
+     ],
+     [
+      1,
+      0,
+      0.213
+     ],
+     [
+      1,
+      240,
+      0.233
+     ],
+     [
+      1,
+      1440,
+      0.791
+     ],
+     [
+      1,
+      1680,
+      0.821
+     ],
+     [
+      1,
+      2880,
+      1.37
+     ],
+     [
+      1,
+      3120,
+      1.47
+     ],
+     [
+      2,
+      0,
+      1.739
+     ],
+     [
+      2,
+      480,
+      1.899
+     ],
+     [
+      2,
+      960,
+      2.089
+     ],
+     [
+      2,
+      1440,
+      2.248
+     ],
+     [
+      2,
+      1920,
+      2.448
+     ],
+     [
+      2,
+      2400,
+      2.597
+     ],
+     [
+      2,
+      2880,
+      2.807
+     ],
+     [
+      2,
+      3360,
+      2.957
+     ],
+     [
+      2,
+      3692,
+      3.06
+     ]
+    ]
+   },
+   {
+    "start": 3.06,
+    "end": 6.02,
+    "name": "2",
+    "displayName": "2",
+    "color": "#E35DF0",
+    "function": "Repeats the hook so the hammer-on locks into the pulse",
+    "role": "repeat",
+    "tabBars": [
+     2,
+     4
+    ],
+    "tabSync": [
+     [
+      2,
+      3692,
+      3.06
+     ],
+     [
+      3,
+      0,
+      3.106
+     ],
+     [
+      3,
+      240,
+      3.176
+     ],
+     [
+      3,
+      1440,
+      3.745
+     ],
+     [
+      3,
+      1680,
+      3.765
+     ],
+     [
+      3,
+      2880,
+      4.284
+     ],
+     [
+      3,
+      3120,
+      4.313
+     ],
+     [
+      4,
+      0,
+      4.653
+     ],
+     [
+      4,
+      480,
+      4.832
+     ],
+     [
+      4,
+      960,
+      5.032
+     ],
+     [
+      4,
+      1440,
+      5.201
+     ],
+     [
+      4,
+      1920,
+      5.411
+     ],
+     [
+      4,
+      2400,
+      5.571
+     ],
+     [
+      4,
+      2880,
+      5.78
+     ],
+     [
+      4,
+      3360,
+      5.95
+     ],
+     [
+      4,
+      3586,
+      6.02
+     ]
+    ]
+   },
+   {
+    "start": 6.02,
+    "end": 9.0,
+    "name": "3",
+    "displayName": "3",
+    "color": "#E35DF0",
+    "function": "Same hook again: keep the three hits evenly spaced",
+    "role": "repeat",
+    "tabBars": [
+     4,
+     6
+    ],
+    "tabSync": [
+     [
+      4,
+      3586,
+      6.02
+     ],
+     [
+      5,
+      0,
+      6.099
+     ],
+     [
+      5,
+      240,
+      6.139
+     ],
+     [
+      5,
+      1440,
+      6.678
+     ],
+     [
+      5,
+      1680,
+      6.708
+     ],
+     [
+      5,
+      2880,
+      7.247
+     ],
+     [
+      5,
+      3120,
+      7.267
+     ],
+     [
+      6,
+      0,
+      7.626
+     ],
+     [
+      6,
+      480,
+      7.806
+     ],
+     [
+      6,
+      960,
+      7.995
+     ],
+     [
+      6,
+      1440,
+      8.165
+     ],
+     [
+      6,
+      1920,
+      8.374
+     ],
+     [
+      6,
+      2400,
+      8.514
+     ],
+     [
+      6,
+      2880,
+      8.733
+     ],
+     [
+      6,
+      3360,
+      8.883
+     ],
+     [
+      6,
+      3711,
+      9
+     ]
+    ]
+   },
+   {
+    "start": 9.0,
+    "end": 11.96,
+    "name": "4",
+    "displayName": "4",
+    "color": "#E35DF0",
+    "function": "Last pass of the hook, it leads straight into the riff",
+    "role": "repeat",
+    "tabBars": [
+     6,
+     8
+    ],
+    "tabSync": [
+     [
+      6,
+      3711,
+      9
+     ],
+     [
+      7,
+      0,
+      9.043
+     ],
+     [
+      7,
+      240,
+      9.103
+     ],
+     [
+      7,
+      1440,
+      9.641
+     ],
+     [
+      7,
+      1680,
+      9.671
+     ],
+     [
+      7,
+      2880,
+      10.2
+     ],
+     [
+      7,
+      3120,
+      10.22
+     ],
+     [
+      8,
+      0,
+      10.599
+     ],
+     [
+      8,
+      480,
+      10.759
+     ],
+     [
+      8,
+      960,
+      10.968
+     ],
+     [
+      8,
+      1440,
+      11.118
+     ],
+     [
+      8,
+      1920,
+      11.328
+     ],
+     [
+      8,
+      2400,
+      11.477
+     ],
+     [
+      8,
+      2880,
+      11.687
+     ],
+     [
+      8,
+      3360,
+      11.836
+     ],
+     [
+      8,
+      3658,
+      11.96
+     ]
+    ]
+   },
+   {
+    "start": 11.96,
+    "end": 14.92,
+    "name": "5",
+    "displayName": "5",
+    "color": "#E35DF0",
+    "function": "Palm-muted E5 eighths: the engine of the riff",
+    "role": "push",
+    "tabBars": [
+     8,
+     10
+    ],
+    "tabSync": [
+     [
+      8,
+      3658,
+      11.96
+     ],
+     [
+      9,
+      0,
+      12.036
+     ],
+     [
+      9,
+      480,
+      12.226
+     ],
+     [
+      9,
+      960,
+      12.405
+     ],
+     [
+      9,
+      1440,
+      12.605
+     ],
+     [
+      9,
+      1920,
+      12.794
+     ],
+     [
+      9,
+      2400,
+      12.984
+     ],
+     [
+      9,
+      2880,
+      13.183
+     ],
+     [
+      9,
+      3360,
+      13.363
+     ],
+     [
+      10,
+      0,
+      13.543
+     ],
+     [
+      10,
+      480,
+      13.732
+     ],
+     [
+      10,
+      960,
+      13.912
+     ],
+     [
+      10,
+      1440,
+      14.101
+     ],
+     [
+      10,
+      1920,
+      14.281
+     ],
+     [
+      10,
+      2400,
+      14.47
+     ],
+     [
+      10,
+      2880,
+      14.65
+     ],
+     [
+      10,
+      3360,
+      14.83
+     ],
+     [
+      10,
+      3589,
+      14.92
+     ]
+    ]
+   },
+   {
+    "start": 14.92,
+    "end": 16.4,
+    "name": "6",
+    "displayName": "6",
+    "color": "#E35DF0",
+    "function": "Drops a whole step to D5, same muted eighths",
+    "role": "fall",
+    "tabBars": [
+     10,
+     11
+    ],
+    "tabSync": [
+     [
+      10,
+      3589,
+      14.92
+     ],
+     [
+      11,
+      0,
+      15.019
+     ],
+     [
+      11,
+      480,
+      15.199
+     ],
+     [
+      11,
+      960,
+      15.388
+     ],
+     [
+      11,
+      1440,
+      15.568
+     ],
+     [
+      11,
+      1920,
+      15.748
+     ],
+     [
+      11,
+      2400,
+      15.937
+     ],
+     [
+      11,
+      2880,
+      16.127
+     ],
+     [
+      11,
+      3360,
+      16.276
+     ],
+     [
+      11,
+      3643,
+      16.4
+     ]
+    ]
+   },
+   {
+    "start": 16.4,
+    "end": 17.92,
+    "name": "7",
+    "displayName": "7",
+    "color": "#B8F05A",
+    "function": "Slides into G5, D5, then lands on E5 and the 12th-fret triad",
+    "role": "land",
+    "tabBars": [
+     11,
+     12
+    ],
+    "tabSync": [
+     [
+      11,
+      3643,
+      16.4
+     ],
+     [
+      12,
+      0,
+      16.486
+     ],
+     [
+      12,
+      480,
+      16.655
+     ],
+     [
+      12,
+      1920,
+      17.234
+     ],
+     [
+      12,
+      2880,
+      17.613
+     ],
+     [
+      12,
+      3701,
+      17.92
+     ]
+    ]
+   },
+   {
+    "start": 17.92,
+    "end": 20.86,
+    "name": "8",
+    "displayName": "8",
+    "color": "#E35DF0",
+    "function": "Back to the E5 engine, two bars of eighths",
+    "role": "push",
+    "tabBars": [
+     12,
+     14
+    ],
+    "tabSync": [
+     [
+      12,
+      3701,
+      17.92
+     ],
+     [
+      13,
+      0,
+      17.972
+     ],
+     [
+      13,
+      480,
+      18.152
+     ],
+     [
+      13,
+      960,
+      18.362
+     ],
+     [
+      13,
+      1440,
+      18.531
+     ],
+     [
+      13,
+      1920,
+      18.701
+     ],
+     [
+      13,
+      2400,
+      18.9
+     ],
+     [
+      13,
+      2880,
+      19.09
+     ],
+     [
+      13,
+      3360,
+      19.27
+     ],
+     [
+      14,
+      0,
+      19.449
+     ],
+     [
+      14,
+      480,
+      19.649
+     ],
+     [
+      14,
+      960,
+      19.828
+     ],
+     [
+      14,
+      1440,
+      20.008
+     ],
+     [
+      14,
+      1920,
+      20.177
+     ],
+     [
+      14,
+      2400,
+      20.377
+     ],
+     [
+      14,
+      2880,
+      20.557
+     ],
+     [
+      14,
+      3360,
+      20.756
+     ],
+     [
+      14,
+      3672,
+      20.86
+     ]
+    ]
+   },
+   {
+    "start": 20.86,
+    "end": 22.36,
+    "name": "9",
+    "displayName": "9",
+    "color": "#E35DF0",
+    "function": "Down to D5 again",
+    "role": "fall",
+    "tabBars": [
+     14,
+     15
+    ],
+    "tabSync": [
+     [
+      14,
+      3672,
+      20.86
+     ],
+     [
+      15,
+      0,
+      20.916
+     ],
+     [
+      15,
+      480,
+      21.115
+     ],
+     [
+      15,
+      960,
+      21.315
+     ],
+     [
+      15,
+      1440,
+      21.484
+     ],
+     [
+      15,
+      1920,
+      21.684
+     ],
+     [
+      15,
+      2400,
+      21.864
+     ],
+     [
+      15,
+      2880,
+      22.043
+     ],
+     [
+      15,
+      3360,
+      22.233
+     ],
+     [
+      15,
+      3769,
+      22.36
+     ]
+    ]
+   },
+   {
+    "start": 22.36,
+    "end": 25.06,
+    "name": "10",
+    "displayName": "10",
+    "color": "#B8F05A",
+    "function": "G5 – D5 – E5, two open low E notes, then E5 rings over the next bar",
+    "role": "land",
+    "tabBars": [
+     15,
+     17
+    ],
+    "tabSync": [
+     [
+      15,
+      3769,
+      22.36
+     ],
+     [
+      16,
+      0,
+      22.382
+     ],
+     [
+      16,
+      480,
+      22.592
+     ],
+     [
+      16,
+      1920,
+      23.171
+     ],
+     [
+      16,
+      2880,
+      23.54
+     ],
+     [
+      16,
+      3360,
+      23.699
+     ],
+     [
+      17,
+      0,
+      23.919
+     ],
+     [
+      17,
+      2966,
+      25.06
+     ]
+    ]
+   },
+   {
+    "start": 25.06,
+    "end": 29.78,
+    "name": "11",
+    "displayName": "11",
+    "color": "#B8F05A",
+    "function": "Slides down into G5, then D5, and comes home to the E5 engine",
+    "role": "land",
+    "tabBars": [
+     17,
+     20
+    ],
+    "tabSync": [
+     [
+      17,
+      2966,
+      25.06
+     ],
+     [
+      18,
+      0,
+      25.396
+     ],
+     [
+      18,
+      1920,
+      26.184
+     ],
+     [
+      19,
+      0,
+      26.842
+     ],
+     [
+      19,
+      480,
+      27.032
+     ],
+     [
+      19,
+      960,
+      27.221
+     ],
+     [
+      19,
+      1440,
+      27.391
+     ],
+     [
+      19,
+      1920,
+      27.591
+     ],
+     [
+      19,
+      2400,
+      27.77
+     ],
+     [
+      19,
+      2880,
+      27.96
+     ],
+     [
+      19,
+      3360,
+      28.149
+     ],
+     [
+      20,
+      0,
+      28.329
+     ],
+     [
+      20,
+      480,
+      28.509
+     ],
+     [
+      20,
+      960,
+      28.708
+     ],
+     [
+      20,
+      1440,
+      28.888
+     ],
+     [
+      20,
+      1920,
+      29.067
+     ],
+     [
+      20,
+      2400,
+      29.267
+     ],
+     [
+      20,
+      2880,
+      29.456
+     ],
+     [
+      20,
+      3360,
+      29.626
+     ],
+     [
+      20,
+      3749,
+      29.78
+     ]
+    ]
+   },
+   {
+    "start": 29.78,
+    "end": 31.06,
+    "name": "12",
+    "displayName": "12",
+    "color": "#E35DF0",
+    "function": "E5 held for a whole bar",
+    "role": "hang",
+    "tabBars": [
+     20,
+     21
+    ],
+    "tabSync": [
+     [
+      20,
+      3749,
+      29.78
+     ],
+     [
+      21,
+      0,
+      29.816
+     ],
+     [
+      21,
+      3258,
+      31.06
+     ]
+    ]
+   },
+   {
+    "start": 31.06,
+    "end": 35.8,
+    "name": "13",
+    "displayName": "13",
+    "color": "#B8F05A",
+    "function": "Slides into G5, then D5, and comes home: the E5 engine to the end",
+    "role": "land",
+    "tabBars": [
+     21,
+     24
+    ],
+    "tabSync": [
+     [
+      21,
+      3258,
+      31.06
+     ],
+     [
+      22,
+      0,
+      31.282
+     ],
+     [
+      22,
+      1920,
+      32.03
+     ],
+     [
+      23,
+      0,
+      32.729
+     ],
+     [
+      23,
+      480,
+      32.988
+     ],
+     [
+      23,
+      960,
+      33.178
+     ],
+     [
+      23,
+      1440,
+      33.357
+     ],
+     [
+      23,
+      1920,
+      33.537
+     ],
+     [
+      23,
+      2400,
+      33.727
+     ],
+     [
+      23,
+      2880,
+      33.906
+     ],
+     [
+      23,
+      3360,
+      34.086
+     ],
+     [
+      24,
+      0,
+      34.275
+     ],
+     [
+      24,
+      480,
+      34.445
+     ],
+     [
+      24,
+      960,
+      34.645
+     ],
+     [
+      24,
+      1440,
+      34.804
+     ],
+     [
+      24,
+      1920,
+      34.994
+     ],
+     [
+      24,
+      2400,
+      35.193
+     ],
+     [
+      24,
+      2880,
+      35.363
+     ],
+     [
+      24,
+      3360,
+      35.562
+     ],
+     [
+      24,
+      3840,
+      35.8
+     ]
+    ]
+   }
+  ],
+  "dna": {
+   "overview": "Paranoid is two organisms. The intro hook works inside one E5 shape at the 12th fret: three hits with a 12–14 hammer-on, then a short run across the A and D strings. The verse riff is an engine: palm-muted, down-picked E5 eighths, a whole step down to D5, and a quick G5 – D5 – E5 turn back home. Later passes hold the E5 and slide down into G5 instead.",
+   "rule": "Muted E5 eighths + drop to D5 + G5–D5 turn home",
+   "law": "The eighths never stop and never change length, so the only movement you hear is harmonic: home, a step down, a short turn up and back. Because the pulse is fixed, the turn feels like an engine changing gear, not a new idea.",
+   "failure": "Alternate-pick or open up the palm mute and the riff loses its weight; skip the G5 before the D5 and the turn no longer pulls home.",
+   "authorNotes": "",
+   "preserve": [
+    "Down-picked, palm-muted E5 eighths",
+    "The drop a whole step to D5",
+    "The G5 – D5 – E5 turn back home",
+    "The 12–14 hammer-on inside the E5 shape in the intro"
+   ],
+   "change": [
+    "How many E5 bars come before the drop",
+    "How long the E5 is held in the tag",
+    "Which top-string chord answers the E5",
+    "Where the slide into G5 starts"
+   ],
+   "mutation": {
+    "title": "Build a Paranoid relative — without copying the riff",
+    "description": "Keep the engine, not the notes: one home power chord in steady eighths, a step down, and a short turn home.",
+    "steps": [
+     "Pick a home power chord and play 16 palm-muted, down-picked eighths on it.",
+     "Drop a whole step for one bar with the same eighths.",
+     "Write a two-chord turn — a fourth above, then the step down — and land home on beat 3.",
+     "On the last pass hold the home chord for a bar and slide down into the turn instead."
+    ]
+   },
+   "atoms": [
+    {
+     "technique": "power",
+     "type": "Power chord",
+     "label": "E5: 12th fret low E + 14th fret A",
+     "tip": "One shape carries the whole riff: index on the 12th fret, ring finger on the 14th.",
+     "view": "left",
+     "speed": 0.5,
+     "segmentIndex": 0,
+     "time": 0.18
+    },
+    {
+     "technique": "hammer",
+     "type": "Hammer-on",
+     "label": "12–14 on the A string",
+     "tip": "Pick the E5, then hammer the ring finger onto the 14th fret without picking again.",
+     "view": "left",
+     "speed": 0.5,
+     "segmentIndex": 0,
+     "time": 0.3
+    },
+    {
+     "technique": "legato",
+     "type": "Legato run",
+     "label": "12h14 on A, then D, then A",
+     "tip": "Each pair is one pick stroke: pick the 12th, hammer the 14th, move one string.",
+     "view": "left",
+     "speed": 0.5,
+     "segmentIndex": 0,
+     "time": 1.67
+    },
+    {
+     "technique": "ghost",
+     "type": "Ghost note",
+     "label": "(14) on the A string",
+     "tip": "The last note is barely there: a soft touch that leads into the next pass.",
+     "view": "left",
+     "speed": 0.75,
+     "segmentIndex": 0,
+     "time": 2.93
+    },
+    {
+     "technique": "palm",
+     "type": "Palm mute",
+     "label": "E5 eighths under P.M.",
+     "tip": "Rest the side of the picking hand on the strings at the bridge and play every eighth with a down stroke, all the same length.",
+     "view": "right",
+     "speed": 0.75,
+     "segmentIndex": 4,
+     "time": 12.03
+    },
+    {
+     "technique": "power",
+     "type": "Power chord",
+     "label": "D5: 10th fret low E + 12th fret A",
+     "tip": "Slide the same shape two frets down, keep the palm mute.",
+     "view": "left",
+     "speed": 0.5,
+     "segmentIndex": 5,
+     "time": 14.99
+    },
+    {
+     "technique": "slide",
+     "type": "Slide",
+     "label": "Slide into G5 (10–12–12)",
+     "tip": "Hit the G5 slightly from below and slide into the 10th fret.",
+     "view": "left",
+     "speed": 0.5,
+     "segmentIndex": 6,
+     "time": 16.46
+    },
+    {
+     "technique": "dead",
+     "type": "Dead note",
+     "label": "Muted D string in the D5 shape",
+     "tip": "The x is the D string touched by the finger: it adds a click, not a note.",
+     "view": "left",
+     "speed": 0.5,
+     "segmentIndex": 6,
+     "time": 16.66
+    },
+    {
+     "technique": "chord",
+     "type": "Chord",
+     "label": "12th fret on D, G and B",
+     "tip": "One finger flat across the 12th fret: a short top-string answer to the E5.",
+     "view": "left",
+     "speed": 0.5,
+     "segmentIndex": 6,
+     "time": 17.62
+    },
+    {
+     "technique": "open",
+     "type": "Open string",
+     "label": "Two open low E notes",
+     "tip": "Two quick open E eighths before the E5: they keep the pulse moving into the held chord.",
+     "view": "left",
+     "speed": 0.5,
+     "segmentIndex": 9,
+     "time": 23.54
+    },
+    {
+     "technique": "ring",
+     "type": "Let ring",
+     "label": "E5 rings for a whole bar",
+     "tip": "Strike the E5 once and let it ring the whole bar instead of chugging.",
+     "view": "split",
+     "speed": 0.75,
+     "segmentIndex": 9,
+     "time": 23.92
+    },
+    {
+     "technique": "slide",
+     "type": "Slide",
+     "label": "From E5 down into G5",
+     "tip": "Slide the whole shape down from the 14th to the 10th fret, no new pick stroke.",
+     "view": "left",
+     "speed": 0.5,
+     "segmentIndex": 10,
+     "time": 25.12
+    },
+    {
+     "technique": "anchor",
+     "type": "Home note",
+     "label": "E5 held for a bar",
+     "tip": "The riff hangs on its home chord before the last turn.",
+     "view": "split",
+     "speed": 0.75,
+     "segmentIndex": 11,
+     "time": 29.85
+    },
+    {
+     "technique": "slide",
+     "type": "Slide",
+     "label": "From E5 down into G5",
+     "tip": "Same slide as before: the shape travels down, the sound never stops.",
+     "view": "left",
+     "speed": 0.5,
+     "segmentIndex": 12,
+     "time": 31.14
+    },
+    {
+     "technique": "palm",
+     "type": "Palm mute",
+     "label": "Back to the muted E5 eighths",
+     "tip": "Drop the palm back on the strings right after the D5.",
+     "view": "right",
+     "speed": 0.75,
+     "segmentIndex": 12,
+     "time": 32.85
+    }
+   ]
+  }
+ }
+}
