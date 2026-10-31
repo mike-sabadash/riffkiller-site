@@ -1169,10 +1169,11 @@ body.riffs-hub .riff-lock-tag,
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
 }
+/* Free: the site's lime accent (the "home" colour of Riff DNA), solid, dark text; Premium stays neutral. */
 body.riffs-hub .riff-free-tag,
 .rk-riff-gallery .riff-free-tag {
     color: #0b0b0f;
-    background: #fff;
+    background: #b8f05a;
 }
 .riff-meta-below .riff-level {
     color: rgba(160, 165, 182, 0.7);

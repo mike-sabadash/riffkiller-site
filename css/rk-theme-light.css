@@ -97,13 +97,8 @@ html[data-theme='light'] .rk-riff-gallery .riff-card-stack--free:hover .riff-car
 html[data-theme='light'] body.riffs-hub .riff-free-tag,
 html[data-theme='light'] .rk-riff-gallery .riff-free-tag,
 html[data-theme='light'] body.profile-page .riff-free-tag {
-    background: linear-gradient(
-        180deg,
-        rgb(36, 155, 82) 0%,
-        rgb(24, 138, 70) 45%,
-        rgb(18, 120, 60) 100%
-    ) !important;
-    color: rgba(255, 255, 255, 0.98) !important;
+    background: #b8f05a !important;
+    color: #0b0b0f !important;
 }
 
 /* Текст под карточкой — градиент на превью не нужен */
