@@ -258,10 +258,17 @@
             // Small drift: the clock camera runs a little faster or slower (no seek: a phone stalls the
             // picture for half a second on every seek). Only a big gap is closed by a seek.
             const now = this.now();
-            v.nudge.update(drift, now);
-            const rate = v.nudge.rate(this.rate);
-            if (this.clock.playbackRate !== rate) { this.clock.playbackRate = rate; this.counts.leftRate++; }
+            // A phone (solo) never gets its speed nudged: on an iPhone each playbackRate change stalls the
+            // picture for a moment, which put it a second behind the sound within one pass. Every pass starts
+            // on the part's first frame anyway, so a small drift lasts one pass at most.
+            if (!this.solo) {
+                v.nudge.update(drift, now);
+                const rate = v.nudge.rate(this.rate);
+                if (this.clock.playbackRate !== rate) { this.clock.playbackRate = rate; this.counts.leftRate++; }
+            }
             if (Math.abs(drift) < 0.8 || now - v.lastFix < 3000) return;
+            // Close to the part's end the jump back is about to fix it: a seek now would only add a stall.
+            if (len - this.voiceOffset() < 1.5 * this.rate) return;
             v.lastFix = now;
             if (this.options.onVoice) this.options.onVoice('resync', drift);
             v.nudge.reset();
@@ -300,6 +307,7 @@
                     return;
                 }
             }
+            if (this.solo) return; // see syncVoice: no speed changes on a phone
             this.followNudge.update(drift, now);
             const target = this.followNudge.rate(base);
             if (f.playbackRate !== target) { f.playbackRate = target; this.counts.rightRate++; }
