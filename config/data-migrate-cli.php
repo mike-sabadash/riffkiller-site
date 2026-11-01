@@ -32,6 +32,11 @@ function migrate_riffs($root, $name, callable $change) {
 }
 
 $migrations = [
+    // 01.11.2026: each part as its own video with the sound inside, for phones (config/video-parts.php).
+    '2026-11-01-part-videos' => function ($root) {
+        require_once $root . '/config/video-parts.php';
+        return video_parts_schedule(null) ? 'build started in the background (data/video-work/parts/build.log)' : 'ffmpeg or php not found, skipped';
+    },
     // 31.10.2026: Split as one video for phones (config/video-split.php), built for every riff in the background.
     '2026-10-31-split-videos' => function ($root) {
         require_once $root . '/config/video-split.php';
