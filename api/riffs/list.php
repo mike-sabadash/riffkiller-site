@@ -56,5 +56,8 @@ if (!isset($_GET['raw'])) {
 // Split as one video for phones (config/video-split.php), only while it matches the current camera videos.
 require_once $base . '/config/video-split.php';
 foreach ($data as $i => $riff) $data[$i] = video_split_offer($riff);
+// Each part as its own video with the sound inside, for phones (config/video-parts.php).
+require_once $base . '/config/video-parts.php';
+foreach ($data as $i => $riff) $data[$i] = video_parts_offer($riff);
 
 echo json_encode($data);

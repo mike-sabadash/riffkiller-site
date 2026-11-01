@@ -749,6 +749,7 @@ function initVideoPlayers() {
     if (!videoWrapper) return;
     
     if (practiceTransport) practiceTransport.destroy();
+    resetPartClips();
     if (splitLoader) splitLoader.destroy();
     splitVideo = null;
     splitLoader = null;
@@ -805,7 +806,14 @@ function initVideoPlayers() {
             updateSegmentButtons();
         },
         onError: function() { showNotification('Playback could not start. Please press Play again.'); },
-        onVoice: function(kind, drift) { if (loopDebug) loopDebug.voice(kind, drift); }
+        onVoice: function(kind, drift) { if (loopDebug) loopDebug.voice(kind, drift); },
+        onClipLoop: partClipLoop,
+        onClip: showPartClip,
+        onClipRefused: function() {
+            // Tried again on the next tap, with every part video element started inside it.
+            partClips.retry = true; partClips.key = ''; showPartClip();
+            Object.keys(partClips.els).forEach(view => { delete partClips.els[view].dataset.unlocked; });
+        }
     });
     practiceTransport.setRate(playbackSpeed);
 
@@ -822,7 +830,11 @@ const PHONE_SOLO = (function () {
 })();
 // The camera that keeps time: the left one, or on a phone the one on screen.
 function clockVideo() {
-    return practiceTransport ? practiceTransport.clock : leftVideo;
+    return practiceTransport ? practiceTransport.master : leftVideo;
+}
+// Riff time right now (a part video counts from its part's start).
+function clockTime() {
+    return practiceTransport ? practiceTransport.time : (leftVideo ? leftVideo.currentTime || 0 : 0);
 }
 
 // Установка режима видео
@@ -854,7 +866,156 @@ function setVideoMode(mode) {
     if (mode === 'split') prepareSplitVideo();
     if (practiceTransport) practiceTransport.setView(mode === 'split' ? 'both' : mode);
     else { leftVideo.muted = false; rightVideo.muted = true; }
+    syncPartClip();
 }
+
+// On a phone a looped part plays from its own short video with the sound inside (config/video-parts.php):
+// picture and sound in one element stay together by themselves, and the browser loops the file (no seek per
+// pass). The silent camera + separate sound file drifted apart within a few passes on an iPhone. Each part's
+// video is downloaded once (the current view first) and kept as a local file. Until it is there, and on a
+// computer, the cameras play as before.
+const partClips = { els: {}, files: new Map(), key: '', retry: false, prefetched: '' };
+function resetPartClips() {
+    Object.keys(partClips.els).forEach(view => partClips.els[view].remove());
+    partClips.files.forEach(entry => entry.then(url => { if (url) URL.revokeObjectURL(url); }, () => {}));
+    partClips.els = {};
+    partClips.files = new Map();
+    partClips.key = '';
+    partClips.retry = false;
+    partClips.prefetched = '';
+}
+function partClipView() {
+    return currentMode === 'split' ? 'split' : currentMode === 'right' ? 'right' : 'left';
+}
+function partClipPath(view, index) {
+    const clips = currentRiff && currentRiff.partClips;
+    const list = clips && clips[view];
+    return Array.isArray(list) && typeof list[index] === 'string' ? list[index] : null;
+}
+// Object URL of one part video, downloaded once (null when it cannot be had).
+function partClipFile(path) {
+    if (partClips.files.has(path)) return partClips.files.get(path);
+    const get = url => fetch(url, { cache: 'no-cache' }).then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.blob(); });
+    const entry = get(buildVideoSrcDirect(path)).catch(() => get(buildVideoSrc(path)))
+        .then(blob => URL.createObjectURL(blob))
+        .catch(() => { partClips.files.delete(path); return null; });
+    partClips.files.set(path, entry);
+    return entry;
+}
+// One video element per view, so a phone that let it sound after a tap keeps letting it.
+function partClipElement(view) {
+    if (partClips.els[view]) return partClips.els[view];
+    const video = document.createElement('video');
+    video.className = 'video-element part-clip';
+    video.dataset.view = view;
+    video.setAttribute('playsinline', '');
+    video.setAttribute('preload', 'auto');
+    video.loop = true;
+    video.muted = true;
+    video.style.display = 'none';
+    const wrapper = document.getElementById('videoWrapper');
+    if (wrapper) wrapper.appendChild(video);
+    partClips.els[view] = video;
+    return video;
+}
+function partClipLoaded(video, url) {
+    if (video.src !== url) { video.src = url; video.load(); }
+    return new Promise((resolve, reject) => {
+        // Metadata is enough to place it; a phone loads the picture only once it is asked to play.
+        const done = () => { if (video.readyState >= 1) { clear(); resolve(video); } };
+        const fail = () => { clear(); reject(new Error('part video could not be decoded')); };
+        const timer = setTimeout(fail, 15000);
+        const clear = () => { clearTimeout(timer); video.removeEventListener('loadedmetadata', done); video.removeEventListener('canplay', done); video.removeEventListener('error', fail); };
+        video.addEventListener('loadedmetadata', done);
+        video.addEventListener('canplay', done);
+        video.addEventListener('error', fail);
+        done();
+    });
+}
+// Only the part video that plays is shown, above the cameras.
+function showPartClip() {
+    const playing = practiceTransport && practiceTransport.clip ? practiceTransport.clip.video : null;
+    Object.keys(partClips.els).forEach(view => {
+        const video = partClips.els[view];
+        video.style.display = video === playing && !lessonModeActive ? '' : 'none';
+    });
+    const wrapper = document.getElementById('videoWrapper');
+    if (wrapper) wrapper.classList.toggle('has-part-clip', !!playing && !lessonModeActive);
+}
+function partClipWanted() {
+    return PHONE_SOLO && practiceTransport && videosFullyLoaded && currentRiff && currentRiff.partClips &&
+        loopActive && !loopAllRiff && !lessonModeActive && currentSegment >= 0 && currentSegment < currentRiff.segments.length;
+}
+function syncPartClip() {
+    if (!practiceTransport) return;
+    if (!partClipWanted()) {
+        partClips.key = '';
+        if (practiceTransport.clip) { practiceTransport.clearClip(); showPartClip(); }
+        return;
+    }
+    const view = partClipView(), index = currentSegment, path = partClipPath(view, index);
+    const segment = currentRiff.segments[index];
+    const start = getSegmentStartRaw(segment), end = getSegmentEndRaw(segment);
+    if (!path) {
+        partClips.key = '';
+        if (practiceTransport.clip) { practiceTransport.clearClip(); showPartClip(); }
+        return;
+    }
+    const key = view + '|' + path;
+    if (key === partClips.key) return;
+    // A start the phone refused waits for the next tap (unlockPartClips).
+    if (partClips.retry) return;
+    partClips.key = key;
+    const transport = practiceTransport;
+    const video = partClipElement(view);
+    partClipFile(path).then(url => {
+        if (!url) throw new Error('no part video');
+        return partClipLoaded(video, url);
+    }).then(() => {
+        if (partClips.key !== key || practiceTransport !== transport || !partClipWanted()) return;
+        transport.setClip(video, start, end);
+        showPartClip();
+        if (loopDebug) loopDebug.clip(view, index);
+    }).catch(() => {
+        // Stays on the cameras for this part.
+        if (partClips.key === key) partClips.key = 'failed|' + key;
+    });
+    prefetchPartClips(view);
+}
+// The current view's part videos, one after another, in the background.
+function prefetchPartClips(view) {
+    const clips = currentRiff && currentRiff.partClips;
+    if (!clips || !Array.isArray(clips[view])) return;
+    const mark = currentRiff.id + '|' + view;
+    if (partClips.prefetched.indexOf('[' + mark + ']') >= 0) return;
+    partClips.prefetched += '[' + mark + ']';
+    clips[view].reduce((chain, path) => chain.then(() => partClipFile(path)), Promise.resolve());
+}
+// A pass of the part video's own loop counts like a jump back on the cameras.
+function partClipLoop() {
+    if (!currentRiff || currentSegment < 0) return;
+    const segment = currentRiff.segments[currentSegment];
+    if (loopDebug) loopDebug.clipPass();
+    if (window.PracticeProgress) window.PracticeProgress.loop(currentSegment);
+    speedTrainerOnLoop(currentSegment);
+}
+// A phone lets an element start its sound by itself only after it was started from a tap: every part video
+// element is started (muted) and stopped again inside the first taps.
+function unlockPartClips() {
+    if (!PHONE_SOLO || !currentRiff || !currentRiff.partClips) return;
+    ['left', 'right', 'split'].forEach(view => {
+        const video = partClipElement(view);
+        if (video.dataset.unlocked || (practiceTransport && practiceTransport.clip && practiceTransport.clip.video === video)) return;
+        // The start inside the tap is what counts; it is stopped again at once (nothing is heard or shown).
+        video.dataset.unlocked = '1';
+        video.muted = true;
+        const p = video.play();
+        if (p && p.catch) p.catch(() => {});
+        video.pause();
+    });
+    if (partClips.retry) { partClips.retry = false; partClips.key = ''; syncPartClip(); }
+}
+['pointerdown', 'touchend', 'keydown'].forEach(type => document.addEventListener(type, unlockPartClips, true));
 
 // On a phone, Split plays one video with both hands (left in full, right in a window) instead of the two
 // cameras at once, which an iPhone cannot keep smooth or together. Until it has downloaded, both cameras play.
@@ -967,6 +1128,8 @@ const partAudio = typeof PartAudio !== 'undefined' ? new PartAudio() : null;
 let partVoice = null, partVoiceKey = '', partVoiceTransport = null, partVoiceUnlocked = false;
 function syncPartVoice() {
     if (!partAudio || !practiceTransport || !leftVideo || !leftVideo.src) return;
+    // The part video carries its own sound.
+    if (practiceTransport.clip) { partVoiceKey = ''; return; }
     if (partVoiceTransport !== practiceTransport) { partVoiceTransport = practiceTransport; partVoiceKey = ''; }
     const segment = currentRiff && currentSegment >= 0 ? currentRiff.segments[currentSegment] : null;
     if (!segment || !loopActive || loopAllRiff || lessonModeActive) {
@@ -1013,10 +1176,11 @@ function unlockPartVoice() {
 
 // Left camera is the clock in every display mode; tabs follow it in All Riff too.
 function updateVideoProgress() {
+    syncPartClip();
     syncPartVoice();
     if (LOOP_DEBUG && !loopDebug && leftVideo && rightVideo) loopDebug = makeLoopDebug();
     if (!leftVideo || !rightVideo || !currentRiff || lessonModeActive) return;
-    const time = clockVideo().currentTime;
+    const time = clockTime();
     updateTimelineProgress(time);
     if (!window._jumpToSegmentInProgress && !(loopActive && !loopAllRiff)) {
         updateCurrentSegmentFromTime();
@@ -1107,7 +1271,7 @@ function playPracticeSegment(index, options) {
 function updateCurrentSegmentFromTime() {
     if (!currentRiff || !leftVideo || window._jumpToSegmentInProgress) return;
     
-    const currentTime = clockVideo().currentTime;
+    const currentTime = clockTime();
     
     for (let i = 0; i < currentRiff.segments.length; i++) {
         const seg = currentRiff.segments[i];
@@ -1127,7 +1291,7 @@ function updateCurrentSegmentFromTime() {
 // Stopping before the seek did not help on iPhone and added a long gap, so every device seeks while playing.
 const HARD_LOOP = false;
 function loopSegmentEnd() {
-    if (!currentRiff || !practiceTransport || !practiceTransport.intendedPlaying ||
+    if (!currentRiff || !practiceTransport || practiceTransport.clip || !practiceTransport.intendedPlaying ||
         practiceTransport.pending || practiceTransport.buffering ||
         clockVideo().seeking || clockVideo().paused || !loopActive || loopAllRiff || currentSegment < 0) return null;
     const segment = currentRiff.segments[currentSegment];
@@ -1174,6 +1338,7 @@ function makeLoopDebug() {
     };
     // Where the sound comes from: the part's own file, the video, or nowhere (file not ready, play refused).
     const soundSource = () => {
+        if (practiceTransport && practiceTransport.clip) return 'part video (picture + sound in one file)' + (practiceTransport.clip.video.muted ? ' MUTED' : '');
         const v = practiceTransport && practiceTransport.voice;
         if (v) return v.audio.paused ? 'part file (paused)' : 'part file';
         return clockVideo().muted ? 'none' : 'video';
@@ -1185,7 +1350,7 @@ function makeLoopDebug() {
         const q = v => v.getVideoPlaybackQuality ? v.getVideoPlaybackQuality() : null;
         const ql = q(leftVideo), qr = q(rightVideo);
         const fr = x => x ? x.droppedVideoFrames + '/' + x.totalVideoFrames : '?';
-        return 'view ' + currentMode + ' · clock ' + (clockVideo() === rightVideo ? 'R' : clockVideo() === splitVideo ? 'Split video' : 'L') + (PHONE_SOLO ? ' (one camera)' : '') + ' · R−L ' + Math.round((rightVideo.currentTime - leftVideo.currentTime) * 1000) + ' ms' +
+        return 'view ' + currentMode + ' · clock ' + (practiceTransport && practiceTransport.clip ? 'part video ' + practiceTransport.clip.video.dataset.view : clockVideo() === rightVideo ? 'R' : clockVideo() === splitVideo ? 'Split video' : 'L') + (PHONE_SOLO ? ' (one camera)' : '') + ' · R−L ' + Math.round((rightVideo.currentTime - leftVideo.currentTime) * 1000) + ' ms' +
             ' · speed L ' + leftVideo.playbackRate + ' R ' + rightVideo.playbackRate +
             ' · changes L ' + (c.leftRate || 0) + ' R ' + (c.rightRate || 0) + ' · R re-sync ' + (c.syncSeeks || 0) +
             ' · dropped L ' + fr(ql) + ' R ' + fr(qr);
@@ -1201,8 +1366,8 @@ function makeLoopDebug() {
         // Furthest the clock camera got past the part's end while playing: should stay 0.
         if (!currentRiff || currentSegment < 0 || !loopActive || loopAllRiff || clockVideo().paused || clockVideo().seeking) return;
         const seg = currentRiff.segments[currentSegment];
-        if (seg) maxPast = Math.max(maxPast, clockVideo().currentTime - seg.end);
-        const t = clockVideo().currentTime, now = performance.now();
+        if (seg) maxPast = Math.max(maxPast, clockTime() - seg.end);
+        const t = clockTime(), now = performance.now();
         if (t !== seenTime) {
             if (seenAt && t > seenTime && t - seenTime < 0.5) { gaps.push(now - seenAt); if (gaps.length > 60) gaps.shift(); }
             seenTime = t; seenAt = now;
@@ -1213,7 +1378,7 @@ function makeLoopDebug() {
     [leftVideo, rightVideo].forEach(v => v.addEventListener('seeked', () => {
         if (!pending || v !== clockVideo()) return;
         pending.seek = performance.now() - seekAt;
-        pending.landed = clockVideo().currentTime;
+        pending.landed = clockTime();
         send('pass', Object.assign({ n: pending.n, end: pending.end, start: pending.start, jumpAt: pending.at, estimate: pending.est, by: pending.by,
             pastEnd: pending.past, seekMs: Math.round(pending.seek), landed: pending.landed, rightAt: rightVideo.currentTime,
             soundAt: practiceTransport && practiceTransport.voice ? practiceTransport.voice.audio.currentTime : null }, stats()));
@@ -1225,15 +1390,28 @@ function makeLoopDebug() {
     return {
         tick() { const now = performance.now(); if (last) { ticks.push(now - last); if (ticks.length > 60) ticks.shift(); } last = now; },
         jump(seg, byTimer) {
-            pending = { n: ++n, end: seg.end, start: seg.start, at: clockVideo().currentTime, est: practiceTransport.estimate(), by: byTimer ? 'timer' : 'check', past: Math.max(0, maxPast) };
+            pending = { n: ++n, end: seg.end, start: seg.start, at: clockTime(), est: practiceTransport.estimate(), by: byTimer ? 'timer' : 'check', past: Math.max(0, maxPast) };
             maxPast = 0;
             show();
+        },
+        // A looped part from its own video: which one, and each pass of its own loop.
+        clip(view, index) {
+            send('clip', Object.assign({ view, part: index }, stats()));
+            lines.unshift('part video ' + view + ' · part ' + (index + 1) + ' · loops by itself');
+            lines.length = Math.min(lines.length, 12); show();
+        },
+        clipPass() {
+            n++;
+            const c = practiceTransport && practiceTransport.clip;
+            send('clip-pass', Object.assign({ n, at: c ? c.video.currentTime : null }, stats()));
+            lines.unshift('#' + n + ' pass (part video loop) at ' + (c ? c.video.currentTime.toFixed(3) : '?'));
+            lines.length = Math.min(lines.length, 12); show();
         },
         voice(kind, drift) {
             const v = practiceTransport && practiceTransport.voice;
             send('voice', Object.assign({ event: kind, drift: drift == null ? null : Math.round(drift * 1000),
-                soundAt: v ? v.audio.currentTime : null, videoAt: clockVideo().currentTime }, stats()));
-            lines.unshift('sound ' + kind + (drift == null ? '' : ' · drift ' + Math.round(drift * 1000) + ' ms') + ' · video ' + clockVideo().currentTime.toFixed(3));
+                soundAt: v ? v.audio.currentTime : null, videoAt: clockTime() }, stats()));
+            lines.unshift('sound ' + kind + (drift == null ? '' : ' · drift ' + Math.round(drift * 1000) + ' ms') + ' · video ' + clockTime().toFixed(3));
             lines.length = Math.min(lines.length, 12); show();
         }
     };
@@ -1613,6 +1791,7 @@ function initLessonMode() {
             if (leftVideo) leftVideo.style.display = 'none';
             if (rightVideo) rightVideo.style.display = 'none';
             if (splitVideo) splitVideo.style.display = 'none';
+            showPartClip();
             if (lessonVideoEl) {
                 lessonVideoEl.style.display = 'block';
                 lessonVideoEl.style.opacity = '1';
@@ -1633,6 +1812,7 @@ function initLessonMode() {
             if (leftVideo) leftVideo.style.display = '';
             if (rightVideo) rightVideo.style.display = '';
             if (splitVideo) splitVideo.style.display = currentMode === 'split' ? '' : 'none';
+            showPartClip();
             if (lessonVideoEl) {
                 lessonVideoEl.style.display = 'none';
                 lessonVideoEl.pause();
@@ -1787,7 +1967,7 @@ function liveTabForCurrentRiff(overlay) {
 
 function tabLiveTick() {
     if (!tabsVisible || !tabLive || !leftVideo) { tabLiveRaf = 0; return; }
-    tabLive.update(clockVideo().currentTime);
+    tabLive.update(clockTime());
     tabLiveRaf = requestAnimationFrame(tabLiveTick);
 }
 

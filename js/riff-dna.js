@@ -342,7 +342,9 @@
 
     function videoState() {
         var v = typeof clockVideo === 'function' ? clockVideo() : (typeof leftVideo !== 'undefined' ? leftVideo : null); // eslint-disable-line no-undef
-        return v ? { time: v.currentTime || 0, playing: !v.paused } : null;
+        // clockTime: riff time even while a part plays from its own video (it counts from the part's start).
+        var time = typeof clockTime === 'function' ? clockTime() : (v ? v.currentTime || 0 : 0); // eslint-disable-line no-undef
+        return v ? { time: time, playing: !v.paused } : null;
     }
 
     function tick() {

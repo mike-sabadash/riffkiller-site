@@ -891,3 +891,41 @@ test('phone: one camera plays at a time; Split downloads one video with both han
     assert.equal(await page.evaluate(()=>getComputedStyle(splitVideo).display),'none');
     assert.deepEqual(errors,[]);
 });
+test('phone: a looped part plays from its own video with the sound inside, per view, and loops by itself',async t=>{
+    // The part videos of riff 1, as the server builds them in the background (config/video-parts-cli.php).
+    require('node:child_process').execFileSync('php',[path.join(site.dir,'config/video-parts-cli.php'),'--riff','1'],{cwd:site.dir});
+    const context=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true});t.after(()=>context.close());
+    const page=await context.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));
+    await page.route(/fonts\.(googleapis|gstatic)\.com/,route=>route.abort());
+    await page.addInitScript(()=>localStorage.setItem('rkPracticeTourSeen2','1'));
+    await page.goto(site.base+'/practice.html?riff=1&cameras=one',{waitUntil:'domcontentloaded'});
+    await page.waitForFunction(()=>Array.from(document.querySelectorAll('#videoWrapper video')).slice(0,2).every(v=>v.readyState>=3));
+    assert.ok(await page.evaluate(()=>currentRiff.partClips&&currentRiff.partClips.left.length===currentRiff.segments.length));
+    await page.locator('.segment-btn').nth(2).click();
+    await page.waitForFunction(()=>practiceTransport.clip&&!practiceTransport.clip.video.paused,null,{timeout:20000});
+    const state=()=>page.evaluate(()=>({view:practiceTransport.clip&&practiceTransport.clip.video.dataset.view,muted:practiceTransport.clip&&practiceTransport.clip.video.muted,
+        playing:Array.from(document.querySelectorAll('#videoWrapper video')).filter(v=>!v.paused).map(v=>v.id||v.dataset.view),
+        shown:Array.from(document.querySelectorAll('#videoWrapper video.part-clip')).filter(v=>getComputedStyle(v).display!=='none').map(v=>v.dataset.view),
+        time:practiceTransport.time,seg:[getSegmentStartRaw(currentRiff.segments[currentSegment]),getSegmentEndRaw(currentRiff.segments[currentSegment])]}));
+    let s=await state();
+    assert.deepEqual([s.view,s.muted,s.playing,s.shown],['left',false,['left'],['left']]);
+    assert.ok(s.time>=s.seg[0]-0.05&&s.time<s.seg[1],'riff time inside the part '+JSON.stringify(s));
+    // The browser loops the file: the time never leaves the part, and passes are counted.
+    const len=s.seg[1]-s.seg[0];
+    await page.evaluate(()=>{window._clipPasses=0;const f=practiceTransport.options.onClipLoop;practiceTransport.options.onClipLoop=()=>{window._clipPasses++;f();};
+        window._outside=0;window._probe=setInterval(()=>{const t=practiceTransport.time,sg=currentRiff.segments[currentSegment];if(t<getSegmentStartRaw(sg)-0.05||t>getSegmentEndRaw(sg)+0.05)window._outside++;},20);});
+    await page.waitForTimeout(Math.ceil(len*2.3*1000)+300);
+    const loops=await page.evaluate(()=>({passes:window._clipPasses,outside:window._outside}));
+    assert.ok(loops.passes>=2,'passes counted '+JSON.stringify(loops));assert.equal(loops.outside,0);
+    await page.click('.mode-btn[data-mode="right"]');
+    await page.waitForFunction(()=>practiceTransport.clip&&practiceTransport.clip.video.dataset.view==='right'&&!practiceTransport.clip.video.paused,null,{timeout:20000});
+    s=await state();assert.deepEqual([s.playing,s.shown,s.muted],[['right'],['right'],false]);
+    await page.click('.mode-btn[data-mode="split"]');
+    await page.waitForFunction(()=>practiceTransport.clip&&practiceTransport.clip.video.dataset.view==='split'&&!practiceTransport.clip.video.paused,null,{timeout:20000});
+    s=await state();assert.deepEqual([s.playing,s.shown],[['split'],['split']]);
+    // All Riff: back to the cameras with their own sound.
+    await page.locator('.segment-btn.all-riff').click();
+    await page.waitForFunction(()=>!practiceTransport.clip,null,{timeout:5000});await page.waitForTimeout(300);
+    s=await state();assert.deepEqual(s.shown,[]);assert.ok(s.playing.length===1&&!s.playing.includes('split')&&!s.playing.includes('left'),'one camera video plays '+s.playing);
+    assert.deepEqual(errors,[]);
+});

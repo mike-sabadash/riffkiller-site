@@ -288,3 +288,36 @@ test('solo: once the Split video is there, Split plays it alone and it keeps tim
     t.setView('both'); assert.equal(t.clock,split); assert.ok(!split.paused && right.paused);
     t.destroy();
 });
+test('phone: a looped part plays from its own video with the sound inside; it loops by itself and counts passes', async () => {
+    const loops=[]; const {left,right,t}=setup({solo:true,view:'left',onClipLoop:()=>loops.push(1)});
+    await t.play(); left.currentTime=5.4;
+    const clip=new Video(); clip.duration=1.3; t.setClip(clip,5,6.3);
+    assert.equal(t.master,clip); assert.ok(!clip.paused && left.paused && right.paused);
+    assert.equal(clip.loop,true); assert.equal(clip.muted,false); assert.ok(left.muted && right.muted, 'only the part video sounds');
+    assert.ok(Math.abs(clip.currentTime-0.4)<1e-9, 'starts where the camera was'); assert.ok(Math.abs(t.time-5.4)<1e-9);
+    clip.currentTime=1.2; t.tick(); clip.currentTime=0.05; t.tick();
+    assert.equal(loops.length,1,'the jump back of the file counts one pass');
+    assert.equal(t.loopTo(5), t.time, 'no seek per pass'); assert.equal(clip.currentTime,0.05);
+    t.setRate(.5); assert.equal(clip.playbackRate,.5);
+    t.seek(5.9); assert.ok(Math.abs(clip.currentTime-0.9)<1e-9,'a seek inside the part moves the part video'); assert.equal(loops.length,1);
+    t.seek(8); assert.equal(t.clip,null); assert.ok(clip.paused); assert.equal(left.currentTime,8); assert.ok(!left.paused); assert.equal(left.muted,false);
+});
+test('phone: a view change keeps the part video until the view gets its own; a refused start falls back to the cameras', async () => {
+    const refused=[]; const {left,right,t}=setup({solo:true,view:'left',onClipRefused:()=>refused.push(1)});
+    await t.play(); left.currentTime=5.2;
+    const a=new Video(); t.setClip(a,5,6);
+    t.setView('right'); assert.equal(t.master,a); assert.ok(right.paused && left.paused && !a.paused);
+    a.currentTime=0.5; const b=new Video(); t.setClip(b,5,6);
+    assert.ok(a.paused && !b.paused); assert.equal(b.currentTime,0.5,'the other view starts at the same moment'); assert.equal(a.muted,true);
+    t.clearClip(); assert.equal(t.clock,right); assert.ok(!right.paused); assert.equal(right.currentTime,5.5);
+    const c=new Video(); c.result=Promise.reject(new Error('NotAllowedError')); t.setClip(c,5,6);
+    await new Promise(setImmediate); await new Promise(setImmediate);
+    assert.equal(t.clip,null); assert.equal(refused.length,1); assert.ok(!right.paused);
+});
+test('a part video set while the cameras are still starting does not report a failed start', async () => {
+    let failed=0; const {left,t}=setup({solo:true,onError:()=>failed++});
+    let reject; left.result=new Promise((_,r)=>{reject=r});
+    const playing=t.play(); const clip=new Video(); t.setClip(clip,0,1);
+    reject(new Error('AbortError')); await playing;
+    assert.equal(failed,0); assert.equal(t.intendedPlaying,true); assert.ok(!clip.paused);
+});

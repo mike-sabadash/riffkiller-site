@@ -112,6 +112,9 @@ try {
     // Split as one video for phones, after those keyframes (config/video-split.php).
     require_once $base . '/config/video-split.php';
     if (video_split_path($riff) && !video_split_ready($riff)) video_split_schedule($riff['id'] ?? null);
+    // Each part as its own video with the sound inside, for phones (config/video-parts.php).
+    require_once $base . '/config/video-parts.php';
+    if (video_parts_dir($riff) && video_parts_times($riff) && !video_parts_ready($riff)) video_parts_schedule($riff['id'] ?? null);
 } catch (Throwable $e) {
 }
 echo json_encode(['success' => true, 'riff' => $riff, 'rekey' => $rekey]);

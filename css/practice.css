@@ -2204,3 +2204,15 @@ html[data-theme='light'] .segment-btn.all-riff.all-riff-glint::before {
 .split-mode.has-split-video .video-element.right-hand {
     visibility: hidden;
 }
+
+/* A looped part on a phone from its own video with the sound inside (js/practice.js syncPartClip): it covers the
+   player while it plays; the cameras and the Split video stay hidden underneath. */
+.video-element.part-clip {
+    z-index: 5;
+    pointer-events: auto;
+}
+.has-part-clip .video-element.left-hand,
+.has-part-clip .video-element.right-hand,
+.has-part-clip .video-element.split-video {
+    visibility: hidden;
+}
