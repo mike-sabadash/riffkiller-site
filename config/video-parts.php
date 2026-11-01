@@ -96,6 +96,14 @@ function video_parts_schedule($riffId = null) {
     return true;
 }
 
+/** Frame rate of a video's picture as ffmpeg writes it ("30/1", "30000/1001"); "30/1" when it cannot be read. */
+function video_parts_rate($file) {
+    $ffprobe = video_binary('ffprobe');
+    $rate = $ffprobe ? trim((string)shell_exec(escapeshellarg($ffprobe) . ' -v error -select_streams v:0 -show_entries stream=avg_frame_rate -of csv=p=0 '
+        . escapeshellarg($file) . ' 2>/dev/null')) : '';
+    return preg_match('#^[1-9]\d*/[1-9]\d*$#', $rate) ? $rate : '30/1';
+}
+
 /** Frames per second of a video's picture (30 when it cannot be read). */
 function video_parts_fps($file) {
     $ffprobe = video_binary('ffprobe');
@@ -114,30 +122,44 @@ function video_parts_has_audio($file) {
         . escapeshellarg($file) . ' 2>/dev/null')) !== '';
 }
 
-/** Builds one part video: [from, from + length) seconds on frame edges, picture and the left camera's sound. */
-function video_parts_encode($ffmpeg, $leftFile, $rightFile, $view, $from, $length, $frames, $audio, $out) {
-    $seek = sprintf('%.6f', $from);
-    $dur = sprintf('%.6f', $length);
+/**
+ * Builds one part video: frames [first, last) of the picture and the left camera's sound over exactly the same
+ * time. The input is opened a few seconds early with its own timestamps kept (-copyts) and cut by trim filters
+ * in the file's own time: cutting by input -ss/-t gave a different number of frames in different ffmpeg
+ * versions (ffmpeg 7: 33 of 39 by input -t; 25 fps out of trimmed frames without -r), a picture shorter than its sound.
+ */
+function video_parts_encode($ffmpeg, $leftFile, $rightFile, $view, $first, $last, $fps, $rate, $audio, $out) {
+    $from = $first / $fps;
+    $to = $last / $fps;
+    $open = ' -ss ' . sprintf('%.6f', max(0, $from - 3)) . ' -copyts -i ';
+    // Half a frame early on both edges: frame k (at k/fps) is in when first <= k < last, whatever the rounding.
+    $vtrim = sprintf('trim=start=%.6f:end=%.6f,setpts=PTS-STARTPTS', ($first - 0.5) / $fps, ($last - 0.5) / $fps);
+    $atrim = sprintf('atrim=start=%.6f:end=%.6f,asetpts=PTS-STARTPTS,apad=whole_dur=%.6f', $from, $to, $to - $from);
     $scale = "scale='min(1280,iw)':-2:flags=lanczos";
-    $inputs = ' -ss ' . $seek . ' -t ' . $dur . ' -i ' . escapeshellarg($leftFile);
-    if ($view === 'left') $video = '[0:v]' . $scale . ',setpts=PTS-STARTPTS[v]';
+    $inputs = $open . escapeshellarg($leftFile);
+    if ($view === 'left') $video = '[0:v]' . $vtrim . ',' . $scale . '[v]';
     else {
-        $inputs .= ' -ss ' . $seek . ' -t ' . $dur . ' -i ' . escapeshellarg($rightFile);
-        $video = $view === 'right' ? '[1:v]' . $scale . ',setpts=PTS-STARTPTS[v]'
+        $inputs .= $open . escapeshellarg($rightFile);
+        $video = $view === 'right' ? '[1:v]' . $vtrim . ',' . $scale . '[v]'
             // As config/video-split.php: left camera in full, right camera in a window top left.
-            : '[0:v]scale=1280:-2:flags=lanczos,setpts=PTS-STARTPTS[b];[1:v]scale=556:-2:flags=lanczos,pad=iw+2:ih+2:0:0:color=0x111111,setpts=PTS-STARTPTS[p];'
+            : '[0:v]' . $vtrim . ',scale=1280:-2:flags=lanczos[b];[1:v]' . $vtrim . ',scale=556:-2:flags=lanczos,pad=iw+2:ih+2:0:0:color=0x111111[p];'
                 . '[b][p]overlay=0:0:shortest=1[v]';
     }
     // The sound exactly as long as the picture (padded with silence if the track is a hair short).
-    $filter = $video . ($audio ? ';[0:a]atrim=0:' . $dur . ',asetpts=PTS-STARTPTS,apad=whole_dur=' . $dur . '[a]' : '');
+    $filter = $video . ($audio ? ';[0:a]' . $atrim . '[a]' : '');
     $cmd = escapeshellarg($ffmpeg) . ' -nostdin -v error -y' . $inputs . ' -filter_complex ' . escapeshellarg($filter)
-        . ' -map "[v]"' . ($audio ? ' -map "[a]" -c:a aac -b:a 160k' : '') . ' -frames:v ' . (int)$frames
+        // -r: the camera's own frame rate (ffmpeg 7 otherwise writes 25 fps out of trimmed frames and drops some).
+        . ' -map "[v]"' . ($audio ? ' -map "[a]" -c:a aac -b:a 160k' : '') . ' -r ' . escapeshellarg($rate) . ' -frames:v ' . (int)($last - $first)
         . ' -c:v libx264 -preset fast -crf 23 -bf 0 -pix_fmt yuv420p -force_key_frames "expr:gte(t,n_forced*0.25)"'
         . ' -movflags +faststart ' . escapeshellarg($out) . ' 2>&1';
     exec($cmd, $lines, $code);
-    if ($code !== 0 || !is_file($out) || filesize($out) < 1000) {
+    $got = $code === 0 && is_file($out) ? (int)trim((string)shell_exec(escapeshellarg(video_binary('ffprobe') ?: 'ffprobe')
+        . ' -v error -count_frames -select_streams v:0 -show_entries stream=nb_read_frames -of csv=p=0 ' . escapeshellarg($out) . ' 2>/dev/null')) : 0;
+    // A part video with frames missing would run ahead of its sound on every pass: never offer one.
+    if ($got !== $last - $first) {
         @unlink($out);
-        throw new RuntimeException('part build failed for ' . basename($out) . ': ' . implode(' ', array_slice($lines, -3)));
+        throw new RuntimeException('part build failed for ' . basename($out) . ' (' . $got . ' of ' . ($last - $first) . ' frames): '
+            . implode(' ', array_slice($lines, -3)));
     }
 }
 
@@ -166,6 +188,7 @@ function video_parts_run($riff) {
         $info = video_probe($leftFile);
         if (!$ffmpeg || !$info || $info['duration'] <= 0) throw new RuntimeException('cannot read ' . $src['left']);
         $fps = video_parts_fps($leftFile);
+        $rate = video_parts_rate($leftFile);
         $audio = video_parts_has_audio($leftFile);
         $views = $src['left'] === $src['right'] ? ['left'] : VIDEO_PARTS_VIEWS;
         if (!is_dir($root . '/' . $dir)) mkdir($root . '/' . $dir, 0755, true);
@@ -174,15 +197,13 @@ function video_parts_run($riff) {
             $first = (int)round($start * $fps);
             $last = (int)round(min($end, $info['duration']) * $fps);
             if ($last <= $first) $last = $first + 1;
-            $from = $first / $fps;
-            $length = ($last - $first) / $fps;
             $hash = substr(sha1(json_encode([$src['left'], $src['right'], $src['leftSize'], $src['rightSize'], $start, $end, VIDEO_PARTS_VERSION])), 0, 10);
             foreach ($views as $view) {
                 $file = $dir . '/' . $view . '-' . ($i + 1) . '-' . $hash . '.mp4';
                 $files[$view][$i] = $file;
                 if (is_file($root . '/' . $file)) continue;
                 $tmp = $root . '/' . $dir . '/.part-' . getmypid() . '-' . basename($file);
-                video_parts_encode($ffmpeg, $leftFile, $rightFile, $view, $from, $length, $last - $first, $audio, $tmp);
+                video_parts_encode($ffmpeg, $leftFile, $rightFile, $view, $first, $last, $fps, $rate, $audio, $tmp);
                 @chmod($tmp, fileperms($leftFile) & 0777);
                 if (!rename($tmp, $root . '/' . $file)) { @unlink($tmp); throw new RuntimeException('could not write ' . $file); }
             }
