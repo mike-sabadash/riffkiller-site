@@ -44,3 +44,30 @@ test('each part is its own video with the sound inside, cut on frame edges, pict
     assert.ok(!fs.existsSync(path.join(dir,clips.left[0])),'old part video removed');
     fs.rmSync(dir,{recursive:true,force:true});
 });
+test('the admin editor gets a light copy of the left camera: same frames and sound, offered only for the camera as it is now',()=>{
+    const dir=fs.mkdtempSync(path.join(os.tmpdir(),'rk-edit-'));
+    fs.cpSync(path.join(root,'config'),path.join(dir,'config'),{recursive:true});
+    fs.mkdirSync(path.join(dir,'data'));fs.mkdirSync(path.join(dir,'assets/video/a/b'),{recursive:true});
+    fs.writeFileSync(path.join(dir,'.env'),'');
+    const left=path.join(dir,'assets/video/a/b/e-left.mp4');
+    const make=size=>execFileSync('ffmpeg',['-hide_banner','-loglevel','error','-y','-f','lavfi','-i','testsrc2=size='+size+':rate=30','-f','lavfi','-i','sine=frequency=440',
+        '-t','2','-c:v','libx264','-pix_fmt','yuv420p','-c:a','aac','-shortest',left]);
+    make('1280x720');
+    // No part times yet: a new riff is marked up in the editor, so the copy is built anyway.
+    fs.writeFileSync(path.join(dir,'data/riffs.json'),JSON.stringify([{id:3,song:'E',videoFile:'assets/video/a/b/e-left.mp4',segments:[]}]));
+    const offered=()=>JSON.parse(execFileSync('php',['-r','chdir('+JSON.stringify(dir)+'); require "config/video-edit.php"; echo json_encode(video_edit_offer(json_decode(file_get_contents("data/riffs.json"),true)[0]));'],{encoding:'utf8'})).editVideo;
+    assert.equal(offered(),undefined,'nothing offered before it is built');
+    assert.match(execFileSync('php',[path.join(dir,'config/video-parts-cli.php'),'--riff','3'],{encoding:'utf8'}),/-edit\/[0-9a-f]+\.mp4: built/);
+    const copy=offered();assert.ok(copy&&/^assets\/video\/a\/b\/e-left-edit\//.test(copy),copy);
+    const a=probe(left),b=probe(path.join(dir,copy));
+    const v=info=>info.streams.find(s=>s.codec_type==='video');
+    assert.equal(v(b).width,854);assert.equal(Number(v(b).nb_frames),Number(v(a).nb_frames));
+    assert.ok(b.streams.some(s=>s.codec_type==='audio'),'sound inside');
+    assert.ok(Math.abs(Number(b.format.duration)-Number(a.format.duration))<0.03);
+    // The camera replaced: the old copy is not offered, the rebuild removes it.
+    make('960x540');
+    assert.equal(offered(),undefined);
+    execFileSync('php',[path.join(dir,'config/video-parts-cli.php'),'--all']);
+    const again=offered();assert.ok(again&&again!==copy);assert.ok(!fs.existsSync(path.join(dir,copy)),'old copy removed');
+    fs.rmSync(dir,{recursive:true,force:true});
+});

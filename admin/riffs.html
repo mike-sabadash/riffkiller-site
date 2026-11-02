@@ -442,7 +442,7 @@
     <script src="../js/admin-tabs.js?v=5"></script>
     <script src="../js/tab-listing.js?v=1"></script>
     <script src="../js/admin-tab-ai.js?v=1"></script>
-    <script src="../js/admin-segments.js?v=ed6"></script>
+    <script src="../js/admin-segments.js?v=ed7"></script>
     <script src="../js/admin-cutter.js?v=ed1"></script>
     <script src="../js/image-shrink.js?v=1"></script>
     <script>
@@ -1090,13 +1090,31 @@
     function coverFromVideo() {
         var v = document.getElementById('segmentEditorVideo'), status = document.getElementById('coverStatus');
         if (!v.videoWidth || v.readyState < 2) { status.textContent = 'Видео ещё не загружено: укажите или загрузите видео левой руки, дождитесь кадра в разметке и нажмите снова.'; return; }
+        // The editor plays a light copy: take the same moment from the full-size camera for the cover.
+        var full = SegmentEditor.fullVideoUrl && SegmentEditor.fullVideoUrl();
+        if (full) {
+            var t0 = v.currentTime, probe = document.createElement('video');
+            probe.muted = true; probe.preload = 'auto'; probe.playsInline = true;
+            status.textContent = 'Беру кадр из полного видео…';
+            var done = false;
+            var fail = function () { if (done) return; done = true; coverFromFrame(v, v.currentTime); };
+            probe.addEventListener('loadedmetadata', function () { probe.currentTime = Math.max(0.001, t0); }, { once: true });
+            probe.addEventListener('seeked', function () { if (done) return; done = true; coverFromFrame(probe, t0); setTimeout(function () { probe.removeAttribute('src'); probe.load(); }, 0); }, { once: true });
+            probe.addEventListener('error', fail, { once: true });
+            probe.src = full;
+            return;
+        }
+        coverFromFrame(v, v.currentTime);
+    }
+    function coverFromFrame(v, t) {
+        var status = document.getElementById('coverStatus');
         // Library cards are 5:3 (the profile crops them narrower); take the middle of the frame in that shape.
         var ratio = 5 / 3, sw = v.videoWidth, sh = v.videoHeight;
         if (sw / sh > ratio) sw = Math.round(sh * ratio); else sh = Math.round(sw / ratio);
         var canvas = document.createElement('canvas'), h = Math.min(720, sh);
         canvas.height = h; canvas.width = Math.round(h * ratio);
         canvas.getContext('2d').drawImage(v, (v.videoWidth - sw) / 2, (v.videoHeight - sh) / 2, sw, sh, 0, 0, canvas.width, canvas.height);
-        var t = v.currentTime, stamp = Math.floor(t / 60) + ':' + ('0' + (t % 60).toFixed(2)).slice(-5);
+        var stamp = Math.floor(t / 60) + ':' + ('0' + (t % 60).toFixed(2)).slice(-5);
         try {
             canvas.toBlob(function (blob) {
                 if (!blob) { status.textContent = 'Не получилось взять кадр. Загрузите картинку файлом.'; return; }

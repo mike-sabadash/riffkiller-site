@@ -32,6 +32,11 @@ function migrate_riffs($root, $name, callable $change) {
 }
 
 $migrations = [
+    // 02.11.2026: a light copy of each left camera for the admin editor (config/video-edit.php), with the part videos.
+    '2026-11-02-editor-videos' => function ($root) {
+        require_once $root . '/config/video-parts.php';
+        return video_parts_schedule(null) ? 'build started in the background (data/video-work/parts/build.log)' : 'ffmpeg or php not found, skipped';
+    },
     // 01.11.2026: each part as its own video with the sound inside, for phones (config/video-parts.php).
     '2026-11-01-part-videos' => function ($root) {
         require_once $root . '/config/video-parts.php';

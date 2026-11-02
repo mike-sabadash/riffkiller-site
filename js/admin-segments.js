@@ -594,11 +594,18 @@
     // ----- Video -----
     // A server video is downloaded whole before it plays: streamed from far away it played in one-second bursts
     // (the editor loops and seeks a few seconds of it over and over); from memory it plays and seeks at once.
-    var loadToken = 0, loadAbort = null, ownBlob = '';
+    // The server keeps a light copy of the left camera for this editor (config/video-edit.php, riff.editVideo):
+    // same frames and times, ~6 times smaller. `full` is the camera itself, for a full-size cover frame.
+    var loadToken = 0, loadAbort = null, ownBlob = '', fullPath = '';
     function dropOwnBlob() { if (ownBlob) { URL.revokeObjectURL(ownBlob); ownBlob = ''; } }
-    function setVideo(path) {
+    function serverUrl(path) {
+        return /^(https?|blob):/.test(path) ? path : '../video.php?file=' + encodeURIComponent(path.replace(/^\//, ''));
+    }
+    function setVideo(path, full) {
         var v = video(), src = el('segmentEditorVideoSrc'), empty = el('edVideoEmpty');
         path = (path || '').trim();
+        full = (full || '').trim();
+        fullPath = full && full !== path ? full : '';
         looping = false;
         var token = ++loadToken;
         if (loadAbort) { loadAbort.abort(); loadAbort = null; }
@@ -613,10 +620,10 @@
             render();
             return;
         }
-        if (src) src.textContent = /^blob:/.test(path) ? 'Выбранный файл (загрузится при сохранении)' : path;
+        if (src) src.textContent = /^blob:/.test(path) ? 'Выбранный файл (загрузится при сохранении)' : fullPath ? fullPath + ' · лёгкая копия для разметки' : path;
         if (/^blob:/.test(path)) { show(path); return; }
         // video.php serves byte ranges, which seeking needs if the download fails and the video streams instead.
-        var url = /^https?:/.test(path) ? path : '../video.php?file=' + encodeURIComponent(path.replace(/^\//, ''));
+        var url = serverUrl(path);
         if (!window.fetch || !window.ReadableStream || !window.AbortController) { show(url); return; }
         v.removeAttribute('src');
         v.load();
@@ -685,9 +692,12 @@
         var loop = el('segmentEditorLoop');
         if (loop) loop.classList.remove('on');
         validate(true);
-        setVideo(riff.videoFile || riff.videoFileRight || '');
+        var full = riff.videoFile || riff.videoFileRight || '';
+        setVideo(riff.editVideo && riff.videoFile ? riff.editVideo : full, full);
         render();
     }
+    /** URL of the full-size camera when the editor plays its light copy, else null. */
+    function fullVideoUrl() { return fullPath ? serverUrl(fullPath) : null; }
 
     function collect() {
         return rows().map(function (row, i) {
@@ -795,7 +805,7 @@
     }
 
     root.SegmentEditor = {
-        init: init, load: load, collect: collect, setVideo: setVideo, render: render,
+        init: init, load: load, collect: collect, setVideo: setVideo, render: render, fullVideoUrl: fullVideoUrl,
         validate: function () { return validate(true); }, duration: videoDuration, split: split, undo: undo,
         selected: function () { return selected; }, select: select,
         // Tab bars per part, used by the tab block (admin-tabs.js).

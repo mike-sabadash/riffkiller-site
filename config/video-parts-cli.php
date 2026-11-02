@@ -1,11 +1,13 @@
 <?php
 /**
- * Part videos with their sound (config/video-parts.php), from the command line.
+ * Part videos with their sound (config/video-parts.php) and the admin editor's light copy of the left camera
+ * (config/video-edit.php), from the command line.
  *   php config/video-parts-cli.php --riff <id>   one riff (what saving a riff starts)
  *   php config/video-parts-cli.php --all         every riff (once on deploy)
  */
 if (PHP_SAPI !== 'cli') exit(1);
 require_once __DIR__ . '/video-parts.php';
+require_once __DIR__ . '/video-edit.php';
 
 $args = array_slice($argv, 1);
 if (!in_array($args[0] ?? '', ['--riff', '--all'], true)) {
@@ -19,10 +21,20 @@ $list = json_decode((string)@file_get_contents(video_root() . '/data/riffs.json'
 if (!is_array($list)) { fwrite(STDERR, "data/riffs.json is unreadable\n"); exit(1); }
 $failed = 0;
 foreach ($list as $riff) {
-    if (!is_array($riff) || !video_parts_dir($riff) || !video_parts_times($riff)) continue;
+    if (!is_array($riff) || !video_parts_dir($riff)) continue;
     if ($args[0] === '--riff' && (string)($riff['id'] ?? '') !== (string)($args[1] ?? '')) continue;
+    if (video_parts_times($riff)) {
+        try {
+            echo gmdate('c'), ' ', video_parts_run($riff), "\n";
+        } catch (Throwable $e) {
+            $failed++;
+            echo gmdate('c'), ' ERROR ', $e->getMessage(), "\n";
+        }
+    }
+    // After the part videos: their run re-keys the camera first, which changes the file the copy is made from.
     try {
-        echo gmdate('c'), ' ', video_parts_run($riff), "\n";
+        clearstatcache();
+        echo gmdate('c'), ' ', video_edit_run($riff), "\n";
     } catch (Throwable $e) {
         $failed++;
         echo gmdate('c'), ' ERROR ', $e->getMessage(), "\n";

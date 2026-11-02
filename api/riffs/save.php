@@ -57,18 +57,24 @@ if (!is_array($list)) {
     echo json_encode(['success' => false, 'error' => 'Riff store is unreadable; no changes saved']);
     exit();
 }
+// Fields the list API adds for the page (built videos, cover variants) are not stored: the admin gets them in
+// the list it edits and sends them back, and a stored riff never has them, so they must not count as a change.
+$derived = ['adminView', 'thumbnailSrcset', 'videoFileSplit', 'partClips', 'editVideo'];
+$strip = function ($r) use ($derived) { if (is_array($r)) foreach ($derived as $k) unset($r[$k]); return $r; };
+$riff = $strip($riff);
+if (isset($body['expectedRiff'])) $body['expectedRiff'] = $strip($body['expectedRiff']);
 $id = (int)($riff['id'] ?? 0);
 $idx = null;
 foreach ($list as $i => $existing) {
     if ($id > 0 && (int)($existing['id'] ?? 0) === $id) { $idx = $i; break; }
 }
 if ($idx !== null) {
-    if (isset($body['expectedRiff']) && $body['expectedRiff'] != $list[$idx]) {
+    if (isset($body['expectedRiff']) && $body['expectedRiff'] != $strip($list[$idx])) {
         http_response_code(409);
         echo json_encode(['success' => false, 'error' => 'This riff was changed elsewhere. Reload it before saving.']);
         exit();
     }
-    $riff = array_replace($list[$idx], $riff);
+    $riff = array_replace($strip($list[$idx]), $riff);
 } elseif ($id > 0) {
     http_response_code(409);
     echo json_encode(['success' => false, 'error' => 'This riff no longer exists. Reload the list.']);
@@ -114,7 +120,9 @@ try {
     if (video_split_path($riff) && !video_split_ready($riff)) video_split_schedule($riff['id'] ?? null);
     // Each part as its own video with the sound inside, for phones (config/video-parts.php).
     require_once $base . '/config/video-parts.php';
-    if (video_parts_dir($riff) && video_parts_times($riff) && !video_parts_ready($riff)) video_parts_schedule($riff['id'] ?? null);
+    // The same run builds the admin editor's light copy of the left camera (config/video-edit.php).
+    require_once $base . '/config/video-edit.php';
+    if (video_parts_dir($riff) && ((video_parts_times($riff) && !video_parts_ready($riff)) || !video_edit_ready($riff))) video_parts_schedule($riff['id'] ?? null);
 } catch (Throwable $e) {
 }
 echo json_encode(['success' => true, 'riff' => $riff, 'rekey' => $rekey]);
