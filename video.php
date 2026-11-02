@@ -21,6 +21,15 @@ $end   = $size - 1;
 // Basic headers
 header('Content-Type: video/mp4');
 header('Accept-Ranges: bytes');
+// The browser keeps the file and only asks whether it changed, so reopening a riff does not download it again.
+$etag = '"' . dechex((int) filemtime($path)) . '-' . dechex($size) . '"';
+header('ETag: ' . $etag);
+header('Last-Modified: ' . gmdate('D, d M Y H:i:s', (int) filemtime($path)) . ' GMT');
+header('Cache-Control: no-cache');
+if (!isset($_SERVER['HTTP_RANGE']) && isset($_SERVER['HTTP_IF_NONE_MATCH']) && trim($_SERVER['HTTP_IF_NONE_MATCH']) === $etag) {
+    http_response_code(304);
+    exit;
+}
 
 // Handle HTTP Range header for seeking
 if (isset($_SERVER['HTTP_RANGE'])) {
