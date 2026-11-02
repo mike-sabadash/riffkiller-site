@@ -592,23 +592,70 @@
     }
 
     // ----- Video -----
+    // A server video is downloaded whole before it plays: streamed from far away it played in one-second bursts
+    // (the editor loops and seeks a few seconds of it over and over); from memory it plays and seeks at once.
+    var loadToken = 0, loadAbort = null, ownBlob = '';
+    function dropOwnBlob() { if (ownBlob) { URL.revokeObjectURL(ownBlob); ownBlob = ''; } }
     function setVideo(path) {
         var v = video(), src = el('segmentEditorVideoSrc'), empty = el('edVideoEmpty');
         path = (path || '').trim();
         looping = false;
+        var token = ++loadToken;
+        if (loadAbort) { loadAbort.abort(); loadAbort = null; }
+        if (empty && !empty.dataset.text) empty.dataset.text = empty.textContent;
+        if (empty) empty.textContent = empty.dataset.text;
         if (!path) {
             v.removeAttribute('src');
             v.load();
+            dropOwnBlob();
             if (src) src.textContent = '';
             if (empty) empty.hidden = false;
             render();
             return;
         }
-        // video.php serves byte ranges, which seeking needs.
-        v.src = /^(https?|blob):/.test(path) ? path : '../video.php?file=' + encodeURIComponent(path.replace(/^\//, ''));
-        v.load();
         if (src) src.textContent = /^blob:/.test(path) ? 'Выбранный файл (загрузится при сохранении)' : path;
-        if (empty) empty.hidden = true;
+        if (/^blob:/.test(path)) { show(path); return; }
+        // video.php serves byte ranges, which seeking needs if the download fails and the video streams instead.
+        var url = /^https?:/.test(path) ? path : '../video.php?file=' + encodeURIComponent(path.replace(/^\//, ''));
+        if (!window.fetch || !window.ReadableStream || !window.AbortController) { show(url); return; }
+        v.removeAttribute('src');
+        v.load();
+        if (empty) { empty.textContent = 'Загружаю видео…'; empty.hidden = false; }
+        render();
+        loadAbort = new AbortController();
+        fetch(url, { signal: loadAbort.signal, credentials: 'same-origin' }).then(function (r) {
+            if (!r.ok || !r.body) throw new Error('HTTP ' + r.status);
+            var total = Number(r.headers.get('Content-Length')) || 0, got = 0, parts = [], reader = r.body.getReader();
+            var type = r.headers.get('Content-Type') || 'video/mp4';
+            function pump() {
+                return reader.read().then(function (step) {
+                    if (token !== loadToken) return null;
+                    if (step.done) return new Blob(parts, { type: type });
+                    parts.push(step.value);
+                    got += step.value.length;
+                    if (empty) empty.textContent = 'Загружаю видео… ' + (total ? Math.min(99, Math.floor(got * 100 / total)) + '% из ' + (total / 1048576).toFixed(1) + ' МБ' : (got / 1048576).toFixed(1) + ' МБ');
+                    return pump();
+                });
+            }
+            return pump();
+        }).then(function (blob) {
+            if (!blob || token !== loadToken) return;
+            loadAbort = null;
+            show(URL.createObjectURL(blob), true);
+        }).catch(function () {
+            if (token !== loadToken) return;
+            loadAbort = null;
+            show(url);
+        });
+    }
+    function show(url, own) {
+        var v = video(), empty = el('edVideoEmpty');
+        dropOwnBlob();
+        if (own) ownBlob = url;
+        v.src = url;
+        v.load();
+        if (empty) { empty.textContent = empty.dataset.text || ''; empty.hidden = true; }
+        render();
     }
 
     var raf = null;
