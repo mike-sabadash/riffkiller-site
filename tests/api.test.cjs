@@ -32,6 +32,14 @@ test('save and reload preserve DNA, segment metadata and unknown fields; stale s
     response=await post('/api/riffs/save.php',{riff:original,expectedRiff:original},admin);assert.equal(response.status,409);
     const reloaded=(await (await fetch(site.base+'/api/riffs/list.php')).json())[0];assert.equal(reloaded.segments[0].name,'Edited segment');assert.equal(reloaded.segments[0].tabImage,original.segments[0].tabImage);
 });
+test('fields the list adds for the page (built videos) do not make a save conflict and are not stored',async()=>{
+    const stored=JSON.parse(fs.readFileSync(path.join(site.dir,'data/riffs.json'),'utf8'))[0];
+    const offered={...stored,videoFileSplit:'assets/video/x-split.mp4',partClips:{left:['a.mp4']},editVideo:'assets/video/x-edit/1.mp4',thumbnailSrcset:'x 400w'};
+    const response=await post('/api/riffs/save.php',{riff:{...offered,genre:'blues'},expectedRiff:offered},admin);assert.equal(response.status,200);
+    const after=JSON.parse(fs.readFileSync(path.join(site.dir,'data/riffs.json'),'utf8'))[0];
+    assert.equal(after.genre,'blues');for(const k of ['videoFileSplit','partClips','editVideo','thumbnailSrcset'])assert.ok(!(k in after),k+' not stored');
+    await post('/api/riffs/save.php',{riff:{...after,genre:stored.genre},expectedRiff:after},admin);
+});
 test('a draft without video and a hidden riff stay in the admin list only and do not fill collections',async()=>{
     const store=path.join(site.dir,'data/riffs.json'),original=fs.readFileSync(store);
     try {

@@ -59,5 +59,8 @@ foreach ($data as $i => $riff) $data[$i] = video_split_offer($riff);
 // Each part as its own video with the sound inside, for phones (config/video-parts.php).
 require_once $base . '/config/video-parts.php';
 foreach ($data as $i => $riff) $data[$i] = video_parts_offer($riff);
+// A light copy of the left camera for the admin editor (config/video-edit.php).
+require_once $base . '/config/video-edit.php';
+foreach ($data as $i => $riff) $data[$i] = video_edit_offer($riff);
 
 echo json_encode($data);
