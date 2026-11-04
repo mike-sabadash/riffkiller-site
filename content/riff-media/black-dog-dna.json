@@ -1,0 +1,831 @@
+{
+ "id": 1,
+ "song": "Black Dog",
+ "riff": {
+  "segments": [
+   {
+    "start": 0,
+    "end": 1.6,
+    "name": "1",
+    "color": "#F2D94E",
+    "displayName": "1",
+    "function": "States the opening figure: E, a chromatic climb G–G#–A, back to E, then the sour quarter-bend on C",
+    "tabImage": "assets/tabs/led-zeppelin/black-dog/1.png",
+    "role": "call",
+    "tabSync": [
+     [
+      1,
+      0,
+      0
+     ],
+     [
+      1,
+      0,
+      0.123
+     ],
+     [
+      1,
+      480,
+      0.303
+     ],
+     [
+      1,
+      960,
+      0.492
+     ],
+     [
+      1,
+      1440,
+      0.672
+     ],
+     [
+      1,
+      1920,
+      0.861
+     ],
+     [
+      2,
+      0,
+      1.051
+     ],
+     [
+      2,
+      960,
+      1.42
+     ],
+     [
+      2,
+      1441,
+      1.6
+     ]
+    ],
+    "tabBars": [
+     1,
+     2
+    ]
+   },
+   {
+    "start": 1.7,
+    "end": 3.44,
+    "name": "2",
+    "color": "#4FD8E8",
+    "displayName": "2",
+    "function": "Answers on the G string: D–E, the 5h7p5 triplet and the bent C, ending on A",
+    "tabImage": "assets/tabs/led-zeppelin/black-dog/2.png",
+    "role": "answer",
+    "tabSync": [
+     [
+      2,
+      1709,
+      1.7
+     ],
+     [
+      2,
+      1920,
+      1.779
+     ],
+     [
+      2,
+      2400,
+      1.949
+     ],
+     [
+      2,
+      2880,
+      2.158
+     ],
+     [
+      2,
+      3200,
+      2.288
+     ],
+     [
+      2,
+      3520,
+      2.388
+     ],
+     [
+      3,
+      0,
+      2.518
+     ],
+     [
+      3,
+      480,
+      2.707
+     ],
+     [
+      3,
+      960,
+      2.897
+     ],
+     [
+      3,
+      1920,
+      3.266
+     ],
+     [
+      3,
+      2373,
+      3.44
+     ]
+    ],
+    "tabBars": [
+     2,
+     3
+    ]
+   },
+   {
+    "start": 3.64,
+    "end": 5.56,
+    "name": "3",
+    "color": "#B8F05A",
+    "displayName": "3",
+    "function": "Walks down the A string with the 7–5 slide and lands on the open A double stop",
+    "tabImage": "assets/tabs/led-zeppelin/black-dog/3.png",
+    "role": "land",
+    "tabSync": [
+     [
+      3,
+      2893,
+      3.64
+     ],
+     [
+      3,
+      3360,
+      3.825
+     ],
+     [
+      4,
+      0,
+      3.984
+     ],
+     [
+      4,
+      480,
+      4.194
+     ],
+     [
+      4,
+      960,
+      4.373
+     ],
+     [
+      4,
+      1200,
+      4.483
+     ],
+     [
+      4,
+      1440,
+      4.563
+     ],
+     [
+      4,
+      1920,
+      4.743
+     ],
+     [
+      4,
+      2400,
+      4.932
+     ],
+     [
+      5,
+      222,
+      5.56
+     ]
+    ],
+    "tabBars": [
+     3,
+     5
+    ]
+   },
+   {
+    "start": 5.992,
+    "end": 7.498,
+    "name": "4",
+    "color": "#F2D94E",
+    "displayName": "4",
+    "function": "Starts the 4½-beat cell: B, climb D–D#–E, back to B and the bent G — seven notes over nine eighths",
+    "tabImage": "assets/tabs/led-zeppelin/black-dog/4.png",
+    "role": "call",
+    "tabSync": [
+     [
+      5,
+      1366,
+      5.992
+     ],
+     [
+      5,
+      1440,
+      6.02
+     ],
+     [
+      5,
+      1920,
+      6.249
+     ],
+     [
+      5,
+      2400,
+      6.409
+     ],
+     [
+      5,
+      2880,
+      6.598
+     ],
+     [
+      5,
+      3360,
+      6.788
+     ],
+     [
+      6,
+      0,
+      6.977
+     ],
+     [
+      6,
+      960,
+      7.347
+     ],
+     [
+      6,
+      1364,
+      7.498
+     ]
+    ],
+    "tabBars": [
+     5,
+     6
+    ]
+   },
+   {
+    "start": 7.588,
+    "end": 9.1,
+    "name": "5",
+    "color": "#E35DF0",
+    "displayName": "5",
+    "function": "The same cell again, now half a beat later against the 4/4 beat",
+    "tabImage": "assets/tabs/led-zeppelin/black-dog/5.png",
+    "role": "repeat",
+    "tabSync": [
+     [
+      6,
+      1604,
+      7.588
+     ],
+     [
+      6,
+      1920,
+      7.706
+     ],
+     [
+      6,
+      2400,
+      7.895
+     ],
+     [
+      6,
+      2880,
+      8.075
+     ],
+     [
+      6,
+      3360,
+      8.265
+     ],
+     [
+      7,
+      0,
+      8.444
+     ],
+     [
+      7,
+      480,
+      8.624
+     ],
+     [
+      7,
+      1440,
+      9.003
+     ],
+     [
+      7,
+      1692,
+      9.1
+     ]
+    ],
+    "tabBars": [
+     6,
+     7
+    ]
+   },
+   {
+    "start": 9.212,
+    "end": 10.836,
+    "name": "6",
+    "color": "#E35DF0",
+    "displayName": "6",
+    "function": "Third pass, another half beat later: the downbeat slips under the figure",
+    "tabImage": "assets/tabs/led-zeppelin/black-dog/6.png",
+    "role": "repeat",
+    "tabSync": [
+     [
+      7,
+      1984,
+      9.212
+     ],
+     [
+      7,
+      2400,
+      9.372
+     ],
+     [
+      7,
+      2880,
+      9.562
+     ],
+     [
+      7,
+      3360,
+      9.751
+     ],
+     [
+      8,
+      0,
+      9.931
+     ],
+     [
+      8,
+      480,
+      10.12
+     ],
+     [
+      8,
+      960,
+      10.32
+     ],
+     [
+      8,
+      1920,
+      10.679
+     ],
+     [
+      8,
+      2307,
+      10.836
+     ]
+    ],
+    "tabBars": [
+     7,
+     8
+    ]
+   },
+   {
+    "start": 11.06,
+    "end": 11.872,
+    "name": "7",
+    "color": "#B8F05A",
+    "displayName": "7",
+    "function": "The cell breaks off after D–D#–E and drops to D, the link back to the opening figure",
+    "tabImage": "assets/tabs/led-zeppelin/black-dog/7.png",
+    "role": "reset",
+    "tabSync": [
+     [
+      8,
+      2860,
+      11.06
+     ],
+     [
+      8,
+      2880,
+      11.068
+     ],
+     [
+      8,
+      3360,
+      11.238
+     ],
+     [
+      9,
+      0,
+      11.437
+     ],
+     [
+      9,
+      480,
+      11.607
+     ],
+     [
+      9,
+      960,
+      11.796
+     ],
+     [
+      9,
+      1163,
+      11.872
+     ]
+    ],
+    "tabBars": [
+     8,
+     9
+    ]
+   },
+   {
+    "start": 11.872,
+    "end": 13.44,
+    "name": "8",
+    "color": "#F2D94E",
+    "displayName": "8",
+    "function": "The opening figure returns: E, G–G#–A, E and the bent C",
+    "tabImage": "assets/tabs/led-zeppelin/black-dog/8.png",
+    "role": "call",
+    "tabSync": [
+     [
+      9,
+      1163,
+      11.872
+     ],
+     [
+      9,
+      1440,
+      11.976
+     ],
+     [
+      9,
+      1920,
+      12.156
+     ],
+     [
+      9,
+      2400,
+      12.295
+     ],
+     [
+      9,
+      2880,
+      12.525
+     ],
+     [
+      9,
+      3360,
+      12.714
+     ],
+     [
+      10,
+      0,
+      12.904
+     ],
+     [
+      10,
+      960,
+      13.253
+     ],
+     [
+      10,
+      1434,
+      13.44
+     ]
+    ],
+    "tabBars": [
+     9,
+     10
+    ]
+   },
+   {
+    "start": 13.441,
+    "end": 15.316,
+    "name": "9",
+    "color": "#4FD8E8",
+    "displayName": "9",
+    "function": "Same answer as part 2: the triplet run and the bent C",
+    "tabImage": "assets/tabs/led-zeppelin/black-dog/9.png",
+    "role": "answer",
+    "tabSync": [
+     [
+      10,
+      1436,
+      13.441
+     ],
+     [
+      10,
+      1920,
+      13.632
+     ],
+     [
+      10,
+      2400,
+      13.782
+     ],
+     [
+      10,
+      2880,
+      14.001
+     ],
+     [
+      10,
+      3200,
+      14.121
+     ],
+     [
+      10,
+      3520,
+      14.231
+     ],
+     [
+      11,
+      0,
+      14.341
+     ],
+     [
+      11,
+      480,
+      14.54
+     ],
+     [
+      11,
+      960,
+      14.73
+     ],
+     [
+      11,
+      1920,
+      15.109
+     ],
+     [
+      11,
+      2444,
+      15.316
+     ]
+    ],
+    "tabBars": [
+     10,
+     11
+    ]
+   },
+   {
+    "start": 15.456,
+    "end": 17.136,
+    "name": "10",
+    "color": "#B8F05A",
+    "displayName": "10",
+    "function": "Same landing as part 3: slide down the A string to the open A double stop",
+    "tabImage": "assets/tabs/led-zeppelin/black-dog/10.png",
+    "role": "land",
+    "tabSync": [
+     [
+      11,
+      2799,
+      15.456
+     ],
+     [
+      11,
+      2880,
+      15.488
+     ],
+     [
+      11,
+      3360,
+      15.678
+     ],
+     [
+      12,
+      0,
+      15.857
+     ],
+     [
+      12,
+      480,
+      16.027
+     ],
+     [
+      12,
+      960,
+      16.206
+     ],
+     [
+      12,
+      1200,
+      16.396
+     ],
+     [
+      12,
+      1440,
+      16.576
+     ],
+     [
+      12,
+      1920,
+      16.755
+     ],
+     [
+      12,
+      2400,
+      17.134
+     ],
+     [
+      12,
+      2403,
+      17.136
+     ]
+    ],
+    "tabBars": [
+     11,
+     12
+    ]
+   }
+  ],
+  "dna": {
+   "overview": "Black Dog is two organisms. The first is a phrase in A: an opening figure (E, G–G#–A, E, bent C), an answer with a triplet run on the G string, and a slide down the A string that lands on the open A. The second is John Paul Jones' 4½-beat cell: seven notes over nine eighths, played three times in 4/4, so every pass starts half a beat later. On the fourth pass the cell breaks off and drops back into the opening figure.",
+   "law": "The cell is nine eighths long in a bar of eight, so each repeat slides half a beat against the drums. The ear hears the same notes but loses the downbeat; the opening figure and the landing on the open A give the downbeat back.",
+   "atoms": [
+    {
+     "technique": "qbend",
+     "type": "Quarter-tone bend",
+     "label": "fret 5, G string",
+     "tip": "Push the C on the 5th fret just a little: it should sound sour, not reach C#.",
+     "view": "left",
+     "speed": 0.5,
+     "segmentIndex": 0,
+     "time": 1.05,
+     "source": "tab"
+    },
+    {
+     "technique": "legato",
+     "type": "Legato run",
+     "label": "frets 5–7–5, G string",
+     "tip": "One pick stroke for the triplet: pick the 5th, hammer the 7th, pull off back to the 5th.",
+     "view": "left",
+     "speed": 0.5,
+     "segmentIndex": 1,
+     "time": 2.16,
+     "source": "tab"
+    },
+    {
+     "technique": "qbend",
+     "type": "Quarter-tone bend",
+     "label": "fret 5, G string",
+     "tip": "Same sour C as in part 1, then fall to the A on the D string.",
+     "view": "left",
+     "speed": 0.5,
+     "segmentIndex": 1,
+     "time": 2.9,
+     "source": "tab"
+    },
+    {
+     "technique": "slide",
+     "type": "Slide",
+     "label": "frets 7–5, A string",
+     "tip": "Two quick sixteenths: pick the 7th and slide down to the 5th without picking again.",
+     "view": "left",
+     "speed": 0.5,
+     "segmentIndex": 2,
+     "time": 4.37,
+     "source": "tab"
+    },
+    {
+     "technique": "double",
+     "type": "Double stop",
+     "label": "frets 2 and 0, D, A strings",
+     "tip": "The open A with the E on the 2nd fret of the D string. Let it ring: this is home.",
+     "view": "left",
+     "speed": 0.5,
+     "segmentIndex": 2,
+     "time": 4.93,
+     "source": "tab"
+    },
+    {
+     "technique": "skip",
+     "type": "String skipping",
+     "label": "E string to D string",
+     "tip": "From the B on the low E jump over the A string to the bent G on the D string.",
+     "view": "split",
+     "speed": 0.5,
+     "segmentIndex": 3,
+     "time": 6.96,
+     "source": "tab"
+    },
+    {
+     "technique": "qbend",
+     "type": "Quarter-tone bend",
+     "label": "fret 5, D string",
+     "tip": "The bent G is the last note of the cell. A quarter tone up, no more.",
+     "view": "left",
+     "speed": 0.5,
+     "segmentIndex": 3,
+     "time": 6.98,
+     "source": "tab"
+    },
+    {
+     "technique": "qbend",
+     "type": "Quarter-tone bend",
+     "label": "fret 5, D string",
+     "tip": "Same cell, half a beat later. Keep counting 4/4 out loud while the bend moves.",
+     "view": "left",
+     "speed": 0.5,
+     "segmentIndex": 4,
+     "time": 8.62,
+     "source": "tab"
+    },
+    {
+     "technique": "qbend",
+     "type": "Quarter-tone bend",
+     "label": "fret 5, D string",
+     "tip": "Third pass: the bend now falls on another eighth. Tap your foot, not the riff.",
+     "view": "left",
+     "speed": 0.5,
+     "segmentIndex": 5,
+     "time": 10.32,
+     "source": "tab"
+    },
+    {
+     "technique": "qbend",
+     "type": "Quarter-tone bend",
+     "label": "fret 5, G string",
+     "tip": "The opening figure is back: the same sour C as in part 1.",
+     "view": "left",
+     "speed": 0.5,
+     "segmentIndex": 7,
+     "time": 12.9,
+     "source": "tab"
+    },
+    {
+     "technique": "legato",
+     "type": "Legato run",
+     "label": "frets 5–7–5, G string",
+     "tip": "Same triplet as in part 2: one pick stroke, hammer, pull off.",
+     "view": "left",
+     "speed": 0.5,
+     "segmentIndex": 8,
+     "time": 14.0,
+     "source": "tab"
+    },
+    {
+     "technique": "qbend",
+     "type": "Quarter-tone bend",
+     "label": "fret 5, G string",
+     "tip": "The last bent C before the landing.",
+     "view": "left",
+     "speed": 0.5,
+     "segmentIndex": 8,
+     "time": 14.73,
+     "source": "tab"
+    },
+    {
+     "technique": "slide",
+     "type": "Slide",
+     "label": "frets 7–5, A string",
+     "tip": "Same slide as in part 3: 7th down to the 5th, one pick stroke.",
+     "view": "left",
+     "speed": 0.5,
+     "segmentIndex": 9,
+     "time": 16.21,
+     "source": "tab"
+    },
+    {
+     "technique": "double",
+     "type": "Double stop",
+     "label": "frets 2 and 0, D, A strings",
+     "tip": "Land on the open A double stop and let it ring to the end.",
+     "view": "left",
+     "speed": 0.5,
+     "segmentIndex": 9,
+     "time": 16.76,
+     "source": "tab"
+    }
+   ],
+   "mutation": {
+    "title": "Build a Black Dog relative — without copying the riff",
+    "description": "Keep the displacement, not the notes: an odd-length cell repeated in 4/4 until it breaks.",
+    "steps": [
+     "Write a cell of seven notes that lasts nine eighths.",
+     "Play it three times in a row over a steady 4/4 count and hear it slip half a beat each pass.",
+     "On the fourth pass stop the cell early and drop into a short figure that lands on your home note.",
+     "Give the cell one sour quarter-tone bend and keep it in every pass."
+    ]
+   },
+   "rule": "Opening figure + triplet answer + landing on A; a 4½-beat cell three times, broken off into the figure again",
+   "failure": "Square the cell into 4/4 (add or drop an eighth) and the displacement disappears; bend the C or the G a full step and the riff loses its sour blues edge.",
+   "preserve": [
+    "The 4½-beat cell played three times in 4/4",
+    "The cell breaking off after three passes",
+    "The quarter-tone bends on C and G",
+    "The landing on the open A double stop"
+   ],
+   "change": [
+    "How many times the cell repeats before the break",
+    "Which note the cell breaks off on",
+    "The run in the answer (triplet or straight eighths)",
+    "How long the open A rings"
+   ],
+   "authorNotes": ""
+  },
+  "tab": {
+   "tex": "\\title \"Black Dog\"\n\\artist \"Led Zeppelin\"\n\\tempo 164\n.\n\\ts 5 8 7.5.8 5.4.8 6.4.8 7.4.8 7.5.8 |\n\\ts 4 4 5.3{b (0 1)}.4 7.4.4 7.3.8 9.3.8 5.3{h}.8{tu 3} 7.3{h}.8{tu 3} 5.3.8{tu 3} |\n7.4.8 7.4.8 5.3{b (0 1)}.4 7.4.4 5.4.8 7.4.8 |\n7.4.8 5.5.8 7.5{sl}.16 5.5.16 3.5.8 5.5.8 (2.4 0.5).4{d} |\nr.4 r.8 7.6.8 5.5.8 6.5.8 7.5.8 7.6.8 |\n5.4{b (0 1)}.4 7.5.4 7.6.8 5.5.8 6.5.8 7.5.8 |\n7.6.8 5.4{b (0 1)}.4 7.5.4 7.6.8 5.5.8 6.5.8 |\n7.5.8 7.6.8 5.4{b (0 1)}.4 7.5.4 7.6.8 5.5.8 |\n6.5.8 7.5.8 5.5.8 7.5.8 5.4.8 6.4.8 7.4.8 7.5.8 |\n5.3{b (0 1)}.4 7.4.4 7.3.8 9.3.8 5.3{h}.8{tu 3} 7.3{h}.8{tu 3} 5.3.8{tu 3} |\n7.4.8 7.4.8 5.3{b (0 1)}.4 7.4.4 5.4.8 7.4.8 |\n7.4.8 5.5.8 7.5{sl}.16 5.5.16 3.5.8 5.5.8 (2.4 0.5).4{d} |\n"
+  }
+ }
+}
