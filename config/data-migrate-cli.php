@@ -31,7 +31,34 @@ function migrate_riffs($root, $name, callable $change) {
     return 'changed: ' . ($lines ? implode(', ', $lines) : 'none');
 }
 
+
+/** "5–7–5 лад, струна G", "лады 2 и 0, струны D, A, 3 ноты" → "frets 5–7–5, G string", "frets 2 and 0, D, A strings, 3 notes". Other text is kept. */
+function atom_label_en($label) {
+    if (!preg_match('/^(?:(?:лады (\d+) и (\d+)|([\d–]+) лад), )?(струна|струны) ((?:[A-Ga-g]#?, )*[A-Ga-g]#?)((?:, [^,]+)*)$/u', $label, $m)) return $label;
+    $words = ['на четверть тона' => 'quarter tone', 'на полтона' => 'half step', 'на три четверти тона' => 'three-quarter tone', 'на тон' => 'whole step', 'на полтора тона' => 'one and a half steps', 'на два тона' => 'two steps'];
+    $parts = [];
+    if (($m[1] ?? '') !== '') $parts[] = 'frets ' . $m[1] . ' and ' . $m[2];
+    elseif (($m[3] ?? '') !== '') $parts[] = (strpos($m[3], '–') !== false ? 'frets ' : 'fret ') . $m[3];
+    $parts[] = $m[5] . (strpos($m[5], ',') !== false ? ' strings' : ' string');
+    if (($m[6] ?? '') !== '') foreach (explode(', ', substr($m[6], 2)) as $x) {
+        if (preg_match('/^(\d+) (нота|ноты|нот)$/u', $x, $n)) $parts[] = $n[1] . ((int)$n[1] === 1 ? ' note' : ' notes');
+        else $parts[] = $words[$x] ?? $x;
+    }
+    return implode(', ', $parts);
+}
+
 $migrations = [
+    // 05.11.2026, Mike: technique details from the tab were Russian on the English site. They are English now
+    // (js/tab-atoms.js) and the interface translates them; this rewrites the ones already saved.
+    '2026-11-05-atom-labels-en' => function ($root) {
+        return migrate_riffs($root, '2026-11-05-atom-labels-en', function ($riff) {
+            if (!isset($riff['dna']['atoms']) || !is_array($riff['dna']['atoms'])) return $riff;
+            foreach ($riff['dna']['atoms'] as $i => $atom) {
+                if (is_array($atom) && isset($atom['label']) && is_string($atom['label'])) $riff['dna']['atoms'][$i]['label'] = atom_label_en($atom['label']);
+            }
+            return $riff;
+        });
+    },
     // 02.11.2026: a light copy of each left camera for the admin editor (config/video-edit.php), with the part videos.
     '2026-11-02-editor-videos' => function ($root) {
         require_once $root . '/config/video-parts.php';

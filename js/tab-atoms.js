@@ -10,7 +10,8 @@
     // Techniques that runs of notes share are one atom per run, not one per note.
     var RUNS = { palm: 1, tremolo: 1, ghost: 1, accent: 1, double: 1, vibrato: 1 };
     var RIGHT_HAND = { palm: 1, tremolo: 1, accent: 1, ghost: 1 };
-    var STEP_WORDS = { 1: 'на четверть тона', 2: 'на полтона', 3: 'на три четверти тона', 4: 'на тон', 6: 'на полтора тона', 8: 'на два тона' };
+    // Labels are English like the rest of the interface; js/i18n/ru.js and es.js translate them (tools/i18n/build.py).
+    var STEP_WORDS = { 1: 'quarter tone', 2: 'half step', 3: 'three-quarter tone', 4: 'whole step', 6: 'one and a half steps', 8: 'two steps' };
 
     /** Names of the strings, 1 = lowest. The highest string gets a small letter when it repeats the lowest (E … e). */
     function stringNames(tunings) {
@@ -18,11 +19,11 @@
         return low.map(function (n, i) { return i > 0 && low.indexOf(n) < i ? n.toLowerCase() : n; });
     }
 
-    function frets(list) { return list.join('–') + ' лад'; }
+    function frets(list) { return (list.length > 1 ? 'frets ' : 'fret ') + list.join('–'); }
     function strings(list) {
         var seen = [];
         list.forEach(function (s) { if (s && seen.indexOf(s) < 0) seen.push(s); });
-        return (seen.length > 1 ? 'струны ' : 'струна ') + seen.join(', ');
+        return seen.join(', ') + (seen.length > 1 ? ' strings' : ' string');
     }
 
     function bendWords(points) {
@@ -57,7 +58,7 @@
             beats.forEach(function (beat) {
                 var notes = beat.notes.filter(function (n) { return !n.isDead; }), seen = {};
                 var mark = function (technique, label) { seen[technique] = 1; add(bi, beat.playbackStart, technique, label, RUNS[technique]); };
-                if (notes.length === 2) mark('double', 'лады ' + notes[0].fret + ' и ' + notes[1].fret + ', ' + strings([str(notes[0]), str(notes[1])]));
+                if (notes.length === 2) mark('double', 'frets ' + notes[0].fret + ' and ' + notes[1].fret + ', ' + strings([str(notes[0]), str(notes[1])]));
                 notes.forEach(function (n) {
                     var where = frets([n.fret]) + ', ' + strings([str(n)]);
                     if (n.bendPoints && n.bendPoints.length > 1) {
@@ -97,8 +98,7 @@
     }
 
     function notesWord(n) {
-        var m10 = n % 10, m100 = n % 100;
-        return m10 === 1 && m100 !== 11 ? 'нота' : m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14) ? 'ноты' : 'нот';
+        return n === 1 ? 'note' : 'notes';
     }
 
     /**

@@ -12,6 +12,17 @@ keys = [t[0] for t in T]
 dups = {k for k in keys if keys.count(k) > 1}
 assert not dups, dups
 RU_PATTERNS = r"""
+        // Technique details from the tab (js/tab-atoms.js): "fret 5, D string", "frets 2 and 0, D, A strings, 3 notes".
+        [/^(?:frets? ([\d–]+)(?: and (\d+))?, )?((?:[A-Ga-g]#?, )*[A-Ga-g]#?) strings?((?:, [^,]+)*)$/, function (m) {
+            var words = { 'quarter tone': 'на четверть тона', 'half step': 'на полтона', 'three-quarter tone': 'на три четверти тона', 'whole step': 'на тон', 'one and a half steps': 'на полтора тона', 'two steps': 'на два тона' };
+            var tail = m[4] ? m[4].slice(2).split(', ').map(function (x) {
+                var n = x.match(/^(\d+) notes?$/);
+                return n ? n[1] + ' ' + plural(n[1], 'нота', 'ноты', 'нот') : (words[x] || x);
+            }) : [];
+            var fr = m[1] ? (m[2] ? 'лады ' + m[1] + ' и ' + m[2] : m[1] + ' лад') : '';
+            var st = (m[3].indexOf(',') >= 0 ? 'струны ' : 'струна ') + m[3];
+            return [fr, st].concat(tail).filter(Boolean).join(', ');
+        }],
         [/^(\d{4}-\d\d-\d\d) · (\d+) min$/, '$1 · $2 мин'],
         [/^(\d+) of (\d+) stars$/, function (m) { return m[1] + ' из ' + m[2] + ' ' + plural(m[2], 'звезды', 'звёзд', 'звёзд'); }],
         [/^(\d+) shots to kill$/, function (m) { return 'Ещё ' + m[1] + ' ' + plural(m[1], 'фрагмент', 'фрагмента', 'фрагментов') + ', чтобы добить'; }],
@@ -104,6 +115,18 @@ RU_PATTERNS = r"""
         [/^Left hand: (.+) · Right hand: (.+)$/, function (m, part) { return 'Левая рука: ' + part(m[1]).replace('MB', 'МБ') + ' · Правая рука: ' + part(m[2]).replace('MB', 'МБ'); }]
 """
 ES_PATTERNS = r"""
+        // Technique details from the tab (js/tab-atoms.js).
+        [/^(?:frets? ([\d–]+)(?: and (\d+))?, )?((?:[A-Ga-g]#?, )*[A-Ga-g]#?) strings?((?:, [^,]+)*)$/, function (m) {
+            var words = { 'quarter tone': 'un cuarto de tono', 'half step': 'medio tono', 'three-quarter tone': 'tres cuartos de tono', 'whole step': 'un tono', 'one and a half steps': 'un tono y medio', 'two steps': 'dos tonos' };
+            var tail = m[4] ? m[4].slice(2).split(', ').map(function (x) {
+                var n = x.match(/^(\d+) notes?$/);
+                return n ? n[1] + (n[1] === '1' ? ' nota' : ' notas') : (words[x] || x);
+            }) : [];
+            var many = m[3].indexOf(',') >= 0;
+            var fr = m[1] ? (m[2] ? 'trastes ' + m[1] + ' y ' + m[2] : (m[1].indexOf('–') >= 0 ? 'trastes ' : 'traste ') + m[1]) : '';
+            var st = (many ? 'cuerdas ' : 'cuerda ') + m[3];
+            return [fr, st].concat(tail).filter(Boolean).join(', ');
+        }],
         [/^(\d+) of (\d+) stars$/, '$1 de $2 estrellas'],
         [/^(\d+) shots to kill$/, '$1 tomas para dominarlo'],
         [/^1 more kill to (.+)$/, '1 riff más para $1'],

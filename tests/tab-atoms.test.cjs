@@ -12,26 +12,26 @@ test('string names run from the lowest string and tell the two E strings apart',
 test('techniques are read from the notes with fret and string',()=>{
     const ev=extract(score('3.3{h} 5.3 5.3{b (0 4)} 5.3{v} | 7.3{sl} 9.3 (5.3 7.2) 12.1{nh} 3.3{tp 8} | 5.3{b (0 1)} 5.3{b (4 0)} 5.3{ac} 5.3{g} 7.3{h} 5.3{h} 7.3 |'),0);
     assert.deepEqual(ev.map(e=>[e.bar,e.tick,e.technique,e.label]),[
-        [0,0,'hammer','3–5 лад, струна G'],
-        [0,1920,'bend','5 лад, струна G, на тон'],
-        [0,2880,'vibrato','5 лад, струна G'],
-        [1,0,'slide','7–9 лад, струна G'],
-        [1,1920,'double','лады 5 и 7, струны G, B'],
-        [1,2880,'harmonic','12 лад, струна e'],
-        [1,3840,'tremolo','3 лад, струна G'],
-        [2,0,'qbend','5 лад, струна G'],
-        [2,960,'release','5 лад, струна G, на тон'],
-        [2,1920,'accent','5 лад, струна G'],
-        [2,2880,'ghost','5 лад, струна G'],
-        [2,3840,'legato','7–5–7 лад, струна G']
+        [0,0,'hammer','frets 3–5, G string'],
+        [0,1920,'bend','fret 5, G string, whole step'],
+        [0,2880,'vibrato','fret 5, G string'],
+        [1,0,'slide','frets 7–9, G string'],
+        [1,1920,'double','frets 5 and 7, G, B strings'],
+        [1,2880,'harmonic','fret 12, e string'],
+        [1,3840,'tremolo','fret 3, G string'],
+        [2,0,'qbend','fret 5, G string'],
+        [2,960,'release','fret 5, G string, whole step'],
+        [2,1920,'accent','fret 5, G string'],
+        [2,2880,'ghost','fret 5, G string'],
+        [2,3840,'legato','frets 7–5–7, G string']
     ]);
 });
 test('a run of palm-muted notes is one atom, a pull-off goes down',()=>{
     const ev=extract(score('5.6{pm} 5.6{pm} 5.6{pm} 7.3 | 5.6{pm} 7.3{h} 5.3 r |'),0);
     assert.deepEqual(ev.map(e=>[e.bar,e.technique,e.label]),[
-        [0,'palm','струна E, 3 ноты'],
-        [1,'palm','струна E'],
-        [1,'pull','7–5 лад, струна G']
+        [0,'palm','E string, 3 notes'],
+        [1,'palm','E string'],
+        [1,'pull','frets 7–5, G string']
     ]);
 });
 test('a technique lands in the first part that plays its bar, stretched over the part',()=>{

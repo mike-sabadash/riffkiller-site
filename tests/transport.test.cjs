@@ -302,6 +302,12 @@ test('phone: a looped part plays from its own video with the sound inside; it lo
     t.seek(5.9); assert.ok(Math.abs(clip.currentTime-0.9)<1e-9,'a seek inside the part moves the part video'); assert.equal(loops.length,1);
     t.seek(8); assert.equal(t.clip,null); assert.ok(clip.paused); assert.equal(left.currentTime,8); assert.ok(!left.paused); assert.equal(left.muted,false);
 });
+test('phone: a part picked by a tap starts its video from the first note, not from where the cameras got to', async () => {
+    const {left,t}=setup({solo:true,view:'left'});
+    await t.play(); left.currentTime=5.27;
+    const clip=new Video(); clip.duration=1.3; clip.currentTime=0.9; t.setClip(clip,5,6.3,true);
+    assert.equal(clip.currentTime,0,'starts at the part start'); assert.ok(Math.abs(t.time-5)<1e-9);
+});
 test('phone: a view change keeps the part video until the view gets its own; a refused start falls back to the cameras', async () => {
     const refused=[]; const {left,right,t}=setup({solo:true,view:'left',onClipRefused:()=>refused.push(1)});
     await t.play(); left.currentTime=5.2;
