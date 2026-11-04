@@ -48,6 +48,33 @@ function atom_label_en($label) {
 }
 
 $migrations = [
+    // 05.11.2026, Mike approved: every riff gets scores on the difficulty scale (js/riff-difficulty.js,
+    // docs/RIFF_DIFFICULTY.md) and the level they give. Only `difficulty` and `difficultyScore` change.
+    '2026-11-05-difficulty-scale' => function ($root) {
+        require_once $root . '/config/riff-difficulty.php';
+        // id => [tempo, leftHand, rightHand, rhythm, fretboard, stamina]
+        $scores = [
+            14 => [0, 0, 0, 1, 1, 0], // Seven Nation Army
+            10 => [0, 1, 0, 1, 1, 0], // Iron Man
+            2 => [1, 1, 0, 1, 0, 0],  // Satisfaction
+            11 => [1, 1, 1, 1, 1, 0], // Highway to Hell
+            6 => [1, 2, 1, 1, 0, 0],  // Whole Lotta Love
+            7 => [1, 1, 1, 2, 1, 1],  // Smells Like Teen Spirit
+            8 => [1, 1, 2, 1, 1, 1],  // Hells Bells
+            13 => [1, 2, 1, 1, 2, 1], // Purple Haze
+            9 => [3, 1, 1, 1, 1, 2],  // Paranoid
+            1 => [2, 2, 1, 3, 1, 1],  // Black Dog
+            12 => [2, 2, 3, 1, 2, 2], // Sweet Child O' Mine
+        ];
+        return migrate_riffs($root, '2026-11-05-difficulty-scale', function ($riff) use ($scores) {
+            $id = (int)($riff['id'] ?? 0);
+            if (!isset($scores[$id])) return $riff;
+            $score = array_combine(RIFF_DIFFICULTY_CRITERIA, $scores[$id]);
+            $riff['difficultyScore'] = $score;
+            $riff['difficulty'] = riff_difficulty_level_for_total(array_sum($score));
+            return $riff;
+        });
+    },
     // 05.11.2026, Mike: technique details from the tab were Russian on the English site. They are English now
     // (js/tab-atoms.js) and the interface translates them; this rewrites the ones already saved.
     '2026-11-05-atom-labels-en' => function ($root) {

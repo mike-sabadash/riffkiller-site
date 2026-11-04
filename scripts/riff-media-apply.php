@@ -4,7 +4,7 @@
  * (used when Claude builds a whole riff from Mike's video, e.g. Paranoid on 31.10.2026).
  *   php riff-media-apply.php <document root> <request.json> <dir with the video files> <backup dir>
  * request: { id, song, videos: { "assets/video/<artist>/<song>/<file>.mp4": "<file name in the dir>" },
- *            riff: { videoFile?, videoFileRight?, duration?, segments?, dna?, tab? } }
+ *            riff: { videoFile?, videoFileRight?, duration?, segments?, dna?, tab?, difficulty?, difficultyScore? } }
  * Only those riff fields change; `song` must match the riff (guards against a wrong id). data/riffs.json and any
  * video it replaces are backed up first. Same lock and atomic replace as api/riffs/save.php.
  */
@@ -16,7 +16,7 @@ $root = rtrim($root, '/');
 require_once $root . '/config/riff-validation.php';
 $req = json_decode((string)file_get_contents($requestFile), true);
 if (!is_array($req) || empty($req['id']) || empty($req['song']) || !is_array($req['riff'] ?? null)) fail('bad request');
-$allowed = ['videoFile', 'videoFileRight', 'duration', 'segments', 'dna', 'tab'];
+$allowed = ['videoFile', 'videoFileRight', 'duration', 'segments', 'dna', 'tab', 'difficulty', 'difficultyScore'];
 foreach (array_keys($req['riff']) as $k) if (!in_array($k, $allowed, true)) fail("field not allowed: $k");
 
 $stamp = gmdate('Ymd\THis\Z');

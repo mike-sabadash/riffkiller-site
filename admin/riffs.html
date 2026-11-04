@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="../css/reset.css">
     <link rel="stylesheet" href="../css/variables.css?v=flat1">
     <!-- Не подключаем base.css и components.css — там стили заглушки; админка риффов самодостаточна -->
-    <link rel="stylesheet" href="../css/admin-editor.css?v=edflow1">
+    <link rel="stylesheet" href="../css/admin-editor.css?v=diff1">
     <link rel="icon" type="image/svg+xml" href="../assets/icons/favicon.svg">
     <style>
         html, body { background: #111629 !important; background-image: none !important; color: #fff; font-family: Roboto, sans-serif; min-height: 100vh; min-height: 100dvh; padding: 24px; margin: 0; padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px) + 52px); }
@@ -170,7 +170,7 @@
                 <div class="ed-grid">
                     <label class="ed-field span-2"><span>Песня</span><input type="text" id="song" required placeholder="Black Dog"></label>
                     <label class="ed-field span-2"><span>Исполнитель</span><input type="text" id="artist" required placeholder="Led Zeppelin"></label>
-                    <label class="ed-field"><span>Сложность</span><select id="difficulty"><option value="beginner">beginner</option><option value="intermediate" selected>intermediate</option><option value="advanced">advanced</option></select></label>
+                    <label class="ed-field"><span>Сложность</span><select id="difficulty"><option value="beginner">Beginner</option><option value="beginner-plus">Beginner+</option><option value="intermediate" selected>Intermediate</option><option value="intermediate-plus">Intermediate+</option><option value="advanced">Advanced</option></select></label><div class="ed-field span-4 ed-diff"><span>Оценка сложности (0–3 за пункт, шкала — docs/RIFF_DIFFICULTY.md)</span><div class="ed-diff-grid"><label class="ed-field ed-score" title="Нот в секунду в темпе: до 2.5 → 0, 2.5–4 → 1, 4–5.5 → 2, больше 5.5 → 3"><span>Темп</span><select class="diff-score" data-criterion="tempo"><option value="">—</option><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option></select></label><label class="ed-field ed-score" title="Бенды (в точную высоту), легато, слайды, вибрато, растяжки"><span>Левая рука</span><select class="diff-score" data-criterion="leftHand"><option value="">—</option><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option></select></label><label class="ed-field ed-score" title="Глушение, перескоки через струны, переменный штрих, приглушённые удары"><span>Правая рука</span><select class="diff-score" data-criterion="rightHand"><option value="">—</option><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option></select></label><label class="ed-field ed-score" title="Синкопы, триоли, 5/8 и другие размеры, сдвиг фразы относительно доли"><span>Ритм</span><select class="diff-score" data-criterion="rhythm"><option value="">—</option><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option></select></label><label class="ed-field ed-score" title="Смены позиций, формы аккордов, октавы"><span>Гриф</span><select class="diff-score" data-criterion="fretboard"><option value="">—</option><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option></select></label><label class="ed-field ed-score" title="Длинные быстрые куски без отдыха (даунстроки)"><span>Выносливость</span><select class="diff-score" data-criterion="stamina"><option value="">—</option><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option></select></label></div><small id="diffTotal">Заполни все шесть пунктов — уровень посчитается сам.</small></div>
                     <label class="ed-field"><span>Жанр</span><select id="genre"><option value="rock" selected>rock</option><option value="metal">metal</option><option value="blues">blues</option><option value="country">country</option><option value="punk">punk</option><option value="funk">funk</option><option value="jazz">jazz</option><option value="pop">pop</option><option value="other">other</option></select></label>
                     <div class="ed-checks">
                         <label class="ed-check"><input type="checkbox" id="isFree" name="isFree"> Бесплатный, без подписки</label>
@@ -438,6 +438,7 @@
     <script src="../js/admin-dna-ai.js?v=ai3"></script>
     <script src="../js/tab-live.js?v=8"></script>
     <script src="../js/tab-sync.js?v=3"></script>
+    <script src="../js/riff-difficulty.js?v=1"></script>
     <script src="../js/tab-atoms.js?v=4"></script>
     <script src="../js/admin-tabs.js?v=5"></script>
     <script src="../js/tab-listing.js?v=1"></script>
@@ -457,7 +458,33 @@
     var videoSource = null;
     var isDirty = false;
     var collectionsFormCache = [];
-    var DIFF_ORDER = { beginner: 0, intermediate: 1, advanced: 2 };
+
+    // Difficulty: six scores (js/riff-difficulty.js). With all six set the level is calculated and the select is locked.
+    function getDifficultyScore() {
+        var score = {}, all = true;
+        document.querySelectorAll('.diff-score').forEach(function (sel) { if (sel.value === '') all = false; else score[sel.dataset.criterion] = parseInt(sel.value, 10); });
+        return all ? score : null;
+    }
+    function updateDifficultyFromScore() {
+        var score = getDifficultyScore(), sel = document.getElementById('difficulty'), note = document.getElementById('diffTotal');
+        if (score) {
+            var sum = RiffDifficulty.total(score), key = RiffDifficulty.levelForTotal(sum);
+            sel.value = key; sel.disabled = true;
+            note.textContent = 'Сумма ' + sum + ' из 18 → ' + RiffDifficulty.level(key).label + '.';
+        } else {
+            sel.disabled = false;
+            note.textContent = 'Заполни все шесть пунктов — уровень посчитается сам.';
+        }
+    }
+    function setDifficultyScore(score) {
+        document.querySelectorAll('.diff-score').forEach(function (sel) {
+            var v = score && score[sel.dataset.criterion];
+            sel.value = (typeof v === 'number') ? String(v) : '';
+        });
+        updateDifficultyFromScore();
+    }
+    document.addEventListener('change', function (e) { if (e.target && e.target.classList && e.target.classList.contains('diff-score')) updateDifficultyFromScore(); });
+    var DIFF_ORDER = { beginner: 0, 'beginner-plus': 1, intermediate: 2, 'intermediate-plus': 3, advanced: 4 };
     function getSortedRiffs() {
         var sortBy = (document.getElementById('sortBy') && document.getElementById('sortBy').value) || 'order';
         var sortDir = (document.getElementById('sortDir') && document.getElementById('sortDir').value) || 'asc';
@@ -469,7 +496,7 @@
         } else if (sortBy === 'genre') {
             list.sort(function(a,b){ return mult * ((a.genre||'').localeCompare(b.genre||'')); });
         } else if (sortBy === 'difficulty') {
-            list.sort(function(a,b){ return mult * ((DIFF_ORDER[a.difficulty]!==undefined ? DIFF_ORDER[a.difficulty] : 1) - (DIFF_ORDER[b.difficulty]!==undefined ? DIFF_ORDER[b.difficulty] : 1)); });
+            list.sort(function(a,b){ return mult * (RiffDifficulty.order(RiffDifficulty.keyOf(a)) - RiffDifficulty.order(RiffDifficulty.keyOf(b))); });
         } else if (sortBy === 'added') {
             if (sortDir === 'desc') list.reverse();
         }
@@ -914,7 +941,8 @@
         document.getElementById('song').value = riff.song || '';
         document.getElementById('artist').value = riff.artist || '';
         document.getElementById('duration').value = riff.duration ? riff.duration : '';
-        document.getElementById('difficulty').value = riff.difficulty || 'intermediate';
+        document.getElementById('difficulty').value = RiffDifficulty.keyOf(riff);
+        setDifficultyScore(riff.difficultyScore);
         var g = (riff.genre || 'rock').trim();
         var ge = document.getElementById('genre');
         if (g && !Array.prototype.some.call(ge.options, function (o) { return o.value === g; })) { var o = document.createElement('option'); o.value = g; o.textContent = g; ge.appendChild(o); }
@@ -1198,7 +1226,7 @@
             videoUpload('lessonVideoUpload') || Promise.resolve(vLesson),
             TabEditor.collect(uploadImage, basePath.replace(/^assets\/video\//, 'assets/tabs/'))
         ]).then(function(r){
-            var riff = Object.assign({}, editingRiff || {}, { song:song, artist:artist, duration: SegmentEditor.duration() || parseFloat(document.getElementById('duration').value)||0, difficulty: document.getElementById('difficulty').value||'intermediate', genre: document.getElementById('genre').value.trim()||'rock', isFree: document.getElementById('isFree').checked, lock: document.getElementById('lock').value, dropKey: document.getElementById('dropKey').value.trim().toLowerCase(), hidden: document.getElementById('hidden').checked, dnaReference: document.getElementById('dnaReference').checked, videoFile: r[0]||'', videoFileRight: r[1]||'', thumbnail: r[2]||'assets/img/riff-1.png', lessonVideo: r[3]||vLesson||null, segments: segs, dna: dna, collectionIds: getSelectedCollectionIds() });
+            var riff = Object.assign({}, editingRiff || {}, { song:song, artist:artist, duration: SegmentEditor.duration() || parseFloat(document.getElementById('duration').value)||0, difficulty: document.getElementById('difficulty').value||'intermediate', difficultyScore: getDifficultyScore(), genre: document.getElementById('genre').value.trim()||'rock', isFree: document.getElementById('isFree').checked, lock: document.getElementById('lock').value, dropKey: document.getElementById('dropKey').value.trim().toLowerCase(), hidden: document.getElementById('hidden').checked, dnaReference: document.getElementById('dnaReference').checked, videoFile: r[0]||'', videoFileRight: r[1]||'', thumbnail: r[2]||'assets/img/riff-1.png', lessonVideo: r[3]||vLesson||null, segments: segs, dna: dna, collectionIds: getSelectedCollectionIds() });
             if (r[4]) riff.tab = r[4]; else delete riff.tab;
             if (videoSource) riff.videoSource = videoSource;
             if(editId) riff.id = parseInt(editId,10);

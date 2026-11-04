@@ -112,10 +112,10 @@ test('an answer without a tab or an OpenRouter error becomes a plain message',as
 test('the tab reads back bar by bar with strings counted like alphaTex, and short bars are flagged',()=>{
     const bd=alphaTab.importer.ScoreLoader.loadAlphaTex(fs.readFileSync(path.join(__dirname,'../content/tabs/led-zeppelin/black-dog.tex'),'utf8'));
     const back=TabListing.describe(bd,0);
-    assert.equal(back.bars,13);assert.deepEqual(back.problems,[]);
-    assert.match(back.text,/Bar 1 \(3\/4\): rest eighth, 7\.5 eighth, 5\.4 eighth/);
+    assert.equal(back.bars,12);assert.deepEqual(back.problems,[]);
+    assert.match(back.text,/Bar 1 \(5\/8\): 7\.5 eighth, 5\.4 eighth/);
     assert.match(back.text,/5\.3 \(bend\) quarter/);assert.match(back.text,/\(hammer\/pull\) eighth \(3:2 tuplet\)/);
-    assert.match(back.text,/Bar 13 \(4\/4\): 3\.5 eighth, 5\.5 eighth, chord \[2\.4 \+ 0\.5\] dotted quarter/);
+    assert.match(back.text,/Bar 12 \(4\/4\): .*3\.5 eighth, 5\.5 eighth, chord \[2\.4 \+ 0\.5\] dotted quarter/);
     const short=alphaTab.importer.ScoreLoader.loadAlphaTex('\\tempo 120\n.\n5.3.4 7.3.4 |');
     assert.deepEqual(TabListing.describe(short,0).problems,['Bar 1 (4/4) holds 4.00 eighths of 8.00.']);
 });

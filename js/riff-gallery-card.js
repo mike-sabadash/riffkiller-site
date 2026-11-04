@@ -14,7 +14,7 @@
             .replace(/'/g, '&#39;');
     }
 
-    var DIFF_LABELS = { beginner: 'Beginner', intermediate: 'Intermediate', advanced: 'Advanced' };
+    var DIFF_LABELS = { beginner: 'Beginner', 'beginner-plus': 'Beginner+', intermediate: 'Intermediate', 'intermediate-plus': 'Intermediate+', advanced: 'Advanced' };
 
     var FAVORITE_SVG =
         '<svg class="favorite-icon" viewBox="0 0 16 16" fill="none"><path d="M8 2L9.79611 5.52786L13.6574 6.21885L10.8287 9.16714L11.4721 13L8 11.1279L4.52786 13L5.17127 9.16714L2.3426 6.21885L6.20389 5.52786L8 2Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/></svg>';
@@ -154,9 +154,10 @@
         card.className = 'riff-card' + (riff.isFree ? ' riff-card-free' : '');
         card.dataset.id = String(riff.id);
 
-        var diffKey = ['beginner', 'intermediate', 'advanced'].indexOf(riff.difficulty) >= 0 ? riff.difficulty : 'intermediate';
+        // Level from js/riff-difficulty.js (five levels, from the riff's scores when it has them).
+        var diffKey = global.RiffDifficulty ? global.RiffDifficulty.keyOf(riff) : (DIFF_LABELS[riff.difficulty] ? riff.difficulty : 'intermediate');
         // Сложность — текстом под названием, на обложке остаётся только метка доступа
-        var levelHtml = '<span class="riff-level riff-level--' + diffKey + '"> · ' + DIFF_LABELS[diffKey] + '</span>';
+        var levelHtml = '<span class="riff-level riff-level--' + diffKey + '"> · <span class="riff-level-name">' + DIFF_LABELS[diffKey] + '</span></span>';
         var freeTag = riff.isFree ? '<div class="riff-free-tag">Free</div>' : '';
         // hooks.locked: платный рифф для гостя/без подписки — замок заранее, а не сюрприз-редирект на оплату
         var lockTag = hooks.locked

@@ -507,7 +507,7 @@ function getFilteredRiffs() {
     const genre = document.getElementById('genreFilter')?.value || 'all';
     
     return appState.riffsDatabase.filter(riff => {
-        if (difficulty !== 'all' && riff.difficulty !== difficulty) return false;
+        if (difficulty !== 'all' && (window.RiffDifficulty ? window.RiffDifficulty.keyOf(riff) : riff.difficulty) !== difficulty) return false;
         if (genre !== 'all' && riff.genre !== genre) return false;
         return true;
     });
