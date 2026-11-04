@@ -893,6 +893,17 @@
             "Free riffs, your progress on every device and premium in one account.": "Бесплатные риффы, прогресс на всех устройствах и premium — в одном аккаунте."
         },
         patterns: [
+        // Technique details from the tab (js/tab-atoms.js): "fret 5, D string", "frets 2 and 0, D, A strings, 3 notes".
+        [/^(?:frets? ([\d–]+)(?: and (\d+))?, )?((?:[A-Ga-g]#?, )*[A-Ga-g]#?) strings?((?:, [^,]+)*)$/, function (m) {
+            var words = { 'quarter tone': 'на четверть тона', 'half step': 'на полтона', 'three-quarter tone': 'на три четверти тона', 'whole step': 'на тон', 'one and a half steps': 'на полтора тона', 'two steps': 'на два тона' };
+            var tail = m[4] ? m[4].slice(2).split(', ').map(function (x) {
+                var n = x.match(/^(\d+) notes?$/);
+                return n ? n[1] + ' ' + plural(n[1], 'нота', 'ноты', 'нот') : (words[x] || x);
+            }) : [];
+            var fr = m[1] ? (m[2] ? 'лады ' + m[1] + ' и ' + m[2] : m[1] + ' лад') : '';
+            var st = (m[3].indexOf(',') >= 0 ? 'струны ' : 'струна ') + m[3];
+            return [fr, st].concat(tail).filter(Boolean).join(', ');
+        }],
         [/^(\d{4}-\d\d-\d\d) · (\d+) min$/, '$1 · $2 мин'],
         [/^(\d+) of (\d+) stars$/, function (m) { return m[1] + ' из ' + m[2] + ' ' + plural(m[2], 'звезды', 'звёзд', 'звёзд'); }],
         [/^(\d+) shots to kill$/, function (m) { return 'Ещё ' + m[1] + ' ' + plural(m[1], 'фрагмент', 'фрагмента', 'фрагментов') + ', чтобы добить'; }],

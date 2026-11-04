@@ -874,7 +874,7 @@ function setVideoMode(mode) {
 // pass). The silent camera + separate sound file drifted apart within a few passes on an iPhone. Each part's
 // video is downloaded once (the current view first) and kept as a local file. Until it is there, and on a
 // computer, the cameras play as before.
-const partClips = { els: {}, files: new Map(), key: '', retry: false, prefetched: '' };
+const partClips = { els: {}, files: new Map(), key: '', retry: false, prefetched: '', fromStart: -1 };
 function resetPartClips() {
     Object.keys(partClips.els).forEach(view => partClips.els[view].remove());
     partClips.files.forEach(entry => entry.then(url => { if (url) URL.revokeObjectURL(url); }, () => {}));
@@ -973,7 +973,11 @@ function syncPartClip() {
         return partClipLoaded(video, url);
     }).then(() => {
         if (partClips.key !== key || practiceTransport !== transport || !partClipWanted()) return;
-        transport.setClip(video, start, end);
+        // A part picked by a tap starts from its beginning: the cameras played on while the part video loaded,
+        // and continuing from their time started the part a little late, by a different amount each time.
+        const fromStart = partClips.fromStart === index;
+        partClips.fromStart = -1;
+        transport.setClip(video, start, end, fromStart);
         showPartClip();
         if (loopDebug) loopDebug.clip(view, index);
     }).catch(() => {
@@ -1248,6 +1252,7 @@ function jumpToSegment(index) {
         setPlaybackSpeedUI(SPEED_TRAINER_SPEEDS[0]);
     }
     window._jumpToSegmentInProgress = true;
+    partClips.fromStart = index;
     practiceTransport.seek(getSegmentStartRaw(currentRiff.segments[index]));
     window._jumpToSegmentInProgress = false;
     updateSegmentButtons();

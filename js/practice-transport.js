@@ -152,7 +152,9 @@
         // one element, so the phone keeps them together itself; the browser loops the file (video.loop), so
         // there is no seek per pass and nothing of the next part can sound. The cameras and the part's separate
         // sound file stop. The video must have its metadata (readyState >= 1).
-        setClip(video, start, end) {
+        // fromStart: the part was just picked by a tap, so it starts from its first note. Otherwise the part video
+        // continues where the clock is (a view change, the camera reaching the part on its own).
+        setClip(video, start, end, fromStart) {
             if (!video || !(end > start)) return;
             if (this.clip && this.clip.video === video && this.clip.start === start && this.clip.end === end) return;
             const t = this.time, len = end - start;
@@ -164,7 +166,7 @@
             this.clip = { video, start, end };
             video.loop = true;
             video.playbackRate = this.rate;
-            const at = t >= start && t < end ? t - start : 0;
+            const at = !fromStart && t >= start && t < end ? t - start : 0;
             if (Math.abs((video.currentTime || 0) - at) > 0.02) video.currentTime = at;
             this.clipLast = at;
             this.anchor = null;

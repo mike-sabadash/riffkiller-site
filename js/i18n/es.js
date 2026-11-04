@@ -884,6 +884,18 @@
             "Free riffs, your progress on every device and premium in one account.": "Riffs gratis, tu progreso en todos tus dispositivos y premium en una sola cuenta."
         },
         patterns: [
+        // Technique details from the tab (js/tab-atoms.js).
+        [/^(?:frets? ([\d–]+)(?: and (\d+))?, )?((?:[A-Ga-g]#?, )*[A-Ga-g]#?) strings?((?:, [^,]+)*)$/, function (m) {
+            var words = { 'quarter tone': 'un cuarto de tono', 'half step': 'medio tono', 'three-quarter tone': 'tres cuartos de tono', 'whole step': 'un tono', 'one and a half steps': 'un tono y medio', 'two steps': 'dos tonos' };
+            var tail = m[4] ? m[4].slice(2).split(', ').map(function (x) {
+                var n = x.match(/^(\d+) notes?$/);
+                return n ? n[1] + (n[1] === '1' ? ' nota' : ' notas') : (words[x] || x);
+            }) : [];
+            var many = m[3].indexOf(',') >= 0;
+            var fr = m[1] ? (m[2] ? 'trastes ' + m[1] + ' y ' + m[2] : (m[1].indexOf('–') >= 0 ? 'trastes ' : 'traste ') + m[1]) : '';
+            var st = (many ? 'cuerdas ' : 'cuerda ') + m[3];
+            return [fr, st].concat(tail).filter(Boolean).join(', ');
+        }],
         [/^(\d+) of (\d+) stars$/, '$1 de $2 estrellas'],
         [/^(\d+) shots to kill$/, '$1 tomas para dominarlo'],
         [/^1 more kill to (.+)$/, '1 riff más para $1'],

@@ -814,7 +814,7 @@ test('DNA atoms are suggested from the tab at their moment in the part that play
     const atoms=await page.evaluate(()=>[...document.querySelectorAll('#dnaAtomsEditor > div')].map(c=>[c.querySelector('[data-field="technique"]').value,c.querySelector('[data-field="label"]').value,Number(c.querySelector('[data-field="time"]').value)]));
     const [start,end]=(await bounds(page))[0];
     assert.deepEqual(atoms.map(a=>a[0]),['bend','hammer','palm','slide'],JSON.stringify(atoms));
-    assert.equal(atoms[0][1],'5 лад, струна G, на тон');
+    assert.equal(atoms[0][1],'fret 5, G string, whole step');
     assert.equal(atoms[0][2],start,'the first beat sits at the start of the part');
     assert.ok(atoms.every(a=>a[2]>=start&&a[2]<end),JSON.stringify([start,end,atoms]));
     assert.match(await page.textContent('#dnaTabAtomsStatus'),/Добавлено приёмов: 4/);
