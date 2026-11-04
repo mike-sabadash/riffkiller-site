@@ -18,6 +18,10 @@ html,body{margin:0;padding:0;background:#000}
 #bezel:after{content:"";position:absolute;left:5px;top:5px;right:5px;bottom:5px;border-radius:61px;background:#050506}
 #screen{position:absolute;left:0;top:0;width:393px;height:852px;border-radius:50px;overflow:hidden;background:#0b0b0f}
 #screen img{position:absolute;left:0;top:0;width:393px;height:852px}
+#vid{position:absolute;left:15px;width:363px;height:204.2px;overflow:hidden;border-radius:9px;display:none}
+#vid img{position:absolute;left:0;top:0;width:363px;height:204.2px}
+.cut{position:absolute;overflow:hidden;display:none}
+.cut img{position:absolute;width:393px;height:852px}
 #island{position:absolute;left:146px;top:11px;width:101px;height:30px;border-radius:15px;background:#000;z-index:3}
 #glare{position:absolute;left:0;top:0;width:393px;height:852px;border-radius:50px;pointer-events:none;
   background:linear-gradient(115deg,rgba(255,255,255,.07) 0%,rgba(255,255,255,0) 35%);z-index:2}
@@ -42,7 +46,7 @@ html,body{margin:0;padding:0;background:#000}
 </style></head>
 <body><div id="stage">
   <div id="bg" class="abs"></div>
-  <div id="cam" class="abs"><div id="phone"><div id="bezel"></div><div id="screen"><img id="scr"><div id="glare"></div></div><div id="island"></div></div></div>
+  <div id="cam" class="abs"><div id="phone"><div id="bezel"></div><div id="screen"><img id="scr"><div id="vid"><img id="vidImg"></div><div id="strip" class="cut"><img id="stripImg"></div><div id="badge" class="cut"><img id="badgeImg"></div><div id="glare"></div></div><div id="island"></div></div></div>
   <div id="reelBox"><img id="reelImg"></div>
   <div id="full" class="abs"><img id="fullImg"></div>
   <div id="pack" class="abs"></div>

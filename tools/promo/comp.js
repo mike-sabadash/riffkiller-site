@@ -98,6 +98,16 @@ function reelSrc(t) {
   return `fr/reels/d${pad(clamp(Math.round((t + 4.06 - 13.5) * FPS), 0, 419))}.jpg`;
 }
 
+// ---------- smooth in-app video (rebuilt from the 60 fps take, not the screen capture) ----------
+// part 1 loops 0.1–3.06 s of the riff; returns null where the capture is used as is
+const loopR = x => 0.1 + (((x - 0.1) % 2.96) + 2.96) % 2.96;
+function vidState(t) {
+  if (t >= 5.725 && t < 9.96) return { top: 262.6, split: t >= 8.1, badge: false, r: loopR(0.6 + (Math.min(t, 6.55) - 5.725) + Math.max(0, t - 6.55) * 0.5) };
+  if (t >= 10.58 && t < 12.2) return { top: 72.6, split: true, badge: true, r: loopR(0.4 + (Math.min(t, 10.95) - 10.58) + Math.max(0, t - 10.95) * 0.5) };
+  if (t >= 12.2 && t < 14.75) return { top: 72.6, split: true, badge: true, r: loopR(0.9 + (t - 12.2)) };
+  return null;
+}
+
 // ---------- taps (screen css coords) ----------
 const TAPS = [[4.60, 104, 758], [6.55, 350, 523], [8.00, 143, 227], [8.95, 304, 227], [10.95, 260, 385], [12.88, 76, 556]];
 
@@ -126,7 +136,7 @@ const TITLES = [
   { in: 10.66, out: 12.12, y: 1310, size: 112, lines: [{ text: 'Speed trainer' }] , ladder: true },
   { in: 12.25, out: 12.80, y: 1390, size: 150, lines: [{ text: 'Clean?' }] },
   { in: 13.0, out: 14.05, y: 1380, size: 120, lines: [{ text: 'At full speed' }], stars: true },
-  { in: 15.22, out: 19.20, y: 1250, size: 132, lines: [{ text: 'Kill', hl: true }, { text: 'every riff.' }] },
+  { in: 15.22, out: 19.20, y: 1250, size: 132, lines: [{ text: 'Kill', hl: true, lime: true }, { text: 'every riff.' }] },
   { in: 16.73, out: 19.20, y: 1450, size: 66, lines: [{ text: 'One shot at a time.', sub: true }] },
 ];
 const titleEls = TITLES.map(T => {
@@ -137,7 +147,7 @@ const titleEls = TITLES.map(T => {
     const line = document.createElement('div'); line.className = 'line'; line.style.top = top + 'px'; line.style.height = (lh[i] + 8) + 'px';
     const sp = document.createElement('span'); sp.style.fontSize = sizes[i] + 'px'; if (L.sub) sp.classList.add('sub');
     sp.textContent = L.text;
-    let hl = null; if (L.hl) { hl = document.createElement('i'); hl.className = 'hl'; sp.appendChild(hl); }
+    let hl = null; if (L.hl) { hl = document.createElement('i'); hl.className = 'hl'; if (L.lime) { hl.style.background = '#CFFF55'; sp.style.color = '#0a0a0f'; } sp.appendChild(hl); }
     line.appendChild(sp); root.appendChild(line); els.push({ sp, hl, L, i });
     top += lh[i] + 6;
   });
@@ -195,21 +205,20 @@ function drawBg(t) {
 // ---------- packshot ----------
 const P = $('pack');
 P.innerHTML = `
- <div class="card" id="cBD" style="left:70px;top:390px"><img src="assets/bd.png"><span class="free">Free</span></div>
- <div class="card" id="cPA" style="left:610px;top:390px"><img src="assets/par.png"><span class="free">Free</span></div>
- <img id="pLogo" src="assets/logo_big.png" style="position:absolute;left:110px;top:730px;width:860px">
- <div id="pTitle" class="line" style="top:900px;height:104px"><span style="font-size:80px;white-space:nowrap">Paranoid & Black Dog</span></div>
- <div id="pFree" style="position:absolute;left:0;width:1080px;top:1030px;text-align:center"><span style="display:inline-block;background:#CFFF55;color:#0a0a0f;font-weight:900;font-size:72px;padding:18px 42px;border-radius:22px;letter-spacing:-.01em">FREE TO PRACTICE</span></div>
- <div id="pLink" style="position:absolute;left:0;width:1080px;top:1215px;text-align:center;font-weight:700;font-size:58px;color:#fff">Link in bio <span id="pArrow" style="display:inline-block">↗</span></div>`;
+ <div class="card" id="cBD" style="left:72px;top:204px;width:413px;height:266px"><img src="assets/bd.png"><span class="free">Free</span></div>
+ <div class="card" id="cPA" style="left:606px;top:203px;width:414px;height:268px"><img src="assets/par.png"><span class="free">Free</span></div>
+ <img id="pLogo" src="assets/logo_big.png" style="position:absolute;left:125px;top:692px;width:845px">
+ <div id="pTitle" class="line" style="top:866px;height:84px"><span style="font-size:58px;font-weight:700;letter-spacing:0;white-space:nowrap">Paranoid &amp; Black Dog</span></div>
+ <div id="pFree" style="position:absolute;left:184px;top:1164px;width:712px;height:132px;background:#CFFF55;border-radius:11px;display:flex;align-items:center;justify-content:center;color:#0a0a0f;font-weight:800;font-size:60px;letter-spacing:-.005em">FREE TO PRACTICE</div>
+ <div id="pLink" style="position:absolute;left:0;width:1080px;top:1362px;text-align:center;font-weight:700;font-size:58px;color:#fff">Link in bio</div>`;
 function drawPack(t) {
   const on = t >= 19.29; P.style.display = on ? 'block' : 'none'; if (!on) return;
   const card = (el, t0, dir, rot) => { const k = seg(t, t0, t0 + 0.7, E.outBack); el.style.transform = `translateX(${(1 - k) * 700 * dir}px) rotate(${rot * k}deg)`; el.style.opacity = clamp(k * 2); };
-  card($('cBD'), 19.35, -1, -6); card($('cPA'), 19.45, 1, 6);
+  card($('cBD'), 19.35, -1, -4); card($('cPA'), 19.45, 1, 4);
   const lk = seg(t, 19.29, 19.95, E.outExpo); $('pLogo').style.clipPath = `inset(0 ${100 - lk * 100}% 0 0)`; $('pLogo').style.transform = `translateY(${(1 - lk) * 30}px) scale(${1.06 - 0.06 * lk})`;
   const tk = seg(t, 19.66, 20.26, E.outExpo); $('pTitle').firstChild.style.transform = `translateY(${(1 - tk) * 140}%)`;
-  const fk = seg(t, 20.0, 20.9, E.outElastic); $('pFree').style.transform = `scale(${0.3 + 0.7 * fk})`; $('pFree').style.opacity = clamp(fk * 2);
+  const fk = seg(t, 20.0, 20.9, E.outElastic); $('pFree').style.transform = `scale(${0.6 + 0.4 * fk})`; $('pFree').style.opacity = clamp(fk * 2);
   const lnk = seg(t, 20.38, 20.9, E.outExpo); $('pLink').style.opacity = lnk; $('pLink').style.transform = `translateY(${(1 - lnk) * 40}px)`;
-  const bob = t > 20.75 ? Math.abs(Math.sin((t - 20.75) * Math.PI / 0.74)) : 0; $('pArrow').style.transform = `translate(${bob * 8}px,${-bob * 8}px)`;
   // fade to black at the very end
   P.style.opacity = 1;
 }
@@ -255,7 +264,21 @@ window.renderFrame = async function (t) {
     $('cam').style.transform = `translate(${540 + c.dx - c.cx * c.z}px, ${c.Y0 - c.cy * c.z}px) scale(${c.z})`;
     $('phone').style.transform = `perspective(1600px) rotateY(${c.ry}deg) rotateX(${c.rx}deg)`;
     $('bezel').style.opacity = morphIn; $('island').style.opacity = morphIn;
-    await setSrc(imgs.scr, screenSrc(t));
+    const ss = screenSrc(t); await setSrc(imgs.scr, ss);
+    const v = vidState(t);
+    $('vid').style.display = $('strip').style.display = $('badge').style.display = v ? 'block' : 'none';
+    if (v) {
+      $('vid').style.top = v.top + 'px';
+      await setSrc($('vidImg'), `fr/${v.split ? 'vs' : 'vl'}/${pad(clamp(Math.round(v.r * 60), 0, 191))}.jpg`);
+      // the part bar (and the trainer's speed badge) from the capture stay on top of the video
+      const bot = v.top + 204.2;
+      Object.assign($('strip').style, { left: '15px', top: (bot - 24) + 'px', width: '363px', height: '24px' });
+      Object.assign($('stripImg').style, { left: '-15px', top: -(bot - 24) + 'px' });
+      $('badge').style.display = v.badge ? 'block' : 'none';
+      Object.assign($('badge').style, { left: '15px', top: (bot - 50) + 'px', width: '62px', height: '26px' });
+      Object.assign($('badgeImg').style, { left: '-15px', top: -(bot - 50) + 'px' });
+      await setSrc($('stripImg'), ss); await setSrc($('badgeImg'), ss);
+    }
   }
   // reels morph into the screen (2.6–3.45)
   const rb = $('reelBox');
