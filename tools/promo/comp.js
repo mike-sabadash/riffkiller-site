@@ -94,8 +94,8 @@ function screenSrc(t) {
 }
 function reelSrc(t) {
   if (t < 3.2) return `fr/reels/a${pad(clamp(Math.round(t * FPS), 0, 95))}.jpg`;
-  if (t < 11) return `fr/reels/b${pad(clamp(Math.round((t - 9.8) * FPS), 0, 29))}.jpg`;
-  return `fr/reels/c${pad(clamp(Math.round((t - 13.9) * FPS), 0, 191))}.jpg`;
+  // from 5.9 s the soundtrack jumps to the reel's band section (reel time = t + 4.06): picture follows it
+  return `fr/reels/d${pad(clamp(Math.round((t + 4.06 - 13.5) * FPS), 0, 419))}.jpg`;
 }
 
 // ---------- taps (screen css coords) ----------
@@ -279,7 +279,7 @@ window.renderFrame = async function (t) {
     else { op = seg(t, 14.45, 14.62, E.lin); sc = 1.3 - 0.27 * seg(t, 14.45, 15.2, E.outExpo) + 0.05 * seg(t, 15.2, 19.29, E.lin);
       const pk = seg(t, 19.29, 19.8, E.outCubic); blur = 26 * pk; bright = 1 - 0.68 * pk; }
     imgs.full.style.transform = `scale(${sc})`; imgs.full.style.opacity = op; imgs.full.style.filter = blur ? `blur(${blur}px) brightness(${bright})` : 'none';
-    await setSrc(imgs.full, reelSrc(Math.min(t, 20.25)));
+    await setSrc(imgs.full, reelSrc(t));
   }
   // scrim: under the titles, not during the packshot
   let sOp = 0.95;
