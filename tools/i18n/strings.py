@@ -60,6 +60,8 @@ T = [
 ("Beginner", "Начальный", "Principiante"),
 ("Intermediate", "Средний", "Intermedio"),
 ("Advanced", "Продвинутый", "Avanzado"),
+("Beginner+", "Начальный+", "Principiante+"),
+("Intermediate+", "Средний+", "Intermedio+"),
 ("Genre", "Жанр", "Género"),
 ("All Genres", "Все жанры", "Todos los géneros"),
 ("Rock", "Рок", "Rock"),

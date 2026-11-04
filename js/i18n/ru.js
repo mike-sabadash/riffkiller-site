@@ -69,6 +69,8 @@
             "Beginner": "Начальный",
             "Intermediate": "Средний",
             "Advanced": "Продвинутый",
+            "Beginner+": "Начальный+",
+            "Intermediate+": "Средний+",
             "Genre": "Жанр",
             "All Genres": "Все жанры",
             "Rock": "Рок",

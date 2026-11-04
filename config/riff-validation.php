@@ -1,5 +1,7 @@
 <?php
 /** Saved seconds are used unchanged by the editor, both cameras and the tabs. */
+require_once __DIR__ . '/riff-difficulty.php';
+
 function riff_validation_error($riff) {
     if (!is_array($riff) || empty(trim((string)($riff['song'] ?? ''))) || empty(trim((string)($riff['artist'] ?? '')))) {
         return 'riff.song and riff.artist required';
@@ -24,5 +26,7 @@ function riff_validation_error($riff) {
             }
         }
     }
+    $difficulty = riff_difficulty_error($riff);
+    if ($difficulty !== null) return $difficulty;
     return null;
 }

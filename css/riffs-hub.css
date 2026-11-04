@@ -1324,3 +1324,13 @@ body.riffs-hub .riff-soon-tag,
 body.riffs-hub .riff-soon-tag--admin,
 .rk-riff-gallery .riff-soon-tag--admin { background: rgba(147, 85, 229, 0.85); }
 .riff-card-stack:has(.riff-card--soon) { cursor: default; }
+
+/* Five difficulty levels (js/riff-difficulty.js): the "+" levels sit between the colours of their neighbours. */
+body.riffs-hub .riff-difficulty--beginner-plus::before,
+.rk-riff-gallery .riff-difficulty--beginner-plus::before {
+    background: #a3e635;
+}
+body.riffs-hub .riff-difficulty--intermediate-plus::before,
+.rk-riff-gallery .riff-difficulty--intermediate-plus::before {
+    background: #f97316;
+}

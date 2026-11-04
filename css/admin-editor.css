@@ -361,3 +361,8 @@ body.ed-page .btn { font-family: inherit; }
     .ed-claude-long { display: none; }
     .ed-claude-short { display: inline; }
 }
+/* Difficulty scores: six small selects in a row (js/riff-difficulty.js). */
+.ed-diff-grid { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px 12px; }
+.ed-diff-grid .ed-score span { font-size: 12px; }
+@media (max-width: 760px) { .ed-diff-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+#difficulty:disabled { opacity: 1; cursor: not-allowed; }

@@ -60,6 +60,8 @@
             "Beginner": "Principiante",
             "Intermediate": "Intermedio",
             "Advanced": "Avanzado",
+            "Beginner+": "Principiante+",
+            "Intermediate+": "Intermedio+",
             "Genre": "Género",
             "All Genres": "Todos los géneros",
             "Rock": "Rock",
