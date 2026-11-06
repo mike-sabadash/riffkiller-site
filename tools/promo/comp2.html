@@ -1,0 +1,47 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<style>
+@font-face{font-family:I;font-weight:500;src:url(assets/inter-latin-500-normal.woff2)}
+@font-face{font-family:I;font-weight:600;src:url(assets/inter-latin-600-normal.woff2)}
+@font-face{font-family:I;font-weight:700;src:url(assets/inter-latin-700-normal.woff2)}
+@font-face{font-family:I;font-weight:800;src:url(assets/inter-latin-800-normal.woff2)}
+@font-face{font-family:I;font-weight:900;src:url(assets/inter-latin-900-normal.woff2)}
+html,body{margin:0;padding:0;background:#000}
+#stage{position:relative;width:1080px;height:1920px;overflow:hidden;background:#0a0a0a;font-family:I,sans-serif;color:#fff}
+.abs{position:absolute;left:0;top:0;width:1080px;height:1920px}
+#reel{overflow:hidden}
+#reel img{position:absolute;left:0;top:0;width:1080px;height:1920px;transform-origin:540px 900px}
+#app{overflow:hidden}
+#cam{position:absolute;left:0;top:0;width:393px;height:852px;transform-origin:0 0}
+#cam > img{position:absolute;left:0;top:0;width:393px;height:852px}
+#vid{position:absolute;left:15px;width:363px;height:204.2px;overflow:hidden;display:none}
+#vid img{position:absolute;left:0;top:0;width:363px;height:204.2px}
+.cut{position:absolute;overflow:hidden;display:none}
+.cut img{position:absolute;width:393px;height:852px}
+#topscrim{background:linear-gradient(180deg,rgba(10,10,10,1) 0%,rgba(10,10,10,1) 16%,rgba(10,10,10,0) 22.5%)}
+#botscrim{background:linear-gradient(180deg,rgba(0,0,0,0) 52%,rgba(6,6,6,.7) 68%,rgba(6,6,6,.88) 100%)}
+.line{position:absolute;left:0;width:1080px;text-align:center;overflow:hidden;line-height:1}
+.line span{display:inline-block;position:relative;font-weight:900;text-transform:uppercase;letter-spacing:-0.025em;padding:0 .1em}
+.hl{position:absolute;left:-.02em;right:-.02em;top:.02em;bottom:0;background:#FFD400;transform-origin:0 50%;z-index:-1}
+.sub{font-weight:600 !important;text-transform:none !important;letter-spacing:0 !important;color:#e6e6e6}
+.tap{position:absolute;border-radius:50%}
+#flash{background:#fff;opacity:0}
+#grain{opacity:.06;background:url(assets/noise.png);mix-blend-mode:overlay}
+.card{position:absolute;overflow:hidden;box-shadow:0 30px 60px rgba(0,0,0,.6),0 0 0 2px rgba(255,255,255,.1)}
+.card img{width:100%;height:100%;object-fit:cover}
+.free{position:absolute;left:12px;top:12px;background:#FFD400;color:#0a0a0a;font-weight:800;font-size:22px;padding:5px 12px}
+</style></head>
+<body><div id="stage">
+  <div id="reel" class="abs"><img id="reelImg"></div>
+  <div id="app" class="abs"><div id="cam"><img id="scr"><div id="vid"><img id="vidImg"></div><div id="strip" class="cut"><img id="stripImg"></div></div></div>
+  <div id="taps" class="abs"></div>
+  <div id="botscrim" class="abs"></div>
+  <div id="topscrim" class="abs"></div>
+  <div id="pack" class="abs"></div>
+  <div id="titles" class="abs"></div>
+  <div id="flash" class="abs"></div>
+  <div id="grain" class="abs"></div>
+</div>
+<script src="tl.js"></script>
+<script src="comp2.js"></script>
+</body></html>

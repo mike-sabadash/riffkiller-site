@@ -147,7 +147,7 @@ const titleEls = TITLES.map(T => {
     const line = document.createElement('div'); line.className = 'line'; line.style.top = top + 'px'; line.style.height = (lh[i] + 8) + 'px';
     const sp = document.createElement('span'); sp.style.fontSize = sizes[i] + 'px'; if (L.sub) sp.classList.add('sub');
     sp.textContent = L.text;
-    let hl = null; if (L.hl) { hl = document.createElement('i'); hl.className = 'hl'; if (L.lime) { hl.style.background = '#CFFF55'; sp.style.color = '#0a0a0f'; } sp.appendChild(hl); }
+    let hl = null; if (L.hl) { hl = document.createElement('i'); hl.className = 'hl'; sp.style.color = '#0a0a0f'; sp.appendChild(hl); }
     line.appendChild(sp); root.appendChild(line); els.push({ sp, hl, L, i });
     top += lh[i] + 6;
   });
@@ -156,11 +156,11 @@ const titleEls = TITLES.map(T => {
   if (T.ladder) {
     const row = document.createElement('div'); row.style.cssText = `position:absolute;left:0;width:1080px;top:${T.y + 85}px;display:flex;justify-content:center;gap:26px`;
     extra.chips = ['×0.5', '×0.75', '×1'].map(s => { const c = document.createElement('div'); c.textContent = s;
-      c.style.cssText = 'font-weight:900;font-size:76px;padding:14px 30px;border-radius:24px;background:rgba(255,255,255,.08);color:#8d8a99;letter-spacing:-.02em'; row.appendChild(c); return c; });
+      c.style.cssText = 'font-weight:900;font-size:76px;padding:14px 30px;border-radius:0;background:rgba(255,255,255,.08);color:#8d8a99;letter-spacing:-.02em'; row.appendChild(c); return c; });
     root.appendChild(row);
   }
   if (T.stars) {
-    const s = document.createElement('div'); s.textContent = '★★★'; s.style.cssText = `position:absolute;left:0;width:1080px;text-align:center;top:${T.y - 240}px;font-size:150px;color:#CFFF55;font-family:DejaVu Sans,sans-serif;text-shadow:0 0 40px rgba(207,255,85,.55)`;
+    const s = document.createElement('div'); s.textContent = '★★★'; s.style.cssText = `position:absolute;left:0;width:1080px;text-align:center;top:${T.y - 240}px;font-size:150px;color:#FFD400;font-family:DejaVu Sans,sans-serif;text-shadow:0 0 40px rgba(255,212,0,.5)`;
     root.appendChild(s); extra.stars = s;
   }
   return { T, root, els, extra };
@@ -186,8 +186,8 @@ function drawTitles(t) {
         const on = t >= beats[j] && (j === 2 || t < beats[j + 1]);
         const pop = t >= beats[j] ? 1 + 0.18 * (1 - seg(t, beats[j], beats[j] + 0.35, E.outCubic)) : 1;
         c.style.transform = `translateY(${(1 - ap) * 60 - outK * 80}px) scale(${pop})`; c.style.opacity = ap * (1 - outK);
-        c.style.background = on ? (j === 2 ? '#CFFF55' : '#9355E5') : 'rgba(255,255,255,.08)';
-        c.style.color = on ? (j === 2 ? '#0a0a0f' : '#fff') : '#8d8a99';
+        c.style.background = on ? '#FFD400' : 'rgba(255,255,255,.08)';
+        c.style.color = on ? '#0a0a0f' : '#8d8a99';
       });
     }
     if (extra.stars) { const k = seg(t, T.in, T.in + 0.7, E.outElastic); extra.stars.style.transform = `scale(${0.2 + 0.8 * k})`; extra.stars.style.opacity = clamp(k * 1.5) * (1 - outK); }
@@ -197,8 +197,8 @@ function drawTitles(t) {
 // ---------- background ----------
 function drawBg(t) {
   const a = 30 + 8 * Math.sin(t * 0.5), b = 28 + 6 * Math.cos(t * 0.4);
-  $('bg').style.background = `radial-gradient(900px 900px at ${a}% ${b}%, rgba(147,85,229,.55), rgba(147,85,229,0) 70%),` +
-    `radial-gradient(800px 800px at ${78 - 6 * Math.sin(t * .3)}% ${78}%, rgba(207,255,85,.10), rgba(207,255,85,0) 70%), #08080c`;
+  $('bg').style.background = `radial-gradient(900px 900px at ${a}% ${b}%, rgba(255,190,0,.20), rgba(255,190,0,0) 70%),` +
+    `radial-gradient(800px 800px at ${78 - 6 * Math.sin(t * .3)}% ${78}%, rgba(255,212,0,.07), rgba(255,212,0,0) 70%), #0a0a0a`;
   $('grain').style.backgroundPosition = `${(t * 997) % 512}px ${(t * 613) % 512}px`;
 }
 
@@ -209,7 +209,7 @@ P.innerHTML = `
  <div class="card" id="cPA" style="left:606px;top:203px;width:414px;height:268px"><img src="assets/par.png"><span class="free">Free</span></div>
  <img id="pLogo" src="assets/logo_big.png" style="position:absolute;left:125px;top:692px;width:845px">
  <div id="pTitle" class="line" style="top:866px;height:84px"><span style="font-size:58px;font-weight:700;letter-spacing:0;white-space:nowrap">Paranoid &amp; Black Dog</span></div>
- <div id="pFree" style="position:absolute;left:184px;top:1164px;width:712px;height:132px;background:#CFFF55;border-radius:11px;display:flex;align-items:center;justify-content:center;color:#0a0a0f;font-weight:800;font-size:60px;letter-spacing:-.005em">FREE TO PRACTICE</div>
+ <div id="pFree" style="position:absolute;left:184px;top:1164px;width:712px;height:132px;background:#FFD400;border-radius:0;display:flex;align-items:center;justify-content:center;color:#0a0a0f;font-weight:800;font-size:60px;letter-spacing:-.005em">FREE TO PRACTICE</div>
  <div id="pLink" style="position:absolute;left:0;width:1080px;top:1362px;text-align:center;font-weight:700;font-size:58px;color:#fff">Link in bio</div>`;
 function drawPack(t) {
   const on = t >= 19.29; P.style.display = on ? 'block' : 'none'; if (!on) return;
@@ -236,13 +236,13 @@ function drawTaps(t, c) {
     const a = pre * (1 - seg(t, tt + 0.25, tt + 0.6, E.lin));
     Object.assign(dot.style, { left: ox - r + 'px', top: oy - r + 'px', width: 2 * r + 'px', height: 2 * r + 'px', background: `rgba(255,255,255,${0.45 * a})`, boxShadow: `0 0 0 3px rgba(255,255,255,${0.9 * a}), 0 6px 24px rgba(0,0,0,${0.35 * a})` });
     const rr = 44 + 90 * post; const ra = dt > 0 ? (1 - post) * 0.9 : 0;
-    Object.assign(ring.style, { left: ox - rr + 'px', top: oy - rr + 'px', width: 2 * rr + 'px', height: 2 * rr + 'px', boxShadow: `0 0 0 ${3 + 3 * (1 - post)}px rgba(207,255,85,${ra})` });
+    Object.assign(ring.style, { left: ox - rr + 'px', top: oy - rr + 'px', width: 2 * rr + 'px', height: 2 * rr + 'px', boxShadow: `0 0 0 ${3 + 3 * (1 - post)}px rgba(255,212,0,${ra})` });
   });
 }
 
 // ---------- stars burst near the part's stars ----------
 const burst = document.createElement('div'); burst.className = 'abs'; $('taps').appendChild(burst);
-const SPARKS = Array.from({ length: 14 }, (_, i) => { const s = document.createElement('div'); s.textContent = '★'; s.style.cssText = 'position:absolute;color:#CFFF55;font-family:DejaVu Sans;font-size:34px;text-shadow:0 0 14px rgba(207,255,85,.8)'; burst.appendChild(s); return { s, ang: i / 14 * Math.PI * 2 + (i % 3) * 0.2, d: 120 + (i % 4) * 45 }; });
+const SPARKS = Array.from({ length: 14 }, (_, i) => { const s = document.createElement('div'); s.textContent = '★'; s.style.cssText = 'position:absolute;color:#FFD400;font-family:DejaVu Sans;font-size:34px;text-shadow:0 0 14px rgba(255,212,0,.8)'; burst.appendChild(s); return { s, ang: i / 14 * Math.PI * 2 + (i % 3) * 0.2, d: 120 + (i % 4) * 45 }; });
 function drawBurst(t, c) {
   const t0 = 13.0, k = seg(t, t0, t0 + 0.9, E.outExpo);
   if (t < t0 || t > t0 + 0.95) { burst.style.display = 'none'; return; }
@@ -300,7 +300,7 @@ window.renderFrame = async function (t) {
     let sc = 1, op = 1, blur = 0, bright = 1;
     if (t < 10.58) sc = 1.14 - 0.14 * seg(t, 9.96, 10.4, E.outExpo);
     else { op = seg(t, 14.45, 14.62, E.lin); sc = 1.3 - 0.27 * seg(t, 14.45, 15.2, E.outExpo) + 0.05 * seg(t, 15.2, 19.29, E.lin);
-      const pk = seg(t, 19.29, 19.8, E.outCubic); blur = 26 * pk; bright = 1 - 0.68 * pk; }
+      const pk = seg(t, 19.29, 19.8, E.outCubic); blur = 26 * pk; bright = 1 - 0.42 * pk; }
     imgs.full.style.transform = `scale(${sc})`; imgs.full.style.opacity = op; imgs.full.style.filter = blur ? `blur(${blur}px) brightness(${bright})` : 'none';
     await setSrc(imgs.full, reelSrc(t));
   }
@@ -314,7 +314,7 @@ window.renderFrame = async function (t) {
   const fl = Math.max(0.9 * (1 - seg(t, 9.96, 10.14, E.outCubic)) * (t >= 9.96 ? 1 : 0), 0.55 * (1 - seg(t, 10.58, 10.72, E.outCubic)) * (t >= 10.58 ? 1 : 0));
   $('flash').style.opacity = fl;
   // end fade to black
-  $('stage').style.filter = t > 23.0 ? `brightness(${1 - seg(t, 23.0, 23.6)})` : 'none';
+  $('stage').style.filter = 'none';
 };
 // motion-blur sub-frames: how many samples this frame needs
 window.samplesAt = function (t) {
