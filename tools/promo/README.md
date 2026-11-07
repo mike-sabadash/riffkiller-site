@@ -33,3 +33,6 @@
 
 ## v5b (07.11)
 - Клон произносит riff как «reef» почти во всех дублях (Whisper: 16 из 16 с низкой уверенностью). Финальная фраза голосом теперь только «It's free, link in bio.» (с 9.4 с), KILL EVERY RIFF — титр на доле без голоса. Для «Kill every riff!» голосом нужна живая запись Mike.
+
+## v5c (07.11)
+- «Kill every riff» Mike устраивает (из k_t0_combo0, 0–1.08 с). Непонятным было «it's free, link in bio»: free звучало как three, in bio как «inbow». Заменено на «It's free. The link is in my bio.» (vo5/free_t2_combo1, отбор по уверенности Whisper ≥0.86 на каждом слове) с 9.4 с. Звук: `mix4.py … vo5/place6.json`.
