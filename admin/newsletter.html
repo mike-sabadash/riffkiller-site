@@ -71,6 +71,7 @@
             <label class="f">Дата отправки<input type="date" id="cDate"></label>
         </div>
         <label class="f" style="margin-bottom:10px">Subject (на английском)<input class="wide" id="cSubject" maxlength="120" placeholder="A year of riffs for $63 (ends Tuesday)"></label>
+        <label class="f" style="margin-bottom:10px">Крупный заголовок в письме (необязательно; по умолчанию — как Subject)<input class="wide" id="cHeadline" maxlength="90" placeholder="A year of riffs, 30% off"></label>
         <label class="f" style="margin-bottom:10px">Текст (на английском; абзацы — через пустую строку; {name} — имя)<textarea id="cText" placeholder="Hey {name},&#10;&#10;Quick one: …&#10;&#10;— Mike"></textarea></label>
         <div class="row">
             <label class="f">Кнопка<input id="cButton" maxlength="40" placeholder="Get the year"></label>
@@ -174,12 +175,12 @@
     }
 
     function campaign() {
-        return { id: $('cId').value, topic: $('cTopic').value, date: $('cDate').value, subject: $('cSubject').value, text: $('cText').value, button: $('cButton').value, url: $('cUrl').value };
+        return { id: $('cId').value, topic: $('cTopic').value, date: $('cDate').value, subject: $('cSubject').value, headline: $('cHeadline').value, text: $('cText').value, button: $('cButton').value, url: $('cUrl').value };
     }
     function fillCampaign(c) {
         c = c || {};
         $('cId').value = c.id || ''; $('cTopic').value = c.topic || 'offers'; $('cDate').value = c.date || '';
-        $('cSubject').value = c.subject || ''; $('cText').value = c.text || ''; $('cButton').value = c.button || ''; $('cUrl').value = c.url || '';
+        $('cSubject').value = c.subject || ''; $('cHeadline').value = c.headline || ''; $('cText').value = c.text || ''; $('cButton').value = c.button || ''; $('cUrl').value = c.url || '';
     }
     function showPreviews(letters) {
         $('previewCard').hidden = false;

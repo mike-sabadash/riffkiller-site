@@ -36,6 +36,7 @@ require_once __DIR__ . '/progress-digest.php';
 require_once __DIR__ . '/legal.php';
 require_once __DIR__ . '/site-stats.php';
 require_once __DIR__ . '/riff-access.php';
+require_once __DIR__ . '/email-layout.php';
 
 const NL_TOPICS = ['drops', 'headsup', 'community', 'offers'];
 const NL_HOUR = 18;
@@ -320,35 +321,13 @@ function nl_user_links($base, $userId, $key, $lang) {
 }
 
 /**
- * Builds subject, text and HTML. Blocks: ['p', text] paragraph, ['b', text] bold line, ['btn', label, url], ['links', [[label,url]...]].
+ * Subject, plain text and HTML in the common Riff Killer look (config/email-layout.php). Blocks as there.
  */
-function nl_render($subject, $blocks, $why, $links) {
-    $text = []; $html = '';
-    $esc = function ($s) { return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); };
-    foreach ($blocks as $b) {
-        if ($b[0] === 'p' || $b[0] === 'b') {
-            $text[] = $b[1];
-            $style = 'margin:0 0 12px;font-size:15px;line-height:1.55;color:#e8e8ef;' . ($b[0] === 'b' ? 'font-weight:600;color:#ffffff;' : '');
-            $html .= '<p style="' . $style . '">' . nl2br($esc($b[1])) . '</p>';
-        } elseif ($b[0] === 'btn') {
-            $text[] = $b[1] . ': ' . $b[2];
-            $html .= '<p style="margin:4px 0 22px;"><a href="' . $esc($b[2]) . '" style="display:inline-block;padding:11px 18px;border-radius:10px;background:#9355e5;color:#ffffff;text-decoration:none;font-weight:600;font-size:14px;">' . $esc($b[1]) . '</a></p>';
-        } elseif ($b[0] === 'links') {
-            $items = [];
-            foreach ($b[1] as $l) { $text[] = '→ ' . $l[0] . ': ' . $l[1]; $items[] = '<a href="' . $esc($l[1]) . '" style="color:#b28cf0;font-weight:600;text-decoration:none;">' . $esc($l[0]) . '</a>'; }
-            $html .= '<p style="margin:0 0 18px;font-size:15px;line-height:2;">' . implode('<br>', $items) . '</p>';
-        }
-    }
-    $footText = "\n\n---\n" . $why . "\nChoose what we send: " . $links['prefs'] . "\nUnsubscribe from all: " . $links['unsub'];
-    $html = '<!doctype html><html><body style="margin:0;padding:0;background:#0f0f12;font-family:Arial,Helvetica,sans-serif;">'
-        . '<div style="max-width:560px;margin:0 auto;padding:28px 20px;">'
-        . '<p style="margin:0 0 18px;font-size:13px;color:#8d8d9a;">Riff Killer</p>'
-        . $html
-        . '<p style="margin:26px 0 6px;font-size:12px;line-height:1.5;color:#8d8d9a;">' . $esc($why) . '</p>'
-        . '<p style="margin:0;font-size:12px;"><a href="' . $esc($links['prefs']) . '" style="color:#b28cf0;">Choose what we send</a>'
-        . ' &nbsp;·&nbsp; <a href="' . $esc($links['unsub']) . '" style="color:#b28cf0;">Unsubscribe from all</a></p>'
-        . '</div></body></html>';
-    return ['subject' => $subject, 'text' => implode("\n\n", $text) . $footText, 'html' => $html];
+function nl_render($subject, $blocks, $why, $links, $preheader = '') {
+    $base = digest_base_url();
+    $mail = rk_email_layout(['base' => $base, 'lang' => 'en', 'preheader' => $preheader, 'blocks' => $blocks, 'why' => $why,
+        'links' => [['Choose what we send', $links['prefs']], ['Unsubscribe from all', $links['unsub']]]]);
+    return ['subject' => $subject, 'text' => $mail['text'], 'html' => $mail['html']];
 }
 
 const NL_WHY = [
@@ -357,6 +336,21 @@ const NL_WHY = [
     'community' => 'You get this because you asked for challenges and votes on Riff Killer.',
     'offers' => 'You get this because you asked for offers and new products from Riff Killer.',
 ];
+
+/** The riff's cover as an absolute address for an email, or '' when it has only the shared placeholder. */
+function nl_cover($riff, $base) {
+    $t = trim((string)($riff['thumbnail'] ?? ''));
+    if ($t === '' || $t === 'assets/img/riff-1.png') return '';
+    return preg_match('#^https?://#', $t) ? $t : rtrim($base, '/') . '/' . ltrim($t, '/');
+}
+
+/** "Black Sabbath · 23 parts · Intermediate" — the facts a guitarist checks first. */
+function nl_spec($riff) {
+    $bits = [nl_artist($riff)];
+    if (nl_parts($riff) >= 2) $bits[] = nl_parts($riff) . ' parts';
+    if (nl_difficulty_label($riff) !== '') $bits[] = ucfirst(nl_difficulty_label($riff));
+    return implode(' · ', array_filter($bits));
+}
 
 /** One letter for one reader. $prefs decides the optional blocks (the vote goes only to community readers). */
 function nl_compose($letter, $user, $prefs, $base) {
@@ -368,44 +362,60 @@ function nl_compose($letter, $user, $prefs, $base) {
     $why = NL_WHY[$letter['topic']] ?? NL_WHY['drops'];
     $play = function ($r) use ($base, $key) { return nl_link($base, $key, '/practice.html?riff=' . (int)($r['id'] ?? 0)); };
     $b = [];
+    $pre = '';
     if ($letter['kind'] === 'soon') {
         $r = $letter['riff'];
         $rd = riff_date_normalize($r['releasedAt']);
         $week = riff_free_week($r);
         $subject = nl_day($rd, 'l') . ': ' . nl_song($r);
+        $pre = nl_song($r) . ' lands on Riff Killer ' . nl_day($rd) . '.';
+        $b[] = ['eyebrow', 'Coming ' . nl_day($rd)];
+        $b[] = ['h1', nl_song($r) . ' drops ' . nl_day($rd, 'l')];
+        $b[] = ['spec', nl_spec($r)];
+        if (nl_cover($r, $base) !== '') $b[] = ['cover', nl_cover($r, $base), nl_link($base, $key, '/'), nl_song($r)];
         $b[] = ['p', $hey];
         $b[] = ['p', 'Heads-up: ' . nl_song($r) . ' by ' . nl_artist($r) . ' lands on Riff Killer on ' . nl_day($rd) . '.'];
         $n = nl_parts($r);
         if ($n >= 2) $b[] = ['p', 'I split it into ' . $n . ' parts, so you can take it one piece at a time and put it together when you’re ready.'];
         $b[] = ['p', 'Premium members and Riff Killer patrons get it on release day.' . ($week ? ' On a free account it opens for you for a week from ' . nl_day($week['from'], 'M j') . '.' : '')];
-        $b[] = ['p', 'See you ' . nl_day($rd, 'l') . ",\nMike"];
         $b[] = ['btn', 'See what’s in the library', nl_link($base, $key, '/')];
+        $b[] = ['sign', 'See you ' . nl_day($rd, 'l') . ",\nMike"];
     } elseif ($letter['kind'] === 'drop') {
         $rel = $letter['released']; $free = $letter['free'];
         $names = array_map('nl_song', $rel);
         if ($rel && $free) $subject = 'New: ' . implode(' + ', $names) . ' · Free this week: ' . nl_song($free);
         elseif ($rel) $subject = count($rel) === 1 ? $names[0] . ' is out' : 'New riffs: ' . implode(' and ', $names);
         else $subject = 'Free this week: ' . nl_song($free);
-        $b[] = ['p', $hey];
-        if ($rel && $free) $b[] = ['p', 'Two things this ' . nl_day($letter['date'], 'l') . '.'];
-        foreach ($rel as $r) {
-            $bits = [];
-            if (nl_parts($r) >= 2) $bits[] = nl_parts($r) . ' parts';
-            if (nl_difficulty_label($r) !== '') $bits[] = nl_difficulty_label($r);
-            $b[] = ['b', nl_song($r) . ' by ' . nl_artist($r) . ' is out' . ($bits ? ' — ' . implode(', ', $bits) : '') . '.'];
+        foreach ($rel as $i => $r) {
+            if ($i === 0) array_unshift($b, ['eyebrow', 'New riff · ' . nl_day($letter['date'], 'M j')], ['h1', nl_song($r) . ' is out'], ['spec', nl_spec($r)]);
+            else { $b[] = ['divider']; $b[] = ['b', nl_song($r) . ' is out too']; $b[] = ['spec', nl_spec($r)]; }
+            if (nl_cover($r, $base) !== '') $b[] = ['cover', nl_cover($r, $base), $play($r), nl_song($r)];
             $week = riff_free_week($r);
-            $b[] = ['p', 'It’s open now for Premium members and Riff Killer patrons.' . ($week ? ' Free accounts get it for a week from ' . nl_day($week['from'], 'M j') . '.' : '')];
+            $b[] = ['p', nl_song($r) . ' by ' . nl_artist($r) . ' is out today. It’s open now for Premium members and Riff Killer patrons.' . ($week ? ' Free accounts get it for a week from ' . nl_day($week['from'], 'M j') . '.' : '')];
             $b[] = ['btn', 'Play ' . nl_song($r), $play($r)];
+            if ($i === 0) $pre = nl_song($r) . ' by ' . nl_artist($r) . ' is out today.';
         }
         if ($free) {
             $week = riff_free_week($free);
-            $b[] = ['b', 'Free this week: ' . nl_song($free) . ' by ' . nl_artist($free) . '.'];
-            $b[] = ['p', 'It’s open with your free account until ' . nl_day($week['until']) . '. After that it goes back to Premium.'];
-            $b[] = ['btn', 'Play ' . nl_song($free), $play($free)];
+            if ($rel) {
+                $b[] = ['divider'];
+                $b[] = ['eyebrow', 'Free this week · until ' . nl_day($week['until'], 'D, M j')];
+                $b[] = ['mini', nl_cover($free, $base) ?: rtrim($base, '/') . '/assets/email/logo.png', $play($free), nl_song($free) . ' by ' . nl_artist($free),
+                    'It’s open with your free account until ' . nl_day($week['until']) . '. After that it goes back to Premium.'];
+                $b[] = ['btn', 'Play ' . nl_song($free), $play($free)];
+            } else {
+                array_unshift($b, ['eyebrow', 'Free this week · until ' . nl_day($week['until'], 'D, M j')], ['h1', nl_song($free) . ' is free this week'], ['spec', nl_spec($free)]);
+                if (nl_cover($free, $base) !== '') $b[] = ['cover', nl_cover($free, $base), $play($free), nl_song($free)];
+                $b[] = ['p', 'It’s open with your free account until ' . nl_day($week['until']) . '. After that it goes back to Premium.'];
+                $b[] = ['btn', 'Play ' . nl_song($free), $play($free)];
+                $pre = nl_song($free) . ' is free with your account until ' . nl_day($week['until'], 'M j') . '.';
+            }
         }
         if (!empty($letter['next'])) $b[] = ['p', 'Next week’s free one: ' . nl_song($letter['next']) . '.'];
         $poll = $letter['poll'] ?? null;
         if ($poll && !empty($prefs['topics']['community'])) {
+            $b[] = ['divider'];
+            $b[] = ['eyebrow', 'Your vote'];
             $b[] = ['b', (string)$poll['question']];
             $opts = [];
             foreach (array_values((array)$poll['options']) as $i => $o) {
@@ -414,15 +424,30 @@ function nl_compose($letter, $user, $prefs, $base) {
             $b[] = ['p', 'One tap is a vote:'];
             $b[] = ['links', $opts];
         }
-        $b[] = ['p', '— Mike'];
+        $b[] = ['sign', '— Mike'];
+        // The greeting goes under the opening picture (or the headline when there is none).
+        $at = 0;
+        foreach ($b as $i => $blk) { if ($blk[0] === 'cover') { $at = $i + 1; break; } if (in_array($blk[0], ['h1', 'spec'], true)) $at = $i + 1; if ($blk[0] === 'p') break; }
+        array_splice($b, $at, 0, [['p', $hey]]);
     } else {
         $c = $letter['campaign'];
         $subject = (string)$c['subject'];
+        $eyebrow = ['offers' => 'For you', 'community' => 'Challenge', 'drops' => 'New on Riff Killer', 'headsup' => 'Coming up'][$c['topic']] ?? '';
+        if (trim((string)($c['eyebrow'] ?? '')) !== '') $eyebrow = trim($c['eyebrow']);
+        if ($eyebrow !== '') $b[] = ['eyebrow', $eyebrow];
+        $b[] = ['h1', trim((string)($c['headline'] ?? '')) !== '' ? trim($c['headline']) : $subject];
         $text = str_replace(['{name}', '{{name}}'], $name !== '' ? $name : 'there', (string)$c['text']);
-        foreach (preg_split('/\n\s*\n/', trim($text)) as $para) if (trim($para) !== '') $b[] = ['p', trim($para)];
-        if (trim((string)($c['button'] ?? '')) !== '' && trim((string)($c['url'] ?? '')) !== '') $b[] = ['btn', trim($c['button']), nl_link($base, $key, nl_site_path($c['url']))];
+        $paras = array_values(array_filter(array_map('trim', preg_split('/\n\s*\n/', trim($text))), 'strlen'));
+        $hasButton = trim((string)($c['button'] ?? '')) !== '' && trim((string)($c['url'] ?? '')) !== '';
+        // The sign-off (last paragraph starting with a dash or "Mike") goes after the button.
+        $sign = $paras && preg_match('/^(—|–|-|Mike\b|Cheers|See you)/u', end($paras)) ? array_pop($paras) : '';
+        foreach ($paras as $para) $b[] = ['p', $para];
+        if ($hasButton) $b[] = ['btn', trim($c['button']), nl_link($base, $key, nl_site_path($c['url']))];
+        if ($sign !== '') $b[] = ['sign', $sign];
+        // Inbox preview: the first paragraph that is not the greeting.
+        foreach ($paras as $para) if (!preg_match('/^(hey|hi|hello)\b[^.!?]{0,30},$/iu', $para)) { $pre = mb_substr(preg_replace('/\s+/', ' ', $para), 0, 110); break; }
     }
-    $mail = nl_render($subject, $b, $why, $links);
+    $mail = nl_render($subject, $b, $why, $links, $pre);
     $mail['unsub'] = $links['unsub'];
     return $mail;
 }

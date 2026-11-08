@@ -207,17 +207,13 @@ function digest_compose($facts, $lang, $baseUrl, $stopUrl) {
     }
     $link = rtrim($baseUrl, '/') . '/profile.html';
     $text = implode("\n\n", $lines) . "\n\n" . $t['cta'] . ': ' . $link . "\n\n---\n" . $t['why'] . "\n" . $t['stop'] . ': ' . $stopUrl;
-    $p = '';
-    foreach ($lines as $l) $p .= '<p style="margin:0 0 12px;font-size:15px;line-height:1.55;color:#e8e8ef;">' . htmlspecialchars($l, ENT_QUOTES, 'UTF-8') . '</p>';
-    $html = '<!doctype html><html><body style="margin:0;padding:0;background:#0f0f12;font-family:Arial,Helvetica,sans-serif;">'
-        . '<div style="max-width:560px;margin:0 auto;padding:28px 20px;">'
-        . '<p style="margin:0 0 18px;font-size:13px;color:#8d8d9a;">Riff Killer</p>'
-        . '<h1 style="margin:0 0 16px;font-size:20px;line-height:1.3;color:#ffffff;font-weight:600;">' . htmlspecialchars($subject, ENT_QUOTES, 'UTF-8') . '</h1>'
-        . $p
-        . '<p style="margin:20px 0 28px;"><a href="' . htmlspecialchars($link, ENT_QUOTES, 'UTF-8') . '" style="display:inline-block;padding:11px 18px;border-radius:10px;background:#9355e5;color:#ffffff;text-decoration:none;font-weight:600;font-size:14px;">' . htmlspecialchars($t['cta'], ENT_QUOTES, 'UTF-8') . '</a></p>'
-        . '<p style="margin:0 0 6px;font-size:12px;line-height:1.5;color:#8d8d9a;">' . htmlspecialchars($t['why'], ENT_QUOTES, 'UTF-8') . '</p>'
-        . '<p style="margin:0;font-size:12px;"><a href="' . htmlspecialchars($stopUrl, ENT_QUOTES, 'UTF-8') . '" style="color:#b28cf0;">' . htmlspecialchars($t['stop'], ENT_QUOTES, 'UTF-8') . '</a></p>'
-        . '</div></body></html>';
+    // The common Riff Killer look (config/email-layout.php): black header with the logo, text on white, footer.
+    require_once __DIR__ . '/email-layout.php';
+    $blocks = [['h1', $subject]];
+    foreach ($lines as $l) $blocks[] = ['p', $l];
+    $blocks[] = ['btn', $t['cta'], $link];
+    $html = rk_email_layout(['base' => $baseUrl, 'lang' => $lang, 'preheader' => $lines[0] ?? '', 'blocks' => $blocks,
+        'why' => $t['why'], 'links' => [[$t['stop'], $stopUrl]]])['html'];
     return ['subject' => $subject, 'text' => $text, 'html' => $html];
 }
 

@@ -64,12 +64,15 @@ test('heads-up two days before, from 18:00 in the reader’s zone, only to those
     const m=r.sent[0];
     const song=ready.song.replace(/\s+/g,' ').trim();
     assert.equal(m.mail.subject,'Friday: '+song);
-    assert.match(m.mail.text,/^Hey Jimmy,/);
+    assert.match(m.mail.text,/\n\nHey Jimmy,\n\n/);assert.match(m.mail.text,/^COMING FRIDAY, NOV 13/);
+    assert.match(m.mail.html,/assets\/email\/header\.png\?v=/,'black header with the logo');assert.match(m.mail.html,/A new riff every Friday/,'footer says what Riff Killer gives');
+    assert.match(m.mail.html,/display:none[^>]*>[^<]*lands on Riff Killer Friday, Nov 13/,'inbox preview line');
     assert.match(m.mail.text,new RegExp('lands on Riff Killer on Friday, Nov 13'));
     assert.match(m.mail.text,/opens for you for a week from Dec 11/);
     assert.match(m.unsub,/^https:\/\/riffkiller\.example\/api\/newsletter\/unsubscribe\.php\?u=u_msk&t=[0-9a-f]{64}&m=soon-/);
     assert.match(m.mail.html,/Unsubscribe from all/);assert.match(m.mail.html,/Choose what we send/);
-    assert.doesNotMatch(m.mail.html,/<img/i,'no pixels');
+    for(const src of m.mail.html.match(/<img[^>]+src="[^"]+"/g))assert.match(src,/src="https:\/\/riffkiller\.example\/assets\//,'pictures only from our own site, no tracking pixels');
+    assert.doesNotMatch(m.mail.html,/width="1"|height="1"/,'no pixels');
     assert.equal(run(at(11,16,30)).sent.length,0,'once only');
     // Los Angeles reaches 18:00 later the same day.
     assert.deepEqual(run(at(12,2,30)).sent.map(s=>s.to),['la@example.com']);
@@ -124,7 +127,7 @@ test('at most one a day and two a week, only one of them besides the release-day
         ['id'=>'offer002','topic'=>'offers','date'=>'2026-11-24','subject'=>'Another offer','text'=>'Again.','button'=>'','url'=>'']]);`);
     const mon=run(at(16,15,30)).sent.filter(s=>s.to==='jimmy.page@example.com');
     assert.equal(mon.length,1);assert.equal(mon[0].mail.subject,'A year of riffs for $63');
-    assert.match(mon[0].mail.text,/^Hey Jimmy,/);assert.match(mon[0].mail.text,/go\.php\?m=c-offer001&to=%2Fbilling\.html/);
+    assert.match(mon[0].mail.text,/Hey Jimmy,/);assert.match(mon[0].mail.html,/>Quick one\.<\/p>[\s\S]*Get the year[\s\S]*— Mike/,'sign-off after the button');assert.match(mon[0].mail.text,/go\.php\?m=c-offer001&to=%2Fbilling\.html/);
     assert.equal(run(at(16,16,30)).sent.length,0,'one a day');
     const wed=run(at(18,15,30));
     assert.ok(!wed.sent.some(s=>s.to==='jimmy.page@example.com'),'the Monday offer already used this week’s extra email');
