@@ -1,0 +1,63 @@
+name: Funnel report
+
+# Agent tool: aggregate numbers on visitors, sign-ups and returns (scripts/funnel-report.php, read-only on the server).
+# Trigger: push any commit to a branch stats/<name>. The report is encrypted with tools/stats-report.pub.pem
+# (the repository is public; the private key is only on Mike's Google Drive) and committed back to that branch
+# as reports/funnel.enc + reports/funnel.key. The branch is never merged into main.
+on:
+  push:
+    branches: ['stats/**']
+
+permissions:
+  contents: write
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://riffkiller.fun
+    env:
+      DEPLOY_HOST: ${{ secrets.CLAUDE_DEPLOY_HOST }}
+      DEPLOY_USER: ${{ secrets.CLAUDE_DEPLOY_USER }}
+      DEPLOY_PORT: ${{ secrets.CLAUDE_DEPLOY_PORT || '22' }}
+      RIFFKILLER_ROOT: ${{ vars.RIFFKILLER_ROOT }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure SSH
+        env:
+          SSH_KEY: ${{ secrets.CLAUDE_DEPLOY_SSH_KEY }}
+          KNOWN_HOSTS: ${{ secrets.CLAUDE_DEPLOY_KNOWN_HOSTS }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/deploy_key
+          printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/deploy_key ~/.ssh/known_hosts
+          printf 'Host prod\n  HostName %s\n  User %s\n  Port %s\n  IdentityFile ~/.ssh/deploy_key\n  IdentitiesOnly yes\n  StrictHostKeyChecking yes\n' \
+            "$DEPLOY_HOST" "$DEPLOY_USER" "$DEPLOY_PORT" > ~/.ssh/config
+          dir="/tmp/riffkiller-funnel-$GITHUB_RUN_ID"
+          ssh prod "install -d -m 700 '$dir'"
+          scp -q scripts/funnel-report.php "prod:$dir/"
+          echo "REMOTE_DIR=$dir" >> "$GITHUB_ENV"
+      - name: Build the report on the server
+        run: |
+          set -o pipefail
+          ssh prod "php '$REMOTE_DIR/funnel-report.php' '$RIFFKILLER_ROOT'" > report.json
+          echo "::notice::report $(wc -c < report.json) bytes"
+      - name: Encrypt and commit to this branch
+        run: |
+          mkdir -p reports
+          openssl rand -hex 32 > k.txt
+          openssl pkeyutl -encrypt -pubin -inkey tools/stats-report.pub.pem -pkeyopt rsa_padding_mode:oaep -in k.txt -out reports/funnel.key
+          openssl enc -aes-256-cbc -pbkdf2 -salt -pass file:k.txt -in report.json -out reports/funnel.enc
+          rm -f k.txt report.json
+          git config user.name "funnel-report"
+          git config user.email "actions@users.noreply.github.com"
+          git add reports/funnel.enc reports/funnel.key
+          git commit -m "Funnel report $(date -u +%FT%TZ)"
+          git push origin "HEAD:$GITHUB_REF_NAME"
+      - name: Clean up
+        if: always()
+        run: |
+          rm -f report.json k.txt
+          [ -z "${REMOTE_DIR:-}" ] || ssh prod "rm -rf '$REMOTE_DIR'" || true
