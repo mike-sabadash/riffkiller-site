@@ -100,6 +100,37 @@ foreach (glob("$root/data/stats/*.json") ?: [] as $f) { $st[basename($f, '.json'
 ksort($st);
 $out['ownCounters'] = $st;
 
+/* ---------- Newsletter (config/newsletter.php, added 2026-11-09): totals only ---------- */
+$nlPrefs = jload("$root/data/newsletter.json") ?? [];
+$nl = ['accounts' => count($nlPrefs), 'any' => 0, 'byTopic' => [], 'consentHow' => [], 'asked' => [], 'withdrawn' => 0];
+foreach ($nlPrefs as $row) {
+    if (!is_array($row)) continue;
+    $on = array_keys(array_filter((array)($row['topics'] ?? [])));
+    foreach ($on as $t) $nl['byTopic'][$t] = ($nl['byTopic'][$t] ?? 0) + 1;
+    if ($on) { $nl['any']++; $h = (string)($row['consent']['how'] ?? '?'); $nl['consentHow'][$h] = ($nl['consentHow'][$h] ?? 0) + 1; }
+    elseif (!empty($row['withdrawnAt'])) $nl['withdrawn']++;
+    if (!empty($row['asked'])) $nl['asked'][$row['asked']] = ($nl['asked'][$row['asked']] ?? 0) + 1;
+}
+$sent = jload("$root/data/newsletter-sent.json") ?? [];
+uasort($sent, function ($a, $b) { return strcmp((string)($b['firstAt'] ?? ''), (string)($a['firstAt'] ?? '')); });
+$nl['letters'] = array_slice(array_map(function ($r) { return ['subject' => $r['subject'] ?? '', 'topic' => $r['topic'] ?? '', 'firstAt' => $r['firstAt'] ?? '',
+    'sent' => (int)($r['sent'] ?? 0), 'failed' => (int)($r['failed'] ?? 0), 'skipped' => (int)($r['skipped'] ?? 0), 'clicks' => (int)($r['clicks'] ?? 0), 'unsub' => (int)($r['unsub'] ?? 0)]; }, $sent), 0, 30, true);
+$nl['alerts'] = array_slice(array_reverse(jload("$root/data/newsletter-alerts.json") ?? []), 0, 20);
+$nl['campaigns'] = array_map(function ($c) { return ['date' => $c['date'] ?? '', 'topic' => $c['topic'] ?? '', 'subject' => $c['subject'] ?? '']; }, array_filter((array)(jload("$root/data/newsletter-campaigns.json") ?? []), 'is_array'));
+$nl['polls'] = array_map(function ($p) use ($root) { $v = (array)((jload("$root/data/newsletter-polls.json") ?? [])['votes'][$p['id'] ?? ''] ?? []); return ['question' => $p['question'] ?? '', 'from' => $p['from'] ?? '', 'until' => $p['until'] ?? '', 'votes' => count($v)]; }, array_filter((array)((jload("$root/data/newsletter-polls.json") ?? [])['polls'] ?? []), 'is_array'));
+$nl['scheduledRiffs'] = array_values(array_map(function ($r) {
+    $miss = [];
+    if (trim((string)($r['videoFile'] ?? '')) === '') $miss[] = 'video';
+    if (count((array)($r['segments'] ?? [])) < 2) $miss[] = 'parts';
+    if (in_array(trim((string)($r['thumbnail'] ?? '')), ['', 'assets/img/riff-1.png'], true)) $miss[] = 'cover';
+    if (!empty($r['hidden'])) $miss[] = 'hidden';
+    return ['song' => $r['song'] ?? '', 'releasedAt' => $r['releasedAt'] ?? '', 'missing' => $miss, 'noMail' => !empty($r['noMail'])];
+}, array_filter((array)$riffs, function ($r) { return is_array($r) && ($r['lock'] ?? '') === 'soon' && !empty($r['releasedAt']); })));
+$nl['cronInstalled'] = is_file('/etc/cron.d/riffkiller-newsletter');
+$envText = (string)@file_get_contents("$root/.env");
+$nl['resendConfigured'] = (bool)preg_match('/^RESEND_API_KEY=\S+/m', $envText) && (bool)preg_match('/^RESEND_FROM_EMAIL=\S+/m', $envText);
+$out['newsletter'] = $nl;
+
 /* ---------- nginx access logs ---------- */
 $logFiles = []; $confHits = [];
 foreach (array_merge(glob('/etc/nginx/sites-enabled/*') ?: [], glob('/etc/nginx/conf.d/*.conf') ?: []) as $cf) {

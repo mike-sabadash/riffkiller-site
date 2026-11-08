@@ -964,3 +964,48 @@ test('Patreon coming back without a code offers to try again or sign up with ema
     await page.click('#patreonUseEmail');await page.waitForSelector('#authModalConsentInput',{state:'visible'});
     assert.doesNotMatch(page.url(),/auth=signup/);
 });
+test('newsletter: a separate unticked box at sign-up; older accounts get a one-time card; switches in the profile and on the emails page',async t=>{
+    const nl=()=>{const f=path.join(site.dir,'data/newsletter.json');return fs.existsSync(f)?JSON.parse(fs.readFileSync(f,'utf8')):{};};
+    const page=await pageFor(t,390);await page.goto(site.base+'/',{waitUntil:'domcontentloaded'});
+    await page.evaluate(()=>authManager.showAuthModal('signup','header'));
+    await page.waitForSelector('#authModalNewsInput',{state:'visible'});
+    assert.equal(await page.locator('#authModalNewsInput').isChecked(),false,'never pre-ticked');
+    const g=await page.locator('#authModalGoogle').boundingBox();assert.ok(g.y+g.height<844,'Google stays on the first screen of a phone');
+    await page.click('#authTabLogin');assert.equal(await page.locator('#authModalNews').isVisible(),false,'only on Sign up');await page.click('#authTabSignup');
+    await page.fill('#authModalEmailInput','news-yes@example.com');await page.fill('#authModalPasswordInput','news-password');
+    await page.check('#authModalConsentInput');await page.check('#authModalNewsInput');
+    await page.click('#authModalEmailBtn');await page.waitForFunction(()=>window.authManager.isAuthenticated);
+    const id=await page.evaluate(()=>window.authManager.userData.id);
+    for(let i=0;i<40&&!nl()[id];i++)await page.waitForTimeout(100);
+    assert.equal(nl()[id].topics.drops,true);assert.equal(nl()[id].consent.how,'signup');
+    assert.equal(await page.locator('#rkNewsCard').count(),0,'a new account is not asked again');
+    // Profile: the four switches, saved on tap.
+    await page.goto(site.base+'/profile.html',{waitUntil:'domcontentloaded'});
+    await page.waitForSelector('#rkNewsPrefs input[data-topic="offers"]');
+    assert.equal(await page.locator('#rkNewsPrefs input[data-topic="drops"]').isChecked(),true);
+    await page.check('#rkNewsPrefs input[data-topic="offers"]');await page.waitForSelector('.rk-news-saved:has-text("Saved")');
+    assert.equal(nl()[id].topics.offers,true);
+    // An account from before the newsletter: asked once in the library.
+    await page.evaluate(()=>window.authManager.logout());await page.waitForURL('**/index.html',{waitUntil:'domcontentloaded'});
+    const reg=await fetch(site.base+'/api/auth/email-register.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({consent:true,email:'old-account@example.com',password:'old-password'})});
+    const oldId=(await reg.json()).user.id;
+    const uf=path.join(site.dir,'data/users.json');const us=JSON.parse(fs.readFileSync(uf,'utf8'));us.find(u=>u.id===oldId).consent.version='2026-10-29';fs.writeFileSync(uf,JSON.stringify(us));
+    await page.evaluate(()=>authManager.showAuthModal('login','header'));await page.fill('#authModalEmailInput','old-account@example.com');await page.fill('#authModalPasswordInput','old-password');await page.click('#authModalEmailBtn');
+    await page.waitForSelector('#rkNewsCard',{state:'visible',timeout:8000});
+    assert.match(await page.locator('#rkNewsCard').innerText(),/Want an email when a new riff drops\?/);
+    const card=await page.locator('#rkNewsCard').boundingBox();assert.ok(card.x>=0&&card.x+card.width<=390,'fits a phone');
+    await page.click('#rkNewsCard .rk-news-yes');await page.waitForSelector('#rkNewsCard:has-text("Done")');
+    assert.equal(nl()[oldId].topics.drops,true);assert.equal(nl()[oldId].asked,'yes');
+    await page.reload({waitUntil:'domcontentloaded'});await page.evaluate(()=>window.authManager.ready);await page.waitForTimeout(2200);
+    assert.equal(await page.locator('#rkNewsCard').count(),0,'asked once');
+    // The emails page from a link in an email works without signing in.
+    const tok=require('node:child_process').execFileSync('php',['-r',`require '${site.dir}/config/newsletter.php';echo nl_token('${oldId}');`]).toString();
+    const anon=await (await browser.newContext({viewport:{width:390,height:844}})).newPage();
+    await anon.goto(site.base+'/emails.html?u='+encodeURIComponent(oldId)+'&t='+tok,{waitUntil:'domcontentloaded'});
+    await anon.waitForSelector('#rkNewsPrefs input[data-topic="headsup"]');
+    await anon.check('#rkNewsPrefs input[data-topic="headsup"]');await anon.waitForSelector('.rk-news-saved:has-text("Saved")');
+    assert.equal(nl()[oldId].topics.headsup,true);
+    assert.match(await anon.locator('#rkNewsOff a').getAttribute('href'),/unsubscribe\.php\?u=/);
+    const wide=await anon.evaluate(()=>document.documentElement.scrollWidth);assert.ok(wide<=390,'no sideways scroll');
+    await anon.context().close();
+});

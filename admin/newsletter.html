@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Riff Killer — Рассылка</title>
+    <link rel="icon" type="image/svg+xml" href="../assets/icons/favicon.svg">
+    <style>
+        html, body { background: #111629; color: #fff; font-family: Roboto, Arial, sans-serif; margin: 0; }
+        main { max-width: 860px; margin: 0 auto; padding: 24px 16px 64px; }
+        h1 { font-size: 22px; margin: 0 0 6px; }
+        h2 { font-size: 17px; margin: 0 0 12px; }
+        .muted { color: rgba(255,255,255,.6); font-size: 13px; line-height: 1.5; }
+        .card { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.12); border-radius: 12px; padding: 16px; margin: 16px 0; }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid rgba(255,255,255,.08); vertical-align: top; }
+        th { color: rgba(255,255,255,.6); font-weight: 500; }
+        .row { display: flex; gap: 10px; flex-wrap: wrap; margin: 0 0 10px; align-items: center; }
+        label.f { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: rgba(255,255,255,.7); }
+        input, select, textarea { font: inherit; font-size: 14px; padding: 8px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,.2); background: rgba(255,255,255,.05); color: #fff; }
+        textarea { width: 100%; box-sizing: border-box; min-height: 160px; }
+        input.wide { width: 100%; box-sizing: border-box; }
+        button { font: inherit; font-size: 14px; padding: 8px 14px; border-radius: 8px; border: 1px solid rgba(255,255,255,.3); background: transparent; color: #fff; cursor: pointer; }
+        button.primary { background: #9355e5; border-color: #9355e5; }
+        .warn { color: #f2c94c; }
+        .bad { color: #ff8a8a; }
+        .ok { color: #7ee2a8; }
+        .pill { display: inline-block; padding: 1px 8px; border-radius: 99px; background: rgba(147,85,229,.25); font-size: 12px; }
+        #msg { position: sticky; top: 0; z-index: 2; min-height: 0; }
+        #msg div { padding: 10px 12px; border-radius: 8px; margin: 0 0 10px; background: rgba(147,85,229,.3); }
+        iframe.preview { width: 100%; height: 520px; border: 1px solid rgba(255,255,255,.15); border-radius: 8px; background: #0f0f12; }
+        a { color: #b28cf0; }
+    </style>
+</head>
+<body>
+<main>
+    <h1>Рассылка</h1>
+    <p class="muted">Письма уходят сами: анонс за 2 дня до выхода риффа, письмо в день выхода и «Free this week» — в 18:00 по времени читателя, только тем, кто сам подписался. На человека: не больше одного письма в день и двух в неделю (пн–вс), из них кроме письма в день выхода — только одно (анонс, акция или челлендж: что раньше, то и уходит, остальное в эту неделю пропускается). Акции — не чаще раза в 30 дней. Правило — docs/NEWSLETTER.md.</p>
+    <div id="msg"></div>
+
+    <section class="card" id="alertsCard" hidden>
+        <h2 class="warn">Требует внимания</h2>
+        <div id="alerts"></div>
+        <p><button type="button" id="alertsDone">Прочитано</button></p>
+    </section>
+
+    <section class="card">
+        <h2>Подписчики</h2>
+        <div id="summary" class="muted">Загрузка…</div>
+    </section>
+
+    <section class="card">
+        <h2>Ближайшие письма (35 дней)</h2>
+        <div id="scheduled"></div>
+        <div id="upcoming"></div>
+        <div class="row" style="margin-top:12px">
+            <label class="f">Посмотреть письма на дату<input type="date" id="previewDate"></label>
+            <button type="button" id="previewDateBtn">Предпросмотр</button>
+        </div>
+    </section>
+
+    <section class="card">
+        <h2>Новое письмо (акция, новый продукт, челлендж)</h2>
+        <input type="hidden" id="cId">
+        <div class="row">
+            <label class="f">Тема рассылки<select id="cTopic">
+                <option value="offers">Акции и новые продукты</option>
+                <option value="community">Челленджи и голосования</option>
+                <option value="drops">Новые риффы</option>
+            </select></label>
+            <label class="f">Дата отправки<input type="date" id="cDate"></label>
+        </div>
+        <label class="f" style="margin-bottom:10px">Subject (на английском)<input class="wide" id="cSubject" maxlength="120" placeholder="A year of riffs for $63 (ends Tuesday)"></label>
+        <label class="f" style="margin-bottom:10px">Текст (на английском; абзацы — через пустую строку; {name} — имя)<textarea id="cText" placeholder="Hey {name},&#10;&#10;Quick one: …&#10;&#10;— Mike"></textarea></label>
+        <div class="row">
+            <label class="f">Кнопка<input id="cButton" maxlength="40" placeholder="Get the year"></label>
+            <label class="f" style="flex:1">Ссылка кнопки (страница сайта)<input class="wide" id="cUrl" placeholder="/billing.html"></label>
+        </div>
+        <div class="row">
+            <button type="button" id="cPreview">Предпросмотр</button>
+            <input id="testTo" type="email" placeholder="email для теста">
+            <button type="button" id="cTest">Тест себе</button>
+            <button type="button" class="primary" id="cSave">Запланировать</button>
+            <button type="button" id="cNew">Очистить</button>
+        </div>
+        <div id="campaigns"></div>
+    </section>
+
+    <section class="card">
+        <h2>Голосование (блок в пятничном письме)</h2>
+        <p class="muted">Пока голосование открыто, оно попадает в письма дня выхода тем, кто выбрал «Челленджи и голосования». Голос — одним нажатием в письме.</p>
+        <input type="hidden" id="pId">
+        <label class="f" style="margin-bottom:10px">Вопрос (на английском)<input class="wide" id="pQuestion" maxlength="140" placeholder="Which riff should I break down next?"></label>
+        <div class="row">
+            <input id="pO0" placeholder="Вариант 1"><input id="pO1" placeholder="Вариант 2"><input id="pO2" placeholder="Вариант 3"><input id="pO3" placeholder="Вариант 4">
+        </div>
+        <div class="row">
+            <label class="f">С<input type="date" id="pFrom"></label>
+            <label class="f">По<input type="date" id="pUntil"></label>
+            <button type="button" class="primary" id="pSave">Сохранить</button>
+        </div>
+        <div id="polls"></div>
+    </section>
+
+    <section class="card">
+        <h2>Отправленные письма</h2>
+        <p class="muted">Свои счётчики: ушло, не ушло, пропущено из-за лимита, переходы по ссылкам, отписки. Открытия не считаем (пикселей нет).</p>
+        <div id="sent"></div>
+    </section>
+
+    <section class="card">
+        <h2>Предупреждения на почту</h2>
+        <div class="row">
+            <input id="alertEmail" type="email" placeholder="email" style="min-width:260px">
+            <button type="button" id="alertSave">Сохранить</button>
+        </div>
+        <p class="muted">Если указать, сюда сразу придёт письмо, когда рифф не готов к выходу, письма не ушли или после письма отписалось больше 2%. Без этого предупреждения видны здесь и в еженедельном отчёте.</p>
+    </section>
+
+    <section class="card" id="previewCard" hidden>
+        <h2>Предпросмотр</h2>
+        <div id="previews"></div>
+    </section>
+</main>
+<script>
+(function () {
+    'use strict';
+    var API = '/api/admin/newsletter.php';
+    var TOPIC = { drops: 'Новые риффы', headsup: 'Анонсы', community: 'Челленджи и голосования', offers: 'Акции и продукты' };
+    var $ = function (id) { return document.getElementById(id); };
+    var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
+    var ru = function (d) { return d ? String(d).slice(0, 10).split('-').reverse().join('.') : ''; };
+    var state = null;
+
+    function say(text, bad) {
+        $('msg').innerHTML = text ? '<div class="' + (bad ? 'bad' : '') + '">' + esc(text) + '</div>' : '';
+        if (text && !bad) setTimeout(function () { $('msg').innerHTML = ''; }, 4000);
+    }
+    function call(body) {
+        return fetch(API, body ? { method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) } : { credentials: 'include' })
+            .then(function (r) { return r.json(); })
+            .then(function (d) { if (!d.success) throw new Error(d.error || 'Ошибка'); return d; });
+    }
+
+    function render(d) {
+        state = d;
+        var s = d.summary;
+        $('summary').innerHTML = 'Подписаны: <b>' + s.any + '</b> · ' + d.topics.map(function (t) { return esc(TOPIC[t]) + ': ' + s.byTopic[t]; }).join(' · ') +
+            '<br>Карточка «Want an email…»: да ' + s.asked.yes + ', нет ' + s.asked.no +
+            '<br>Отправка: ' + (d.resend ? '<span class="ok">Resend настроен</span>' : '<span class="bad">нет ключей Resend — письма не уходят</span>');
+        var alerts = d.alerts.filter(function (a) { return !a.done; });
+        $('alertsCard').hidden = !alerts.length;
+        $('alerts').innerHTML = alerts.map(function (a) { return '<p class="muted"><b>' + ru(a.at) + '</b> ' + esc(a.text) + '</p>'; }).join('');
+        $('scheduled').innerHTML = d.upcoming.scheduled.length ? '<table><tr><th>Рифф по расписанию</th><th>Выход</th><th>Готовность</th></tr>' + d.upcoming.scheduled.map(function (r) {
+            var miss = r.missing.concat(r.warnings);
+            return '<tr><td>' + esc(r.song) + (r.noMail ? ' <span class="pill">без писем</span>' : '') + '</td><td>' + ru(r.releasedAt) + ', 10:00 МСК</td><td>' +
+                (r.missing.length ? '<span class="bad">' + esc(miss.join(', ')) + ' — сам не откроется</span>' : (miss.length ? '<span class="warn">' + esc(miss.join(', ')) + '</span>' : '<span class="ok">готов</span>')) + '</td></tr>';
+        }).join('') + '</table>' : '<p class="muted">Риффов по расписанию нет. Чтобы рифф вышел сам: в редакторе риффа замок «Soon» + дата выхода.</p>';
+        $('upcoming').innerHTML = d.upcoming.letters.length ? '<table style="margin-top:12px"><tr><th>Дата</th><th>Тема</th><th>Письмо</th></tr>' + d.upcoming.letters.map(function (l) {
+            return '<tr><td>' + ru(l.date) + '</td><td>' + esc(TOPIC[l.topic]) + '</td><td>' + esc(l.title) + '</td></tr>';
+        }).join('') + '</table>' : '<p class="muted">В ближайшие 35 дней писем нет.</p>';
+        $('campaigns').innerHTML = d.campaigns.length ? '<table style="margin-top:12px"><tr><th>Дата</th><th>Тема</th><th>Subject</th><th></th></tr>' + d.campaigns.slice().sort(function (a, b) { return a.date < b.date ? 1 : -1; }).map(function (c) {
+            return '<tr><td>' + ru(c.date) + '</td><td>' + esc(TOPIC[c.topic]) + '</td><td>' + esc(c.subject) + '</td><td><button type="button" data-edit="' + esc(c.id) + '">Изменить</button> <button type="button" data-del="' + esc(c.id) + '">Удалить</button></td></tr>';
+        }).join('') + '</table>' : '';
+        $('polls').innerHTML = d.polls.length ? '<table style="margin-top:12px"><tr><th>Вопрос</th><th>Даты</th><th>Голоса</th><th></th></tr>' + d.polls.map(function (p) {
+            return '<tr><td>' + esc(p.question) + '</td><td>' + ru(p.from) + ' – ' + ru(p.until) + '</td><td>' + p.options.map(function (o, i) { return esc(o) + ': <b>' + p.votes[i] + '</b>'; }).join('<br>') + '</td><td><button type="button" data-pedit="' + esc(p.id) + '">Изменить</button> <button type="button" data-pdel="' + esc(p.id) + '">Удалить</button></td></tr>';
+        }).join('') + '</table>' : '';
+        var keys = Object.keys(d.sent);
+        $('sent').innerHTML = keys.length ? '<table><tr><th>Письмо</th><th>Ушло</th><th>Не ушло</th><th>Лимит</th><th>Переходы</th><th>Отписки</th></tr>' + keys.map(function (k) {
+            var r = d.sent[k];
+            return '<tr><td>' + ru(r.firstAt) + ' · ' + esc(r.subject || k) + '</td><td>' + (r.sent || 0) + '</td><td>' + (r.failed || 0) + '</td><td>' + (r.skipped || 0) + '</td><td>' + (r.clicks || 0) + '</td><td>' + (r.unsub || 0) + '</td></tr>';
+        }).join('') + '</table>' : '<p class="muted">Пока ничего не отправлено.</p>';
+        $('alertEmail').value = d.settings.alertEmail || '';
+    }
+
+    function campaign() {
+        return { id: $('cId').value, topic: $('cTopic').value, date: $('cDate').value, subject: $('cSubject').value, text: $('cText').value, button: $('cButton').value, url: $('cUrl').value };
+    }
+    function fillCampaign(c) {
+        c = c || {};
+        $('cId').value = c.id || ''; $('cTopic').value = c.topic || 'offers'; $('cDate').value = c.date || '';
+        $('cSubject').value = c.subject || ''; $('cText').value = c.text || ''; $('cButton').value = c.button || ''; $('cUrl').value = c.url || '';
+    }
+    function showPreviews(letters) {
+        $('previewCard').hidden = false;
+        $('previews').innerHTML = '';
+        letters.forEach(function (l) {
+            var h = document.createElement('p');
+            h.innerHTML = '<span class="pill">' + esc(TOPIC[l.topic]) + '</span> <b>' + esc(l.subject) + '</b>';
+            var f = document.createElement('iframe');
+            f.className = 'preview';
+            f.srcdoc = l.html;
+            $('previews').appendChild(h);
+            $('previews').appendChild(f);
+        });
+        $('previewCard').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    $('cPreview').onclick = function () { call({ action: 'preview', letter: { kind: 'campaign', campaign: campaign() } }).then(function (d) { showPreviews(d.letters); }, function (e) { say(e.message, true); }); };
+    $('cTest').onclick = function () { call({ action: 'test', to: $('testTo').value, letter: { kind: 'campaign', campaign: campaign() } }).then(function () { say('Тестовое письмо ушло'); }, function (e) { say(e.message, true); }); };
+    $('cSave').onclick = function () { call({ action: 'campaign_save', campaign: campaign() }).then(function (d) { render(d); fillCampaign(); say('Письмо запланировано'); }, function (e) { say(e.message, true); }); };
+    $('cNew').onclick = function () { fillCampaign(); };
+    $('previewDateBtn').onclick = function () { call({ action: 'preview', letter: { kind: 'date', date: $('previewDate').value } }).then(function (d) { showPreviews(d.letters); }, function (e) { say(e.message, true); }); };
+    $('pSave').onclick = function () {
+        call({ action: 'poll_save', poll: { id: $('pId').value, question: $('pQuestion').value, options: [0, 1, 2, 3].map(function (i) { return $('pO' + i).value; }), from: $('pFrom').value, until: $('pUntil').value } })
+            .then(function (d) { render(d); ['pId', 'pQuestion', 'pO0', 'pO1', 'pO2', 'pO3', 'pFrom', 'pUntil'].forEach(function (id) { $(id).value = ''; }); say('Голосование сохранено'); }, function (e) { say(e.message, true); });
+    };
+    $('alertSave').onclick = function () { call({ action: 'settings', alertEmail: $('alertEmail').value }).then(function (d) { render(d); say('Сохранено'); }, function (e) { say(e.message, true); }); };
+    $('alertsDone').onclick = function () { call({ action: 'alerts_clear' }).then(render, function (e) { say(e.message, true); }); };
+    document.addEventListener('click', function (e) {
+        var t = e.target;
+        if (t.dataset.edit) { fillCampaign(state.campaigns.filter(function (c) { return c.id === t.dataset.edit; })[0]); $('cSubject').scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+        if (t.dataset.del && confirm('Удалить письмо?')) call({ action: 'campaign_delete', id: t.dataset.del }).then(render, function (er) { say(er.message, true); });
+        if (t.dataset.pedit) {
+            var p = state.polls.filter(function (x) { return x.id === t.dataset.pedit; })[0];
+            $('pId').value = p.id; $('pQuestion').value = p.question; $('pFrom').value = p.from; $('pUntil').value = p.until;
+            [0, 1, 2, 3].forEach(function (i) { $('pO' + i).value = p.options[i] || ''; });
+        }
+        if (t.dataset.pdel && confirm('Удалить голосование и его голоса?')) call({ action: 'poll_delete', id: t.dataset.pdel }).then(render, function (er) { say(er.message, true); });
+    });
+    call().then(render, function (e) { $('summary').textContent = e.message; });
+})();
+</script>
+</body>
+</html>

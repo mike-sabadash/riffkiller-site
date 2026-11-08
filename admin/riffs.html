@@ -174,10 +174,12 @@
                     <label class="ed-field"><span>Жанр</span><select id="genre"><option value="rock" selected>rock</option><option value="metal">metal</option><option value="blues">blues</option><option value="country">country</option><option value="punk">punk</option><option value="funk">funk</option><option value="jazz">jazz</option><option value="pop">pop</option><option value="other">other</option></select></label>
                     <div class="ed-checks">
                         <label class="ed-check" id="hiddenLabel"><input type="checkbox" id="hidden" name="hidden"> <span id="hiddenText">Скрыть с сайта</span></label>
+                        <label class="ed-check" title="Рифф не попадёт ни в анонс, ни в письмо в день выхода, ни в «Free this week» в рассылке"><input type="checkbox" id="noMail" name="noMail"> <span>Без писем об этом риффе</span></label>
                     </div>
                     <label class="ed-field"><span>Цена</span><select id="price"><option value="premium">Premium ($9 / Patreon)</option><option value="account">Бесплатно с аккаунтом</option><option value="free">Бесплатно всем</option></select></label>
                     <label class="ed-field"><span>Дата выхода (Premium)</span><input type="date" id="releasedAt"></label>
                     <small class="ed-field span-4" id="freeWeekInfo"></small>
+                    <small class="ed-field span-4" id="mailInfo"></small>
                     <label class="ed-field"><span>Доступ</span><select id="lock"><option value="">Открыт</option><option value="soon">🔒 Закрыт: Soon</option></select></label>
                     <div class="ed-field span-3"><span>Ссылка для тизера в Instagram</span>
                         <div class="ed-drop"><span class="ed-drop-prefix">riffkiller.fun/drop/?r=</span><input type="text" id="dropKey" maxlength="40" placeholder="paranoid" autocomplete="off" spellcheck="false"><button type="button" class="ed-btn" id="dropMake">Придумать</button><button type="button" class="ed-btn" id="dropCopy">Скопировать ссылку</button></div>
@@ -952,6 +954,24 @@
         var f = function (x) { return x.toISOString().slice(0, 10).split('-').reverse().join('.'); };
         info.textContent = 'Бесплатная неделя для зарегистрированных: ' + f(from) + ' – ' + f(until) + '. До и после — только Premium и Patreon.';
     }
+    // Newsletter (config/newsletter.php, docs/NEWSLETTER.md): padlock «Soon» + release date = the riff opens by itself
+    // that day at 10:00 Moscow time; heads-up 2 days before, an email on release day, the free week in a Friday email.
+    function showMailPlan() {
+        var info = document.getElementById('mailInfo');
+        if (!info) return;
+        var date = document.getElementById('releasedAt').value;
+        var lock = document.getElementById('lock').value;
+        var price = document.getElementById('price').value;
+        var f = function (x) { return x.toISOString().slice(0, 10).split('-').reverse().join('.'); };
+        if (document.getElementById('noMail').checked) { info.textContent = 'Писем об этом риффе не будет.'; return; }
+        if (price !== 'premium') { info.textContent = ''; return; }
+        if (!date) { info.textContent = lock === 'soon' ? 'Поставь дату выхода и оставь замок Soon: в этот день рифф откроется сам в 10:00 МСК, а письма уйдут сами (анонс за 2 дня, письмо в день выхода).' : ''; return; }
+        var d = new Date(date + 'T00:00:00Z');
+        var mails = 'Письма: анонс ' + f(new Date(d.getTime() - 2 * 864e5)) + ', выход ' + f(d) + ', «Free this week» ' + f(new Date(d.getTime() + 28 * 864e5)) + ' (в 18:00 по времени читателя, только тем, кто подписался).';
+        var missing = editingRiff ? missingLabel(editingRiff) : '';
+        info.textContent = (lock === 'soon' ? 'Откроется сам ' + f(d) + ' в 10:00 МСК, если готов (видео, части, обложка). ' : '') + mails + (missing ? ' Сейчас не хватает: ' + missing + '.' : '');
+    }
+    ['price', 'releasedAt', 'lock', 'noMail'].forEach(function (id) { document.getElementById(id).addEventListener('change', showMailPlan); });
     document.getElementById('price').addEventListener('change', showFreeWeek);
     document.getElementById('releasedAt').addEventListener('change', showFreeWeek);
 
@@ -969,8 +989,10 @@
         ge.value = g || 'rock';
         document.getElementById('price').value = riff.isFree ? 'free' : (riff.freeWithAccount ? 'account' : 'premium');
         document.getElementById('releasedAt').value = riff.releasedAt || '';
+        document.getElementById('noMail').checked = !!riff.noMail;
         showFreeWeek();
         document.getElementById('lock').value = riff.lock === 'soon' ? 'soon' : '';
+        showMailPlan();
         document.getElementById('dropKey').value = riff.dropKey || '';
         showDropStats();
         document.getElementById('hidden').checked = riff.id ? !!riff.hidden : true;
@@ -1248,7 +1270,7 @@
             videoUpload('lessonVideoUpload') || Promise.resolve(vLesson),
             TabEditor.collect(uploadImage, basePath.replace(/^assets\/video\//, 'assets/tabs/'))
         ]).then(function(r){
-            var riff = Object.assign({}, editingRiff || {}, { song:song, artist:artist, duration: SegmentEditor.duration() || parseFloat(document.getElementById('duration').value)||0, difficulty: document.getElementById('difficulty').value||'intermediate', difficultyScore: getDifficultyScore(), genre: document.getElementById('genre').value.trim()||'rock', isFree: document.getElementById('price').value === 'free', freeWithAccount: document.getElementById('price').value === 'account', releasedAt: document.getElementById('releasedAt').value, lock: document.getElementById('lock').value, dropKey: document.getElementById('dropKey').value.trim().toLowerCase(), hidden: document.getElementById('hidden').checked, dnaReference: document.getElementById('dnaReference').checked, videoFile: r[0]||'', videoFileRight: r[1]||'', thumbnail: r[2]||'assets/img/riff-1.png', lessonVideo: r[3]||vLesson||null, segments: segs, dna: dna, collectionIds: getSelectedCollectionIds() });
+            var riff = Object.assign({}, editingRiff || {}, { song:song, artist:artist, duration: SegmentEditor.duration() || parseFloat(document.getElementById('duration').value)||0, difficulty: document.getElementById('difficulty').value||'intermediate', difficultyScore: getDifficultyScore(), genre: document.getElementById('genre').value.trim()||'rock', isFree: document.getElementById('price').value === 'free', freeWithAccount: document.getElementById('price').value === 'account', releasedAt: document.getElementById('releasedAt').value, noMail: document.getElementById('noMail').checked, lock: document.getElementById('lock').value, dropKey: document.getElementById('dropKey').value.trim().toLowerCase(), hidden: document.getElementById('hidden').checked, dnaReference: document.getElementById('dnaReference').checked, videoFile: r[0]||'', videoFileRight: r[1]||'', thumbnail: r[2]||'assets/img/riff-1.png', lessonVideo: r[3]||vLesson||null, segments: segs, dna: dna, collectionIds: getSelectedCollectionIds() });
             if (r[4]) riff.tab = r[4]; else delete riff.tab;
             if (videoSource) riff.videoSource = videoSource;
             if(editId) riff.id = parseInt(editId,10);

@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex">
+    <script src="js/i18n.js?v=nl1"></script>
+    <title>Riff Killer - Emails</title>
+    <link rel="stylesheet" href="css/fonts.css">
+    <link rel="icon" type="image/svg+xml" href="assets/icons/favicon.svg">
+    <style>
+        html, body { margin: 0; background: #0f0f12; color: #e8e8ef; font-family: Inter, Arial, Helvetica, sans-serif; }
+        main { max-width: 520px; margin: 0 auto; padding: 40px 16px 64px; }
+        .brand { display: inline-block; margin: 0 0 28px; font-size: 14px; color: #8d8d9a; text-decoration: none; }
+        h1 { margin: 0 0 8px; font-size: 24px; line-height: 1.25; color: #fff; }
+        .lead { margin: 0 0 24px; font-size: 15px; line-height: 1.5; color: rgba(255,255,255,.7); }
+        .card { padding: 20px 18px; border-radius: 14px; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.1); }
+        .off { margin: 24px 0 0; font-size: 14px; line-height: 1.5; color: rgba(255,255,255,.6); }
+        a { color: #b28cf0; }
+    </style>
+</head>
+<body>
+    <main>
+        <a class="brand" href="/" translate="no">Riff Killer</a>
+        <h1>Your emails</h1>
+        <p class="lead">Pick what you want to hear about. Changes save as you tap.</p>
+        <div class="card"><div id="rkNewsPrefs"></div></div>
+        <p class="off" id="rkNewsOff"></p>
+    </main>
+    <script src="js/patreon-config.js"></script>
+    <script src="js/auth-manager.js?v=nl1"></script>
+    <script>
+        (function () {
+            var q = new URLSearchParams(location.search);
+            if (!q.get('u') || !q.get('t')) return;
+            var a = document.createElement('a');
+            a.href = '/api/newsletter/unsubscribe.php?u=' + encodeURIComponent(q.get('u')) + '&t=' + encodeURIComponent(q.get('t')) + (q.get('m') ? '&m=' + encodeURIComponent(q.get('m')) : '');
+            a.textContent = 'Unsubscribe from all emails';
+            document.getElementById('rkNewsOff').appendChild(a);
+        })();
+    </script>
+    <script src="js/newsletter.js?v=nl1"></script>
+</body>
+</html>

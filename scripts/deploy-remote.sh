@@ -235,6 +235,15 @@ if [ "$(id -u)" = 0 ] && [ -n "$web_user" ] && [ -n "$php_bin" ] && [ -f "$root/
   note "Practice summary cron: /etc/cron.d/riffkiller-progress-digest (hourly as $web_user)"
 fi
 
+# Newsletter (config/newsletter.php): hourly; opens scheduled riffs at 10:00 Moscow time and sends what is due
+# in each reader's time zone (from 18:00), only to those who opted in.
+if [ "$(id -u)" = 0 ] && [ -n "$web_user" ] && [ -n "$php_bin" ] && [ -f "$root/config/newsletter-cli.php" ]; then
+  printf '# Installed by riffkiller deploy-remote.sh\n12 * * * * %s %s %s/config/newsletter-cli.php 2>&1 | logger -t riffkiller-newsletter\n' \
+    "$web_user" "$php_bin" "$root" > /etc/cron.d/riffkiller-newsletter
+  chmod 644 /etc/cron.d/riffkiller-newsletter
+  note "Newsletter cron: /etc/cron.d/riffkiller-newsletter (hourly as $web_user)"
+fi
+
 ln -sfn "$backup" "$backup_base/last"
 note "Deployed $sha; backup $backup"
 echo "BACKUP_DIR=$backup"

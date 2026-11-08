@@ -24,6 +24,12 @@ if (!isset($_SESSION['admin_promo_logged']) || $_SESSION['admin_promo_logged'] !
     exit;
 }
 
+// Retired 09.11.2026: this sent to every account and marked people without a record as subscribed
+// ("auto-default"). Marketing email needs a separate opt-in, so letters now go only through the newsletter
+// (config/newsletter.php, admin/newsletter.html), which writes to those who turned it on.
+http_response_code(410);
+echo json_encode(['success' => false, 'error' => 'Рассылка теперь в /admin/newsletter.html: письма уходят только тем, кто сам их включил.'], JSON_UNESCAPED_UNICODE);
+exit;
 $body = json_decode(file_get_contents('php://input') ?: '{}', true) ?: [];
 $segment = isset($body['segment']) ? (string)$body['segment'] : 'all';
 $subject = trim((string)($body['subject'] ?? ''));

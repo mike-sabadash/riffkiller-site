@@ -56,5 +56,21 @@ email_campaigns_log_write('resend.' . $type, [
     'note' => isset($data['id']) ? ('message_id: ' . $data['id']) : null,
 ]);
 
+// Complaints and bounces: counted in our own totals; a spam complaint switches every email off for that address
+// (Gmail and Yahoo expect senders to stop writing to people who complain).
+require_once dirname(__DIR__, 2) . '/config/newsletter.php';
+if (preg_match('/complain/i', $type)) {
+    nl_count('mail_complaint');
+    $acc = $email !== '' ? user_find_by_email($email) : null;
+    if ($acc) {
+        nl_set_prefs($acc['id'], nl_empty_topics(), 'complaint');
+        $pf = digest_progress_file($acc['id']);
+        $pg = digest_load_json($pf, null);
+        if (is_array($pg) && !empty($pg['email'])) { $pg['email'] = false; digest_save_json($pf, $pg); }
+    }
+} elseif (preg_match('/bounce/i', $type)) {
+    nl_count('mail_bounce');
+}
+
 echo json_encode(['success' => true]);
 

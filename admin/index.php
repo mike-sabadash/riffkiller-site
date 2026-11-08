@@ -16,6 +16,7 @@ require_once $projectRoot . '/config/subscription-store.php';
 require_once $projectRoot . '/config/email-subscriptions.php';
 require_once $projectRoot . '/config/email-campaigns.php';
 require_once $projectRoot . '/config/email-templates.php';
+require_once $projectRoot . '/config/newsletter.php';
 require_once $projectRoot . '/config/test-accounts.php';
 
 $adminPass = getenv('ADMIN_PASSWORD') ?: (isset($_ENV['ADMIN_PASSWORD']) ? $_ENV['ADMIN_PASSWORD'] : '');
@@ -458,7 +459,7 @@ $codes = promo_list_all();
                             <td>
                                 <?php echo htmlspecialchars($u['email'] ?? '-'); ?>
                                 <div class="muted" style="font-size:12px;">
-                                    marketing: <?php echo ($pref && array_key_exists('marketing_consent', $pref) && !$pref['marketing_consent']) ? 'unsubscribed' : 'subscribed'; ?>
+                                    рассылка: <?php $nlp = nl_prefs((string)($u['id'] ?? '')); echo nl_any($nlp) ? htmlspecialchars(implode(', ', array_keys(array_filter($nlp['topics'])))) : 'нет согласия'; ?>
                                 </div>
                             </td>
                             <td><?php echo htmlspecialchars($u['name'] ?? '-'); ?></td>
@@ -478,135 +479,7 @@ $codes = promo_list_all();
             </div>
         </section>
         <?php elseif ($section === 'emails'): ?>
-        <section>
-            <h2>Email-рассылки</h2>
-            <div class="card" style="margin-bottom:16px;">
-                <h3 style="margin:0 0 12px;">Шаблоны писем (HTML/TXT)</h3>
-                <form method="post">
-                    <input type="hidden" name="action" value="save_email_template">
-                    <div class="form-row">
-                        <label>Template key</label>
-                        <input name="template_key" id="templateKey" type="text" placeholder="welcome_campaign" value="<?php echo htmlspecialchars($activeTemplate['key'] ?? ''); ?>" style="width:260px;max-width:100%;">
-                        <span class="muted" style="font-size:12px;">латиница/цифры/_</span>
-                    </div>
-                    <div class="form-row">
-                        <label>Название</label>
-                        <input name="template_name" id="templateName" type="text" placeholder="Welcome campaign" value="<?php echo htmlspecialchars($activeTemplate['name'] ?? ''); ?>" style="width:320px;max-width:100%;">
-                    </div>
-                    <div class="form-row">
-                        <label>Subject</label>
-                        <input name="template_subject" id="templateSubject" type="text" placeholder="Subject with {{user_name}}" value="<?php echo htmlspecialchars($activeTemplate['subject'] ?? ''); ?>" style="width:520px;max-width:100%;">
-                    </div>
-                    <div class="form-row" style="align-items:flex-start;">
-                        <label>TXT</label>
-                        <textarea name="template_text" id="templateText" rows="5" placeholder="Hello {{user_name}} ... {{unsubscribe_url}}" style="width:640px;max-width:100%;padding:10px 12px;border-radius:6px;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.05);color:#fff;"><?php echo htmlspecialchars($activeTemplate['text'] ?? ''); ?></textarea>
-                    </div>
-                    <div class="form-row" style="align-items:flex-start;">
-                        <label>HTML</label>
-                        <textarea name="template_html" id="templateHtml" rows="8" placeholder="<h2>{{subject}}</h2><p>{{text_html}}</p><a href='{{unsubscribe_url}}'>Unsubscribe</a>" style="width:640px;max-width:100%;padding:10px 12px;border-radius:6px;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.05);color:#fff;"><?php echo htmlspecialchars($activeTemplate['html'] ?? ''); ?></textarea>
-                    </div>
-                    <button type="submit" class="btn btn-primary">Сохранить шаблон</button>
-                </form>
-                <?php if ($activeTemplate): ?>
-                <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;">
-                    <a class="btn" href="?section=emails&download_template=<?php echo urlencode($activeTemplate['key']); ?>">Экспорт JSON</a>
-                    <form method="post" onsubmit="return confirm('Удалить шаблон?');" style="display:inline;">
-                        <input type="hidden" name="action" value="delete_email_template">
-                        <input type="hidden" name="template_key" value="<?php echo htmlspecialchars($activeTemplate['key']); ?>">
-                        <button type="submit" class="btn">Удалить шаблон</button>
-                    </form>
-                </div>
-                <?php endif; ?>
-                <div style="margin-top:12px;border-top:1px solid rgba(255,255,255,0.1);padding-top:12px;">
-                    <details>
-                        <summary style="cursor:pointer;color:rgba(255,255,255,0.8);">Импорт шаблона из JSON</summary>
-                        <form method="post" style="margin-top:10px;">
-                            <input type="hidden" name="action" value="import_email_template">
-                            <textarea name="template_json" rows="8" placeholder='{"key":"welcome","name":"Welcome","subject":"...","text":"...","html":"..."}' style="width:640px;max-width:100%;padding:10px 12px;border-radius:6px;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.05);color:#fff;"></textarea>
-                            <div style="margin-top:8px;"><button type="submit" class="btn">Импортировать</button></div>
-                        </form>
-                    </details>
-                </div>
-                <?php if (!empty($emailTemplates)): ?>
-                <div style="margin-top:10px;">
-                    <span class="muted">Готовые шаблоны:</span>
-                    <?php foreach ($emailTemplates as $tk => $tv): ?>
-                        <a href="?section=emails&tpl=<?php echo urlencode($tk); ?>" style="margin-left:8px;"><?php echo htmlspecialchars($tv['name'] ?: $tk); ?></a>
-                    <?php endforeach; ?>
-                </div>
-                <?php endif; ?>
-                <div class="muted" style="margin-top:10px;font-size:12px;">
-                    Переменные: {{email}}, {{user_name}}, {{subject}}, {{text}}, {{text_html}}, {{unsubscribe_url}}, {{campaign_id}}, {{segment}}
-                </div>
-            </div>
-            <div class="card" style="margin-bottom:16px;">
-                <div class="form-row">
-                    <label>Сегмент</label>
-                    <select id="campaignSegment" style="padding:8px 12px;border-radius:6px;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.05);color:#fff;">
-                        <option value="all">all users</option>
-                        <option value="active">active subscribers</option>
-                        <option value="inactive">inactive users</option>
-                    </select>
-                </div>
-                <div class="form-row">
-                    <label>Шаблон</label>
-                    <select id="campaignTemplate" style="padding:8px 12px;border-radius:6px;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.05);color:#fff;">
-                        <option value="">(без шаблона)</option>
-                        <?php foreach ($emailTemplates as $tk => $tv): ?>
-                        <option value="<?php echo htmlspecialchars($tk); ?>" <?php echo ($activeTemplate && ($activeTemplate['key'] ?? '') === $tk) ? 'selected' : ''; ?>><?php echo htmlspecialchars(($tv['name'] ?? '') !== '' ? $tv['name'] : $tk); ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
-                <div class="form-row">
-                    <label>Тема</label>
-                    <input id="campaignSubject" type="text" placeholder="Subject" value="<?php echo htmlspecialchars($activeTemplate['subject'] ?? ''); ?>" style="width:420px;max-width:100%;">
-                </div>
-                <div class="form-row" style="align-items:flex-start;">
-                    <label>Текст</label>
-                    <textarea id="campaignText" rows="7" placeholder="Message text..." style="width:640px;max-width:100%;padding:10px 12px;border-radius:6px;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.05);color:#fff;"><?php echo htmlspecialchars($activeTemplate['text'] ?? ''); ?></textarea>
-                </div>
-                <button type="button" class="btn btn-primary" id="btnSendCampaign">Отправить кампанию</button>
-                <div id="campaignResult" class="muted" style="margin-top:10px;"></div>
-                <div class="muted" style="margin-top:10px;font-size:12px;">
-                    Требуются ENV: RESEND_API_KEY, RESEND_FROM_EMAIL.
-                </div>
-            </div>
-
-            <div class="card">
-                <h3 style="margin:0 0 12px;">Лог email-кампаний</h3>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Время</th>
-                            <th>Событие</th>
-                            <th>Campaign ID</th>
-                            <th>Email</th>
-                            <th>Segment</th>
-                            <th>Status</th>
-                            <th>Provider</th>
-                            <th>Note</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php foreach ($emailCampaigns as $e): ?>
-                        <tr>
-                            <td><?php echo htmlspecialchars($e['ts'] ?? '-'); ?></td>
-                            <td><?php echo htmlspecialchars($e['event'] ?? '-'); ?></td>
-                            <td><code><?php echo htmlspecialchars($e['campaign_id'] ?? '-'); ?></code></td>
-                            <td><?php echo htmlspecialchars($e['email'] ?? '-'); ?></td>
-                            <td><?php echo htmlspecialchars($e['segment'] ?? '-'); ?></td>
-                            <td><?php echo htmlspecialchars($e['status'] ?? '-'); ?></td>
-                            <td><?php echo htmlspecialchars($e['provider'] ?? '-'); ?></td>
-                            <td><?php echo htmlspecialchars($e['note'] ?? '-'); ?></td>
-                        </tr>
-                        <?php endforeach; ?>
-                        <?php if (empty($emailCampaigns)): ?>
-                        <tr><td colspan="8">Пока нет событий email-кампаний.</td></tr>
-                        <?php endif; ?>
-                    </tbody>
-                </table>
-            </div>
-        </section>
+        <iframe src="/admin/newsletter.html" title="Рассылка"></iframe>
         <?php else: ?>
         <section>
             <h2>Создать промокод</h2>
