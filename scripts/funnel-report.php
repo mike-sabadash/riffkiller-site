@@ -157,15 +157,16 @@ foreach ($logFiles as $f) {
             elseif (in_array($path, ['/terms.html', '/privacy.html', '/consent.html'], true)) $page = 'legal';
             elseif (strpos($path, '/assets/video/') === 0 || $path === '/video.php') $page = 'video';
         }
+        if (strpos($path, '/api/auth/') === 0 || strpos($path, '/patreon-') === 0) { $GLOBALS['authDetail']['statusByPath'][$meth . ' ' . $path . ' ' . $status] = ($GLOBALS['authDetail']['statusByPath'][$meth . ' ' . $path . ' ' . $status] ?? 0) + 1; }
         if (strpos($path, '/api/auth/email-register.php') === 0 && $meth === 'POST') $page = $ok ? 'regEmailOk' : 'regEmailFail';
         elseif (strpos($path, '/api/auth/email-login.php') === 0 && $meth === 'POST') $page = $ok ? 'loginEmailOk' : 'loginEmailFail';
         elseif (strpos($path, '/api/auth/magic-request.php') === 0) $page = 'magicRequest';
         elseif (strpos($path, '/api/auth/magic-verify.php') === 0) $page = 'magicVerify';
         elseif (strpos($path, '/api/auth/google-login.php') === 0) $page = 'googleStart';
-        elseif (strpos($path, '/api/auth/google-callback.php') === 0) $page = 'googleBack';
+        elseif (strpos($path, '/api/auth/google-callback.php') === 0) { $page = 'googleBack'; parse_str($q, $qq); $kind = isset($qq['error']) ? 'error=' . substr((string)$qq['error'], 0, 30) : (isset($qq['code']) ? 'code' : 'none'); $GLOBALS['authDetail']['googleCallback'][$kind . ' ' . $status] = ($GLOBALS['authDetail']['googleCallback'][$kind . ' ' . $status] ?? 0) + 1; }
         elseif (strpos($path, '/api/auth/yandex-login.php') === 0) $page = 'yandexStart';
         elseif (strpos($path, '/api/auth/yandex-callback.php') === 0) $page = 'yandexBack';
-        elseif (strpos($path, '/patreon-callback.html') === 0) $page = 'patreonBack';
+        elseif (strpos($path, '/patreon-callback.html') === 0) { $page = 'patreonBack'; parse_str($q, $qq); $kind = isset($qq['error']) ? 'error=' . substr((string)$qq['error'], 0, 30) : (isset($qq['code']) ? 'code' : 'none'); $GLOBALS['authDetail']['patreonCallback'][$kind] = ($GLOBALS['authDetail']['patreonCallback'][$kind] ?? 0) + 1; }
         elseif (strpos($path, '/patreon-exchange.php') === 0) $page = 'patreonExchange';
         elseif (strpos($path, '/api/progress.php') === 0 && $meth === 'POST' && $ok) $page = 'progressSave';
         elseif (strpos($path, '/api/riffs/drop.php') === 0 && $meth === 'POST') $page = 'dropSignupPing';
@@ -218,5 +219,6 @@ ksort($daily);
 $adminKeys = array_filter($V, function ($v) { return !empty($v['admin']); });
 $dd = [];
 foreach ($daily as $d => $pages) foreach ($pages as $p => $ks) $dd[$d][$p] = count(array_diff_key($ks, $adminKeys));
+$out['authDetail'] = $GLOBALS['authDetail'] ?? [];
 $out['access'] = ['range' => $range, 'lines' => $lines, 'parsed' => $parsed, 'summary' => $sum, 'dailyUniqueVisitors' => $dd];
 echo json_encode($out, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), "\n";
