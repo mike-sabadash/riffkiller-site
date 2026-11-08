@@ -14,6 +14,8 @@
     // Paths are resolved from this script, so the admin (one folder down) loads the same files.
     var script = typeof document !== 'undefined' && document.currentScript;
     var BASE = script && script.src ? script.src.replace(/js\/tab-live\.js.*$/, '') : '';
+    // Size of the live tab when the page sets none (the admin preview); the practice page sets it in css/riff-dna.css.
+    var DEFAULT_SCALE = 0.85;
     var LIB = BASE + 'js/vendor/alphatab/alphaTab.min.js?v=1.6.3';
     var FONTS = BASE + 'js/vendor/alphatab/font/';
 
@@ -265,7 +267,7 @@
                 display: {
                     layoutMode: at.LayoutMode.Horizontal,
                     staveProfile: at.StaveProfile.TabMixed, // tab only, without time signatures and rests
-                    scale: 1,
+                    scale: parseFloat(getComputedStyle(host).getPropertyValue('--tab-live-scale')) || DEFAULT_SCALE,
                     padding: [8, 4, 8, 4],
                     firstSystemPaddingTop: 0,
                     systemPaddingTop: 0,
@@ -358,27 +360,17 @@
             cursor.style.bottom = 'auto';
         }
 
-        // One size for the whole riff, so the strip does not jump between parts: about three bars across the
-        // strip (at the riff's average bar width), never so small that fret numbers get hard to read on a phone.
-        // Worked out once from the first part shown, again only when the strip itself changes width (rotation).
-        var riffScale = 0, scaledFor = 0;
+        // One fixed size for every riff, so fret numbers look the same in Black Dog, Paranoid, Iron Man and any
+        // future riff: the scale comes from the CSS (--tab-live-scale, smaller on phones), never from the notes.
+        // Sparse bars (a whole note with a bend) used to blow the tab up to 1.6x; bends above the tab only make the
+        // strip a little taller, they do not change the size of the numbers. Read again on every draw, so a phone
+        // turned sideways picks up the other size.
         function fitWidth() {
             if (!layout.length) return;
-            var width = host.clientWidth;
-            if (!width) return;
             var s = api.settings.display.scale;
-            if (!riffScale || Math.abs(width - scaledFor) > 40) {
-                var bars = 0;
-                layout.forEach(function (b) { bars += b.x1 - b.x0; });
-                var perBar = bars / layout.length / s;
-                var system = api.renderer.boundsLookup.staffSystems[0];
-                var tall = system ? (system.realBounds.y + system.realBounds.h) / s : 0;
-                var maxHeight = parseFloat(getComputedStyle(host).getPropertyValue('--tab-live-max-h')) || 160;
-                riffScale = Math.max(0.8, Math.min(1.6, (width - 16) / (3 * perBar), tall ? maxHeight / tall : 1.6));
-                scaledFor = width;
-            }
-            if (Math.abs(riffScale - s) < 0.01) return;
-            api.settings.display.scale = riffScale;
+            var target = parseFloat(getComputedStyle(host).getPropertyValue('--tab-live-scale')) || DEFAULT_SCALE;
+            if (Math.abs(target - s) < 0.01) return;
+            api.settings.display.scale = target;
             api.updateSettings();
             render();
         }
