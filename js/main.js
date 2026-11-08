@@ -365,12 +365,13 @@ document.addEventListener('DOMContentLoaded', () => {
         initRiffs();
         renderHomeHero();
         renderContinueRow();
+        renderFreeWeekRow();
         renderFavoritesRow();
         if (window.RKFavorites) window.RKFavorites.onChange(renderFavoritesRow);
         // Подписка известна только после загрузки сессии — перерисовываем замки и CTA
         const auth = window.authManager;
         if (auth && auth.ready && typeof auth.ready.then === 'function') {
-            auth.ready.then(() => { initRiffs(); renderHomeHero(); renderContinueRow(); if (document.getElementById('favoritesGrid')) document.getElementById('favoritesGrid').dataset.ids = ''; renderFavoritesRow(); }).catch(() => {});
+            auth.ready.then(() => { initRiffs(); renderHomeHero(); renderContinueRow(); renderFreeWeekRow(); if (document.getElementById('favoritesGrid')) document.getElementById('favoritesGrid').dataset.ids = ''; renderFavoritesRow(); }).catch(() => {});
         }
     }
     function applyCollectionsFromApi(cols) {
@@ -542,13 +543,50 @@ function renderHomeHero() {
     const byId = id => appState.riffsDatabase.find(r => String(r.id) === String(id));
     const open = r => r && !(r.lock && !r.adminView);
     const last = (appState.recentlyPracticed || []).map(r => byId(r.id)).find(open);
-    const free = appState.riffsDatabase.find(r => r.isFree && open(r));
+    const free = appState.riffsDatabase.find(r => r.isFree && open(r)) || appState.riffsDatabase.find(r => r.accountFree && open(r));
     const target = last || free;
     if (target) {
         primary.textContent = last ? `Continue ${target.song}` : `Start free: ${target.song}`;
         primary.href = `practice.html?riff=${target.id}`;
     }
     if (secondary) secondary.hidden = hasActiveSubscription();
+}
+
+// «Free this week» with its end date and «Free next week» with its start (the Epic Games Store pattern: what is free
+// now, until when, and what is free next). Dates come from the API (config/riff-access.php).
+function rkShortDate(iso) {
+    const m = String(iso || '').match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (!m) return '';
+    return ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][+m[2] - 1] + ' ' + (+m[3]);
+}
+function renderFreeWeekRow() {
+    const section = document.getElementById('freeWeekSection');
+    const grid = document.getElementById('freeWeekGrid');
+    if (!section || !grid || !window.RiffKillerRiffGallery) return;
+    const open = r => r && !(r.lock && !r.adminView);
+    const now = appState.riffsDatabase.filter(r => open(r) && r.freeWeekUntil);
+    const next = appState.riffsDatabase.filter(r => open(r) && r.freeNextFrom);
+    grid.innerHTML = '';
+    now.forEach(riff => {
+        const card = window.RiffKillerRiffGallery.createCard(riff, {
+            extraMetaHtml: '<div class="riff-progress-note free-week-note">Free until ' + rkShortDate(riff.freeWeekUntil) + '</div>',
+            onNavigate() { window.location.href = `practice.html?riff=${riff.id}`; }
+        });
+        grid.appendChild(card);
+    });
+    next.forEach(riff => {
+        const card = window.RiffKillerRiffGallery.createCard(riff, {
+            locked: window.RiffKillerRiffGallery.accessOf(riff) === 'premium',
+            extraMetaHtml: '<div class="riff-progress-note free-week-note free-week-note--next">Free from ' + rkShortDate(riff.freeNextFrom) + '</div>',
+            onNavigate() {
+                if (window.RiffKillerRiffGallery.accessOf(riff) === 'open') { window.location.href = `practice.html?riff=${riff.id}`; return; }
+                if (window.rkCount) window.rkCount('gate:next_week');
+                window.location.href = 'billing.html';
+            }
+        });
+        grid.appendChild(card);
+    });
+    section.hidden = now.length + next.length === 0;
 }
 
 function renderContinueRow() {
@@ -587,27 +625,21 @@ function createRiffCard(riff) {
         console.error('RiffKillerRiffGallery missing; include js/riff-gallery-card.js before main.js');
         return document.createElement('div');
     }
-    return window.RiffKillerRiffGallery.createCard(riff, {
-        locked: !riff.isFree && !riff.adminView && !hasActiveSubscription(),
+    const G = window.RiffKillerRiffGallery;
+    const go = () => {
+        appState.currentRiffId = riff.id;
+        saveAppState();
+        document.body.style.opacity = '0.7';
+        setTimeout(() => { window.location.href = `practice.html?riff=${riff.id}`; }, 200);
+    };
+    return G.createCard(riff, {
+        // Premium riff without a plan: padlock up front. A riff free with an account shows its Free tag instead.
+        locked: G.accessOf(riff) === 'premium',
         onNavigate() {
-            if (riff.isFree || riff.adminView) {
-                appState.currentRiffId = riff.id;
-                saveAppState();
-                document.body.style.opacity = '0.7';
-                setTimeout(() => { window.location.href = `practice.html?riff=${riff.id}`; }, 200);
-                return;
-            }
-            const hasSubscription =
-                window.patreonAuth &&
-                typeof window.patreonAuth.hasActiveSubscription === 'function' &&
-                window.patreonAuth.hasActiveSubscription();
-            if (hasSubscription) {
-                appState.currentRiffId = riff.id;
-                saveAppState();
-                document.body.style.opacity = '0.7';
-                setTimeout(() => { window.location.href = `practice.html?riff=${riff.id}`; }, 200);
-                return;
-            }
+            const access = G.accessOf(riff);
+            // Open, or free once signed in: the practice page shows the riff or asks for the free sign-up.
+            if (access !== 'premium') return go();
+            if (window.rkCount) window.rkCount('gate:premium_card');
             window.location.href = 'billing.html';
         }
     });

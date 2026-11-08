@@ -13,6 +13,9 @@
         if (d > 1 && d < 5) return few;
         return many;
     }
+    function ruMonth(m) {
+        return { Jan: 'января', Feb: 'февраля', Mar: 'марта', Apr: 'апреля', May: 'мая', Jun: 'июня', Jul: 'июля', Aug: 'августа', Sep: 'сентября', Oct: 'октября', Nov: 'ноября', Dec: 'декабря' }[m] || m;
+    }
 
     window.RK_I18N.register({
         exact: {
@@ -31,6 +34,15 @@
             "Riff Killer - Patreon Authorization": "Riff Killer — вход через Patreon",
             "Privacy Policy - Riff Killer": "Политика конфиденциальности — Riff Killer",
             "Terms of Service - Riff Killer": "Условия использования — Riff Killer",
+            "Free this week": "Бесплатно на этой неделе",
+            "Free with account": "Бесплатно с аккаунтом",
+            "Free with a free account": "Бесплатно с бесплатным аккаунтом",
+            "Every week one Premium riff is free with a free account.": "Каждую неделю один Premium-рифф бесплатен с бесплатным аккаунтом.",
+            "Sign up free to open this riff and save your stars.": "Зарегистрируйтесь бесплатно, чтобы открыть этот рифф и сохранить звёзды.",
+            "Sign up free": "Зарегистрироваться бесплатно",
+            "Premium riff": "Premium-рифф",
+            "The full library and a new riff every week. Plans from $9 a month, or join on Patreon.": "Вся библиотека и новый рифф каждую неделю. Тарифы от $9 в месяц или подписка на Patreon.",
+            "Keep it with Premium": "Оставить с Premium",
             "Riffs": "Риффы",
             "Practice": "Практика",
             "Profile": "Профиль",
@@ -920,6 +932,11 @@
             "Sign up with email instead": "Зарегистрироваться по email"
         },
         patterns: [
+        // Free vs Premium dates (main.js / practice.js rkShortDate: "Dec 17").
+        [/^Free until (\w{3}) (\d+)$/, function (m) { return 'Бесплатно до ' + m[2] + ' ' + ruMonth(m[1]); }],
+        [/^Free from (\w{3}) (\d+)$/, function (m) { return 'Бесплатно с ' + m[2] + ' ' + ruMonth(m[1]); }],
+        [/^Free until (\w{3}) (\d+) with a free account\. Then it is Premium\.$/, function (m) { return 'Бесплатно до ' + m[2] + ' ' + ruMonth(m[1]) + ' с бесплатным аккаунтом. Потом — Premium.'; }],
+        [/^Free this week · until (\w{3}) (\d+)\. Then it is Premium\.$/, function (m) { return 'Бесплатно на этой неделе · до ' + m[2] + ' ' + ruMonth(m[1]) + '. Потом — Premium.'; }],
         // Technique details from the tab (js/tab-atoms.js): "fret 5, D string", "frets 2 and 0, D, A strings, 3 notes".
         [/^(?:frets? ([\d–]+)(?: and (\d+))?, )?((?:[A-Ga-g]#?, )*[A-Ga-g]#?) strings?((?:, [^,]+)*)$/, function (m) {
             var words = { 'quarter tone': 'на четверть тона', 'half step': 'на полтона', 'three-quarter tone': 'на три четверти тона', 'whole step': 'на тон', 'one and a half steps': 'на полтора тона', 'two steps': 'на два тона' };

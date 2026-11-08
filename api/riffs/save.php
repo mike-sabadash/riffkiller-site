@@ -94,6 +94,7 @@ if ($accessError !== null) {
     exit();
 }
 $riff['lock'] = riff_lock($riff);
+$riff = riff_access_normalize($riff);
 $riff['dropKey'] = riff_drop_key_normalize($riff['dropKey'] ?? '');
 unset($riff['adminView']);
 $riff['collectionIds'] = array_values(array_unique(array_filter(array_map('intval', $riff['collectionIds'] ?? []), function($n) { return $n > 0; })));

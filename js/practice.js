@@ -379,6 +379,89 @@ function showRiffLockedState(riff) {
     el.classList.add('video-soon-state--locked');
 }
 
+function rkShortDate(iso) {
+    var m = String(iso || '').match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (!m) return '';
+    return ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][+m[2] - 1] + ' ' + (+m[3]);
+}
+
+// The riff's free week, for a student without Premium: the end date up front and a way to keep it (Epic/Rocksmith:
+// say exactly until when, and what happens after).
+function showFreeWeekBar(riff) {
+    if (!riff || !riff.freeWeekUntil || riff.adminView || document.getElementById('freeWeekBar')) return;
+    var auth = window.authManager;
+    if (auth && typeof auth.hasActiveSubscription === 'function' && auth.hasActiveSubscription()) return;
+    var header = document.querySelector('.practice-header');
+    if (!header) return;
+    var bar = document.createElement('div');
+    bar.className = 'free-week-bar';
+    bar.id = 'freeWeekBar';
+    bar.innerHTML = '<span class="free-week-bar-text"></span><a class="free-week-bar-link" href="billing.html">Keep it with Premium</a>';
+    bar.querySelector('.free-week-bar-text').textContent = 'Free this week · until ' + rkShortDate(riff.freeWeekUntil) + '. Then it is Premium.';
+    bar.querySelector('a').addEventListener('click', function () { if (window.rkCount) window.rkCount('gate:free_week_keep'); });
+    header.appendChild(bar);
+}
+
+/**
+ * Free vs Premium gate (docs/FREE_PREMIUM.md): the cover with what opens the riff. Free with an account — sign up and
+ * the page reloads into the riff; Premium — plans, or log in for those who already pay (Patreon included).
+ */
+function showRiffGateState(riff, access) {
+    showVideoSoonState(riff);
+    const el = document.getElementById('videoSoonState');
+    if (!el) return;
+    const auth = window.authManager;
+    const title = el.querySelector('.video-soon-title');
+    const text = el.querySelector('.video-soon-text');
+    const back = el.querySelector('a.video-retry-btn');
+    el.classList.add('video-soon-state--gate');
+    if (window.rkCount) window.rkCount('gate:' + access);
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'video-retry-btn video-gate-btn';
+    const login = document.createElement('button');
+    login.type = 'button';
+    login.className = 'video-gate-login';
+    login.textContent = 'Log in';
+    if (access === 'account') {
+        if (title) title.textContent = riff.freeWeekUntil ? 'Free this week' : 'Free with a free account';
+        if (text) text.textContent = riff.freeWeekUntil
+            ? 'Free until ' + rkShortDate(riff.freeWeekUntil) + ' with a free account. Then it is Premium.'
+            : 'Sign up free to open this riff and save your stars.';
+        button.textContent = 'Sign up free';
+        button.addEventListener('click', function () {
+            if (window.rkCount) window.rkCount('gate:account_signup');
+            try { localStorage.setItem('rkDropReturn', JSON.stringify({ url: location.pathname + location.search, at: Date.now() })); } catch (e) {}
+            if (auth && typeof auth.showAuthModal === 'function') auth.showAuthModal('signup', 'gate');
+        });
+    } else {
+        if (title) title.textContent = 'Premium riff';
+        if (text) text.textContent = 'The full library and a new riff every week. Plans from $9 a month, or join on Patreon.';
+        button.textContent = 'See plans';
+        button.addEventListener('click', function () {
+            if (window.rkCount) window.rkCount('gate:premium_plans');
+            location.href = 'billing.html';
+        });
+    }
+    login.addEventListener('click', function () {
+        try { localStorage.setItem('rkDropReturn', JSON.stringify({ url: location.pathname + location.search, at: Date.now() })); } catch (e) {}
+        if (auth && typeof auth.showAuthModal === 'function') auth.showAuthModal('login', 'gate');
+    });
+    if (back) {
+        el.insertBefore(button, back);
+        el.insertBefore(login, back);
+    } else {
+        el.appendChild(button);
+        el.appendChild(login);
+    }
+    // Signed in or paid while on the page: open the riff.
+    if (auth && typeof auth.addListener === 'function') {
+        auth.addListener(function () {
+            if (window.RiffKillerRiffGallery.accessOf(riff) === 'open') location.reload();
+        });
+    }
+}
+
 /**
  * Focus mode for a teaser link: only this riff, no site navigation (css: html.rk-drop). A guest plays the whole
  * riff; «Start free» saves the progress. Once signed in, one way out appears: «More riffs».
@@ -581,6 +664,15 @@ function initPracticePage() {
                 loadRecentlyPracticedRiffs();
                 return;
             }
+            // Free vs Premium (config/riff-access.php): a free sign-up or a plan opens the riff.
+            var access = window.RiffKillerRiffGallery && RiffKillerRiffGallery.accessOf ? RiffKillerRiffGallery.accessOf(currentRiff) : 'open';
+            if (access !== 'open') {
+                updateTitle();
+                showRiffGateState(currentRiff, access);
+                loadRecentlyPracticedRiffs();
+                return;
+            }
+            showFreeWeekBar(currentRiff);
         }
         if (currentRiff.segments && currentRiff.segments.length) {
             console.log('[RiffKiller] SEGMENTS_FROM_DATA (admin timing):', JSON.stringify(currentRiff.segments.map(function(s, i) { return (i + 1) + ': ' + Number(s.start) + '-' + Number(s.end); })));
@@ -647,12 +739,6 @@ function initPracticePage() {
                     .catch(function() { showVideoErrorState(); });
             }
         });
-        var hasPremiumAccess = window.patreonAuth &&
-            typeof window.patreonAuth.hasActiveSubscription === 'function' &&
-            window.patreonAuth.hasActiveSubscription();
-        if (!currentRiff.isFree && !hasPremiumAccess && !dropValid && !currentRiff.adminView) {
-            showPatreonUpgradeModal();
-        }
     }
 
     var dropCheck = !dropKey ? Promise.resolve() : fetch('/api/riffs/drop.php?k=' + encodeURIComponent(dropKey))

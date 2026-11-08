@@ -92,7 +92,7 @@ $drops = jload("$root/data/drops.json") ?? [];
 $dr = [];
 foreach ($drops as $k => $row) $dr[] = ['riff' => $keyToSong[$k] ?? '(old key)', 'opens' => (int)($row['opens'] ?? 0), 'signups' => (int)($row['signups'] ?? 0), 'lastOpen' => $row['lastOpen'] ?? null];
 $out['drops'] = $dr;
-$out['riffs'] = array_values(array_map(function ($r) { return ['id' => $r['id'] ?? null, 'song' => $r['song'] ?? '', 'free' => !empty($r['isFree']), 'lock' => $r['lock'] ?? '', 'hidden' => !empty($r['hidden']), 'drop' => !empty($r['dropKey']), 'parts' => count((array)($r['segments'] ?? []))]; }, array_filter((array)$riffs, 'is_array')));
+$out['riffs'] = array_values(array_map(function ($r) { return ['id' => $r['id'] ?? null, 'song' => $r['song'] ?? '', 'free' => !empty($r['isFree']), 'freeWithAccount' => !empty($r['freeWithAccount']), 'releasedAt' => $r['releasedAt'] ?? '', 'lock' => $r['lock'] ?? '', 'hidden' => !empty($r['hidden']), 'drop' => !empty($r['dropKey']), 'parts' => count((array)($r['segments'] ?? []))]; }, array_filter((array)$riffs, 'is_array')));
 
 /* ---------- Own page counters (data/stats/, added 2026-11) ---------- */
 $st = [];

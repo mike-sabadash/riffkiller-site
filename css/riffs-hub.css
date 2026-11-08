@@ -1334,3 +1334,7 @@ body.riffs-hub .riff-difficulty--intermediate-plus::before,
 .rk-riff-gallery .riff-difficulty--intermediate-plus::before {
     background: #f97316;
 }
+
+/* Free this week / next week row (main.js renderFreeWeekRow) */
+body.riffs-hub .free-week-note { color: #8fdc92; }
+body.riffs-hub .free-week-note--next { color: rgba(244, 247, 255, 0.6); }

@@ -12,6 +12,11 @@ keys = [t[0] for t in T]
 dups = {k for k in keys if keys.count(k) > 1}
 assert not dups, dups
 RU_PATTERNS = r"""
+        // Free vs Premium dates (main.js / practice.js rkShortDate: "Dec 17").
+        [/^Free until (\w{3}) (\d+)$/, function (m) { return 'Бесплатно до ' + m[2] + ' ' + ruMonth(m[1]); }],
+        [/^Free from (\w{3}) (\d+)$/, function (m) { return 'Бесплатно с ' + m[2] + ' ' + ruMonth(m[1]); }],
+        [/^Free until (\w{3}) (\d+) with a free account\. Then it is Premium\.$/, function (m) { return 'Бесплатно до ' + m[2] + ' ' + ruMonth(m[1]) + ' с бесплатным аккаунтом. Потом — Premium.'; }],
+        [/^Free this week · until (\w{3}) (\d+)\. Then it is Premium\.$/, function (m) { return 'Бесплатно на этой неделе · до ' + m[2] + ' ' + ruMonth(m[1]) + '. Потом — Premium.'; }],
         // Technique details from the tab (js/tab-atoms.js): "fret 5, D string", "frets 2 and 0, D, A strings, 3 notes".
         [/^(?:frets? ([\d–]+)(?: and (\d+))?, )?((?:[A-Ga-g]#?, )*[A-Ga-g]#?) strings?((?:, [^,]+)*)$/, function (m) {
             var words = { 'quarter tone': 'на четверть тона', 'half step': 'на полтона', 'three-quarter tone': 'на три четверти тона', 'whole step': 'на тон', 'one and a half steps': 'на полтора тона', 'two steps': 'на два тона' };
@@ -115,6 +120,11 @@ RU_PATTERNS = r"""
         [/^Left hand: (.+) · Right hand: (.+)$/, function (m, part) { return 'Левая рука: ' + part(m[1]).replace('MB', 'МБ') + ' · Правая рука: ' + part(m[2]).replace('MB', 'МБ'); }]
 """
 ES_PATTERNS = r"""
+        // Free vs Premium dates (main.js / practice.js rkShortDate: "Dec 17").
+        [/^Free until (\w{3}) (\d+)$/, function (m) { return 'Gratis hasta el ' + m[2] + ' de ' + esMonth(m[1]); }],
+        [/^Free from (\w{3}) (\d+)$/, function (m) { return 'Gratis desde el ' + m[2] + ' de ' + esMonth(m[1]); }],
+        [/^Free until (\w{3}) (\d+) with a free account\. Then it is Premium\.$/, function (m) { return 'Gratis hasta el ' + m[2] + ' de ' + esMonth(m[1]) + ' con una cuenta gratis. Después es Premium.'; }],
+        [/^Free this week · until (\w{3}) (\d+)\. Then it is Premium\.$/, function (m) { return 'Gratis esta semana · hasta el ' + m[2] + ' de ' + esMonth(m[1]) + '. Después es Premium.'; }],
         // Technique details from the tab (js/tab-atoms.js).
         [/^(?:frets? ([\d–]+)(?: and (\d+))?, )?((?:[A-Ga-g]#?, )*[A-Ga-g]#?) strings?((?:, [^,]+)*)$/, function (m) {
             var words = { 'quarter tone': 'un cuarto de tono', 'half step': 'medio tono', 'three-quarter tone': 'tres cuartos de tono', 'whole step': 'un tono', 'one and a half steps': 'un tono y medio', 'two steps': 'dos tonos' };
@@ -242,6 +252,14 @@ PLURAL = """
         if (d > 1 && d < 5) return few;
         return many;
     }
+    function ruMonth(m) {
+        return { Jan: 'января', Feb: 'февраля', Mar: 'марта', Apr: 'апреля', May: 'мая', Jun: 'июня', Jul: 'июля', Aug: 'августа', Sep: 'сентября', Oct: 'октября', Nov: 'ноября', Dec: 'декабря' }[m] || m;
+    }
+"""
+ES_HELPERS = """
+    function esMonth(m) {
+        return { Jan: 'enero', Feb: 'febrero', Mar: 'marzo', Apr: 'abril', May: 'mayo', Jun: 'junio', Jul: 'julio', Aug: 'agosto', Sep: 'septiembre', Oct: 'octubre', Nov: 'noviembre', Dec: 'diciembre' }[m] || m;
+    }
 """
 def dump(idx):
     lines = ['{']
@@ -252,5 +270,5 @@ def dump(idx):
     return '\n'.join(lines)
 OUT = sys.argv[1] if len(sys.argv) > 1 else os.path.join(HERE, '..', '..', 'js', 'i18n')
 open(OUT+'/ru.js','w').write(HEAD % ('Russian', PLURAL, dump(1), RU_PATTERNS))
-open(OUT+'/es.js','w').write(HEAD % ('Latin American Spanish (es-419)', '', dump(2), ES_PATTERNS))
+open(OUT+'/es.js','w').write(HEAD % ('Latin American Spanish (es-419)', ES_HELPERS, dump(2), ES_PATTERNS))
 print(len(T), 'strings')

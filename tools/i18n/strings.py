@@ -18,6 +18,16 @@ T = [
 ("Riff Killer - Patreon Authorization", "Riff Killer — вход через Patreon", "Riff Killer — inicio de sesión con Patreon"),
 ("Privacy Policy - Riff Killer", "Политика конфиденциальности — Riff Killer", "Política de privacidad — Riff Killer"),
 ("Terms of Service - Riff Killer", "Условия использования — Riff Killer", "Términos del servicio — Riff Killer"),
+# --- Free vs Premium (docs/FREE_PREMIUM.md)
+("Free this week", "Бесплатно на этой неделе", "Gratis esta semana"),
+("Free with account", "Бесплатно с аккаунтом", "Gratis con cuenta"),
+("Free with a free account", "Бесплатно с бесплатным аккаунтом", "Gratis con una cuenta gratis"),
+("Every week one Premium riff is free with a free account.", "Каждую неделю один Premium-рифф бесплатен с бесплатным аккаунтом.", "Cada semana un riff Premium es gratis con una cuenta gratis."),
+("Sign up free to open this riff and save your stars.", "Зарегистрируйтесь бесплатно, чтобы открыть этот рифф и сохранить звёзды.", "Regístrate gratis para abrir este riff y guardar tus estrellas."),
+("Sign up free", "Зарегистрироваться бесплатно", "Regístrate gratis"),
+("Premium riff", "Premium-рифф", "Riff Premium"),
+("The full library and a new riff every week. Plans from $9 a month, or join on Patreon.", "Вся библиотека и новый рифф каждую неделю. Тарифы от $9 в месяц или подписка на Patreon.", "Toda la biblioteca y un riff nuevo cada semana. Planes desde $9 al mes, o únete en Patreon."),
+("Keep it with Premium", "Оставить с Premium", "Quédatelo con Premium"),
 # --- header / menu / footer
 ("Riffs", "Риффы", "Riffs"),
 ("Practice", "Практика", "Práctica"),

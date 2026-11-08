@@ -42,6 +42,10 @@ foreach ($data as $i => $riff) {
     else unset($data[$i]['dropKey']);
 }
 
+// Free vs Premium (config/riff-access.php): open after sign-up (Black Dog) and the free week of each Premium riff.
+require_once $base . '/config/riff-access.php';
+foreach ($data as $i => $riff) $data[$i] = riff_access_offer($riff, isset($_GET['today']) && $isAdmin ? riff_date_normalize($_GET['today']) : null);
+
 // Light WebP copies of each cover for the cards. The admin asks for the raw list (?raw=1): it saves riffs back
 // and compares them with the stored ones.
 if (!isset($_GET['raw'])) {
