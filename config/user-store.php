@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/legal.php';
+require_once __DIR__ . '/site-stats.php';
 /**
  * User store: data/users.json (id, email, name, picture, provider, provider_id, created_at).
  */
@@ -80,7 +81,21 @@ function user_create($data) {
     }
     $users[] = $user;
     if (!user_store_save($users)) return null;
+    site_stats_count('account_created:' . preg_replace('/[^a-z0-9]/', '', strtolower($user['provider'])));
     return $user;
+}
+
+/** The day of the account's last signed-in visit (YYYY-MM-DD, no time): counts returning users, see config/site-stats.php. */
+function user_touch_seen($id, $day) {
+    $users = user_store_load();
+    foreach ($users as $i => $u) {
+        if (isset($u['id']) && (string)$u['id'] === (string)$id) {
+            if (($u['last_seen'] ?? '') === $day) return false;
+            $users[$i]['last_seen'] = $day;
+            return user_store_save($users);
+        }
+    }
+    return false;
 }
 
 function user_update($id, $data) {

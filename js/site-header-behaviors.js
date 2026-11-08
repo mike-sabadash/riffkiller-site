@@ -317,7 +317,7 @@
             btn.addEventListener('click', function (e) {
                 e.preventDefault();
                 if (window.patreonAuth && typeof window.patreonAuth.login === 'function') {
-                    window.patreonAuth.login('login');
+                    window.patreonAuth.login('login', 'landing');
                 } else {
                     alert('Auth is loading. Refresh the page or open the app from index.html.');
                 }

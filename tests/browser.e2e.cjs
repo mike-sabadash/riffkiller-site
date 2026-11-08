@@ -29,7 +29,7 @@ test('home opens the library; normal sign-up and login survive reload without a 
     assert.equal(await page.locator('#comingSoonLanding').count(),0);
     assert.ok((await page.locator('body').innerText()).includes('Kill every riff'));assert.ok(await page.locator('#homeHeroPrimary').getAttribute('href'));
     await page.getByText('Start free',{exact:true}).first().click();
-    await page.fill('#authModalNameInput','Browser Practice');await page.fill('#authModalEmailInput','browser-test@example.com');await page.fill('#authModalPasswordInput','browser-test-password');
+    await page.fill('#authModalEmailInput','browser-test@example.com');await page.fill('#authModalPasswordInput','browser-test-password');
     // Without the consent box the account is not created.
     await page.click('#authModalEmailBtn');await page.waitForSelector('#authModalEmailMessage',{state:'visible'});assert.match(await page.locator('#authModalEmailMessage').innerText(),/accept the Terms/);
     await page.check('#authModalConsentInput');
@@ -57,7 +57,7 @@ test('collection page lists its riffs and the profile shows no placeholder payme
 test('email submits with Enter, blocks duplicate requests and recovers after a wrong password',async t=>{
     const page=await pageFor(t);await page.goto(site.base+'/',{waitUntil:'domcontentloaded'});
     await page.getByText('Start free',{exact:true}).first().click();
-    await page.fill('#authModalNameInput','Email UX');await page.fill('#authModalEmailInput','email-ux@example.com');await page.fill('#authModalPasswordInput','email-ux-password');await page.check('#authModalConsentInput');
+    await page.fill('#authModalEmailInput','email-ux@example.com');await page.fill('#authModalPasswordInput','email-ux-password');await page.check('#authModalConsentInput');
     let requests=0;
     await page.route('**/api/auth/email-register.php',async route=>{requests++;await new Promise(r=>setTimeout(r,350));await route.continue()});
     await page.press('#authModalPasswordInput','Enter');
@@ -142,6 +142,11 @@ test('three clean loops at ×1 ask whether the part was clean; yes puts it at te
     await page.click('#progressCleanYes');
     await page.waitForFunction(()=>document.querySelectorAll('.segment-btn:not(.all-riff)')[2].querySelector('.part-progress')?.dataset.state==='tempo');
     assert.match(await page.locator('#partsProgress').innerText(),/^3 of 30 stars/);
+    // A guest who just earned stars is offered a free account to keep them; «Save my stars» opens sign-up.
+    await page.waitForSelector('#progressSaveYes');assert.match(await page.locator('.progress-card-title').innerText(),/Don’t lose that star/);
+    await page.click('#progressSaveYes');await page.waitForSelector('#authModalConsentInput',{state:'visible'});
+    assert.match(await page.locator('.auth-modal-title').innerText(),/Create a free account/);
+    await page.click('.auth-modal-close');
     await page.reload({waitUntil:'domcontentloaded'});await page.waitForFunction(()=>document.getElementById('partsProgress'),{timeout:20000});
     assert.match(await page.locator('#partsProgress').innerText(),/^3 of 30 stars/);
     assert.equal(await page.evaluate(()=>RKProgress.load().days[RKProgress.dayKey(Date.now())].sec>0),true,'playing time was counted');
@@ -928,4 +933,34 @@ test('phone: a looped part plays from its own video with the sound inside, per v
     await page.waitForFunction(()=>!practiceTransport.clip,null,{timeout:5000});await page.waitForTimeout(300);
     s=await state();assert.deepEqual(s.shown,[]);assert.ok(s.playing.length===1&&!s.playing.includes('split')&&!s.playing.includes('left'),'one camera video plays '+s.playing);
     assert.deepEqual(errors,[]);
+});
+
+test('sign-up dialog: Google with its name on top, consent first and required for every way in; no name field',async t=>{
+    const page=await pageFor(t,390);await page.goto(site.base+'/',{waitUntil:'domcontentloaded'});
+    await page.evaluate(()=>authManager.showAuthModal('signup','header'));
+    await page.waitForSelector('#authModalGoogle',{state:'visible'});
+    assert.match(await page.locator('#authModalGoogle').innerText(),/Continue with Google/);
+    assert.match(await page.locator('#authModalPatreon').innerText(),/Continue with Patreon/);
+    assert.equal(await page.locator('#authModalNameInput').count(),0);
+    assert.equal(await page.locator('#authModalLegalNote').isVisible(),false,'the checkbox says it once');
+    const box=await page.locator('#authModalConsent').boundingBox(),g=await page.locator('#authModalGoogle').boundingBox();
+    assert.ok(box.y<g.y,'consent box comes before the buttons');assert.ok(g.y+g.height<844,'Google is on the first screen of a phone');
+    await page.click('#authModalGoogle');await page.waitForSelector('#authModalEmailMessage',{state:'visible'});
+    assert.match(await page.locator('#authModalEmailMessage').innerText(),/accept the Terms/);assert.match(page.url(),/\/$|index\.html/);
+    await page.click('#authTabLogin');assert.equal(await page.locator('#authModalLegalNote').isVisible(),true);assert.equal(await page.locator('#authModalConsent').isVisible(),false);
+});
+test('inside the Instagram browser the dialog hides Google and tells how to sign up',async t=>{
+    const context=await browser.newContext({viewport:{width:390,height:844},userAgent:'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 Instagram 309.0.0.0'});
+    t.after(()=>context.close());const page=await context.newPage();
+    await page.goto(site.base+'/',{waitUntil:'domcontentloaded'});await page.evaluate(()=>authManager.showAuthModal('signup','drop'));
+    await page.waitForSelector('#authModalInApp',{state:'visible'});
+    assert.equal(await page.locator('#authModalGoogle').count(),0);
+    assert.match(await page.locator('#authModalInApp').innerText(),/Safari/);
+    assert.equal(await page.locator('#authModalEmailInput').isVisible(),true);assert.equal(await page.locator('#authModalPatreon').isVisible(),true);
+});
+test('Patreon coming back without a code offers to try again or sign up with email',async t=>{
+    const page=await pageFor(t);await page.goto(site.base+'/patreon-callback.html',{waitUntil:'domcontentloaded'});
+    await page.waitForSelector('#patreonRetry');assert.match(await page.locator('h1').innerText(),/didn’t send you back/);
+    await page.click('#patreonUseEmail');await page.waitForSelector('#authModalConsentInput',{state:'visible'});
+    assert.doesNotMatch(page.url(),/auth=signup/);
 });

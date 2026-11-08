@@ -68,6 +68,41 @@ function resolveRkStaticAsset(relPath) {
     return relPath;
 }
 
+/** Instagram, Facebook, Messenger, TikTok and similar in-app browsers: Google refuses to sign in inside them. */
+function rkInAppBrowser() {
+    try { return /Instagram|FBAN|FBAV|FB_IAB|FBIOS|Messenger|musical_ly|BytedanceWebview|TikTok|Line\//i.test(navigator.userAgent || ''); }
+    catch (e) { return false; }
+}
+
+/**
+ * Our own daily counters (api/stats/event.php → data/stats/): only the event name goes out, with no cookie and
+ * nothing about the visitor. Automated browsers (tests) are left out.
+ */
+function rkCount(events) {
+    try {
+        if (typeof navigator === 'undefined' || navigator.webdriver) return;
+        if (/^\/admin/.test(location.pathname)) return;
+        const body = JSON.stringify({ e: [].concat(events) });
+        fetch(getApiBase() + '/api/stats/event.php', { method: 'POST', credentials: 'omit', keepalive: true, headers: { 'Content-Type': 'application/json' }, body: body }).catch(function () {});
+    } catch (e) {}
+}
+window.rkCount = rkCount;
+window.rkInAppBrowser = rkInAppBrowser;
+
+/** One view per page load: library, practice (drop = from a teaser link), landing. */
+function rkCountView() {
+    const path = location.pathname.replace(/\/+$/, '/') || '/';
+    let page = '';
+    if (path === '/' || /\/(index|app)\.html$/.test(path)) page = 'library';
+    else if (/\/practice\.html$/.test(path)) page = /[?&]drop=/.test(location.search) ? 'drop' : 'practice';
+    else if (/\/landing\.html$/.test(path)) page = 'landing';
+    else if (/\/billing\.html$/.test(path)) page = 'billing';
+    if (!page) return;
+    const events = ['view:' + page];
+    if (rkInAppBrowser()) events.push('view:' + page + ':inapp');
+    rkCount(events);
+}
+
 class AuthManager {
     constructor() {
         this.isAuthenticated = false;
@@ -252,8 +287,8 @@ class AuthManager {
         return savedState === state;
     }
 
-    login(tab) {
-        this.showAuthModal(tab);
+    login(tab, source) {
+        this.showAuthModal(tab, source);
     }
 
     loginPatreon(options) {
@@ -295,6 +330,7 @@ class AuthManager {
         if (box && box.checked) return true;
         const row = document.getElementById('authModalConsent');
         if (row) { row.classList.add('auth-consent--error'); }
+        rkCount('consent_missing');
         if (this._authModalEmailMessage) {
             this._authModalEmailMessage.textContent = this.legalTexts().need;
             this._authModalEmailMessage.style.display = 'block';
@@ -333,12 +369,14 @@ class AuthManager {
             });
             const data = await response.json();
             if (!response.ok || !data.success || !data.user) {
+                rkCount('auth_error:' + (endpoint === 'email-register.php' ? 'signup' : 'login'));
                 if (this._authModalEmailMessage) {
                     this._authModalEmailMessage.textContent = data.error || 'Sign in failed. Please try again.';
                     this._authModalEmailMessage.style.display = 'block';
                 }
                 return false;
             }
+            rkCount('auth_done:' + (endpoint === 'email-register.php' ? 'signup_email' : 'login_email'));
             ++this.sessionRevision;
             this.subscription = null;
             this.isAuthenticated = true;
@@ -365,16 +403,31 @@ class AuthManager {
         }
     }
 
-    showAuthModal(initialTab) {
+    /**
+     * The account dialog. source says what opened it (header, drop, star, google_error…), counted in our own stats.
+     * Sign up: the consent box comes first and every way in waits for it (email, Google, Patreon).
+     * Google sits on top with its name on the button; inside Instagram/Facebook it is replaced by a hint,
+     * because Google refuses to sign in there.
+     */
+    showAuthModal(initialTab, source) {
         if (document.getElementById('riffKillerAuthModal')) return;
+        rkCount('auth_open:' + (source || 'other') + (rkInAppBrowser() ? ':inapp' : ''));
         const authMgr = this;
+        const inApp = rkInAppBrowser();
         const backdrop = document.createElement('div');
         backdrop.id = 'riffKillerAuthModalBackdrop';
         backdrop.className = 'auth-modal-backdrop';
         const modal = document.createElement('div');
         modal.id = 'riffKillerAuthModal';
         modal.className = 'auth-modal';
-        const base = getApiBase();
+        const browserName = /android/i.test(navigator.userAgent) ? 'Chrome' : 'Safari';
+        const inAppHint = !inApp ? '' :
+            '<div class="auth-inapp-hint" id="authModalInApp">' +
+            '<p>Google sign-in doesn’t work inside this app. Sign up with email below, or open Riff Killer in ' + browserName + '.</p>' +
+            '<div class="auth-inapp-actions">' +
+            (browserName === 'Chrome' ? '<a class="auth-btn auth-btn-outline" id="authModalOpenBrowser" href="intent://' + location.host + location.pathname + location.search + '#Intent;scheme=https;package=com.android.chrome;end">Open in Chrome</a>' : '') +
+            '<button type="button" class="auth-btn auth-btn-outline" id="authModalCopyLink">Copy link</button>' +
+            '</div></div>';
         modal.innerHTML = '<div class="auth-modal-header">' +
             '<h2 class="auth-modal-title">Log in</h2>' +
             '<button type="button" class="auth-modal-close" aria-label="Close">' +
@@ -382,26 +435,26 @@ class AuthManager {
             '<path d="M18 6L6 18M6 6l12 12"/></svg></button>' +
             '</div>' +
             '<div class="auth-modal-body">' +
-            '<p class="auth-modal-subtitle">Free riffs, your progress on every device and premium in one account.</p>' +
+            '<p class="auth-modal-subtitle" id="authModalSubtitle">Welcome back. Your stars are waiting.</p>' +
             '<div class="auth-modal-segment-wrap">' +
             '<div class="auth-email-toggle" role="tablist" aria-label="Account">' +
             '<button type="button" class="auth-toggle-btn active" id="authTabLogin" role="tab">Log in</button>' +
             '<button type="button" class="auth-toggle-btn" id="authTabSignup" role="tab">Sign up</button>' +
             '</div></div>' +
+            '<label class="auth-consent" id="authModalConsent" style="display:none;" translate="no"><input type="checkbox" id="authModalConsentInput"><span>' + this.legalTexts().consent + '</span></label>' +
+            inAppHint +
+            '<div class="auth-provider-list">' +
+            (inApp ? '' : '<button type="button" class="auth-provider-btn auth-provider-btn--google" id="authModalGoogle"><svg viewBox="0 0 24 24" width="22" height="22"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg><span>Continue with Google</span></button>') +
+            '<button type="button" class="auth-provider-btn auth-provider-btn--patreon" id="authModalPatreon"><svg viewBox="0 0 24 24" width="22" height="22"><path fill="currentColor" d="M4.5 3C3.11929 3 2 4.11929 2 5.5V18.5C2 19.8807 3.11929 21 4.5 21H7V3H4.5Z"/><circle cx="15" cy="9" r="5" fill="currentColor"/></svg><span>Continue with Patreon</span></button>' +
+            '</div>' +
+            '<div class="auth-divider"><span>or with email</span></div>' +
             '<div class="auth-modal-fields">' +
-            '<input type="text" class="auth-email-input" id="authModalNameInput" placeholder="Your name" autocomplete="name" style="display:none;">' +
             '<input type="email" class="auth-email-input" id="authModalEmailInput" placeholder="your@email.com" autocomplete="email" autocapitalize="off" autocorrect="off">' +
             '<input type="password" class="auth-email-input" id="authModalPasswordInput" placeholder="Password" autocomplete="current-password">' +
-            '<label class="auth-consent" id="authModalConsent" style="display:none;" translate="no"><input type="checkbox" id="authModalConsentInput"><span>' + this.legalTexts().consent + '</span></label>' +
             '<button type="button" class="auth-btn auth-btn-email" id="authModalEmailBtn">Log in</button>' +
             '</div>' +
             '<p class="auth-email-message" id="authModalEmailMessage" role="alert" aria-live="polite" style="display:none;"></p>' +
-            '<div class="auth-divider"><span>or</span></div>' +
-            '<div class="auth-social-row">' +
-            '<button type="button" class="auth-social-btn" id="authModalGoogle" aria-label="Continue with Google"><svg viewBox="0 0 24 24" width="22" height="22"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg></button>' +
-            '<button type="button" class="auth-social-btn auth-social-btn-patreon" id="authModalPatreon" aria-label="Continue with Patreon"><svg viewBox="0 0 24 24" width="22" height="22"><path fill="currentColor" d="M4.5 3C3.11929 3 2 4.11929 2 5.5V18.5C2 19.8807 3.11929 21 4.5 21H7V3H4.5Z"/><circle cx="15" cy="9" r="5" fill="currentColor"/></svg></button>' +
-            '</div>' +
-            '<p class="auth-legal-note" translate="no">' + this.legalTexts().note + '</p>' +
+            '<p class="auth-legal-note" id="authModalLegalNote" translate="no">' + this.legalTexts().note + '</p>' +
             '<div class="auth-promo-block">' +
             '<button type="button" class="auth-promo-toggle" id="authModalPromoToggle">Have a promo code?</button>' +
             '<div class="auth-promo-inputs" id="authModalPromoInputs" style="display:none;">' +
@@ -421,8 +474,26 @@ class AuthManager {
         backdrop.addEventListener('click', function (e) {
             if (e.target === backdrop) closeModal();
         });
-        document.getElementById('authModalPatreon').addEventListener('click', function () { if (this.consentGiven()) this.loginPatreon(); }.bind(this));
-        document.getElementById('authModalGoogle').addEventListener('click', function () { if (this.consentGiven()) this.loginGoogle(); }.bind(this));
+        const tabName = function () { return document.getElementById('authTabSignup').classList.contains('active') ? 'signup' : 'login'; };
+        document.getElementById('authModalPatreon').addEventListener('click', function () {
+            rkCount(tabName() + '_click:patreon');
+            if (this.consentGiven()) this.loginPatreon();
+        }.bind(this));
+        const googleBtn = document.getElementById('authModalGoogle');
+        if (googleBtn) googleBtn.addEventListener('click', function () {
+            rkCount(tabName() + '_click:google');
+            if (this.consentGiven()) this.loginGoogle();
+        }.bind(this));
+        const copyBtn = document.getElementById('authModalCopyLink');
+        if (copyBtn) copyBtn.addEventListener('click', function () {
+            rkCount('inapp_hint:copy');
+            const url = location.href;
+            const done = function () { copyBtn.textContent = 'Link copied'; };
+            if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(url).then(done, function () { window.prompt('Copy this link:', url); });
+            else window.prompt('Copy this link:', url);
+        });
+        const openBtn = document.getElementById('authModalOpenBrowser');
+        if (openBtn) openBtn.addEventListener('click', function () { rkCount('inapp_hint:open'); });
         document.getElementById('authModalConsentInput').addEventListener('change', function () {
             document.getElementById('authModalConsent').classList.remove('auth-consent--error');
             if (this.checked && self._authModalEmailMessage) self._authModalEmailMessage.style.display = 'none';
@@ -473,22 +544,22 @@ class AuthManager {
             });
         });
         var self = this;
-        document.getElementById('authTabLogin').addEventListener('click', function () {
-            document.getElementById('authModalNameInput').style.display = 'none';
-            document.getElementById('authModalConsent').style.display = 'none';
-            document.querySelector('.auth-modal-title').textContent = 'Log in';
-            document.getElementById('authModalEmailBtn').textContent = 'Log in';
+        const showTab = function (signup) {
+            document.getElementById('authModalConsent').style.display = signup ? 'flex' : 'none';
+            document.getElementById('authModalLegalNote').style.display = signup ? 'none' : '';
+            document.querySelector('.auth-modal-title').textContent = signup ? 'Create a free account' : 'Log in';
+            document.getElementById('authModalSubtitle').textContent = signup
+                ? 'Your stars stay safe on any phone or computer.'
+                : 'Welcome back. Your stars are waiting.';
+            document.getElementById('authModalEmailBtn').textContent = signup ? 'Create account' : 'Log in';
+            const pass = document.getElementById('authModalPasswordInput');
+            pass.placeholder = signup ? 'Password, 6+ characters' : 'Password';
+            pass.setAttribute('autocomplete', signup ? 'new-password' : 'current-password');
             document.querySelectorAll('.auth-toggle-btn').forEach(function (t) { t.classList.remove('active'); });
-            this.classList.add('active');
-        });
-        document.getElementById('authTabSignup').addEventListener('click', function () {
-            document.getElementById('authModalNameInput').style.display = 'block';
-            document.getElementById('authModalConsent').style.display = 'flex';
-            document.querySelector('.auth-modal-title').textContent = 'Create account';
-            document.getElementById('authModalEmailBtn').textContent = 'Create account';
-            document.querySelectorAll('.auth-toggle-btn').forEach(function (t) { t.classList.remove('active'); });
-            this.classList.add('active');
-        });
+            document.getElementById(signup ? 'authTabSignup' : 'authTabLogin').classList.add('active');
+        };
+        document.getElementById('authTabLogin').addEventListener('click', function () { showTab(false); });
+        document.getElementById('authTabSignup').addEventListener('click', function () { rkCount('auth_tab:signup'); showTab(true); });
         if (initialTab === 'signup') {
             document.getElementById('authTabSignup').click();
         }
@@ -501,7 +572,7 @@ class AuthManager {
             if (promoInputEl) promoInputEl.value = promoFromUrl.trim();
             if (promoInputsEl) promoInputsEl.style.display = 'flex';
         }
-        [document.getElementById('authModalEmailInput'), document.getElementById('authModalPasswordInput'), document.getElementById('authModalNameInput')].forEach(function (el) {
+        [document.getElementById('authModalEmailInput'), document.getElementById('authModalPasswordInput')].forEach(function (el) {
             if (el) {
                 el.addEventListener('input', function () { el.classList.remove('auth-input-error'); });
                 el.addEventListener('keydown', function (event) {
@@ -512,7 +583,6 @@ class AuthManager {
         document.getElementById('authModalEmailBtn').addEventListener('click', function () {
             var emailEl = document.getElementById('authModalEmailInput');
             var passEl = document.getElementById('authModalPasswordInput');
-            var nameEl = document.getElementById('authModalNameInput');
             var email = emailEl && emailEl.value ? emailEl.value.trim() : '';
             var password = passEl ? passEl.value : '';
             var isSignup = document.getElementById('authTabSignup') && document.getElementById('authTabSignup').classList.contains('active');
@@ -540,11 +610,12 @@ class AuthManager {
             emailEl.classList.remove('auth-input-error');
             if (passEl) passEl.classList.remove('auth-input-error');
             emailEl.placeholder = 'your@email.com';
-            passEl.placeholder = 'Password';
+            passEl.placeholder = isSignup ? 'Password, 6+ characters' : 'Password';
             if (self._authModalEmailMessage) self._authModalEmailMessage.style.display = 'none';
+            rkCount((isSignup ? 'signup' : 'login') + '_click:email');
             if (isSignup && !self.consentGiven()) return;
             if (isSignup) {
-                self.registerWithPassword(email, password, nameEl && nameEl.value ? nameEl.value.trim() : '');
+                self.registerWithPassword(email, password, '');
             } else {
                 self.loginWithPassword(email, password);
             }
@@ -554,7 +625,7 @@ class AuthManager {
             const link = document.createElement('link');
             link.id = 'auth-modal-styles';
             link.rel = 'stylesheet';
-            link.href = resolveRkStaticAsset('css/auth-modal.css?v=legal1');
+            link.href = resolveRkStaticAsset('css/auth-modal.css?v=signup1');
             document.head.appendChild(link);
         }
     }
@@ -739,8 +810,8 @@ class AuthManager {
                 `;
                 const loginBtn = document.getElementById('authLoginBtn');
                 const signupBtn = document.getElementById('authSignupBtn');
-                if (loginBtn) loginBtn.addEventListener('click', (e) => { e.preventDefault(); this.login('login'); });
-                if (signupBtn) signupBtn.addEventListener('click', (e) => { e.preventDefault(); this.login('signup'); });
+                if (loginBtn) loginBtn.addEventListener('click', (e) => { e.preventDefault(); this.login('login', 'header'); });
+                if (signupBtn) signupBtn.addEventListener('click', (e) => { e.preventDefault(); this.login('signup', 'header'); });
             }
             if (mobileAuth) {
                 mobileAuth.innerHTML = mobilePlans + `
@@ -749,8 +820,8 @@ class AuthManager {
                 `;
                 const mobileLoginBtn = document.getElementById('mobileAuthLoginBtn');
                 const mobileSignupBtn = document.getElementById('mobileAuthSignupBtn');
-                if (mobileLoginBtn) mobileLoginBtn.addEventListener('click', (e) => { e.preventDefault(); this.login('login'); });
-                if (mobileSignupBtn) mobileSignupBtn.addEventListener('click', (e) => { e.preventDefault(); this.login('signup'); });
+                if (mobileLoginBtn) mobileLoginBtn.addEventListener('click', (e) => { e.preventDefault(); this.login('login', 'header'); });
+                if (mobileSignupBtn) mobileSignupBtn.addEventListener('click', (e) => { e.preventDefault(); this.login('signup', 'header'); });
             }
         }
         const mobilePlansEl = document.getElementById('mobilePlansLink');
@@ -794,16 +865,24 @@ window.authManager = authManager;
 window.patreonAuth = authManager;
 
 document.addEventListener('DOMContentLoaded', () => {
+    rkCountView();
     authManager.addProfileStyles();
     authManager.updateAuthButtons();
     const params = new URLSearchParams(window.location.search);
+    // ?auth=signup (Patreon sign-in failed → «Sign up with email instead»): the sign-up dialog right away.
+    if (params.get('auth') === 'signup' && !authManager.isAuthenticated) {
+        authManager.showAuthModal('signup', 'patreon_fail');
+        params.delete('auth');
+        history.replaceState(null, '', window.location.pathname + (params.size ? '?' + params.toString() : '') + window.location.hash);
+    }
     if (params.get('auth') === 'error' && params.get('src') === 'google') {
         const messages = {
             configuration: 'Google sign-in is temporarily unavailable. Use email or Patreon.',
             cancelled: 'Google sign-in was cancelled. You can try again.',
             state: 'This sign-in link expired. Please try Google again.'
         };
-        authManager.showAuthModal();
+        rkCount('auth_error:google_' + (params.get('reason') || 'other').replace(/[^a-z_]/g, ''));
+        authManager.showAuthModal('login', 'google_error');
         authManager._authModalEmailMessage.textContent = messages[params.get('reason')] || 'Google sign-in could not be completed. Please try again.';
         authManager._authModalEmailMessage.style.display = 'block';
         ['auth', 'src', 'reason'].forEach(key => params.delete(key));
