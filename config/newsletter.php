@@ -37,6 +37,7 @@ require_once __DIR__ . '/legal.php';
 require_once __DIR__ . '/site-stats.php';
 require_once __DIR__ . '/riff-access.php';
 require_once __DIR__ . '/email-layout.php';
+require_once __DIR__ . '/subscription-store.php';
 
 const NL_TOPICS = ['drops', 'headsup', 'community', 'offers'];
 const NL_HOUR = 18;
@@ -523,6 +524,7 @@ function nl_run($nowTs = null, $send = 'nl_send_resend') {
     $base = digest_base_url();
     $byDate = [];
     $failures = 0;
+    $subs = subscription_list_all();
     foreach (user_list_all() as $u) {
         $id = (string)($u['id'] ?? '');
         $email = trim((string)($u['email'] ?? ''));
@@ -537,9 +539,14 @@ function nl_run($nowTs = null, $send = 'nl_send_resend') {
         $done = array_column($entries, 'k');
         if (in_array($today, array_column(array_filter($entries, function ($e) { return empty($e['skip']); }), 'd'), true)) { $log[$id] = $entries; continue; }
         $cands = [];
+        // Offers are not sold to people who already pay (Premium on the site or the Riff Killer tier on Patreon).
+        $paying = isset($subs[$id]) && subscription_is_effectively_active($subs[$id]);
         foreach ($dates as $d) {
             if (!isset($byDate[$d])) $byDate[$d] = nl_letters_for($d, $riffs);
-            foreach ($byDate[$d] as $letter) if (!empty($prefs['topics'][$letter['topic']]) && !in_array($letter['key'], $done, true)) $cands[] = $letter;
+            foreach ($byDate[$d] as $letter) {
+                if ($letter['topic'] === 'offers' && $paying) continue;
+                if (!empty($prefs['topics'][$letter['topic']]) && !in_array($letter['key'], $done, true)) $cands[] = $letter;
+            }
         }
         usort($cands, function ($a, $b) { return [NL_PRIORITY[$b['topic']], $b['date']] <=> [NL_PRIORITY[$a['topic']], $a['date']]; });
         $monday = $local->setTime(0, 0)->modify('-' . (((int)$local->format('N')) - 1) . ' days')->format('Y-m-d');
@@ -632,7 +639,7 @@ function nl_summary() {
 
 /* ---------- small pages for links from the emails (translated on the page by js/i18n.js) ---------- */
 
-const NL_I18N_V = 'fa1';
+const NL_I18N_V = 'cw1';
 
 function nl_page($title, $inner, $code = 200) {
     http_response_code($code);

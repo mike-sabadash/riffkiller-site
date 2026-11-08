@@ -50,6 +50,19 @@ function atom_label_en($label) {
 $migrations = [
     // 08.11.2026, Mike (docs/FREE_PREMIUM.md): Paranoid stays free for everyone (teaser riff), Black Dog opens after
     // a free sign-up, every other riff is Premium and gets a free week 4 weeks after its release date.
+    // Mike 08.11.2026: Cyber Monday letter (config/sales.php), to "offers" readers who don't pay yet, 30.11 at 18:00 their time.
+    '2026-11-08-cyber-monday-letter' => function ($root) {
+        $file = $root . '/data/newsletter-campaigns.json';
+        $list = json_decode((string)@file_get_contents($file), true);
+        if (!is_array($list)) $list = [];
+        foreach ($list as $c) if (($c['id'] ?? '') === 'cyber2026') return 'already there';
+        $list[] = ['id' => 'cyber2026', 'topic' => 'offers', 'date' => '2026-11-30', 'createdAt' => date('c'),
+            'subject' => 'A year of riffs for $63 (ends Tuesday)', 'headline' => 'A year of riffs, 30% off', 'eyebrow' => 'Cyber Monday · until Tue, Dec 1',
+            'text' => "Hey {name},\n\nQuick one for Cyber Monday: until Tuesday night a full year of Riff Killer is \$63 instead of \$90. That’s about \$5 a month.\n\nFor that you get a new riff every Friday and the whole library, with both hands on camera, slow motion, loops and synced tabs.\n\nThe price is back to \$90 after Tuesday, December 1, midnight Pacific time.\n\n— Mike",
+            'button' => 'Get the year for $63', 'url' => '/billing.html?plan=yearly'];
+        @mkdir(dirname($file), 0755, true);
+        return file_put_contents($file, json_encode($list, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)) !== false ? 'added for 2026-11-30' : 'write failed';
+    },
     '2026-11-08-free-premium' => function ($root) {
         return migrate_riffs($root, '2026-11-08-free-premium', function ($riff) {
             if (strcasecmp(trim((string)($riff['song'] ?? '')), 'Black Dog') === 0) {

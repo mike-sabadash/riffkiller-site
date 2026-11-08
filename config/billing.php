@@ -25,6 +25,8 @@ function billing_env($key, $default = '') {
     return ($v === '' || $v === 'CHANGE_ME') ? $default : $v;
 }
 
+require_once __DIR__ . '/sales.php';
+
 function billing_plan($plan) {
     return isset(BILLING_PERIOD_DAYS[$plan]) ? $plan : 'monthly';
 }
@@ -62,6 +64,7 @@ function billing_public_options() {
     // Older integrations, shown only while their keys are configured.
     $out['stripe'] = (bool)preg_match('/^sk_(live|test)_(?!xxxx$)/', billing_env('STRIPE_SECRET_KEY'));
     $out['cryptomus'] = billing_env('CRYPTOMUS_MERCHANT_ID') !== '' && billing_env('CRYPTOMUS_API_KEY') !== '';
+    $out['sale'] = billing_sales_public();
     $out['rub'] = [];
     $out['usdtPrice'] = [];
     foreach (array_keys(BILLING_PERIOD_DAYS) as $plan) {
@@ -297,6 +300,8 @@ function lava_api_base() {
 /** One offer usually carries every period; LAVA_OFFER_ID_QUARTERLY / _YEARLY override it per plan. */
 function lava_offer_id($plan) {
     $plan = billing_plan($plan);
+    $sale = billing_sale($plan);
+    if ($sale && !empty($sale['lavaOffer'])) return $sale['lavaOffer'];
     return $plan === 'monthly' ? billing_env('LAVA_OFFER_ID') : billing_env('LAVA_OFFER_ID_' . strtoupper($plan), billing_env('LAVA_OFFER_ID'));
 }
 
@@ -621,6 +626,8 @@ function usdt_address() {
 function usdt_price($plan) {
     $plan = billing_plan($plan);
     $default = ['monthly' => 9, 'quarterly' => 20, 'yearly' => 90][$plan];
+    $sale = billing_sale($plan);
+    if ($sale) return (int)$sale['price'];
     $v = billing_env('USDT_PRICE_' . strtoupper($plan), (string)$default);
     return preg_match('/^\d+$/', $v) && (int)$v > 0 ? (int)$v : $default;
 }

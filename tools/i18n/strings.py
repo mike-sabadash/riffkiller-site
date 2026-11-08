@@ -22,6 +22,9 @@ T = [
 ("Free this week", "Бесплатно на этой неделе", "Gratis esta semana"),
 ("Free with account", "Бесплатно с аккаунтом", "Gratis con cuenta"),
 ("Free · sign up", "Бесплатно · вход", "Gratis · regístrate"),
+# --- Cyber Week 2026 (config/sales.php)
+("Cyber Week: a year of Premium for $63 instead of $90. Until Dec 1.", "Cyber Week: год Premium за $63 вместо $90. До 1 декабря.", "Cyber Week: un año de Premium por $63 en vez de $90. Hasta el 1 de diciembre."),
+("Cyber Week · until Dec 1", "Cyber Week · до 1 декабря", "Cyber Week · hasta el 1 dic"),
 ("Free with a free account", "Бесплатно с бесплатным аккаунтом", "Gratis con una cuenta gratis"),
 ("Every week one Premium riff is free with a free account.", "Каждую неделю один Premium-рифф бесплатен с бесплатным аккаунтом.", "Cada semana un riff Premium es gratis con una cuenta gratis."),
 ("Sign up free to open this riff and save your stars.", "Зарегистрируйтесь бесплатно, чтобы открыть этот рифф и сохранить звёзды.", "Regístrate gratis para abrir este riff y guardar tus estrellas."),
