@@ -93,6 +93,8 @@
 3. набирает таб по скриншоту, синхронизирует `tools/tab-sync-cli.cjs` по звуку исходного видео;
 4. кладёт запрос `content/riff-media/<имя>.json` и видео в `content/riff-media/<имя>/` и пушит в ветку `riff-media/<имя>` (в main не сливается).
 
-Workflow `.github/workflows/riff-media.yml` копирует видео на сервер, записывает поля риффа (`scripts/riff-media-apply.php`: сверка id и названия, бэкап `data/riffs.json` и заменяемых видео в `/var/backups/riffkiller-data`) и ставит ключевые кадры на начала частей. Меняются только `videoFile`, `videoFileRight`, `duration`, `segments`, `dna`, `tab`; обложка, доступ (замок), коллекции и ссылка для тизера не трогаются.
+Workflow `.github/workflows/riff-media.yml` копирует видео на сервер, записывает поля риффа (`scripts/riff-media-apply.php`: сверка id и названия, бэкап `data/riffs.json` и заменяемых видео в `/var/backups/riffkiller-data`) и ставит ключевые кадры на начала частей. После ключевых кадров тот же прогон собирает всё, что строит сохранение риффа в админке: видео частей со звуком, лёгкую копию для редактора и Split-видео для телефона (с 08.11.2026; раньше их приходилось ждать до следующего сохранения). Меняются только `videoFile`, `videoFileRight`, `duration`, `segments`, `dna`, `tab`, `difficulty`, `difficultyScore`; обложка, доступ (замок), коллекции и ссылка для тизера не трогаются.
+
+Такты таба, которых нет в видео (пустые такты отсчёта до первой ноты), в таб не переносятся: таб начинается с первого сыгранного такта (Iron Man, рифф 10, 08.11.2026).
 
 Видео Mike лежат на его Google Drive в папке «video for claud»: https://drive.google.com/drive/folders/1GpSN9YSJgXUzRWre5IEAaZIVoEmuqqpa (список файлов — `drive.google.com/embeddedfolderview?id=<папка>`, скачивание — `drive.usercontent.google.com/download?id=<id>&export=download&confirm=t`).

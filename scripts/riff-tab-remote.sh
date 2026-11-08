@@ -45,8 +45,15 @@ case "${1:-}" in
     id="${2:-}"; [[ "$id" =~ ^([0-9]+|all)$ ]] || fail "bad riff id: $id"
     command -v ffmpeg >/dev/null || fail "ffmpeg is not installed on the server"
     if [ "$id" = all ]; then php "$root/config/video-rekey-cli.php" --all; else php "$root/config/video-rekey-cli.php" --riff "$id"; fi
+    # Then everything saving a riff in the admin builds (api/riffs/save.php): part videos with their sound and the
+    # editor's light copy (video-parts-cli), and the phone Split video (video-split-cli). Without them a riff written
+    # by Riff media loops worse on an iPhone and has no Split video.
+    scope="--riff $id"; [ "$id" = all ] && scope="--all"
+    php "$root/config/video-parts-cli.php" $scope || echo "::warning::part videos not built"
+    php "$root/config/video-split-cli.php" $scope || echo "::warning::split video not built"
     # Run over SSH as another user than the web server: let the site keep writing its work files.
-    chown -R --reference="$root/data" "$root/data/video-work" 2>/dev/null || true ;;
+    chown -R --reference="$root/data" "$root/data/video-work" 2>/dev/null || true
+    chown -R --reference="$root/assets/video" "$root/assets/video" 2>/dev/null || true ;;
   media)
     php "$here/riff-media-apply.php" "$root" "${2:?request}" "$here" "${RIFFKILLER_MEDIA_BACKUPS:-/var/backups/riffkiller-data}"
     # Same owner as the site's other videos and data, so the admin can still replace them.
