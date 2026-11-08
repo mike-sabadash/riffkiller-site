@@ -245,9 +245,13 @@ ensure_html_no_cache() {
   [ -f "$conf" ] && command -v nginx >/dev/null || { echo "::warning::HTML no-cache: vhost $site not found"; return 0; }
   grep -q 'rk_html_cache' "$conf" && { note "HTML no-cache: already set in $conf"; return 0; }
   # A server-level add_header would stop the vhost inheriting http-level headers: leave such setups alone.
-  if grep -qhE '^\s*add_header' /etc/nginx/nginx.conf /etc/nginx/conf.d/*.conf 2>/dev/null; then
-    echo "::warning::HTML no-cache skipped: http-level add_header in nginx.conf/conf.d"; return 0
-  fi
+  # (conf.d here holds other sites' server blocks; only add_header lines outside any server block count.)
+  local f http_level=""
+  for f in /etc/nginx/nginx.conf /etc/nginx/conf.d/*.conf; do
+    [ -f "$f" ] || continue
+    if awk '/^[[:space:]]*server[[:space:]]*\{/ {s=1; d=0} s {d += gsub(/\{/, "{"); d -= gsub(/\}/, "}"); if (d <= 0) s=0; next} /^[[:space:]]*add_header/ {found=1} END {exit !found}' "$f"; then http_level="$http_level $f"; fi
+  done
+  if [ -n "$http_level" ]; then echo "::warning::HTML no-cache skipped: http-level add_header in$http_level"; return 0; fi
   local saved; saved="$(mktemp)"; cp -a "$conf" "$saved"
   printf '# Installed by riffkiller deploy-remote.sh: HTML pages are revalidated on every visit.\nmap $uri $rk_html_cache {\n    default "";\n    ~*\\.html$ "no-cache";\n    ~/$ "no-cache";\n}\n' > "$map"
   # One line after each server_name of this site (HTTP and HTTPS blocks); an empty value sends no header.
