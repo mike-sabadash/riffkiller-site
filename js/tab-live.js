@@ -344,20 +344,18 @@
             fitWidth();
         }
 
-        // The cursor covers the six tab lines and a little more (not the bends and bar numbers above them), and is wide
-        // enough for a two-digit fret. Sizes follow the line spacing, so they scale with the tab.
+        // The cursor covers the six tab lines and a little more (not the bends and bar numbers above them); the margin
+        // follows the line spacing, so it scales with the tab. Its width stays as in the CSS.
         function fitCursor(mbb) {
             var lines = mbb && mbb.bars && mbb.bars[0] && mbb.bars[0].visualBounds;
             var surface = canvas.querySelector('.at-surface');
             if (!lines || !lines.h || !surface) return;
             var gap = lines.h / 5; // six strings, five gaps
             var top = surface.getBoundingClientRect().top - host.getBoundingClientRect().top + lines.y;
-            var pad = Math.round(gap * 0.45), width = Math.round(Math.max(18, Math.min(30, gap * 1.6)));
+            var pad = Math.round(gap * 0.45);
             cursor.style.top = Math.round(top - pad) + 'px';
             cursor.style.height = Math.round(lines.h + 2 * pad) + 'px';
             cursor.style.bottom = 'auto';
-            cursor.style.width = width + 'px';
-            cursor.style.left = -Math.round(width / 2) + 'px';
         }
 
         // One size for the whole riff, so the strip does not jump between parts: about three bars across the
