@@ -366,6 +366,13 @@
 .video-soon-title { margin: 0; font-size: 20px; font-weight: 600; color: #fff; }
 .video-soon-text { margin: 0 0 6px; font-size: 14px; color: rgba(255, 255, 255, 0.75); }
 .video-soon-state .video-retry-btn { text-decoration: none; }
+/* Free vs Premium gate: the main button, «Log in» under it, «Back to riffs» stays as a quiet link. */
+/* The gate grows past 16:9 on narrow phones so its text and buttons are never clipped. */
+.video-wrapper:has(.video-soon-state--gate) { aspect-ratio: auto; }
+.video-wrapper .video-soon-state--gate { position: relative; inset: auto; width: 100%; box-sizing: border-box; aspect-ratio: 16 / 9; min-height: 260px; }
+.video-soon-state--gate .video-gate-btn { min-width: 180px; font-weight: 600; }
+.video-gate-login { background: none; border: 0; padding: 6px 12px; font: inherit; font-size: 14px; color: rgba(255, 255, 255, 0.8); text-decoration: underline; cursor: pointer; }
+.video-soon-state--gate a.video-retry-btn { background: none; border: 0; font-size: 13px; color: rgba(255, 255, 255, 0.6); }
 
 .video-error-text {
     margin: 0;
@@ -2216,3 +2223,8 @@ html[data-theme='light'] .segment-btn.all-riff.all-riff-glint::before {
 .has-part-clip .video-element.split-video {
     visibility: hidden;
 }
+
+/* Free week of a Premium riff (docs/FREE_PREMIUM.md): until when, and how to keep it. */
+.free-week-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; margin-top: 10px; padding: 8px 12px; border-radius: 10px; background: rgba(76, 175, 80, 0.14); border: 1px solid rgba(76, 175, 80, 0.35); font-size: 13px; color: rgba(255, 255, 255, 0.9); }
+.free-week-bar-link { color: #9be29e; font-weight: 600; text-decoration: none; }
+.free-week-bar-link:hover { text-decoration: underline; }

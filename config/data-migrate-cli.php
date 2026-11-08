@@ -48,6 +48,17 @@ function atom_label_en($label) {
 }
 
 $migrations = [
+    // 08.11.2026, Mike (docs/FREE_PREMIUM.md): Paranoid stays free for everyone (teaser riff), Black Dog opens after
+    // a free sign-up, every other riff is Premium and gets a free week 4 weeks after its release date.
+    '2026-11-08-free-premium' => function ($root) {
+        return migrate_riffs($root, '2026-11-08-free-premium', function ($riff) {
+            if (strcasecmp(trim((string)($riff['song'] ?? '')), 'Black Dog') === 0) {
+                $riff['isFree'] = false;
+                $riff['freeWithAccount'] = true;
+            }
+            return $riff;
+        });
+    },
     // 05.11.2026, Mike approved: every riff gets scores on the difficulty scale (js/riff-difficulty.js,
     // docs/RIFF_DIFFICULTY.md) and the level they give. Only `difficulty` and `difficultyScore` change.
     '2026-11-05-difficulty-scale' => function ($root) {

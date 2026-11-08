@@ -137,28 +137,53 @@
         return riff.lock === 'soon' ? 'soon' : '';
     }
 
+    /**
+     * Free vs Premium (config/riff-access.php, docs/FREE_PREMIUM.md): isFree — open to everyone; accountFree (from the
+     * API: freeWithAccount or the riff's free week) — open once signed in; the rest needs Premium / Patreon.
+     * @return {'open'|'account'|'premium'}
+     */
+    function signedIn() { var a = global.authManager; return !!(a && a.isAuthenticated); }
+    function hasPremium() {
+        var a = global.authManager || global.patreonAuth;
+        return !!(a && typeof a.hasActiveSubscription === 'function' && a.hasActiveSubscription());
+    }
+    function accessOf(riff) {
+        if (!riff) return 'premium';
+        if (riff.isFree || riff.adminView || hasPremium()) return 'open';
+        if (riff.accountFree) return signedIn() ? 'open' : 'account';
+        return 'premium';
+    }
+    function freeLabel(riff) {
+        if (!riff) return '';
+        if (riff.isFree) return 'Free';
+        if (riff.accountFree && riff.freeWeekUntil) return 'Free this week';
+        if (riff.accountFree) return 'Free with account';
+        return '';
+    }
+
     function createCard(riff, hooks) {
         hooks = hooks || {};
         var lock = lockOf(riff);
         if (lock) {
             // Locked riff: no Free/Premium mark, the padlock tells why; a click explains instead of opening.
-            riff = Object.assign({}, riff, { isFree: false });
+            riff = Object.assign({}, riff, { isFree: false, accountFree: false });
             hooks = Object.assign({}, hooks, { locked: false, onNavigate: function () { Fav.notice('Coming soon', 'This breakdown is on its way.'); } });
         }
 
         var stack = document.createElement('div');
-        stack.className = 'riff-card-stack' + (riff.isFree ? ' riff-card-stack--free' : '');
+        var free = freeLabel(riff);
+        stack.className = 'riff-card-stack' + (free ? ' riff-card-stack--free' : '');
         stack.dataset.riffId = String(riff.id);
 
         var card = document.createElement('div');
-        card.className = 'riff-card' + (riff.isFree ? ' riff-card-free' : '');
+        card.className = 'riff-card' + (free ? ' riff-card-free' : '');
         card.dataset.id = String(riff.id);
 
         // Level from js/riff-difficulty.js (five levels, from the riff's scores when it has them).
         var diffKey = global.RiffDifficulty ? global.RiffDifficulty.keyOf(riff) : (DIFF_LABELS[riff.difficulty] ? riff.difficulty : 'intermediate');
         // Сложность — текстом под названием, на обложке остаётся только метка доступа
         var levelHtml = '<span class="riff-level riff-level--' + diffKey + '"> · <span class="riff-level-name">' + DIFF_LABELS[diffKey] + '</span></span>';
-        var freeTag = riff.isFree ? '<div class="riff-free-tag">Free</div>' : '';
+        var freeTag = free ? '<div class="riff-free-tag">' + free + '</div>' : '';
         // hooks.locked: платный рифф для гостя/без подписки — замок заранее, а не сюрприз-редирект на оплату
         var lockTag = hooks.locked
             ? '<div class="riff-lock-tag" title="Premium"><svg viewBox="0 0 16 16" width="12" height="12" fill="none" aria-hidden="true"><rect x="3" y="7" width="10" height="7" rx="1.5" stroke="currentColor" stroke-width="1.5"/><path d="M5.5 7V5a2.5 2.5 0 015 0v2" stroke="currentColor" stroke-width="1.5"/></svg>Premium</div>'
@@ -236,5 +261,5 @@
         return stack;
     }
 
-    global.RiffKillerRiffGallery = { createCard: createCard, lockOf: lockOf };
+    global.RiffKillerRiffGallery = { createCard: createCard, lockOf: lockOf, accessOf: accessOf, freeLabel: freeLabel };
 })(typeof window !== 'undefined' ? window : this);

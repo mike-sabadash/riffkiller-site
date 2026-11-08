@@ -10,6 +10,76 @@
 
 const RIFF_LOCKS = ['soon'];
 
+/*
+ * Free vs Premium (Mike, 08.11.2026; docs/FREE_PREMIUM.md):
+ *   isFree           — open to everyone, no account (the teaser riff, Paranoid);
+ *   freeWithAccount  — open after a free sign-up (Black Dog);
+ *   everything else  — Premium (site) / Riff Killer tier on Patreon ($9).
+ * releasedAt (YYYY-MM-DD): the day a riff came out for Premium. RIFF_FREE_WEEK_AFTER_DAYS later it is open to
+ * signed-in users for RIFF_FREE_WEEK_DAYS days ("Free this week"), then Premium again. One new riff a week gives
+ * one free week a week, with no stock of old riffs and nothing to switch by hand.
+ */
+const RIFF_FREE_WEEK_AFTER_DAYS = 28;
+const RIFF_FREE_WEEK_DAYS = 7;
+
+function riff_date_normalize($value) {
+    $value = trim((string)$value);
+    if (!preg_match('/^(\d{4})-(\d{2})-(\d{2})$/', $value, $m) || !checkdate((int)$m[2], (int)$m[3], (int)$m[1])) return '';
+    return $value;
+}
+
+/** @return array|null ['from' => 'YYYY-MM-DD', 'until' => 'YYYY-MM-DD' (last free day)] */
+function riff_free_week($riff, $today = null) {
+    if (!is_array($riff) || !empty($riff['isFree']) || !empty($riff['freeWithAccount'])) return null;
+    $released = riff_date_normalize($riff['releasedAt'] ?? '');
+    if ($released === '') return null;
+    $from = gmdate('Y-m-d', strtotime($released . ' +' . RIFF_FREE_WEEK_AFTER_DAYS . ' days UTC'));
+    $until = gmdate('Y-m-d', strtotime($from . ' +' . (RIFF_FREE_WEEK_DAYS - 1) . ' days UTC'));
+    return ['from' => $from, 'until' => $until];
+}
+
+function riff_free_week_now($riff, $today = null) {
+    $week = riff_free_week($riff);
+    if ($week === null) return null;
+    $today = $today ?: gmdate('Y-m-d');
+    return ($today >= $week['from'] && $today <= $week['until']) ? $week : null;
+}
+
+/**
+ * What a visitor of the list gets: accountFree (open once signed in), freeWeekUntil while the free week runs and,
+ * like Epic's «Free now / Coming next», freeNextFrom/freeNextUntil for the free week that starts within 7 days.
+ */
+function riff_access_offer($riff, $today = null) {
+    if (!is_array($riff)) return $riff;
+    unset($riff['accountFree'], $riff['freeWeekUntil'], $riff['freeNextFrom'], $riff['freeNextUntil']);
+    if (!empty($riff['isFree'])) return $riff;
+    if (riff_lock($riff) !== '' || !empty($riff['hidden'])) return $riff;
+    $today = $today ?: gmdate('Y-m-d');
+    $week = riff_free_week_now($riff, $today);
+    if (!empty($riff['freeWithAccount']) || $week !== null) $riff['accountFree'] = true;
+    if ($week !== null) $riff['freeWeekUntil'] = $week['until'];
+    $next = riff_free_week($riff);
+    if ($next !== null && $next['from'] > $today && $next['from'] <= gmdate('Y-m-d', strtotime($today . ' +7 days UTC'))) {
+        $riff['freeNextFrom'] = $next['from'];
+        $riff['freeNextUntil'] = $next['until'];
+    }
+    return $riff;
+}
+
+/** Clean the access fields before a save; the first save without a lock dates the release. */
+function riff_access_normalize($riff, $today = null) {
+    $riff['isFree'] = !empty($riff['isFree']);
+    $riff['freeWithAccount'] = !$riff['isFree'] && !empty($riff['freeWithAccount']);
+    unset($riff['accountFree'], $riff['freeWeekUntil'], $riff['freeNextFrom'], $riff['freeNextUntil']);
+    $released = riff_date_normalize($riff['releasedAt'] ?? '');
+    if ($released === '' && riff_lock($riff) === '' && empty($riff['hidden']) && !$riff['isFree'] && !$riff['freeWithAccount']) {
+        $released = $today ?: gmdate('Y-m-d');
+    }
+    if ($released === '') unset($riff['releasedAt']);
+    else $riff['releasedAt'] = $released;
+    return $riff;
+}
+
 function riff_lock($riff) {
     $lock = is_array($riff) ? (string)($riff['lock'] ?? '') : '';
     return in_array($lock, RIFF_LOCKS, true) ? $lock : '';
@@ -39,6 +109,7 @@ function riff_is_public_for_drop($riff) {
 /** Error text, or null. Keeps the lock reason known and the teaser link unique. */
 function riff_access_error($riff, $others) {
     if (isset($riff['lock']) && $riff['lock'] !== '' && riff_lock($riff) === '') return 'Unknown lock reason';
+    if (trim((string)($riff['releasedAt'] ?? '')) !== '' && riff_date_normalize($riff['releasedAt']) === '') return 'Release date: YYYY-MM-DD';
     $raw = trim((string)($riff['dropKey'] ?? ''));
     if ($raw === '') return null;
     $key = riff_drop_key_normalize($raw);

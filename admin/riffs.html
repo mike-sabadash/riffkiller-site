@@ -173,9 +173,11 @@
                     <label class="ed-field"><span>Сложность</span><select id="difficulty"><option value="beginner">Beginner</option><option value="beginner-plus">Beginner+</option><option value="intermediate" selected>Intermediate</option><option value="intermediate-plus">Intermediate+</option><option value="advanced">Advanced</option></select></label><div class="ed-field span-4 ed-diff"><span>Оценка сложности (0–3 за пункт, шкала — docs/RIFF_DIFFICULTY.md)</span><div class="ed-diff-grid"><label class="ed-field ed-score" title="Нот в секунду в темпе: до 2.5 → 0, 2.5–4 → 1, 4–5.5 → 2, больше 5.5 → 3"><span>Темп</span><select class="diff-score" data-criterion="tempo"><option value="">—</option><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option></select></label><label class="ed-field ed-score" title="Бенды (в точную высоту), легато, слайды, вибрато, растяжки"><span>Левая рука</span><select class="diff-score" data-criterion="leftHand"><option value="">—</option><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option></select></label><label class="ed-field ed-score" title="Глушение, перескоки через струны, переменный штрих, приглушённые удары"><span>Правая рука</span><select class="diff-score" data-criterion="rightHand"><option value="">—</option><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option></select></label><label class="ed-field ed-score" title="Синкопы, триоли, 5/8 и другие размеры, сдвиг фразы относительно доли"><span>Ритм</span><select class="diff-score" data-criterion="rhythm"><option value="">—</option><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option></select></label><label class="ed-field ed-score" title="Смены позиций, формы аккордов, октавы"><span>Гриф</span><select class="diff-score" data-criterion="fretboard"><option value="">—</option><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option></select></label><label class="ed-field ed-score" title="Длинные быстрые куски без отдыха (даунстроки)"><span>Выносливость</span><select class="diff-score" data-criterion="stamina"><option value="">—</option><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option></select></label></div><small id="diffTotal">Заполни все шесть пунктов — уровень посчитается сам.</small></div>
                     <label class="ed-field"><span>Жанр</span><select id="genre"><option value="rock" selected>rock</option><option value="metal">metal</option><option value="blues">blues</option><option value="country">country</option><option value="punk">punk</option><option value="funk">funk</option><option value="jazz">jazz</option><option value="pop">pop</option><option value="other">other</option></select></label>
                     <div class="ed-checks">
-                        <label class="ed-check"><input type="checkbox" id="isFree" name="isFree"> Бесплатный, без подписки</label>
                         <label class="ed-check" id="hiddenLabel"><input type="checkbox" id="hidden" name="hidden"> <span id="hiddenText">Скрыть с сайта</span></label>
                     </div>
+                    <label class="ed-field"><span>Цена</span><select id="price"><option value="premium">Premium ($9 / Patreon)</option><option value="account">Бесплатно с аккаунтом</option><option value="free">Бесплатно всем</option></select></label>
+                    <label class="ed-field"><span>Дата выхода (Premium)</span><input type="date" id="releasedAt"></label>
+                    <small class="ed-field span-4" id="freeWeekInfo"></small>
                     <label class="ed-field"><span>Доступ</span><select id="lock"><option value="">Открыт</option><option value="soon">🔒 Закрыт: Soon</option></select></label>
                     <div class="ed-field span-3"><span>Ссылка для тизера в Instagram</span>
                         <div class="ed-drop"><span class="ed-drop-prefix">riffkiller.fun/drop/?r=</span><input type="text" id="dropKey" maxlength="40" placeholder="paranoid" autocomplete="off" spellcheck="false"><button type="button" class="ed-btn" id="dropMake">Придумать</button><button type="button" class="ed-btn" id="dropCopy">Скопировать ссылку</button></div>
@@ -697,7 +699,7 @@
                 '<span class="riff-grip" title="Перетащить" aria-label="Перетащить">' + GripSvg + '</span>' +
                 '<div class="riff-move-btns"><button type="button" class="move-up" title="Выше">▲</button><button type="button" class="move-down" title="Ниже">▼</button></div></div>' +
                 '<span class="riff-list-thumb"></span>' +
-                '<span class="riff-list-song">' + (r.song||'') + (draftLabel(r) ? ' <span class="riff-list-draft">' + draftLabel(r) + '</span>' : '') + (r.lock === 'soon' ? '<span class="riff-list-lock">🔒 Soon</span>' : '') + (missingLabel(r) ? '<span class="riff-list-missing">' + missingLabel(r) + '</span>' : '') + '</span>' +
+                '<span class="riff-list-song">' + (r.song||'') + (draftLabel(r) ? ' <span class="riff-list-draft">' + draftLabel(r) + '</span>' : '') + (r.lock === 'soon' ? '<span class="riff-list-lock">🔒 Soon</span>' : (r.isFree ? '<span class="riff-list-lock">Free</span>' : (r.freeWithAccount ? '<span class="riff-list-lock">Free · account</span>' : ''))) + (missingLabel(r) ? '<span class="riff-list-missing">' + missingLabel(r) + '</span>' : '') + '</span>' +
                 '<span class="riff-list-artist">' + (r.artist||'') + '</span>' +
                 '<div class="riff-list-actions"><button type="button" class="btn btn-primary btn-small btn-edit">Редактировать</button><button type="button" class="btn btn-secondary btn-small btn-del">Удалить</button></div>';
             setListThumb(card.querySelector('.riff-list-thumb'), r.thumbnail);
@@ -935,6 +937,24 @@
         else prompt('Ссылка для тизера', url);
     });
 
+    // Free vs Premium (config/riff-access.php, docs/FREE_PREMIUM.md): a Premium riff is free for signed-in students
+    // for 7 days, 28 days after its release date. The date is set by itself on the first save without the padlock.
+    function showFreeWeek() {
+        var info = document.getElementById('freeWeekInfo');
+        if (!info) return;
+        var price = document.getElementById('price').value;
+        var date = document.getElementById('releasedAt').value;
+        if (price === 'free') { info.textContent = 'Открыт всем, даже без аккаунта (рифф для тизеров).'; return; }
+        if (price === 'account') { info.textContent = 'Открывается после бесплатной регистрации.'; return; }
+        if (!date) { info.textContent = 'Дата выхода поставится сама при первом сохранении без замка. Через 4 недели после выхода рифф на 7 дней бесплатен для зарегистрированных («Free this week»).'; return; }
+        var d = new Date(date + 'T00:00:00Z');
+        var from = new Date(d.getTime() + 28 * 864e5), until = new Date(d.getTime() + 34 * 864e5);
+        var f = function (x) { return x.toISOString().slice(0, 10).split('-').reverse().join('.'); };
+        info.textContent = 'Бесплатная неделя для зарегистрированных: ' + f(from) + ' – ' + f(until) + '. До и после — только Premium и Patreon.';
+    }
+    document.getElementById('price').addEventListener('change', showFreeWeek);
+    document.getElementById('releasedAt').addEventListener('change', showFreeWeek);
+
     function fillForm(riff) {
         setEditing(riff && riff.id ? riff : null);
         videoSource = riff.videoSource || null;
@@ -947,7 +967,9 @@
         var ge = document.getElementById('genre');
         if (g && !Array.prototype.some.call(ge.options, function (o) { return o.value === g; })) { var o = document.createElement('option'); o.value = g; o.textContent = g; ge.appendChild(o); }
         ge.value = g || 'rock';
-        document.getElementById('isFree').checked = !!riff.isFree;
+        document.getElementById('price').value = riff.isFree ? 'free' : (riff.freeWithAccount ? 'account' : 'premium');
+        document.getElementById('releasedAt').value = riff.releasedAt || '';
+        showFreeWeek();
         document.getElementById('lock').value = riff.lock === 'soon' ? 'soon' : '';
         document.getElementById('dropKey').value = riff.dropKey || '';
         showDropStats();
@@ -1226,7 +1248,7 @@
             videoUpload('lessonVideoUpload') || Promise.resolve(vLesson),
             TabEditor.collect(uploadImage, basePath.replace(/^assets\/video\//, 'assets/tabs/'))
         ]).then(function(r){
-            var riff = Object.assign({}, editingRiff || {}, { song:song, artist:artist, duration: SegmentEditor.duration() || parseFloat(document.getElementById('duration').value)||0, difficulty: document.getElementById('difficulty').value||'intermediate', difficultyScore: getDifficultyScore(), genre: document.getElementById('genre').value.trim()||'rock', isFree: document.getElementById('isFree').checked, lock: document.getElementById('lock').value, dropKey: document.getElementById('dropKey').value.trim().toLowerCase(), hidden: document.getElementById('hidden').checked, dnaReference: document.getElementById('dnaReference').checked, videoFile: r[0]||'', videoFileRight: r[1]||'', thumbnail: r[2]||'assets/img/riff-1.png', lessonVideo: r[3]||vLesson||null, segments: segs, dna: dna, collectionIds: getSelectedCollectionIds() });
+            var riff = Object.assign({}, editingRiff || {}, { song:song, artist:artist, duration: SegmentEditor.duration() || parseFloat(document.getElementById('duration').value)||0, difficulty: document.getElementById('difficulty').value||'intermediate', difficultyScore: getDifficultyScore(), genre: document.getElementById('genre').value.trim()||'rock', isFree: document.getElementById('price').value === 'free', freeWithAccount: document.getElementById('price').value === 'account', releasedAt: document.getElementById('releasedAt').value, lock: document.getElementById('lock').value, dropKey: document.getElementById('dropKey').value.trim().toLowerCase(), hidden: document.getElementById('hidden').checked, dnaReference: document.getElementById('dnaReference').checked, videoFile: r[0]||'', videoFileRight: r[1]||'', thumbnail: r[2]||'assets/img/riff-1.png', lessonVideo: r[3]||vLesson||null, segments: segs, dna: dna, collectionIds: getSelectedCollectionIds() });
             if (r[4]) riff.tab = r[4]; else delete riff.tab;
             if (videoSource) riff.videoSource = videoSource;
             if(editId) riff.id = parseInt(editId,10);

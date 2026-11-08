@@ -5,6 +5,10 @@
 (function () {
     'use strict';
 
+    function esMonth(m) {
+        return { Jan: 'enero', Feb: 'febrero', Mar: 'marzo', Apr: 'abril', May: 'mayo', Jun: 'junio', Jul: 'julio', Aug: 'agosto', Sep: 'septiembre', Oct: 'octubre', Nov: 'noviembre', Dec: 'diciembre' }[m] || m;
+    }
+
     window.RK_I18N.register({
         exact: {
             "Riff Killer — Riffs & collections": "Riff Killer — riffs y colecciones",
@@ -22,6 +26,15 @@
             "Riff Killer - Patreon Authorization": "Riff Killer — inicio de sesión con Patreon",
             "Privacy Policy - Riff Killer": "Política de privacidad — Riff Killer",
             "Terms of Service - Riff Killer": "Términos del servicio — Riff Killer",
+            "Free this week": "Gratis esta semana",
+            "Free with account": "Gratis con cuenta",
+            "Free with a free account": "Gratis con una cuenta gratis",
+            "Every week one Premium riff is free with a free account.": "Cada semana un riff Premium es gratis con una cuenta gratis.",
+            "Sign up free to open this riff and save your stars.": "Regístrate gratis para abrir este riff y guardar tus estrellas.",
+            "Sign up free": "Regístrate gratis",
+            "Premium riff": "Riff Premium",
+            "The full library and a new riff every week. Plans from $9 a month, or join on Patreon.": "Toda la biblioteca y un riff nuevo cada semana. Planes desde $9 al mes, o únete en Patreon.",
+            "Keep it with Premium": "Quédatelo con Premium",
             "Riffs": "Riffs",
             "Practice": "Práctica",
             "Profile": "Perfil",
@@ -911,6 +924,11 @@
             "Sign up with email instead": "Registrarme con email"
         },
         patterns: [
+        // Free vs Premium dates (main.js / practice.js rkShortDate: "Dec 17").
+        [/^Free until (\w{3}) (\d+)$/, function (m) { return 'Gratis hasta el ' + m[2] + ' de ' + esMonth(m[1]); }],
+        [/^Free from (\w{3}) (\d+)$/, function (m) { return 'Gratis desde el ' + m[2] + ' de ' + esMonth(m[1]); }],
+        [/^Free until (\w{3}) (\d+) with a free account\. Then it is Premium\.$/, function (m) { return 'Gratis hasta el ' + m[2] + ' de ' + esMonth(m[1]) + ' con una cuenta gratis. Después es Premium.'; }],
+        [/^Free this week · until (\w{3}) (\d+)\. Then it is Premium\.$/, function (m) { return 'Gratis esta semana · hasta el ' + m[2] + ' de ' + esMonth(m[1]) + '. Después es Premium.'; }],
         // Technique details from the tab (js/tab-atoms.js).
         [/^(?:frets? ([\d–]+)(?: and (\d+))?, )?((?:[A-Ga-g]#?, )*[A-Ga-g]#?) strings?((?:, [^,]+)*)$/, function (m) {
             var words = { 'quarter tone': 'un cuarto de tono', 'half step': 'medio tono', 'three-quarter tone': 'tres cuartos de tono', 'whole step': 'un tono', 'one and a half steps': 'un tono y medio', 'two steps': 'dos tonos' };

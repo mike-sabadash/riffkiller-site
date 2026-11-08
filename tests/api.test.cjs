@@ -109,7 +109,32 @@ test('locked riffs, teaser links and the one-time data migration',async()=>{
     const out=execFileSync('php',[path.join(site.dir,'config/data-migrate-cli.php'),site.dir]).toString();
     assert.match(out,/2026-10-30-lock-soon/);
     const after=JSON.parse(fs.readFileSync(file,'utf8'));
-    for(const r of after) assert.deepEqual([r.lock,r.isFree],r.song==='Black Dog'?['',r.isFree]:['soon',false],r.song);
+    for(const r of after) assert.deepEqual([r.lock,r.isFree],r.song==='Black Dog'?['',false]:['soon',false],r.song);
+    assert.equal(after.find(r=>r.song==='Black Dog').freeWithAccount,true,'Black Dog opens after a free sign-up');
     assert.equal(execFileSync('php',[path.join(site.dir,'config/data-migrate-cli.php'),site.dir]).toString(),'','runs once');
     fs.writeFileSync(file,original);fs.rmSync(path.join(site.dir,'data/migrations.json'));
+});
+
+test('Free vs Premium: free with an account, the free week 4 weeks after release and the next one',async()=>{
+    const {execFileSync}=require('node:child_process');
+    const php=code=>JSON.parse(execFileSync('php',['-r','require "'+path.join(__dirname,'..','config/riff-access.php')+'"; '+code]).toString());
+    const premium={id:20,song:'X',isFree:false,lock:'',releasedAt:'2026-11-13'};
+    assert.deepEqual(php('echo json_encode(riff_free_week('+JSON.stringify(JSON.stringify(premium))+' ? json_decode('+JSON.stringify(JSON.stringify(premium))+', true) : null));'),{from:'2026-12-11',until:'2026-12-17'});
+    const offer=(riff,today)=>php('echo json_encode(riff_access_offer(json_decode('+JSON.stringify(JSON.stringify(riff))+', true), "'+today+'"));');
+    assert.equal(offer(premium,'2026-12-10').accountFree,undefined,'Premium before its free week');
+    assert.deepEqual([offer(premium,'2026-12-04').freeNextFrom,offer(premium,'2026-12-04').freeNextUntil],['2026-12-11','2026-12-17'],'announced a week ahead');
+    assert.equal(offer(premium,'2026-12-03').freeNextFrom,undefined,'not earlier than a week ahead');
+    assert.deepEqual([offer(premium,'2026-12-11').accountFree,offer(premium,'2026-12-11').freeWeekUntil],[true,'2026-12-17']);
+    assert.equal(offer(premium,'2026-12-17').accountFree,true,'last free day');
+    assert.equal(offer(premium,'2026-12-18').accountFree,undefined,'Premium again');
+    assert.equal(offer({...premium,lock:'soon'},'2026-12-11').accountFree,undefined,'a locked riff has no free week');
+    assert.equal(offer({id:1,song:'Black Dog',freeWithAccount:true},'2026-12-11').accountFree,true);
+    assert.equal(offer({id:9,song:'Paranoid',isFree:true},'2026-12-11').accountFree,undefined,'free for everyone needs nothing more');
+    const norm=(riff,today)=>php('echo json_encode(riff_access_normalize(json_decode('+JSON.stringify(JSON.stringify(riff))+', true), "'+today+'"));');
+    assert.equal(norm({id:3,lock:''},'2026-11-13').releasedAt,'2026-11-13','first save without the padlock dates the release');
+    assert.equal(norm({id:3,lock:'soon'},'2026-11-13').releasedAt,undefined);
+    assert.equal(norm({id:3,lock:'',releasedAt:'2026-11-06'},'2026-11-13').releasedAt,'2026-11-06','a set date is kept');
+    assert.deepEqual([norm({isFree:true,freeWithAccount:true},'2026-11-13').freeWithAccount],[false]);
+    const raw=await (await fetch(site.base+'/api/riffs/list.php?raw=1',{headers:{Cookie:admin}})).json();
+    const bad=await post('/api/riffs/save.php',{riff:{...raw[0],releasedAt:'13.11.2026'}},admin);assert.equal(bad.status,400,'release date format');
 });
