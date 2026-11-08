@@ -768,6 +768,34 @@ test('on a phone, bars wider than the screen scroll so the last notes of a part 
     assert.ok(view.cursor.x>=view.host.x&&view.cursor.x<=view.host.x+view.host.width,'cursor in view: '+JSON.stringify(view));
     if(process.env.QA_SCREENSHOTS)await page.locator('.tabs-overlay.is-live .tab-live').screenshot({path:path.join(process.env.QA_SCREENSHOTS,'practice-live-tab-phone.png')});
 });
+test('live tab fret numbers are one size for a sparse riff with bends and a dense riff, on desktop and phone',async t=>{
+    // Iron Man's intro (a whole note with a 1½ bend per bar) once blew the tab up to 1.6x, while Paranoid's
+    // sixteenths stayed small. The size must not depend on how many notes a bar has or on bends above the tab.
+    const file=path.join(site.dir,'data/riffs.json');const original=fs.readFileSync(file,'utf8');t.after(()=>fs.writeFileSync(file,original));
+    const tabs={sparse:'black-sabbath/iron-man.tex',dense:'black-sabbath/paranoid.tex'};
+    const sizes={};
+    for(const width of [1440,390])for(const [kind,tex] of Object.entries(tabs)){
+        const riffs=JSON.parse(original);const riff=Array.isArray(riffs)?riffs[0]:Object.values(riffs)[0];
+        riff.tab={tex:fs.readFileSync(path.join(__dirname,'../content/tabs',tex),'utf8')};
+        riff.segments.forEach(s=>{s.tabBars=[1,2];delete s.tabSync;});
+        fs.writeFileSync(file,JSON.stringify(riffs));
+        const page=await pageFor(t,width);await practice(page);
+        await page.locator('.segment-btn').nth(1).click();
+        if(!await page.locator('.tabs-overlay.is-live').count())await page.click('#toggleTabs');
+        await page.waitForSelector('.tabs-overlay.is-live .tab-live.is-ready',{timeout:20000});
+        await page.waitForTimeout(500); // the render at the final size
+        sizes[width+' '+kind]=await page.evaluate(()=>{
+            const digits=[...document.querySelectorAll('.tabs-overlay.is-live .tab-live svg text')].filter(e=>/^\(?\d+\)?$/.test(e.textContent.trim()));
+            return Math.max(...digits.map(e=>parseFloat(getComputedStyle(e).fontSize)));
+        });
+    }
+    for(const width of [1440,390]){
+        const sparse=sizes[width+' sparse'],dense=sizes[width+' dense'];
+        assert.ok(sparse>0&&dense>0,'fret numbers drawn: '+JSON.stringify(sizes));
+        assert.ok(Math.abs(sparse-dense)<0.2,width+' px: fret numbers of a sparse riff are as big as of a dense one: '+JSON.stringify(sizes));
+        assert.ok(sparse<=12,width+' px: fret numbers stay small, not blown up: '+JSON.stringify(sizes));
+    }
+});
 test('on a phone a looped part turns back before its end even when the page is checked only every 250 ms',async t=>{
     const context=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true});t.after(()=>context.close());
     const page=await context.newPage();

@@ -340,8 +340,9 @@ html[data-theme='light'] .segment-btn .dna-segment-role--drill { color: rgba(20,
 }
 
 /* Live tab (alphaTab): replaces the picture when the riff has a tab file. */
-.practice-page .tab-live { display: none; position: relative; width: 100%; overflow: hidden; min-height: 72px; --tab-live-max-h: 150px; }
-.practice-page .tabs-overlay.below-video .tab-live { --tab-live-max-h: 190px; }
+.practice-page .tab-live { display: none; position: relative; width: 100%; overflow: hidden; min-height: 72px; --tab-live-scale: .85; }
+/* One size of fret numbers for every riff (js/tab-live.js reads it): the same in a sparse intro and a dense riff. */
+@media (max-width: 600px) { .practice-page .tab-live { --tab-live-scale: .8; } }
 .practice-page .tabs-overlay.is-live .tab-live { display: block; }
 .practice-page .tabs-overlay.is-live .tabs-frame { display: none; }
 .practice-page .tabs-overlay.is-live.is-idle { visibility: hidden; }
