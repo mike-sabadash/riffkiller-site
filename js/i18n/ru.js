@@ -36,6 +36,7 @@
             "Terms of Service - Riff Killer": "Условия использования — Riff Killer",
             "Free this week": "Бесплатно на этой неделе",
             "Free with account": "Бесплатно с аккаунтом",
+            "Free · sign up": "Бесплатно · вход",
             "Free with a free account": "Бесплатно с бесплатным аккаунтом",
             "Every week one Premium riff is free with a free account.": "Каждую неделю один Premium-рифф бесплатен с бесплатным аккаунтом.",
             "Sign up free to open this riff and save your stars.": "Зарегистрируйтесь бесплатно, чтобы открыть этот рифф и сохранить звёзды.",
