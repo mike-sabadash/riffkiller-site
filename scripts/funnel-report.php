@@ -138,11 +138,16 @@ foreach ($logFiles as $f) {
         $v = &$V[$key];
         if (!isset($v['first'])) { $v['first'] = $t; $v['days'] = []; $v['dev'] = preg_match('/iphone|ipad/i', $ua) ? 'ios' : (preg_match('/android/i', $ua) ? 'android' : 'desktop'); $v['inapp'] = preg_match('/instagram|fban|fbav|fb_iab/i', $ua) ? 1 : 0; }
         $v['first'] = min($v['first'], $t);
-        $v['days'][$d] = 1;
         $ok = $status < 400;
         $page = null;
-        if ($meth === 'GET' && $ok) {
-            if ($path === '/' || $path === '/index.html' || $path === '/app.html') $page = 'library';
+        // The log is shared by every site on the server and has no host: "/" may be another site. The library counts
+        // when its page script asks for the riff list (referer = riffkiller.fun page), which also leaves bots out.
+        $refHost = strtolower((string)parse_url($ref, PHP_URL_HOST));
+        $refPath = strtolower((string)parse_url($ref, PHP_URL_PATH) ?: '/');
+        if ($meth === 'GET' && $ok && $path === '/api/riffs/list.php' && preg_match('/(^|\.)riffkiller\.fun$/', $refHost)) {
+            if ($refPath === '/' || $refPath === '/index.html' || $refPath === '/app.html') $page = 'library';
+        } elseif ($meth === 'GET' && $ok) {
+            if ($path === '/' || $path === '/index.html' || $path === '/app.html') $page = null;
             elseif ($path === '/landing.html') $page = 'landing';
             elseif ($path === '/practice.html') $page = strpos($q, 'drop=') !== false ? 'practiceDrop' : 'practice';
             elseif (strpos($path, '/drop') === 0) $page = 'drop';
@@ -150,7 +155,7 @@ foreach ($logFiles as $f) {
             elseif ($path === '/profile.html') $page = 'profile';
             elseif (strpos($path, '/billing') === 0) $page = 'billing';
             elseif (in_array($path, ['/terms.html', '/privacy.html', '/consent.html'], true)) $page = 'legal';
-            elseif (strpos($path, '/assets/video/') === 0) $page = 'video';
+            elseif (strpos($path, '/assets/video/') === 0 || $path === '/video.php') $page = 'video';
         }
         if (strpos($path, '/api/auth/email-register.php') === 0 && $meth === 'POST') $page = $ok ? 'regEmailOk' : 'regEmailFail';
         elseif (strpos($path, '/api/auth/email-login.php') === 0 && $meth === 'POST') $page = $ok ? 'loginEmailOk' : 'loginEmailFail';
@@ -165,14 +170,16 @@ foreach ($logFiles as $f) {
         elseif (strpos($path, '/api/progress.php') === 0 && $meth === 'POST' && $ok) $page = 'progressSave';
         elseif (strpos($path, '/api/riffs/drop.php') === 0 && $meth === 'POST') $page = 'dropSignupPing';
         elseif (strpos($path, '/api/me.php') === 0) $page = 'me';
+        if ($ref !== '-' && $refHost !== '' && strpos($refHost, 'riffkiller.fun') === false && !isset($v['extref'])) $v['extref'] = $refHost;
         if ($page === null) continue;
+        $v['days'][$d] = 1;
         $v['p'][$page] = ($v['p'][$page] ?? 0) + 1;
         $v['pd'][$page][$d] = 1;
         if (in_array($page, ['library', 'landing', 'practice', 'practiceDrop', 'drop'], true)) {
             if (!isset($v['entry'])) { $v['entry'] = $page; $v['entryT'] = $t; }
             elseif ($t < $v['entryT']) { $v['entry'] = $page; $v['entryT'] = $t; }
-            if ($ref !== '-' && stripos($ref, 'riffkiller.fun') === false && !isset($v['ref'])) {
-                $hst = strtolower((string)parse_url($ref, PHP_URL_HOST));
+            $hst = $refHost !== '' && strpos($refHost, 'riffkiller.fun') === false ? $refHost : (string)($v['extref'] ?? '');
+            if ($hst !== '' && !isset($v['ref'])) {
                 $v['ref'] = preg_match('/instagram/', $hst) ? 'instagram' : (preg_match('/facebook|fb\.com/', $hst) ? 'facebook' : (preg_match('/youtube|youtu\.be/', $hst) ? 'youtube' : (preg_match('/patreon/', $hst) ? 'patreon' : (preg_match('/google\./', $hst) ? 'google' : (preg_match('/tiktok/', $hst) ? 'tiktok' : (preg_match('/t\.co$|twitter|x\.com/', $hst) ? 'x' : 'other'))))));
             }
         }
