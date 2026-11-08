@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <script src="js/rk-theme-init.js"></script>
     <style>html{background:#0a0a0a;color:#fff}html[data-theme="light"]{background:#f4f4f8;color:#12121a}</style>
-    <script src="js/i18n.js?v=fp1"></script>
+    <script src="js/i18n.js?v=nl1"></script>
     <meta name="theme-color" content="#0a0a0a" id="rk-theme-color">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Riff Killer - Profile</title>
@@ -945,6 +945,12 @@
                 </div>
             </section>
 
+            <!-- Emails: newsletter switches (js/newsletter.js, config/newsletter.php); shown once signed in -->
+            <section class="profile-settings-section profile-card-section" id="profileEmailsSection" data-news-section hidden>
+                <h2 class="section-title">Emails</h2>
+                <div class="profile-settings-card"><div id="rkNewsPrefs"></div></div>
+            </section>
+
             <!-- Profile settings: имя, аватар, сброс пароля (открывается по иконке settings) -->
             <section class="profile-settings-section profile-card-section" id="profileSettingsSection">
                 <h2 class="section-title">Profile settings</h2>
@@ -1061,7 +1067,7 @@
     
     <!-- Скрипты -->
     <script src="js/patreon-config.js"></script>
-    <script src="js/auth-manager.js?v=signup1"></script>
+    <script src="js/auth-manager.js?v=nl1"></script>
     <script src="js/site-header-behaviors.js?v=signup1"></script>
     <script src="js/rk-theme.js"></script>
     <script src="js/riff-difficulty.js?v=1"></script>
@@ -1071,5 +1077,6 @@
     <script src="js/rk-progress.js?v=dna1"></script>
     <script src="js/profile-progress.js?v=fav1"></script>
     <script src="js/profile.js?v=legal1"></script>
+    <script src="js/newsletter.js?v=nl1"></script>
 </body>
 </html>

@@ -16,7 +16,7 @@ test('email sign-up needs the consent box and keeps what was agreed to',async()=
     const ok=await post('/api/auth/email-register.php',{consent:true,email:'consent@example.com',password:'secret123'});
     assert.equal(ok.status,200);
     const u=users().find(x=>x.email==='consent@example.com');
-    assert.equal(u.consent.how,'checkbox');assert.equal(u.consent.version,'2026-10-29');assert.ok(Date.parse(u.consent.at));
+    assert.equal(u.consent.how,'checkbox');assert.equal(u.consent.version,'2026-11-09');assert.ok(Date.parse(u.consent.at));
 });
 
 test('delete account: typed DELETE, erases user, progress and avatar, signs out',async()=>{

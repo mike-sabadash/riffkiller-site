@@ -16,5 +16,9 @@ if (!$row || empty($row['email'])) {
 }
 
 email_subscription_set($row['email'], false, 'unsubscribe-link');
+// Old campaign links: also turn off the newsletter of that account.
+require_once dirname(__DIR__) . '/config/newsletter.php';
+$acc = user_find_by_email($row['email']);
+if ($acc) nl_set_prefs($acc['id'], nl_empty_topics(), 'unsubscribe');
 echo '<!doctype html><html><body style="font-family:Arial;background:#111629;color:#fff;padding:24px"><h2>You have been unsubscribed</h2><p>Email: ' . htmlspecialchars($row['email']) . '</p></body></html>';
 

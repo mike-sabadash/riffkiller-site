@@ -11,7 +11,7 @@ require_once dirname(__DIR__, 2) . '/config/site-stats.php';
 
 // Names the pages send (js/auth-manager.js rkCount); anything else is ignored.
 const SITE_STATS_EVENTS = ['view', 'auth_open', 'auth_tab', 'signup_click', 'login_click', 'consent_missing', 'auth_error',
-    'star_prompt', 'patreon_back', 'inapp_hint', 'auth_done', 'gate'];
+    'star_prompt', 'patreon_back', 'inapp_hint', 'auth_done', 'gate', 'mail_ask'];
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);

@@ -135,6 +135,7 @@ class AuthManager {
                     };
                     self.token = null;
                     self.saveSession();
+                    self.applyNewsOptIn();
                     self.notifyListeners();
                     self.updateAllAuthButtons();
                     return self.fetchSubscriptionFromServer(u.id);
@@ -327,7 +328,7 @@ class AuthManager {
         const signup = document.getElementById('authTabSignup');
         if (!signup || !signup.classList.contains('active')) return true;
         const box = document.getElementById('authModalConsentInput');
-        if (box && box.checked) return true;
+        if (box && box.checked) { this.rememberNewsChoice(); return true; }
         const row = document.getElementById('authModalConsent');
         if (row) { row.classList.add('auth-consent--error'); }
         rkCount('consent_missing');
@@ -336,6 +337,28 @@ class AuthManager {
             this._authModalEmailMessage.style.display = 'block';
         }
         return false;
+    }
+
+    /**
+     * The separate, unticked newsletter box on Sign up (config/newsletter.php). Google and Patreon leave the page, so
+     * the choice waits in this browser and is sent once the account is signed in (applyNewsOptIn).
+     */
+    rememberNewsChoice() {
+        const news = document.getElementById('authModalNewsInput');
+        try {
+            if (news && news.checked) localStorage.setItem('rk-news-optin', String(Date.now()));
+            else localStorage.removeItem('rk-news-optin');
+        } catch (e) {}
+    }
+
+    applyNewsOptIn() {
+        let at = 0;
+        try { at = Number(localStorage.getItem('rk-news-optin')) || 0; localStorage.removeItem('rk-news-optin'); } catch (e) {}
+        if (!at || Date.now() - at > 2 * 3600 * 1000) return;
+        fetch(getApiBase() + '/api/newsletter/prefs.php', {
+            method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ topics: { drops: true }, how: 'signup', asked: 'yes' })
+        }).catch(function () {});
     }
 
     loginGoogle() {
@@ -383,6 +406,7 @@ class AuthManager {
             this.userData = { id: data.user.id, full_name: data.user.full_name || 'User', image_url: data.user.image_url || '', email: data.user.email || '', provider: 'email' };
             this.token = null;
             this.saveSession();
+            this.applyNewsOptIn();
             this.notifyListeners();
             this.updateAllAuthButtons();
             const backdrop = document.getElementById('riffKillerAuthModalBackdrop');
@@ -442,6 +466,7 @@ class AuthManager {
             '<button type="button" class="auth-toggle-btn" id="authTabSignup" role="tab">Sign up</button>' +
             '</div></div>' +
             '<label class="auth-consent" id="authModalConsent" style="display:none;" translate="no"><input type="checkbox" id="authModalConsentInput"><span>' + this.legalTexts().consent + '</span></label>' +
+            '<label class="auth-consent auth-consent--news" id="authModalNews" style="display:none;"><input type="checkbox" id="authModalNewsInput"><span>Email me when a new riff drops (about once a week). Unsubscribe in one click.</span></label>' +
             inAppHint +
             '<div class="auth-provider-list">' +
             (inApp ? '' : '<button type="button" class="auth-provider-btn auth-provider-btn--google" id="authModalGoogle"><svg viewBox="0 0 24 24" width="22" height="22"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg><span>Continue with Google</span></button>') +
@@ -546,6 +571,7 @@ class AuthManager {
         var self = this;
         const showTab = function (signup) {
             document.getElementById('authModalConsent').style.display = signup ? 'flex' : 'none';
+            document.getElementById('authModalNews').style.display = signup ? 'flex' : 'none';
             document.getElementById('authModalLegalNote').style.display = signup ? 'none' : '';
             document.querySelector('.auth-modal-title').textContent = signup ? 'Create a free account' : 'Log in';
             document.getElementById('authModalSubtitle').textContent = signup
@@ -625,7 +651,7 @@ class AuthManager {
             const link = document.createElement('link');
             link.id = 'auth-modal-styles';
             link.rel = 'stylesheet';
-            link.href = resolveRkStaticAsset('css/auth-modal.css?v=signup1');
+            link.href = resolveRkStaticAsset('css/auth-modal.css?v=nl1');
             document.head.appendChild(link);
         }
     }

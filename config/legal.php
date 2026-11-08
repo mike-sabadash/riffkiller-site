@@ -6,7 +6,7 @@
  */
 require_once __DIR__ . '/user-store.php';
 
-const LEGAL_VERSION = '2026-10-29';
+const LEGAL_VERSION = '2026-11-09';
 
 /** Consent record for a new account. $how: 'checkbox' (email sign-up), 'continue' (Google, Yandex, Patreon, email link). */
 function legal_consent($how) {
@@ -14,8 +14,8 @@ function legal_consent($how) {
 }
 
 /**
- * Deletes the account: the user record, practice progress, avatar files, subscription state, email preferences
- * and digest log. Payment orders and renewal records stay (they are needed for receipts and tax records).
+ * Deletes the account: the user record, practice progress, avatar files, subscription state, email preferences,
+ * digest log and newsletter switches, log and votes. Payment orders and renewal records stay (they are needed for receipts and tax records).
  * Returns true when the user record is gone.
  */
 function legal_delete_account($userId) {
@@ -43,6 +43,9 @@ function legal_delete_account($userId) {
         $d = json_decode((string)@file_get_contents($subs), true);
         if (is_array($d) && isset($d[$email])) { unset($d[$email]); @file_put_contents($subs, json_encode($d, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)); }
     }
+
+    require_once __DIR__ . '/newsletter.php';
+    nl_forget($userId);
 
     $users = array_values(array_filter(user_store_load(), function ($u) use ($userId) { return (string)($u['id'] ?? '') !== $userId; }));
     return user_store_save($users);
