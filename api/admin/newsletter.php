@@ -65,6 +65,7 @@ function nl_admin_clean_campaign($c, $strict = true) {
         'date' => riff_date_normalize($c['date'] ?? ''),
         'subject' => trim(mb_substr((string)($c['subject'] ?? ''), 0, 120)),
         'headline' => trim(mb_substr((string)($c['headline'] ?? ''), 0, 90)),
+        'eyebrow' => trim(mb_substr((string)($c['eyebrow'] ?? ''), 0, 60)),
         'text' => trim(mb_substr(str_replace("\r", '', (string)($c['text'] ?? '')), 0, 4000)),
         'button' => trim(mb_substr((string)($c['button'] ?? ''), 0, 40)),
         'url' => trim(mb_substr((string)($c['url'] ?? ''), 0, 300)),

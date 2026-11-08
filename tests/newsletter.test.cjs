@@ -198,3 +198,28 @@ test('deleting the account erases its newsletter switches, log and votes',()=>{
     assert.ok(!('u_la' in readJson('newsletter.json',{})));
     assert.ok(!('u_la' in readJson('newsletter-log.json',{})));
 });
+
+test('Cyber Week: the yearly plan sells at $63 through its own lava.top offer only inside the window; offers skip paying readers',()=>{
+    const at=t=>php(`putenv('BILLING_NOW=${t}');require_once '${site.dir}/config/billing.php';echo json_encode([lava_offer_id('yearly'),usdt_price('yearly'),lava_offer_id('monthly'),usdt_price('monthly'),billing_public_options()['sale']]);`);
+    const before=JSON.parse(at(Date.parse('2026-11-27T07:59:00Z')/1000));
+    assert.notEqual(before[0],'cd29f1c3-559c-46f4-97bb-7a67640e2afb');assert.equal(before[1],90);assert.deepEqual(before[4],{});
+    const during=JSON.parse(at(Date.parse('2026-11-30T20:00:00Z')/1000));
+    assert.equal(during[0],'cd29f1c3-559c-46f4-97bb-7a67640e2afb');assert.equal(during[1],63);
+    assert.notEqual(during[2],'cd29f1c3-559c-46f4-97bb-7a67640e2afb','the monthly plan keeps its price');assert.equal(during[3],9);
+    assert.deepEqual(during[4],{yearly:{price:63,was:90,label:'Cyber Week',untilLabel:'Dec 1'}});
+    const after=JSON.parse(at(Date.parse('2026-12-02T08:00:00Z')/1000));
+    assert.equal(after[1],90);assert.deepEqual(after[4],{});
+    // The scheduled letter: the migration adds it once; a paying reader never gets it, a free one does.
+    execFileSync(process.env.PHP_BIN||'php',[path.join(site.dir,'config/data-migrate-cli.php'),site.dir]);
+    const c=readJson('newsletter-campaigns.json',[]).filter(x=>x.id==='cyber2026');
+    assert.equal(c.length,1);assert.equal(c[0].date,'2026-11-30');
+    fs.writeFileSync(file('newsletter-log.json'),'{}');
+    setPrefs('u_none',{offers:true});setPrefs('u_new',{offers:true});
+    fs.mkdirSync(path.join(site.dir,'data/subscriptions'),{recursive:true});
+    fs.writeFileSync(path.join(site.dir,'data/subscriptions/u_new.json'),JSON.stringify({status:'active',source:'patreon',plan:'monthly',expires:Date.parse('2027-01-01')/1000}));
+    const r=run(Date.UTC(2026,10,30,19,0)/1000);
+    const got=r.sent.filter(s=>s.key==='c-cyber2026').map(s=>s.to);
+    assert.ok(got.includes('none@example.com'));assert.ok(!got.includes('new@example.com'),'Patreon member is not sold to');
+    const m=r.sent.find(s=>s.key==='c-cyber2026').mail;
+    assert.equal(m.subject,'A year of riffs for $63 (ends Tuesday)');assert.match(m.html,/A year of riffs, 30% off/);assert.match(m.html,/Get the year for \$63/);
+});

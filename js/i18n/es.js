@@ -29,6 +29,8 @@
             "Free this week": "Gratis esta semana",
             "Free with account": "Gratis con cuenta",
             "Free · sign up": "Gratis · regístrate",
+            "Cyber Week: a year of Premium for $63 instead of $90. Until Dec 1.": "Cyber Week: un año de Premium por $63 en vez de $90. Hasta el 1 de diciembre.",
+            "Cyber Week · until Dec 1": "Cyber Week · hasta el 1 dic",
             "Free with a free account": "Gratis con una cuenta gratis",
             "Every week one Premium riff is free with a free account.": "Cada semana un riff Premium es gratis con una cuenta gratis.",
             "Sign up free to open this riff and save your stars.": "Regístrate gratis para abrir este riff y guardar tus estrellas.",

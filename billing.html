@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <script src="js/rk-theme-init.js"></script>
     <style>html{background:#0a0a0a;color:#fff}html[data-theme="light"]{background:#f4f4f8;color:#12121a}</style>
-    <script src="js/i18n.js?v=fa1"></script>
+    <script src="js/i18n.js?v=cw1"></script>
     <meta name="theme-color" content="#0a0a0a" id="rk-theme-color">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Riff Killer - Premium Billing</title>
@@ -83,6 +83,9 @@
         .plan-name { font-size: 0.875rem; color: rgba(196, 200, 214, 0.95); margin-bottom: 8px; }
         .plan-price { font-family: 'Inter', system-ui, sans-serif; font-size: 2.25rem; font-weight: 700; letter-spacing: -0.02em; line-height: 1; display: inline; }
         .plan-period { display: inline; margin-left: 6px; }
+        .plan-was { font-size: 1rem; font-weight: 500; color: var(--color-text-tertiary, #8d8d9a); margin-left: 6px; }
+        .plan-card--sale .plan-save { color: #0B0B0E; background: #FFD23F; }
+        .sale-banner { margin: 0 0 20px; padding: 12px 16px; border-radius: 12px; background: #0B0B0E; border: 1px solid #FFD23F; color: #fff; font-weight: 600; font-size: 0.9375rem; line-height: 1.4; }
         .plan-save { display: inline-block; margin-top: 12px; padding: 4px 10px; border-radius: 999px; font-size: 0.75rem; font-weight: 600; color: #86efac; background: rgba(34, 197, 94, 0.12); }
         .methods-grid { gap: 16px; }
         .method-card { border-radius: 20px; }
@@ -218,6 +221,7 @@
                     <div class="sub-actions" id="subActions"></div>
                 </section>
 
+                <div class="sale-banner" id="saleBanner" role="note" hidden><span data-sale-text></span></div>
                 <section class="plan-section" id="planSection">
                     <h2 id="planHeading">1. Choose a plan</h2>
                     <div class="plans-row">
@@ -782,12 +786,30 @@
                     if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, function() {});
                 });
             });
+            // Limited-time price (config/sales.php): old price crossed out, the end date, the card and USDT charge the sale price.
+            function applySale(sale) {
+                var s = sale && sale.yearly;
+                var card = document.getElementById('planYearly');
+                var banner = document.getElementById('saleBanner');
+                if (!s || !card) { if (banner) banner.hidden = true; return; }
+                USD_PRICE.yearly = s.price;
+                card.querySelector('.plan-price').innerHTML = '$' + s.price + ' <s class="plan-was">$' + s.was + '</s>';
+                card.querySelector('.plan-save').textContent = s.label + ' · until ' + s.untilLabel;
+                card.classList.add('plan-card--sale');
+                if (banner) {
+                    banner.querySelector('[data-sale-text]').textContent = s.label + ': a year of Premium for $' + s.price + ' instead of $' + s.was + '. Until ' + s.untilLabel + '.';
+                    banner.hidden = false;
+                }
+                if (!planChosenByUser && !planParam) setPlan('yearly');
+                updatePrices();
+            }
             function loadOptions() {
                 return fetch('api/billing/options.php', { credentials: 'same-origin' })
                     .then(function(r) { return r.json(); })
                     .then(function(opts) {
                         if (!opts || !opts.success) return;
                         applyOptions(opts);
+                        applySale(opts.providers && opts.providers.sale);
                         if (opts.signedIn) return loadAccount();
                         account = null;
                         renderAccount();
