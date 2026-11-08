@@ -5,7 +5,7 @@
  * what Riff Killer gives. Pattern of premium learning/streaming services (Fender Play, Spotify, Masterclass):
  * 600 px card on a quiet grey, one headline, one button, a short "why you get this" line under the card.
  *
- *   assets/email/header.png  1200×264, black, rounded top corners baked in, logo + technique callouts
+ *   assets/email/header-2.png  1200×264, black, rounded top corners baked in, logo + technique callouts
  *                            (Mike's own visual language from the Patreon banner, without band photos or logos)
  *   assets/email/logo.png    the wordmark in white for the footer
  * Both are made by tools/email/render-email-images.cjs from the logo SVG; they must stay on the site (emails
@@ -28,6 +28,7 @@ const RK_EMAIL = [
     'night' => '#0B0B0E',    // header and footer band
     'accent' => '#8A4FE0',   // brand violet, buttons and eyebrows
     'accentInk' => '#7A3FD6',
+    'spark' => '#FFD23F',    // yellow, only on black: the footer marks and one callout in the header (Mike 08.11)
     'onNight' => '#B9B5C4',
     'font' => "-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif",
 ];
@@ -121,7 +122,7 @@ function rk_email_layout($o) {
     $usp = '';
     foreach ($f['usp'] as $i => $u) {
         $usp .= '<td valign="top" width="33%" style="padding:0 ' . ($i < 2 ? '10px' : '0') . ' 0 0;font-size:13px;line-height:18px;color:#FFFFFF;font-weight:600;">'
-            . '<span style="display:block;width:6px;height:6px;margin:0 0 8px;border-radius:3px;background:' . $c['accent'] . ';font-size:0;line-height:0;">&nbsp;</span>' . rk_email_e($u) . '</td>';
+            . '<span style="display:block;width:6px;height:6px;margin:0 0 8px;border-radius:3px;background:' . $c['spark'] . ';font-size:0;line-height:0;">&nbsp;</span>' . rk_email_e($u) . '</td>';
     }
     $social = [['Instagram', 'https://www.instagram.com/mikesabad'], ['YouTube', 'https://www.youtube.com/@Mikesabadash'], ['Patreon', 'https://www.patreon.com/cw/MikeSabadash']];
     $socialHtml = implode('<span style="color:#4A4752;">&nbsp;&nbsp;·&nbsp;&nbsp;</span>', array_map(function ($s) use ($c) {
@@ -141,7 +142,7 @@ function rk_email_layout($o) {
         . '<table role="presentation" width="600" cellspacing="0" cellpadding="0" border="0" style="width:100%;max-width:600px;font-family:' . $c['font'] . ';">'
         // header: black, rounded top corners baked into the picture
         . '<tr><td style="font-size:0;line-height:0;"><a href="' . rk_email_e($base) . '/" style="display:block;text-decoration:none;">'
-        . '<img src="' . rk_email_e($img('header.png')) . '" width="600" alt="Riff Killer" style="display:block;width:100%;max-width:600px;height:auto;border:0;background:' . $c['night'] . ';border-radius:18px 18px 0 0;color:#FFFFFF;font-size:20px;"></a></td></tr>'
+        . '<img src="' . rk_email_e($img('header-2.png')) . '" width="600" alt="Riff Killer" style="display:block;width:100%;max-width:600px;height:auto;border:0;background:' . $c['night'] . ';border-radius:18px 18px 0 0;color:#FFFFFF;font-size:20px;"></a></td></tr>'
         // white body
         . '<tr><td class="rk-pad" bgcolor="' . $c['card'] . '" style="background:' . $c['card'] . ';padding:40px 48px 40px;">' . $inner . '</td></tr>'
         // footer band: what Riff Killer gives, proof, contacts

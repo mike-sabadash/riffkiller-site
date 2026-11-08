@@ -21,6 +21,7 @@ T = [
 # --- Free vs Premium (docs/FREE_PREMIUM.md)
 ("Free this week", "Бесплатно на этой неделе", "Gratis esta semana"),
 ("Free with account", "Бесплатно с аккаунтом", "Gratis con cuenta"),
+("Free · sign up", "Бесплатно · вход", "Gratis · regístrate"),
 ("Free with a free account", "Бесплатно с бесплатным аккаунтом", "Gratis con una cuenta gratis"),
 ("Every week one Premium riff is free with a free account.", "Каждую неделю один Premium-рифф бесплатен с бесплатным аккаунтом.", "Cada semana un riff Premium es gratis con una cuenta gratis."),
 ("Sign up free to open this riff and save your stars.", "Зарегистрируйтесь бесплатно, чтобы открыть этот рифф и сохранить звёзды.", "Regístrate gratis para abrir este riff y guardar tus estrellas."),

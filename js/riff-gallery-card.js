@@ -157,7 +157,7 @@
         if (!riff) return '';
         if (riff.isFree) return 'Free';
         if (riff.accountFree && riff.freeWeekUntil) return 'Free this week';
-        if (riff.accountFree) return 'Free with account';
+        if (riff.accountFree) return 'Free · sign up'; // short for the card (Mike 08.11); level name stays «Free with account»
         return '';
     }
 

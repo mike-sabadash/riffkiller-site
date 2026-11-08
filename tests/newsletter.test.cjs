@@ -65,7 +65,7 @@ test('heads-up two days before, from 18:00 in the reader’s zone, only to those
     const song=ready.song.replace(/\s+/g,' ').trim();
     assert.equal(m.mail.subject,'Friday: '+song);
     assert.match(m.mail.text,/\n\nHey Jimmy,\n\n/);assert.match(m.mail.text,/^COMING FRIDAY, NOV 13/);
-    assert.match(m.mail.html,/assets\/email\/header\.png\?v=/,'black header with the logo');assert.match(m.mail.html,/A new riff every Friday/,'footer says what Riff Killer gives');
+    assert.match(m.mail.html,/assets\/email\/header-2\.png\?v=/,'black header with the logo');assert.match(m.mail.html,/A new riff every Friday/,'footer says what Riff Killer gives');
     assert.match(m.mail.html,/display:none[^>]*>[^<]*lands on Riff Killer Friday, Nov 13/,'inbox preview line');
     assert.match(m.mail.text,new RegExp('lands on Riff Killer on Friday, Nov 13'));
     assert.match(m.mail.text,/opens for you for a week from Dec 11/);

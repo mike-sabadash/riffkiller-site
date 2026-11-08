@@ -632,7 +632,7 @@ function nl_summary() {
 
 /* ---------- small pages for links from the emails (translated on the page by js/i18n.js) ---------- */
 
-const NL_I18N_V = 'nl1';
+const NL_I18N_V = 'fa1';
 
 function nl_page($title, $inner, $code = 200) {
     http_response_code($code);
