@@ -1,14 +1,7 @@
 {
  "id": 10,
  "song": "Iron  Man",
- "videos": {
-  "assets/video/black-sabbath/iron-man/iron-man-left.mp4": "iron-man-left.mp4",
-  "assets/video/black-sabbath/iron-man/iron-man-right.mp4": "iron-man-right.mp4"
- },
  "riff": {
-  "videoFile": "assets/video/black-sabbath/iron-man/iron-man-left.mp4",
-  "videoFileRight": "assets/video/black-sabbath/iron-man/iron-man-right.mp4",
-  "duration": 83.9,
   "segments": [
    {
     "start": 0.0,
@@ -280,9 +273,9 @@
     "end": 33.45,
     "name": "7",
     "displayName": "7",
-    "color": "#E35DF0",
-    "function": "Same shake and fall home; the last note slides down into the verse",
-    "role": "repeat",
+    "color": "#B8F05A",
+    "function": "Same shake and fall home to E: the main riff lands, then slides down into the verse",
+    "role": "land",
     "tabBars": [
      9,
      10
@@ -535,9 +528,9 @@
     "end": 46.87,
     "name": "11",
     "displayName": "11",
-    "color": "#E35DF0",
-    "function": "G – F# pull-offs and D – E again, closing the verse",
-    "role": "repeat",
+    "color": "#B8F05A",
+    "function": "G – F# pull-offs and D – E again: the verse lands home on E",
+    "role": "land",
     "tabBars": [
      13,
      14
@@ -665,9 +658,9 @@
     "end": 53.0,
     "name": "13",
     "displayName": "13",
-    "color": "#4FD8E8",
-    "function": "Shake and fall home; ends on a ghost E that slides down into verse 2",
-    "role": "answer",
+    "color": "#B8F05A",
+    "function": "Shake and fall home to E; ends on a ghost E that slides down into verse 2",
+    "role": "land",
     "tabBars": [
      15,
      16
@@ -920,9 +913,9 @@
     "end": 66.07,
     "name": "17",
     "displayName": "17",
-    "color": "#E35DF0",
-    "function": "G – F# pull-offs and D – E once more, leading to the bridge",
-    "role": "repeat",
+    "color": "#B8F05A",
+    "function": "G – F# pull-offs and D – E once more: verse 2 lands home before the bridge",
+    "role": "land",
     "tabBars": [
      19,
      20
@@ -1315,200 +1308,6 @@
      ]
     ]
    }
-  ],
-  "dna": {
-   "overview": "Iron Man is a slow march built from one melody. The intro is a single open low E bent up from behind the nut: a heavy, sick groan. The main riff slides power chords up B5 – D5 – E5, then shakes G5 – F#5 a half step and falls through D5 home to E5. In the verse the same melody turns into single notes that the vocal sings in unison: B – D – E, then G – F# pull-offs and back home. The bridge drops to the low E string: B, a quarter-bent D, A#, and a chromatic climb A – G# – A – A# back up to B.",
-   "rule": "Slide B5 – D5 – E5, shake G5 – F#5, fall through D5 home to E5",
-   "law": "Every phrase is the same shape: a rise to E, then a half-step shake above it that falls back home. Slides glue the chords together and the rests leave space, so the riff walks like something heavy. Because the vocal sings the same notes, the guitar line is the song itself.",
-   "failure": "Pick every chord as a separate hit instead of sliding, or fill the rest after the first D5, and the riff stops walking: the weight comes from the slides and the space between them.",
-   "authorNotes": "",
-   "preserve": [
-    "Slides between the power chord shapes",
-    "The short rest after the first D5",
-    "The G5 – F#5 half-step shake",
-    "Every phrase ends home on E",
-    "The behind-the-nut groan in the intro"
-   ],
-   "change": [
-    "Power chords or single notes for the same melody",
-    "Palm mute on or off",
-    "The ghost slide at the end of a line",
-    "Quarter or dotted rhythm on the second note"
-   ],
-   "mutation": {
-    "title": "Build an Iron Man relative — without copying the riff",
-    "description": "Keep the march, not the notes: a rise to home, a half-step shake above it and a fall back home.",
-    "steps": [
-     "Pick a home power chord. Start a fourth below it, slide up to the chord a minor third above that, rest, then slide home.",
-     "Answer with a half-step shake a minor third above home, in four sixteenths.",
-     "Fall from the shake to the chord below home and slide back up to land on home.",
-     "Play the same melody as single notes on two strings, with pull-offs for the shake — that is your verse."
-    ]
-   },
-   "atoms": [
-    {
-     "technique": "bend",
-     "type": "Bend",
-     "label": "Open low E, 1½ tones from behind the nut",
-     "tip": "Press the low E down between the nut and the tuner, hold it, then let it sink back to a quarter tone sharp. The D string's 2nd fret is not bent — it just rings.",
-     "view": "left",
-     "speed": 0.75,
-     "segmentIndex": 0,
-     "time": 0.29
-    },
-    {
-     "technique": "double",
-     "type": "Double stop",
-     "label": "Open low E + 2nd fret on the D string",
-     "tip": "Pick both together and let them ring for two bars: the octave E under the groan.",
-     "view": "left",
-     "speed": 0.75,
-     "segmentIndex": 0,
-     "time": 0.29
-    },
-    {
-     "technique": "slide",
-     "type": "Slide",
-     "label": "B5 → D5: 7/9 slides up to 10/12",
-     "tip": "Index on the low E, ring finger on the A string. Lock the shape and slide it three frets without lifting.",
-     "view": "left",
-     "speed": 0.5,
-     "segmentIndex": 3,
-     "time": 19.94
-    },
-    {
-     "technique": "gap",
-     "type": "Pause",
-     "label": "16th rest after the first D5",
-     "tip": "Release the pressure right after D5 so it stops; the short silence makes the riff walk.",
-     "view": "right",
-     "speed": 0.5,
-     "segmentIndex": 3,
-     "time": 21.4
-    },
-    {
-     "technique": "slide",
-     "type": "Slide",
-     "label": "D5 → E5: 10/12 slides to 12/14",
-     "tip": "One pick stroke on D5, slide two frets up to E5, then pick E5 again.",
-     "view": "left",
-     "speed": 0.5,
-     "segmentIndex": 3,
-     "time": 21.64
-    },
-    {
-     "technique": "slide",
-     "type": "Slide",
-     "label": "G5 – F#5 shake: 15/17 ↔ 14/16",
-     "tip": "Four quick sixteenths: slide the shape one fret down and back up, twice, without lifting.",
-     "view": "left",
-     "speed": 0.5,
-     "segmentIndex": 4,
-     "time": 23.1
-    },
-    {
-     "technique": "ghost",
-     "type": "Ghost note",
-     "label": "(17) slide-off on the A string",
-     "tip": "After the last E5 just scrape down the A string — barely heard, it closes the phrase.",
-     "view": "left",
-     "speed": 0.75,
-     "segmentIndex": 4,
-     "time": 26.35
-    },
-    {
-     "technique": "hammer",
-     "type": "Hammer-on",
-     "label": "5h7 on the A string (D → E)",
-     "tip": "Pick the 5th fret, hammer the ring finger onto the 7th.",
-     "view": "left",
-     "speed": 0.5,
-     "segmentIndex": 7,
-     "time": 35.22
-    },
-    {
-     "technique": "vibrato",
-     "type": "Vibrato",
-     "label": "E at the 7th fret, A string",
-     "tip": "Hold the last note of the line and shake it slowly, like the vocal.",
-     "view": "left",
-     "speed": 0.75,
-     "segmentIndex": 7,
-     "time": 36.01
-    },
-    {
-     "technique": "pull",
-     "type": "Pull-off",
-     "label": "5p4 on the D string, three times (G → F#)",
-     "tip": "Pick the 5th fret, pull off to the 4th; pick again for each pair.",
-     "view": "left",
-     "speed": 0.5,
-     "segmentIndex": 8,
-     "time": 36.85
-    },
-    {
-     "technique": "palm",
-     "type": "Palm mute",
-     "label": "Verse 2 under P.M.",
-     "tip": "Rest the side of the picking hand by the bridge for the first notes of the line, lift it for the hammer-on.",
-     "view": "right",
-     "speed": 0.75,
-     "segmentIndex": 13,
-     "time": 53.1
-    },
-    {
-     "technique": "ghost",
-     "type": "Ghost note",
-     "label": "Muted click (x) on the A string",
-     "tip": "Keep the fretting finger touching the string without pressing: a percussive click before the hammer-on.",
-     "view": "right",
-     "speed": 0.75,
-     "segmentIndex": 13,
-     "time": 54.52
-    },
-    {
-     "technique": "slide",
-     "type": "Slide",
-     "label": "Slide into B from the 2nd fret",
-     "tip": "Start at the 2nd fret of the low E and glide up to the 7th as you pick.",
-     "view": "left",
-     "speed": 0.5,
-     "segmentIndex": 17,
-     "time": 66.17
-    },
-    {
-     "technique": "qbend",
-     "type": "Quarter-tone bend",
-     "label": "D at the 5th fret, A string, ¼ bend",
-     "tip": "Push the string just a little: the note should go sour, not up a step.",
-     "view": "left",
-     "speed": 0.5,
-     "segmentIndex": 17,
-     "time": 67.41
-    },
-    {
-     "technique": "open",
-     "type": "Open string",
-     "label": "Open low E between the A notes",
-     "tip": "Pick the open E in passing, then climb 4 – 5 – 5 – 6 back toward B.",
-     "view": "left",
-     "speed": 0.5,
-     "segmentIndex": 18,
-     "time": 70.82
-    }
-   ]
-  },
-  "tab": {
-   "tex": "\\title \"Iron Man\"\n\\artist \"Black Sabbath\"\n\\tempo 65\n.\n\\ts 4 4 (0.6{b (0 6 1)} 2.4).1 |\n(-.6 -.4).1 |\n(0.6{b (0 5 1)} 2.4).1 |\n(-.6 -.4).1 |\n(0.6{b (0 5 1)} 2.4).1 |\n\\ts 2 4 (-.6 -.4).2 |\n\\ts 4 4 \\tempo 70 (7.6{sl} 9.5{sl}).4 (10.6 12.5).8{d} r.16 (10.6{sl} 12.5{sl}).8 (12.6 14.5).8 (12.6{sod} 14.5{sod}).4 |\n(15.6{sl} 17.5{sl}).16 (14.6 16.5).16 (15.6{sl} 17.5{sl}).16 (14.6{sl} 16.5{sl}).16 (15.6{sl} 17.5{sl}).8 (10.6 12.5).8 (10.6{sl} 12.5{sl}).8 (12.6 14.5).8 (12.6 14.5).8 17.5{g sod}.8 |\n\\tempo 72 (7.6{sl} 9.5{sl}).4 (10.6 12.5).8{d} r.16 (10.6{sl} 12.5{sl}).8 (12.6 14.5).8 (12.6{sod} 14.5{sod}).4 |\n(15.6{sl} 17.5{sl}).16 (14.6 16.5).16 (15.6{sl} 17.5{sl}).16 (14.6{sl} 16.5{sl}).16 (15.6{sl} 17.5{sl}).8 (10.6 12.5).8 (10.6{sl} 12.5{sl}).8 (12.6 14.5).8 (12.6 14.5).8 12.6{sia}.8 |\n\\tempo 76 7.6.4 5.5.4 5.5{h}.8 7.5.8 7.5{v}.4 |\n5.4{h}.16 4.4.16 5.4{h}.16 4.4.16 5.4{h}.16 4.4.16 5.5.8 5.5{sl}.8 7.5.8 7.5{sl}.8 15.5{g sod}.8 |\n7.6.4 5.5.8{d} r.16 5.5{h}.8 7.5.8 7.5{v}.4 |\n5.4{h}.16 4.4.16 5.4{h}.16 4.4.16 5.4{h}.16 4.4.16 5.5.8 5.5{sl}.8 7.5.8 7.5{sl}.8 15.5{g sod}.8 |\n(7.6{sl} 9.5{sl}).4 (10.6 12.5).8{d} r.16 (10.6{sl} 12.5{sl}).8 (12.6 14.5).8 (12.6{sl} 14.5{sl}).4 |\n(15.6{sl} 17.5{sl}).16 (14.6 16.5).16 (15.6{sl} 17.5{sl}).16 (14.6{sl} 16.5{sl}).16 (15.6{sl} 17.5{sl}).8 (10.6 12.5).8 (10.6{sl} 12.5{sl}).8 (12.6 14.5).8 (12.6 14.5).8 12.6{g sl}.8 |\n7.6{pm}.4 5.5{pm}.8{d} x.5{pm}.16 5.5{h}.8 7.5.8 7.5{v}.4 |\n5.4{h}.16 4.4.16 5.4{h}.16 4.4.16 5.4{h}.16 4.4.16 5.5.8 5.5{sl}.8 7.5.8 7.5{sl}.8 15.5{g sod}.8 |\n7.6.4 5.5{pm}.8{d} (x.5{pm} x.6{pm}).16 5.5{h}.8 7.5.8 7.5{v}.4 |\n5.4{h}.16 4.4.16 5.4{h}.16 4.4.16 5.4{h}.16 4.4.16 5.5.8 5.5{sl}.8 7.5.8 7.5{sl}.8 15.5{g sod}.8 |\n7.6{sib}.8 7.6.4 5.5{b (0 1)}.4 7.6.4 6.6.8 |\n5.6.8 5.6.8 5.6{v}.8{d} 0.6.16 4.6.8 5.6.8 5.6.8 6.6.8 |\n7.6.8 7.6.4 5.5{b (0 1)}.4 7.6.4 6.6.8 |\n5.6.8 5.6.8 5.6{v}.8{d} 0.6.16 4.6.8 5.6.8 5.6.8 6.6.8 |\n7.6.8 7.6.4 5.5{b (0 1)}.4 7.6.4 6.6.8 |\n5.6.8 5.6.8 5.6.8 r.8 r.2 |"
-  },
-  "difficultyScore": {
-   "tempo": 1,
-   "leftHand": 2,
-   "rightHand": 1,
-   "rhythm": 1,
-   "fretboard": 1,
-   "stamina": 1
-  },
-  "difficulty": "intermediate"
+  ]
  }
 }
