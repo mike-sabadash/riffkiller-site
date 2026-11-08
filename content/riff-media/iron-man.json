@@ -1,11 +1,18 @@
 {
  "id": 10,
  "song": "Iron  Man",
+ "videos": {
+  "assets/video/black-sabbath/iron-man/iron-man-left.mp4": "iron-man-left.mp4",
+  "assets/video/black-sabbath/iron-man/iron-man-right.mp4": "iron-man-right.mp4"
+ },
  "riff": {
+  "videoFile": "assets/video/black-sabbath/iron-man/iron-man-left.mp4",
+  "videoFileRight": "assets/video/black-sabbath/iron-man/iron-man-right.mp4",
+  "duration": 83.82,
   "segments": [
    {
     "start": 0.0,
-    "end": 7.4,
+    "end": 7.446,
     "name": "1",
     "displayName": "1",
     "color": "#F2D94E",
@@ -19,23 +26,18 @@
      [
       1,
       0,
-      0
-     ],
-     [
-      1,
-      0,
-      0.293
+      0.0
      ],
      [
       2,
-      3738,
-      7.4
+      3779,
+      7.446
      ]
     ]
    },
    {
-    "start": 7.4,
-    "end": 14.55,
+    "start": 7.446,
+    "end": 14.58,
     "name": "2",
     "displayName": "2",
     "color": "#E35DF0",
@@ -48,24 +50,24 @@
     "tabSync": [
      [
       2,
-      3738,
-      7.4
+      3779,
+      7.446
      ],
      [
       3,
       0,
-      7.496
+      7.506
      ],
      [
       4,
-      3733,
-      14.55
+      3765,
+      14.58
      ]
     ]
    },
    {
-    "start": 14.55,
-    "end": 19.84,
+    "start": 14.58,
+    "end": 19.874,
     "name": "3",
     "displayName": "3",
     "color": "#E35DF0",
@@ -78,8 +80,8 @@
     "tabSync": [
      [
       4,
-      3733,
-      14.55
+      3765,
+      14.58
      ],
      [
       5,
@@ -88,14 +90,14 @@
      ],
      [
       6,
-      1813,
-      19.84
+      1850,
+      19.874
      ]
     ]
    },
    {
-    "start": 19.84,
-    "end": 23.0,
+    "start": 19.874,
+    "end": 23.285,
     "name": "4",
     "displayName": "4",
     "color": "#F2D94E",
@@ -108,8 +110,8 @@
     "tabSync": [
      [
       6,
-      1813,
-      19.84
+      1850,
+      19.874
      ],
      [
       7,
@@ -138,14 +140,14 @@
      ],
      [
       7,
-      3681,
-      23
+      3767,
+      23.285
      ]
     ]
    },
    {
-    "start": 23.0,
-    "end": 26.69,
+    "start": 23.285,
+    "end": 26.707,
     "name": "5",
     "displayName": "5",
     "color": "#4FD8E8",
@@ -158,23 +160,23 @@
     "tabSync": [
      [
       7,
-      3681,
-      23
+      3767,
+      23.285
      ],
      [
       8,
       0,
-      23.101
-     ],
-     [
-      8,
-      240,
       23.35
      ],
      [
       8,
+      240,
+      23.56
+     ],
+     [
+      8,
       480,
-      23.799
+      23.809
      ],
      [
       8,
@@ -194,7 +196,7 @@
      [
       8,
       1920,
-      25.076
+      25.086
      ],
      [
       8,
@@ -204,7 +206,7 @@
      [
       8,
       2880,
-      25.904
+      25.924
      ],
      [
       8,
@@ -213,19 +215,19 @@
      ],
      [
       8,
-      3728,
-      26.69
+      3766,
+      26.707
      ]
     ]
    },
    {
-    "start": 26.69,
-    "end": 30.15,
+    "start": 26.707,
+    "end": 30.132,
     "name": "6",
     "displayName": "6",
-    "color": "#E35DF0",
-    "function": "The main riff again: B5 – D5, rest, D5 – E5",
-    "role": "repeat",
+    "color": "#F2D94E",
+    "function": "The theme again: B5 slides up to D5, rest, D5 – E5 (same question as part 4)",
+    "role": "call",
     "tabBars": [
      8,
      9
@@ -233,49 +235,49 @@
     "tabSync": [
      [
       8,
-      3728,
-      26.69
+      3766,
+      26.707
      ],
      [
       9,
       0,
-      26.792
+      26.772
      ],
      [
       9,
       960,
-      27.7
+      27.69
      ],
      [
       9,
       1920,
-      28.568
+      28.479
      ],
      [
       9,
       2400,
-      28.977
+      28.888
      ],
      [
       9,
       2880,
-      29.436
+      29.327
      ],
      [
       9,
-      3717,
-      30.15
+      3775,
+      30.132
      ]
     ]
    },
    {
-    "start": 30.15,
-    "end": 33.45,
+    "start": 30.132,
+    "end": 33.414,
     "name": "7",
     "displayName": "7",
-    "color": "#B8F05A",
-    "function": "Same shake and fall home to E: the main riff lands, then slides down into the verse",
-    "role": "land",
+    "color": "#4FD8E8",
+    "function": "Same answer: G5 – F#5 shake, fall home to E5, then slide down into the verse",
+    "role": "answer",
     "tabBars": [
      9,
      10
@@ -283,69 +285,69 @@
     "tabSync": [
      [
       9,
-      3717,
-      30.15
+      3775,
+      30.132
      ],
      [
       10,
       0,
-      30.255
+      30.19
      ],
      [
       10,
       240,
-      30.464
+      30.41
      ],
      [
       10,
       480,
-      30.694
+      30.634
      ],
      [
       10,
       720,
-      30.883
+      30.813
      ],
      [
       10,
       960,
-      31.093
+      31.023
      ],
      [
       10,
       1440,
-      31.522
+      31.462
      ],
      [
       10,
       1920,
-      31.921
+      31.861
      ],
      [
       10,
       2400,
-      32.32
+      32.26
      ],
      [
       10,
       2880,
-      32.729
+      32.639
      ],
      [
       10,
       3360,
-      33.228
+      33.008
      ],
      [
       10,
-      3694,
-      33.45
+      3776,
+      33.414
      ]
     ]
    },
    {
-    "start": 33.45,
-    "end": 36.75,
+    "start": 33.414,
+    "end": 36.723,
     "name": "8",
     "displayName": "8",
     "color": "#F2D94E",
@@ -358,44 +360,44 @@
     "tabSync": [
      [
       10,
-      3694,
-      33.45
+      3776,
+      33.414
      ],
      [
       11,
       0,
-      33.547
+      33.477
      ],
      [
       11,
       960,
-      34.425
+      34.355
      ],
      [
       11,
       1920,
-      35.223
+      35.153
      ],
      [
       11,
       2400,
-      35.592
+      35.523
      ],
      [
       11,
       2880,
-      36.011
+      35.942
      ],
      [
       11,
-      3726,
-      36.75
+      3764,
+      36.723
      ]
     ]
    },
    {
-    "start": 36.75,
-    "end": 40.01,
+    "start": 36.723,
+    "end": 39.98,
     "name": "9",
     "displayName": "9",
     "color": "#4FD8E8",
@@ -408,79 +410,79 @@
     "tabSync": [
      [
       11,
-      3726,
-      36.75
+      3764,
+      36.723
      ],
      [
       12,
       0,
-      36.85
+      36.79
      ],
      [
       12,
       240,
-      37.079
+      37.019
      ],
      [
       12,
       480,
-      37.289
+      37.229
      ],
      [
       12,
       720,
-      37.478
+      37.408
      ],
      [
       12,
       960,
-      37.698
+      37.628
      ],
      [
       12,
       1200,
-      37.867
+      37.807
      ],
      [
       12,
       1440,
-      38.097
+      38.037
      ],
      [
       12,
       1920,
-      38.496
+      38.426
      ],
      [
       12,
       2400,
-      38.915
+      38.845
      ],
      [
       12,
       2880,
-      39.284
+      39.224
      ],
      [
       12,
       3360,
-      39.703
+      39.633
      ],
      [
       12,
-      3720,
-      40.01
+      3767,
+      39.98
      ]
     ]
    },
    {
-    "start": 40.01,
-    "end": 43.3,
+    "start": 39.98,
+    "end": 43.268,
     "name": "10",
     "displayName": "10",
-    "color": "#E35DF0",
-    "function": "Second line: B – D again, with a short rest before the hammer-on",
-    "role": "repeat",
+    "color": "#F2D94E",
+    "function": "Second line, same question: B – D, a short rest, D–E hammer-on",
+    "role": "call",
     "tabBars": [
      12,
      13
@@ -488,49 +490,49 @@
     "tabSync": [
      [
       12,
-      3720,
-      40.01
+      3767,
+      39.98
      ],
      [
       13,
       0,
-      40.112
+      40.042
      ],
      [
       13,
       960,
-      40.98
+      40.91
      ],
      [
       13,
       1920,
-      41.768
+      41.709
      ],
      [
       13,
       2400,
-      42.167
+      42.088
      ],
      [
       13,
       2880,
-      42.577
+      42.507
      ],
      [
       13,
-      3729,
-      43.3
+      3762,
+      43.268
      ]
     ]
    },
    {
-    "start": 43.3,
-    "end": 46.87,
+    "start": 43.268,
+    "end": 46.464,
     "name": "11",
     "displayName": "11",
-    "color": "#B8F05A",
-    "function": "G – F# pull-offs and D – E again: the verse lands home on E",
-    "role": "land",
+    "color": "#4FD8E8",
+    "function": "Same answer: G – F# pull-offs and D – E, closing the verse",
+    "role": "answer",
     "tabBars": [
      13,
      14
@@ -538,74 +540,74 @@
     "tabSync": [
      [
       13,
-      3729,
-      43.3
+      3762,
+      43.268
      ],
      [
       14,
       0,
-      43.395
+      43.335
      ],
      [
       14,
       240,
-      43.604
+      43.544
      ],
      [
       14,
       480,
-      43.824
+      43.754
      ],
      [
       14,
       720,
-      43.983
+      43.913
      ],
      [
       14,
       960,
-      44.223
+      44.153
      ],
      [
       14,
       1200,
-      44.402
+      44.333
      ],
      [
       14,
       1440,
-      44.612
+      44.542
      ],
      [
       14,
       1920,
-      44.991
+      44.921
      ],
      [
       14,
       2400,
-      45.37
+      45.31
      ],
      [
       14,
       2880,
-      45.799
+      45.739
      ],
      [
       14,
       3360,
-      46.597
+      46.218
      ],
      [
       14,
-      3714,
-      46.87
+      3741,
+      46.464
      ]
     ]
    },
    {
-    "start": 46.87,
-    "end": 49.76,
+    "start": 46.464,
+    "end": 49.729,
     "name": "12",
     "displayName": "12",
     "color": "#F2D94E",
@@ -618,49 +620,49 @@
     "tabSync": [
      [
       14,
-      3714,
-      46.87
+      3741,
+      46.464
      ],
      [
       15,
       0,
-      46.967
+      46.528
      ],
      [
       15,
       960,
-      47.416
+      47.356
      ],
      [
       15,
       1920,
-      48.244
+      48.174
      ],
      [
       15,
       2400,
-      48.663
+      48.593
      ],
      [
       15,
       2880,
-      49.082
+      49.012
      ],
      [
       15,
-      3717,
-      49.76
+      3754,
+      49.729
      ]
     ]
    },
    {
-    "start": 49.76,
-    "end": 53.0,
+    "start": 49.729,
+    "end": 52.977,
     "name": "13",
     "displayName": "13",
-    "color": "#B8F05A",
-    "function": "Shake and fall home to E; ends on a ghost E that slides down into verse 2",
-    "role": "land",
+    "color": "#4FD8E8",
+    "function": "Shake and fall home; ends on a ghost E that slides down into verse 2",
+    "role": "answer",
     "tabBars": [
      15,
      16
@@ -668,69 +670,69 @@
     "tabSync": [
      [
       15,
-      3717,
-      49.76
+      3754,
+      49.729
      ],
      [
       16,
       0,
-      49.86
+      49.8
      ],
      [
       16,
       240,
-      50.079
+      50.01
      ],
      [
       16,
       480,
-      50.289
+      50.229
      ],
      [
       16,
       720,
-      50.479
+      50.409
      ],
      [
       16,
       960,
-      50.688
+      50.628
      ],
      [
       16,
       1440,
-      51.097
+      51.037
      ],
      [
       16,
       1920,
-      51.496
+      51.446
      ],
      [
       16,
       2400,
-      51.915
+      51.875
      ],
      [
       16,
       2880,
-      52.334
+      52.245
      ],
      [
       16,
       3360,
-      52.813
+      52.743
      ],
      [
       16,
-      3670,
-      53
+      3734,
+      52.977
      ]
     ]
    },
    {
-    "start": 53.0,
-    "end": 56.3,
+    "start": 52.977,
+    "end": 56.269,
     "name": "14",
     "displayName": "14",
     "color": "#F2D94E",
@@ -743,44 +745,44 @@
     "tabSync": [
      [
       16,
-      3670,
-      53
+      3734,
+      52.977
      ],
      [
       17,
       0,
-      53.103
+      53.043
      ],
      [
       17,
       960,
-      53.931
+      53.861
      ],
      [
       17,
       1920,
-      54.749
+      54.679
      ],
      [
       17,
       2400,
-      55.158
+      55.088
      ],
      [
       17,
       2880,
-      55.587
+      55.507
      ],
      [
       17,
-      3727,
-      56.3
+      3763,
+      56.269
      ]
     ]
    },
    {
-    "start": 56.3,
-    "end": 59.53,
+    "start": 56.269,
+    "end": 59.505,
     "name": "15",
     "displayName": "15",
     "color": "#4FD8E8",
@@ -793,79 +795,79 @@
     "tabSync": [
      [
       17,
-      3727,
-      56.3
+      3763,
+      56.269
      ],
      [
       18,
       0,
-      56.395
+      56.335
      ],
      [
       18,
       240,
-      56.585
+      56.525
      ],
      [
       18,
       480,
-      56.814
+      56.744
      ],
      [
       18,
       720,
-      57.004
+      56.944
      ],
      [
       18,
       960,
-      57.213
+      57.163
      ],
      [
       18,
       1200,
-      57.383
+      57.313
      ],
      [
       18,
       1440,
-      57.602
+      57.552
      ],
      [
       18,
       1920,
-      58.001
+      57.952
      ],
      [
       18,
       2400,
-      58.68
+      58.61
      ],
      [
       18,
       2880,
-      58.83
+      58.76
      ],
      [
       18,
       3360,
-      59.299
+      59.239
      ],
      [
       18,
-      3697,
-      59.53
+      3748,
+      59.505
      ]
     ]
    },
    {
-    "start": 59.53,
-    "end": 62.82,
+    "start": 59.505,
+    "end": 62.779,
     "name": "16",
     "displayName": "16",
-    "color": "#E35DF0",
-    "function": "Same line with a double muted click before the hammer-on",
-    "role": "repeat",
+    "color": "#F2D94E",
+    "function": "Same question with a double muted click before the hammer-on",
+    "role": "call",
     "tabBars": [
      18,
      19
@@ -873,48 +875,48 @@
     "tabSync": [
      [
       18,
-      3697,
-      59.53
+      3748,
+      59.505
      ],
      [
       19,
       0,
-      59.628
+      59.568
      ],
      [
       19,
       960,
-      60.466
+      60.406
      ],
      [
       19,
       1920,
-      61.244
+      61.214
      ],
      [
       19,
       2400,
-      61.693
+      61.623
      ],
      [
       19,
       2880,
-      62.102
+      62.042
      ],
      [
       19,
-      3723,
-      62.82
+      3756,
+      62.779
      ]
     ]
    },
    {
-    "start": 62.82,
-    "end": 66.07,
+    "start": 62.779,
+    "end": 66.044,
     "name": "17",
     "displayName": "17",
     "color": "#B8F05A",
-    "function": "G – F# pull-offs and D – E once more: verse 2 lands home before the bridge",
+    "function": "Last answer of the theme: G – F# pull-offs and D – E land home before the bridge",
     "role": "land",
     "tabBars": [
      19,
@@ -923,74 +925,74 @@
     "tabSync": [
      [
       19,
-      3723,
-      62.82
+      3756,
+      62.779
      ],
      [
       20,
       0,
-      62.92
+      62.85
      ],
      [
       20,
       240,
-      63.11
+      63.04
      ],
      [
       20,
       480,
-      63.319
+      63.26
      ],
      [
       20,
       720,
-      63.489
+      63.419
      ],
      [
       20,
       960,
-      63.709
+      63.649
      ],
      [
       20,
       1200,
-      63.898
+      63.838
      ],
      [
       20,
       1440,
-      64.128
+      64.058
      ],
      [
       20,
       1920,
-      64.487
+      64.427
      ],
      [
       20,
       2400,
-      64.936
+      64.866
      ],
      [
       20,
       2880,
-      65.335
+      65.265
      ],
      [
       20,
       3360,
-      65.874
+      65.804
      ],
      [
       20,
-      3675,
-      66.07
+      3745,
+      66.044
      ]
     ]
    },
    {
-    "start": 66.07,
-    "end": 69.28,
+    "start": 66.044,
+    "end": 69.278,
     "name": "18",
     "displayName": "18",
     "color": "#F2D94E",
@@ -1003,44 +1005,44 @@
     "tabSync": [
      [
       20,
-      3675,
-      66.07
+      3745,
+      66.044
      ],
      [
       21,
       0,
-      66.173
+      66.103
      ],
      [
       21,
       480,
-      66.572
+      66.502
      ],
      [
       21,
       1440,
-      67.41
+      67.35
      ],
      [
       21,
       2400,
-      68.178
+      68.158
      ],
      [
       21,
       3360,
-      68.977
+      68.907
      ],
      [
       21,
-      3725,
-      69.28
+      3766,
+      69.278
      ]
     ]
    },
    {
-    "start": 69.28,
-    "end": 72.52,
+    "start": 69.278,
+    "end": 72.479,
     "name": "19",
     "displayName": "19",
     "color": "#4FD8E8",
@@ -1053,64 +1055,64 @@
     "tabSync": [
      [
       21,
-      3725,
-      69.28
+      3766,
+      69.278
      ],
      [
       22,
       0,
-      69.376
+      69.346
      ],
      [
       22,
       480,
-      69.805
+      69.735
      ],
      [
       22,
       960,
-      70.164
+      70.144
      ],
      [
       22,
       1680,
-      70.822
+      70.762
      ],
      [
       22,
       1920,
-      71.022
+      70.952
      ],
      [
       22,
       2400,
-      71.421
+      71.351
      ],
      [
       22,
       2880,
-      71.78
+      71.71
      ],
      [
       22,
       3360,
-      72.209
+      72.139
      ],
      [
       22,
-      3725,
-      72.52
+      3759,
+      72.479
      ]
     ]
    },
    {
-    "start": 72.52,
-    "end": 75.73,
+    "start": 72.479,
+    "end": 75.704,
     "name": "20",
     "displayName": "20",
-    "color": "#E35DF0",
-    "function": "B – D (¼ bend) – B – A# again",
-    "role": "repeat",
+    "color": "#F2D94E",
+    "function": "Bridge question again: B – D (¼ bend) – B – A#",
+    "role": "call",
     "tabBars": [
      22,
      23
@@ -1118,49 +1120,49 @@
     "tabSync": [
      [
       22,
-      3725,
-      72.52
+      3759,
+      72.479
      ],
      [
       23,
       0,
-      72.618
+      72.548
      ],
      [
       23,
       480,
-      73.027
+      72.918
      ],
      [
       23,
       1440,
-      73.865
+      73.796
      ],
      [
       23,
       2400,
-      74.594
+      74.524
      ],
      [
       23,
       3360,
-      75.432
+      75.362
      ],
      [
       23,
-      3718,
-      75.73
+      3761,
+      75.704
      ]
     ]
    },
    {
-    "start": 75.73,
-    "end": 78.88,
+    "start": 75.704,
+    "end": 78.891,
     "name": "21",
     "displayName": "21",
-    "color": "#E35DF0",
-    "function": "A – E – G# – A – A# climb again",
-    "role": "repeat",
+    "color": "#4FD8E8",
+    "function": "Same answer: A – E – G# – A – A# climbs back toward B",
+    "role": "answer",
     "tabBars": [
      23,
      24
@@ -1168,64 +1170,64 @@
     "tabSync": [
      [
       23,
-      3718,
-      75.73
+      3761,
+      75.704
      ],
      [
       24,
       0,
-      75.831
+      75.771
      ],
      [
       24,
       480,
-      76.23
+      76.17
      ],
      [
       24,
       960,
-      76.639
+      76.569
      ],
      [
       24,
       1680,
-      77.228
+      77.158
      ],
      [
       24,
       1920,
-      77.437
+      77.377
      ],
      [
       24,
       2400,
-      77.846
+      77.777
      ],
      [
       24,
       2880,
-      78.245
+      78.186
      ],
      [
       24,
       3360,
-      78.635
+      78.575
      ],
      [
       24,
-      3697,
-      78.88
+      3760,
+      78.891
      ]
     ]
    },
    {
-    "start": 78.88,
-    "end": 82.13,
+    "start": 78.891,
+    "end": 82.089,
     "name": "22",
     "displayName": "22",
-    "color": "#E35DF0",
-    "function": "B – D (¼ bend) – B – A# one more time",
-    "role": "repeat",
+    "color": "#F2D94E",
+    "function": "Bridge question one more time: B – D (¼ bend) – B – A#",
+    "role": "call",
     "tabBars": [
      24,
      25
@@ -1233,44 +1235,44 @@
     "tabSync": [
      [
       24,
-      3697,
-      78.88
+      3760,
+      78.891
      ],
      [
       25,
       0,
-      78.984
+      78.954
      ],
      [
       25,
       480,
-      79.413
+      79.353
      ],
      [
       25,
       1440,
-      80.171
+      80.181
      ],
      [
       25,
       2400,
-      81.029
+      80.959
      ],
      [
       25,
       3360,
-      81.797
+      81.767
      ],
      [
       25,
-      3733,
-      82.13
+      3756,
+      82.089
      ]
     ]
    },
    {
-    "start": 82.13,
-    "end": 83.9,
+    "start": 82.089,
+    "end": 83.82,
     "name": "23",
     "displayName": "23",
     "color": "#E35DF0",
@@ -1283,31 +1285,213 @@
     "tabSync": [
      [
       25,
-      3733,
-      82.13
+      3756,
+      82.089
      ],
      [
       26,
       0,
-      82.226
+      82.157
      ],
      [
       26,
       480,
-      82.616
+      82.546
      ],
      [
       26,
       960,
-      82.965
+      82.905
      ],
      [
       26,
-      2246,
-      83.9
+      2183,
+      83.82
      ]
     ]
    }
-  ]
+  ],
+  "dna": {
+   "overview": "Iron Man is a slow march built from one melody. The intro is a single open low E bent up from behind the nut: a heavy, sick groan. The main riff slides power chords up B5 – D5 – E5, then shakes G5 – F#5 a half step and falls through D5 home to E5. In the verse the same melody turns into single notes that the vocal sings in unison: B – D – E, then G – F# pull-offs and back home. The bridge drops to the low E string: B, a quarter-bent D, A#, and a chromatic climb A – G# – A – A# back up to B.",
+   "rule": "Slide B5 – D5 – E5, shake G5 – F#5, fall through D5 home to E5",
+   "law": "Every phrase is the same shape: a rise to E, then a half-step shake above it that falls back home. Slides glue the chords together and the rests leave space, so the riff walks like something heavy. Because the vocal sings the same notes, the guitar line is the song itself.",
+   "failure": "Pick every chord as a separate hit instead of sliding, or fill the rest after the first D5, and the riff stops walking: the weight comes from the slides and the space between them.",
+   "authorNotes": "",
+   "preserve": [
+    "Slides between the power chord shapes",
+    "The short rest after the first D5",
+    "The G5 – F#5 half-step shake",
+    "Every phrase ends home on E",
+    "The behind-the-nut groan in the intro"
+   ],
+   "change": [
+    "Power chords or single notes for the same melody",
+    "Palm mute on or off",
+    "The ghost slide at the end of a line",
+    "Quarter or dotted rhythm on the second note"
+   ],
+   "mutation": {
+    "title": "Build an Iron Man relative — without copying the riff",
+    "description": "Keep the march, not the notes: a rise to home, a half-step shake above it and a fall back home.",
+    "steps": [
+     "Pick a home power chord. Start a fourth below it, slide up to the chord a minor third above that, rest, then slide home.",
+     "Answer with a half-step shake a minor third above home, in four sixteenths.",
+     "Fall from the shake to the chord below home and slide back up to land on home.",
+     "Play the same melody as single notes on two strings, with pull-offs for the shake — that is your verse."
+    ]
+   },
+   "atoms": [
+    {
+     "technique": "bend",
+     "type": "Bend",
+     "label": "Open low E, 1½ tones from behind the nut",
+     "tip": "Press the low E down between the nut and the tuner, hold it, then let it sink back to a quarter tone sharp. The D string's 2nd fret is not bent — it just rings.",
+     "view": "left",
+     "speed": 0.75,
+     "segmentIndex": 0,
+     "time": 0.29
+    },
+    {
+     "technique": "double",
+     "type": "Double stop",
+     "label": "Open low E + 2nd fret on the D string",
+     "tip": "Pick both together and let them ring for two bars: the octave E under the groan.",
+     "view": "left",
+     "speed": 0.75,
+     "segmentIndex": 0,
+     "time": 0.29
+    },
+    {
+     "technique": "slide",
+     "type": "Slide",
+     "label": "B5 → D5: 7/9 slides up to 10/12",
+     "tip": "Index on the low E, ring finger on the A string. Lock the shape and slide it three frets without lifting.",
+     "view": "left",
+     "speed": 0.5,
+     "segmentIndex": 3,
+     "time": 19.938
+    },
+    {
+     "technique": "gap",
+     "type": "Pause",
+     "label": "16th rest after the first D5",
+     "tip": "Release the pressure right after D5 so it stops; the short silence makes the riff walk.",
+     "view": "right",
+     "speed": 0.5,
+     "segmentIndex": 3,
+     "time": 21.299
+    },
+    {
+     "technique": "slide",
+     "type": "Slide",
+     "label": "D5 → E5: 10/12 slides to 12/14",
+     "tip": "One pick stroke on D5, slide two frets up to E5, then pick E5 again.",
+     "view": "left",
+     "speed": 0.5,
+     "segmentIndex": 3,
+     "time": 21.644
+    },
+    {
+     "technique": "slide",
+     "type": "Slide",
+     "label": "G5 – F#5 shake: 15/17 ↔ 14/16",
+     "tip": "Four quick sixteenths: slide the shape one fret down and back up, twice, without lifting.",
+     "view": "left",
+     "speed": 0.5,
+     "segmentIndex": 4,
+     "time": 23.35
+    },
+    {
+     "technique": "ghost",
+     "type": "Ghost note",
+     "label": "(17) slide-off on the A string",
+     "tip": "After the last E5 just scrape down the A string — barely heard, it closes the phrase.",
+     "view": "left",
+     "speed": 0.75,
+     "segmentIndex": 4,
+     "time": 26.353
+    },
+    {
+     "technique": "hammer",
+     "type": "Hammer-on",
+     "label": "5h7 on the A string (D → E)",
+     "tip": "Pick the 5th fret, hammer the ring finger onto the 7th.",
+     "view": "left",
+     "speed": 0.5,
+     "segmentIndex": 7,
+     "time": 35.153
+    },
+    {
+     "technique": "vibrato",
+     "type": "Vibrato",
+     "label": "E at the 7th fret, A string",
+     "tip": "Hold the last note of the line and shake it slowly, like the vocal.",
+     "view": "left",
+     "speed": 0.75,
+     "segmentIndex": 7,
+     "time": 35.942
+    },
+    {
+     "technique": "pull",
+     "type": "Pull-off",
+     "label": "5p4 on the D string, three times (G → F#)",
+     "tip": "Pick the 5th fret, pull off to the 4th; pick again for each pair.",
+     "view": "left",
+     "speed": 0.5,
+     "segmentIndex": 8,
+     "time": 36.79
+    },
+    {
+     "technique": "palm",
+     "type": "Palm mute",
+     "label": "Verse 2 under P.M.",
+     "tip": "Rest the side of the picking hand by the bridge for the first notes of the line, lift it for the hammer-on.",
+     "view": "right",
+     "speed": 0.75,
+     "segmentIndex": 13,
+     "time": 53.043
+    },
+    {
+     "technique": "ghost",
+     "type": "Ghost note",
+     "label": "Muted click (x) on the A string",
+     "tip": "Keep the fretting finger touching the string without pressing: a percussive click before the hammer-on.",
+     "view": "right",
+     "speed": 0.75,
+     "segmentIndex": 13,
+     "time": 54.27
+    },
+    {
+     "technique": "slide",
+     "type": "Slide",
+     "label": "Slide into B from the 2nd fret",
+     "tip": "Start at the 2nd fret of the low E and glide up to the 7th as you pick.",
+     "view": "left",
+     "speed": 0.5,
+     "segmentIndex": 17,
+     "time": 66.103
+    },
+    {
+     "technique": "qbend",
+     "type": "Quarter-tone bend",
+     "label": "D at the 5th fret, A string, ¼ bend",
+     "tip": "Push the string just a little: the note should go sour, not up a step.",
+     "view": "left",
+     "speed": 0.5,
+     "segmentIndex": 17,
+     "time": 67.35
+    },
+    {
+     "technique": "open",
+     "type": "Open string",
+     "label": "Open low E between the A notes",
+     "tip": "Pick the open E in passing, then climb 4 – 5 – 5 – 6 back toward B.",
+     "view": "left",
+     "speed": 0.5,
+     "segmentIndex": 18,
+     "time": 70.762
+    }
+   ]
+  }
  }
 }
