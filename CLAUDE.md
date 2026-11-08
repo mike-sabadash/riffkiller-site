@@ -11,7 +11,7 @@
 - Ключевые модули: `js/rk-progress.js` (прогресс, звёзды, ранги, избранное, синхронизация с `api/progress.php`), `js/practice*.js`, `js/riff-dna.js`, `js/riff-gallery-card.js` (карточки + RKFavorites), `js/auth-manager.js` (вход, модалка, согласие), `config/billing.php` (подписки и оплата).
 
 ## Правила, которые легко нарушить
-- **Кэш.** Любой изменённый JS/CSS требует новой версии `?v=` во всех HTML, которые его подключают (`grep -rl "file.js?v=" --include=*.html .`).
+- **Кэш.** Любой изменённый JS/CSS требует новой версии `?v=` во всех HTML, которые его подключают (`grep -rl "file.js?v=" --include=*.html .`). Сами HTML-страницы nginx отдаёт с `Cache-Control: no-cache` (с 08.11.2026 ставит деплой, `ensure_html_no_cache` в `scripts/deploy-remote.sh`): раньше браузер держал старую страницу со старыми скриптами часами.
 - **Переводы.** Интерфейс пишется на английском. Точные строки → `tools/i18n/strings.py` как (en, ru, es), строки с числами → regex в `tools/i18n/build.py` (RU_PATTERNS / ES_PATTERNS). Затем `python3 tools/i18n/build.py`, поднять `VERSION` в `js/i18n.js` и `js/i18n.js?v=` во всех страницах. Что не переводить — `translate="no"`. RU: kill = «добить», shot = «фрагмент»; ранги и этапы метода не переводятся.
 - **Шрифты** свои (`css/fonts.css`, `assets/fonts/`). Не подключать Google Fonts и любые сторонние скрипты/трекеры без обновления `privacy.html` (иначе понадобится баннер cookie).
 - **Регистрация** требует согласия (`consent: true` в `api/auth/email-register.php`); новые поля пользователя — через `config/user-store.php`.

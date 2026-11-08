@@ -235,6 +235,34 @@ if [ "$(id -u)" = 0 ] && [ -n "$web_user" ] && [ -n "$php_bin" ] && [ -f "$root/
   note "Practice summary cron: /etc/cron.d/riffkiller-progress-digest (hourly as $web_user)"
 fi
 
+# Pages must never come from a stale browser copy: nginx sent HTML with no Cache-Control, so browsers kept
+# old pages (with old ?v= scripts) for hours by heuristic. Adds `Cache-Control: no-cache` for HTML only, in the
+# riffkiller.fun vhost only, once; nginx -t guards it and the vhost is put back if the test fails.
+ensure_html_no_cache() {
+  local site="${RIFFKILLER_SITE:-riffkiller.fun}" conf map="/etc/nginx/conf.d/riffkiller-html-cache.conf"
+  conf="$(readlink -f "/etc/nginx/sites-enabled/$site" 2>/dev/null || true)"
+  [ -f "$conf" ] || conf="/etc/nginx/sites-available/$site"
+  [ -f "$conf" ] && command -v nginx >/dev/null || { echo "::warning::HTML no-cache: vhost $site not found"; return 0; }
+  grep -q 'rk_html_cache' "$conf" && { note "HTML no-cache: already set in $conf"; return 0; }
+  # A server-level add_header would stop the vhost inheriting http-level headers: leave such setups alone.
+  if grep -qhE '^\s*add_header' /etc/nginx/nginx.conf /etc/nginx/conf.d/*.conf 2>/dev/null; then
+    echo "::warning::HTML no-cache skipped: http-level add_header in nginx.conf/conf.d"; return 0
+  fi
+  local saved; saved="$(mktemp)"; cp -a "$conf" "$saved"
+  printf '# Installed by riffkiller deploy-remote.sh: HTML pages are revalidated on every visit.\nmap $uri $rk_html_cache {\n    default "";\n    ~*\\.html$ "no-cache";\n    ~/$ "no-cache";\n}\n' > "$map"
+  # One line after each server_name of this site (HTTP and HTTPS blocks); an empty value sends no header.
+  sed -i -E "/^\s*server_name\s+[^;]*\b${site//./\\.}\b[^;]*;/a\    add_header Cache-Control \$rk_html_cache;" "$conf"
+  if nginx -t >/dev/null 2>&1; then
+    systemctl reload nginx 2>/dev/null || nginx -s reload
+    note "HTML no-cache: set in $conf ($(grep -c 'rk_html_cache' "$conf") server blocks)"
+  else
+    cp -a "$saved" "$conf"; rm -f "$map"
+    echo "::warning::HTML no-cache: nginx -t failed, vhost restored: $(nginx -t 2>&1 | tail -2 | tr '\n' ' ')"
+  fi
+  rm -f "$saved"
+}
+if [ "$(id -u)" = 0 ]; then ensure_html_no_cache || echo "::warning::HTML no-cache step failed"; fi
+
 # Newsletter (config/newsletter.php): hourly; opens scheduled riffs at 10:00 Moscow time and sends what is due
 # in each reader's time zone (from 18:00), only to those who opted in.
 if [ "$(id -u)" = 0 ] && [ -n "$web_user" ] && [ -n "$php_bin" ] && [ -f "$root/config/newsletter-cli.php" ]; then
