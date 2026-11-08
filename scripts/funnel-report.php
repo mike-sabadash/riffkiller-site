@@ -252,5 +252,15 @@ $adminKeys = array_filter($V, function ($v) { return !empty($v['admin']); });
 $dd = [];
 foreach ($daily as $d => $pages) foreach ($pages as $p => $ks) $dd[$d][$p] = count(array_diff_key($ks, $adminKeys));
 $out['authDetail'] = $GLOBALS['authDetail'] ?? [];
+// Server setup that the deploy manages (no secrets): HTML no-cache in the vhost (scripts/deploy-remote.sh).
+$vhost = @realpath('/etc/nginx/sites-enabled/riffkiller.fun') ?: '/etc/nginx/sites-available/riffkiller.fun';
+$vtext = (string)@file_get_contents($vhost);
+$httpHeaders = [];
+foreach (array_merge(['/etc/nginx/nginx.conf'], glob('/etc/nginx/conf.d/*.conf') ?: []) as $f) {
+    foreach (preg_split('/\n/', (string)@file_get_contents($f)) as $line) if (preg_match('/^\s*add_header\b/', $line)) $httpHeaders[] = basename($f) . ': ' . trim($line);
+}
+$out['nginx'] = ['vhost' => $vhost, 'vhostReadable' => $vtext !== '', 'htmlNoCache' => substr_count($vtext, 'rk_html_cache'),
+    'serverNames' => preg_match_all('/^\s*server_name\s+([^;]*);/m', $vtext, $m) ? $m[1] : [], 'vhostAddHeaders' => preg_match_all('/^\s*add_header[^;]*;/m', $vtext, $m2) ? $m2[0] : [],
+    'httpLevelAddHeader' => $httpHeaders, 'mapFile' => is_file('/etc/nginx/conf.d/riffkiller-html-cache.conf'), 'sitesEnabled' => array_map('basename', glob('/etc/nginx/sites-enabled/*') ?: [])];
 $out['access'] = ['range' => $range, 'lines' => $lines, 'parsed' => $parsed, 'summary' => $sum, 'dailyUniqueVisitors' => $dd];
 echo json_encode($out, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), "\n";
