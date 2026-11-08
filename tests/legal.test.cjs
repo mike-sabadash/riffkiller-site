@@ -52,3 +52,16 @@ test('legal pages exist in English and Russian and are linked from the footer; n
     }
     assert.ok(fs.statSync(path.join(root,'assets/fonts/inter-latin-opsz-normal.woff2')).size>10000);
 });
+
+test('own counters: daily totals only, known names only; a new account is counted and named from its email',async()=>{
+    const day=new Date().toISOString().slice(0,10);const file=path.join(site.dir,'data/stats',day+'.json');
+    const r=await post('/api/stats/event.php',{e:['auth_open:drop','view:practice:inapp','evil_name','x:<script>']});
+    assert.equal((await r.json()).counted,2);
+    assert.equal((await fetch(site.base+'/api/stats/event.php')).status,405);
+    const reg=await post('/api/auth/email-register.php',{consent:true,email:'jimmy.page@example.com',password:'secret123'});
+    assert.equal((await reg.json()).user.full_name,'Jimmy');
+    const stats=JSON.parse(fs.readFileSync(file,'utf8'));
+    assert.equal(stats['auth_open:drop'],1);assert.equal(stats['view:practice:inapp'],1);assert.ok(stats['account_created:email']>=1);
+    assert.ok(!Object.keys(stats).some(k=>/evil|script/.test(k)));
+    assert.ok(!JSON.stringify(stats).includes('jimmy'),'no personal data in the totals');
+});

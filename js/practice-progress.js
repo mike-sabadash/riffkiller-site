@@ -185,6 +185,7 @@
                     else if (after && after.stars > res.before.stars) ctx.notify(starLine(after.stars) + ' ' + partName(index) + ': clean at ' + speedLabel(speed) + '.');
                     else ctx.notify('Best speed saved.');
                     changed();
+                    askToSave(res);
                 } },
                 { label: 'Not yet', id: 'progressCleanNo', onClick: function () {
                     asked[key] = { at: (run && run.loops) || 0, again: true };
@@ -197,6 +198,45 @@
             ],
             onClose: function () { asked[key] = { at: (run && run.loops) || 0, again: true }; }
         });
+    }
+
+    /**
+     * A guest just earned a star: offer a free account to keep it (at most once in 20 hours, «Later» closes it).
+     * Stars of a guest live only in this browser, and inside Instagram they are gone once the person leaves.
+     */
+    function askToSave(res) {
+        var auth = global.authManager;
+        if (!auth || auth.isAuthenticated || typeof auth.showAuthModal !== 'function') return;
+        if (!res || !res.after || !res.before || !(res.after.stars > res.before.stars)) return;
+        var last = 0;
+        try { last = Number(global.localStorage.getItem('rkSavePromptAt')) || 0; } catch (e) {}
+        if (Date.now() - last < 20 * 3600 * 1000) return;
+        try { global.localStorage.setItem('rkSavePromptAt', String(Date.now())); } catch (e) {}
+        var count = global.rkCount || function () {};
+        var inApp = global.rkInAppBrowser && global.rkInAppBrowser();
+        count('star_prompt:shown' + (inApp ? ':inapp' : ''));
+        showCard({
+            className: 'progress-card--save',
+            title: 'Nice. Don’t lose that star',
+            text: inApp
+                ? 'Right now your stars live only in this app’s browser and disappear when you close it. A free account keeps them.'
+                : 'Right now your stars live only in this browser. A free account keeps them on any phone or computer.',
+            actions: [
+                { label: 'Save my stars', primary: true, id: 'progressSaveYes', onClick: function () {
+                    count('star_prompt:yes');
+                    // Google and Patreon sign-in come back to app.html; main.js returns the student to this riff.
+                    try { global.localStorage.setItem('rkDropReturn', JSON.stringify({ url: global.location.pathname + global.location.search, at: Date.now() })); } catch (e) {}
+                    auth.showAuthModal('signup', 'star');
+                } },
+                { label: 'Later', id: 'progressSaveLater', onClick: function () { count('star_prompt:later'); } }
+            ],
+            onClose: function () { count('star_prompt:later'); }
+        });
+        // On a phone the parts list is usually scrolled: bring the card into view instead of leaving it above the screen.
+        if (card && card.getBoundingClientRect) {
+            var r = card.getBoundingClientRect();
+            if (r.top < 80 || r.bottom > global.innerHeight) card.scrollIntoView({ block: 'center', behavior: 'smooth' });
+        }
     }
 
     /** Should three (or more) loops at this speed open the question? */

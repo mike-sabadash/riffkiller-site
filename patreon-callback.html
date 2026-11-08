@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <script src="js/i18n.js?v=i21"></script>
+    <script src="js/i18n.js?v=i22"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Riff Killer - Patreon Authorization</title>
     
@@ -63,6 +63,9 @@
             border-radius: 8px;
             display: none;
         }
+        .callback-actions { display: flex; flex-direction: column; gap: 12px; margin-top: 24px; }
+        .callback-actions button { min-height: 48px; border: none; border-radius: 12px; background: #9355e5; color: #fff; font: inherit; font-weight: 600; cursor: pointer; }
+        .callback-actions a { color: #c4b5fc; text-decoration: underline; text-underline-offset: 2px; }
     </style>
 </head>
 <body>
@@ -74,7 +77,7 @@
     </div>
     
     <script src="js/patreon-config.js"></script>
-    <script src="js/auth-manager.js?v=white1"></script>
+    <script src="js/auth-manager.js?v=signup1"></script>
     <script>
         document.addEventListener('DOMContentLoaded', async () => {
             const urlParams = new URLSearchParams(window.location.search);
@@ -82,27 +85,55 @@
             const state = urlParams.get('state');
             const error = urlParams.get('error');
             const errorDiv = document.getElementById('errorMessage');
+            const count = window.rkCount || function () {};
+            let hadState = false;
+            try { hadState = !!localStorage.getItem('patreonState'); } catch (e) {}
+            const fromHost = (function () { try { return new URL(document.referrer).hostname.replace(/^www\./, '').split('.')[0] || 'none'; } catch (e) { return 'none'; } })();
+            // What came back from Patreon (our own daily totals): code / error / nothing, same browser or not, from where.
+            count('patreon_back:' + (error ? 'error-' + String(error).toLowerCase().replace(/[^a-z_]/g, '').slice(0, 20) : code ? 'code' : 'none') + ':' + (hadState ? 'same' : 'other') + '-' + fromHost.replace(/[^a-z0-9-]/g, '').slice(0, 12));
+            // Where to go back to: the riff the person came from (rkDropReturn, 15 minutes), else the library.
+            function backUrl() {
+                try {
+                    const back = JSON.parse(localStorage.getItem('rkDropReturn') || 'null');
+                    if (back && Date.now() - back.at < 15 * 60 * 1000 && /^\/practice\.html\?[\w=&%-]*$/.test(back.url)) return back.url;
+                } catch (e) {}
+                return 'index.html';
+            }
+            // No automatic redirect: the person picks what to do next.
+            function fail(title, text) {
+                document.querySelector('.loader').style.display = 'none';
+                document.querySelector('h1').textContent = title;
+                document.querySelector('p').textContent = '';
+                errorDiv.style.display = 'block';
+                errorDiv.textContent = text;
+                const box = document.createElement('div');
+                box.className = 'callback-actions';
+                box.innerHTML = '<button type="button" id="patreonRetry">Try Patreon again</button>' +
+                    '<a id="patreonUseEmail" href="#">Sign up with email instead</a>';
+                document.querySelector('.callback-container').appendChild(box);
+                document.getElementById('patreonRetry').addEventListener('click', function () { count('patreon_back:retry'); window.authManager.loginPatreon(); });
+                document.getElementById('patreonUseEmail').addEventListener('click', function (e) {
+                    e.preventDefault();
+                    count('patreon_back:use_email');
+                    const url = backUrl();
+                    location.href = url + (url.indexOf('?') < 0 ? '?' : '&') + 'auth=signup';
+                });
+            }
 
             // Diagnostic: log exactly what the page received (helps find server redirects that strip query string)
             console.log('[Patreon callback] URL=', window.location.href, '| search=', window.location.search, '| code=', code ? '(present)' : 'MISSING', '| state=', state ? '(present)' : '', '| error=', error || '');
 
             if (error) {
-                console.error('[Patreon callback] REDIRECT SOURCE: error param -> index.html?auth=error (4s)');
-                document.querySelector('.loader').style.display = 'none';
-                document.querySelector('h1').textContent = 'Authorization failed';
-                errorDiv.style.display = 'block';
-                errorDiv.textContent = 'Authorization was denied or failed. You can try again from the main page.';
-                setTimeout(() => { window.location.href = 'index.html?auth=error'; }, 4000);
+                console.error('[Patreon callback] error param:', error);
+                fail('Patreon sign-in stopped', error === 'access_denied'
+                    ? 'Patreon says access wasn’t allowed. Try again and tap Allow, or sign up with email.'
+                    : 'Patreon couldn’t finish signing you in. Try again, or sign up with email: it takes 20 seconds.');
                 return;
             }
 
             if (!code) {
-                console.warn('[Patreon callback] REDIRECT SOURCE: no code in URL -> index.html (4s). If Patreon sent ?code=..., server may be stripping query string.');
-                document.querySelector('.loader').style.display = 'none';
-                document.querySelector('h1').textContent = 'Missing code';
-                errorDiv.style.display = 'block';
-                errorDiv.textContent = 'No authorization code received. Please start login from the main page.';
-                setTimeout(() => { window.location.href = 'index.html'; }, 4000);
+                console.warn('[Patreon callback] no code in URL');
+                fail('Patreon didn’t send you back', 'Sometimes the Patreon app gets in the way. Try again, or sign up with email: it takes 20 seconds.');
                 return;
             }
 
@@ -154,12 +185,9 @@
                     throw new Error(errMsg);
                 }
             } catch (e) {
-                console.error('[Patreon callback] REDIRECT SOURCE: catch -> index.html?auth=error (5s). Error:', e && e.message, e);
-                document.querySelector('.loader').style.display = 'none';
-                document.querySelector('h1').textContent = 'Something went wrong';
-                errorDiv.style.display = 'block';
-                errorDiv.textContent = (e && e.message) || 'Could not complete sign in. Please try again from the main page.';
-                setTimeout(() => { window.location.href = 'index.html?auth=error'; }, 5000);
+                console.error('[Patreon callback] exchange failed:', e && e.message, e);
+                count('patreon_back:exchange_fail');
+                fail('Patreon sign-in didn’t go through', 'Try again, or sign up with email: it takes 20 seconds.');
             }
         });
     </script>

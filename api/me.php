@@ -55,6 +55,8 @@ if (!$user) {
     }
 }
 
+if (empty($user['provider']) || $user['provider'] !== 'test') site_stats_seen($user);
+
 echo json_encode([
     'success' => true,
     'authenticated' => true,

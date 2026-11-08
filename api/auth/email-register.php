@@ -20,6 +20,11 @@ $body = $raw ? json_decode($raw, true) : [];
 $email = isset($body['email']) ? trim((string)$body['email']) : '';
 $password = isset($body['password']) ? (string)$body['password'] : '';
 $name = isset($body['name']) ? trim((string)$body['name']) : '';
+// The form asks only for email and password: the name shown in the header comes from the email ("jimmy.page@…" → "Jimmy").
+if ($name === '' && isset($body['email'])) {
+    $local = preg_split('/[._+\-0-9]+/', strstr((string)$body['email'], '@', true) ?: '', -1, PREG_SPLIT_NO_EMPTY);
+    $name = $local ? (function_exists('mb_convert_case') ? mb_convert_case(mb_substr($local[0], 0, 40), MB_CASE_TITLE, 'UTF-8') : ucfirst(substr($local[0], 0, 40))) : '';
+}
 
 if (!$email || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
     http_response_code(400);

@@ -524,3 +524,32 @@ html[data-theme='light'] .auth-promo-toggle:hover {
     color: rgba(255, 255, 255, 0.45);
     text-align: center;
 }
+
+/* Sign-in ways as full buttons with their names (2026-11): Google first, Patreon under it */
+.auth-provider-list { display: flex; flex-direction: column; gap: 10px; margin-top: 4px; }
+.auth-provider-btn {
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    width: 100%; min-height: 48px; padding: 12px 20px; box-sizing: border-box;
+    border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.14);
+    background: rgba(255, 255, 255, 0.05); color: #fff;
+    font-family: inherit; font-size: 0.9375rem; font-weight: 600; line-height: 1.25rem; cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease;
+}
+.auth-provider-btn svg { width: 20px; height: 20px; flex-shrink: 0; display: block; }
+.auth-provider-btn--google { background: #fff; color: #1f1f1f; border-color: #fff; }
+.auth-provider-btn--google:hover { background: #ececf0; border-color: #ececf0; }
+.auth-provider-btn--patreon:hover { border-color: rgba(147, 85, 229, 0.5); background: rgba(147, 85, 229, 0.12); }
+.auth-provider-btn:focus-visible { outline: none; box-shadow: 0 0 0 2px rgba(147, 85, 229, 0.55); }
+.auth-modal .auth-consent { margin: 0 0 14px; }
+.auth-modal .auth-divider { margin: 20px 0 16px; }
+.auth-inapp-hint {
+    margin: 0 0 12px; padding: 12px 14px; border-radius: 12px;
+    background: rgba(147, 85, 229, 0.12); border: 1px solid rgba(147, 85, 229, 0.35);
+    font-size: 0.8125rem; line-height: 1.45; color: rgba(255, 255, 255, 0.85);
+}
+.auth-inapp-hint p { margin: 0 0 10px; }
+.auth-inapp-actions { display: flex; gap: 8px; }
+.auth-inapp-actions .auth-btn { margin: 0; min-height: 40px; padding: 8px 14px; text-decoration: none; }
+html[data-theme='light'] .auth-provider-btn { background: #fff; color: #12121a; border-color: rgba(18, 18, 26, 0.16); }
+html[data-theme='light'] .auth-provider-btn--google { background: #12121a; color: #fff; border-color: #12121a; }
+html[data-theme='light'] .auth-inapp-hint { color: #12121a; background: rgba(147, 85, 229, 0.08); }

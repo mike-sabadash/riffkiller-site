@@ -422,7 +422,7 @@ function enterDropMode(riff, key) {
     };
     document.getElementById('dropBarSignup').addEventListener('click', function() {
         try { localStorage.setItem('rkDropReturn', JSON.stringify({ url: location.pathname + location.search, at: Date.now() })); } catch (e) {}
-        if (auth && typeof auth.showAuthModal === 'function') auth.showAuthModal('signup');
+        if (auth && typeof auth.showAuthModal === 'function') auth.showAuthModal('signup', 'drop');
     });
     if (auth && typeof auth.addListener === 'function') auth.addListener(paint);
     paint();
