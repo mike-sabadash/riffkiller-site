@@ -1905,8 +1905,9 @@ function ensureTabsOverlay() {
     return tabsOverlay;
 }
 
-// Phones in portrait have room under the video, so the strip sits there and keeps the hands visible.
-const TABS_BELOW_VIDEO = '(max-width: 760px) and (orientation: portrait)';
+// The strip sits under the video so it never covers the hands (Mike, 08.11.2026: over the video it hid the picking
+// hand on every riff). Only phones in landscape, too short for both, keep it over the bottom of the picture.
+const TABS_BELOW_VIDEO = '(min-height: 501px), (orientation: portrait)';
 function placeTabsStrip() {
     const videoWrapper = document.getElementById('videoWrapper');
     if (!tabsOverlay || !videoWrapper) return;
