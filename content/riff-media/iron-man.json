@@ -1,0 +1,1514 @@
+{
+ "id": 10,
+ "song": "Iron  Man",
+ "videos": {
+  "assets/video/black-sabbath/iron-man/iron-man-left.mp4": "iron-man-left.mp4",
+  "assets/video/black-sabbath/iron-man/iron-man-right.mp4": "iron-man-right.mp4"
+ },
+ "riff": {
+  "videoFile": "assets/video/black-sabbath/iron-man/iron-man-left.mp4",
+  "videoFileRight": "assets/video/black-sabbath/iron-man/iron-man-right.mp4",
+  "duration": 83.9,
+  "segments": [
+   {
+    "start": 0.0,
+    "end": 7.4,
+    "name": "1",
+    "displayName": "1",
+    "color": "#F2D94E",
+    "function": "Intro: the open low E bent up from behind the nut, groaning down to a quarter tone sharp while the D string's 2nd fret rings",
+    "role": "call",
+    "tabBars": [
+     1,
+     2
+    ],
+    "tabSync": [
+     [
+      1,
+      0,
+      0
+     ],
+     [
+      1,
+      0,
+      0.293
+     ],
+     [
+      2,
+      3738,
+      7.4
+     ]
+    ]
+   },
+   {
+    "start": 7.4,
+    "end": 14.55,
+    "name": "2",
+    "displayName": "2",
+    "color": "#E35DF0",
+    "function": "Same groan again, a little less bend (1¼): let both strings ring",
+    "role": "repeat",
+    "tabBars": [
+     2,
+     4
+    ],
+    "tabSync": [
+     [
+      2,
+      3738,
+      7.4
+     ],
+     [
+      3,
+      0,
+      7.496
+     ],
+     [
+      4,
+      3733,
+      14.55
+     ]
+    ]
+   },
+   {
+    "start": 14.55,
+    "end": 19.84,
+    "name": "3",
+    "displayName": "3",
+    "color": "#E35DF0",
+    "function": "Last groan, cut short: the main riff comes in right after it",
+    "role": "repeat",
+    "tabBars": [
+     4,
+     6
+    ],
+    "tabSync": [
+     [
+      4,
+      3733,
+      14.55
+     ],
+     [
+      5,
+      0,
+      14.65
+     ],
+     [
+      6,
+      1813,
+      19.84
+     ]
+    ]
+   },
+   {
+    "start": 19.84,
+    "end": 23.0,
+    "name": "4",
+    "displayName": "4",
+    "color": "#F2D94E",
+    "function": "Main riff: B5 slides up to D5, a short rest, then D5 slides into E5",
+    "role": "call",
+    "tabBars": [
+     6,
+     7
+    ],
+    "tabSync": [
+     [
+      6,
+      1813,
+      19.84
+     ],
+     [
+      7,
+      0,
+      19.938
+     ],
+     [
+      7,
+      960,
+      20.856
+     ],
+     [
+      7,
+      1920,
+      21.644
+     ],
+     [
+      7,
+      2400,
+      22.053
+     ],
+     [
+      7,
+      2880,
+      22.492
+     ],
+     [
+      7,
+      3681,
+      23
+     ]
+    ]
+   },
+   {
+    "start": 23.0,
+    "end": 26.69,
+    "name": "5",
+    "displayName": "5",
+    "color": "#4FD8E8",
+    "function": "G5 – F#5 half-step shake, then G5 falls to D5 and slides home to E5",
+    "role": "answer",
+    "tabBars": [
+     7,
+     8
+    ],
+    "tabSync": [
+     [
+      7,
+      3681,
+      23
+     ],
+     [
+      8,
+      0,
+      23.101
+     ],
+     [
+      8,
+      240,
+      23.35
+     ],
+     [
+      8,
+      480,
+      23.799
+     ],
+     [
+      8,
+      720,
+      23.979
+     ],
+     [
+      8,
+      960,
+      24.218
+     ],
+     [
+      8,
+      1440,
+      24.647
+     ],
+     [
+      8,
+      1920,
+      25.076
+     ],
+     [
+      8,
+      2400,
+      25.465
+     ],
+     [
+      8,
+      2880,
+      25.904
+     ],
+     [
+      8,
+      3360,
+      26.353
+     ],
+     [
+      8,
+      3728,
+      26.69
+     ]
+    ]
+   },
+   {
+    "start": 26.69,
+    "end": 30.15,
+    "name": "6",
+    "displayName": "6",
+    "color": "#E35DF0",
+    "function": "The main riff again: B5 – D5, rest, D5 – E5",
+    "role": "repeat",
+    "tabBars": [
+     8,
+     9
+    ],
+    "tabSync": [
+     [
+      8,
+      3728,
+      26.69
+     ],
+     [
+      9,
+      0,
+      26.792
+     ],
+     [
+      9,
+      960,
+      27.7
+     ],
+     [
+      9,
+      1920,
+      28.568
+     ],
+     [
+      9,
+      2400,
+      28.977
+     ],
+     [
+      9,
+      2880,
+      29.436
+     ],
+     [
+      9,
+      3717,
+      30.15
+     ]
+    ]
+   },
+   {
+    "start": 30.15,
+    "end": 33.45,
+    "name": "7",
+    "displayName": "7",
+    "color": "#E35DF0",
+    "function": "Same shake and fall home; the last note slides down into the verse",
+    "role": "repeat",
+    "tabBars": [
+     9,
+     10
+    ],
+    "tabSync": [
+     [
+      9,
+      3717,
+      30.15
+     ],
+     [
+      10,
+      0,
+      30.255
+     ],
+     [
+      10,
+      240,
+      30.464
+     ],
+     [
+      10,
+      480,
+      30.694
+     ],
+     [
+      10,
+      720,
+      30.883
+     ],
+     [
+      10,
+      960,
+      31.093
+     ],
+     [
+      10,
+      1440,
+      31.522
+     ],
+     [
+      10,
+      1920,
+      31.921
+     ],
+     [
+      10,
+      2400,
+      32.32
+     ],
+     [
+      10,
+      2880,
+      32.729
+     ],
+     [
+      10,
+      3360,
+      33.228
+     ],
+     [
+      10,
+      3694,
+      33.45
+     ]
+    ]
+   },
+   {
+    "start": 33.45,
+    "end": 36.75,
+    "name": "8",
+    "displayName": "8",
+    "color": "#F2D94E",
+    "function": "Verse: the riff melody as single notes, sung in unison: B – D, then D–E hammer-on",
+    "role": "call",
+    "tabBars": [
+     10,
+     11
+    ],
+    "tabSync": [
+     [
+      10,
+      3694,
+      33.45
+     ],
+     [
+      11,
+      0,
+      33.547
+     ],
+     [
+      11,
+      960,
+      34.425
+     ],
+     [
+      11,
+      1920,
+      35.223
+     ],
+     [
+      11,
+      2400,
+      35.592
+     ],
+     [
+      11,
+      2880,
+      36.011
+     ],
+     [
+      11,
+      3726,
+      36.75
+     ]
+    ]
+   },
+   {
+    "start": 36.75,
+    "end": 40.01,
+    "name": "9",
+    "displayName": "9",
+    "color": "#4FD8E8",
+    "function": "G – F# pull-offs on the D string three times, then D – E and a ghost slide off",
+    "role": "answer",
+    "tabBars": [
+     11,
+     12
+    ],
+    "tabSync": [
+     [
+      11,
+      3726,
+      36.75
+     ],
+     [
+      12,
+      0,
+      36.85
+     ],
+     [
+      12,
+      240,
+      37.079
+     ],
+     [
+      12,
+      480,
+      37.289
+     ],
+     [
+      12,
+      720,
+      37.478
+     ],
+     [
+      12,
+      960,
+      37.698
+     ],
+     [
+      12,
+      1200,
+      37.867
+     ],
+     [
+      12,
+      1440,
+      38.097
+     ],
+     [
+      12,
+      1920,
+      38.496
+     ],
+     [
+      12,
+      2400,
+      38.915
+     ],
+     [
+      12,
+      2880,
+      39.284
+     ],
+     [
+      12,
+      3360,
+      39.703
+     ],
+     [
+      12,
+      3720,
+      40.01
+     ]
+    ]
+   },
+   {
+    "start": 40.01,
+    "end": 43.3,
+    "name": "10",
+    "displayName": "10",
+    "color": "#E35DF0",
+    "function": "Second line: B – D again, with a short rest before the hammer-on",
+    "role": "repeat",
+    "tabBars": [
+     12,
+     13
+    ],
+    "tabSync": [
+     [
+      12,
+      3720,
+      40.01
+     ],
+     [
+      13,
+      0,
+      40.112
+     ],
+     [
+      13,
+      960,
+      40.98
+     ],
+     [
+      13,
+      1920,
+      41.768
+     ],
+     [
+      13,
+      2400,
+      42.167
+     ],
+     [
+      13,
+      2880,
+      42.577
+     ],
+     [
+      13,
+      3729,
+      43.3
+     ]
+    ]
+   },
+   {
+    "start": 43.3,
+    "end": 46.87,
+    "name": "11",
+    "displayName": "11",
+    "color": "#E35DF0",
+    "function": "G – F# pull-offs and D – E again, closing the verse",
+    "role": "repeat",
+    "tabBars": [
+     13,
+     14
+    ],
+    "tabSync": [
+     [
+      13,
+      3729,
+      43.3
+     ],
+     [
+      14,
+      0,
+      43.395
+     ],
+     [
+      14,
+      240,
+      43.604
+     ],
+     [
+      14,
+      480,
+      43.824
+     ],
+     [
+      14,
+      720,
+      43.983
+     ],
+     [
+      14,
+      960,
+      44.223
+     ],
+     [
+      14,
+      1200,
+      44.402
+     ],
+     [
+      14,
+      1440,
+      44.612
+     ],
+     [
+      14,
+      1920,
+      44.991
+     ],
+     [
+      14,
+      2400,
+      45.37
+     ],
+     [
+      14,
+      2880,
+      45.799
+     ],
+     [
+      14,
+      3360,
+      46.597
+     ],
+     [
+      14,
+      3714,
+      46.87
+     ]
+    ]
+   },
+   {
+    "start": 46.87,
+    "end": 49.76,
+    "name": "12",
+    "displayName": "12",
+    "color": "#F2D94E",
+    "function": "The main riff returns between the verses: B5 – D5, rest, D5 – E5, sliding up",
+    "role": "call",
+    "tabBars": [
+     14,
+     15
+    ],
+    "tabSync": [
+     [
+      14,
+      3714,
+      46.87
+     ],
+     [
+      15,
+      0,
+      46.967
+     ],
+     [
+      15,
+      960,
+      47.416
+     ],
+     [
+      15,
+      1920,
+      48.244
+     ],
+     [
+      15,
+      2400,
+      48.663
+     ],
+     [
+      15,
+      2880,
+      49.082
+     ],
+     [
+      15,
+      3717,
+      49.76
+     ]
+    ]
+   },
+   {
+    "start": 49.76,
+    "end": 53.0,
+    "name": "13",
+    "displayName": "13",
+    "color": "#4FD8E8",
+    "function": "Shake and fall home; ends on a ghost E that slides down into verse 2",
+    "role": "answer",
+    "tabBars": [
+     15,
+     16
+    ],
+    "tabSync": [
+     [
+      15,
+      3717,
+      49.76
+     ],
+     [
+      16,
+      0,
+      49.86
+     ],
+     [
+      16,
+      240,
+      50.079
+     ],
+     [
+      16,
+      480,
+      50.289
+     ],
+     [
+      16,
+      720,
+      50.479
+     ],
+     [
+      16,
+      960,
+      50.688
+     ],
+     [
+      16,
+      1440,
+      51.097
+     ],
+     [
+      16,
+      1920,
+      51.496
+     ],
+     [
+      16,
+      2400,
+      51.915
+     ],
+     [
+      16,
+      2880,
+      52.334
+     ],
+     [
+      16,
+      3360,
+      52.813
+     ],
+     [
+      16,
+      3670,
+      53
+     ]
+    ]
+   },
+   {
+    "start": 53.0,
+    "end": 56.3,
+    "name": "14",
+    "displayName": "14",
+    "color": "#F2D94E",
+    "function": "Verse 2 under palm mute: B – D, a muted click, D–E hammer-on",
+    "role": "call",
+    "tabBars": [
+     16,
+     17
+    ],
+    "tabSync": [
+     [
+      16,
+      3670,
+      53
+     ],
+     [
+      17,
+      0,
+      53.103
+     ],
+     [
+      17,
+      960,
+      53.931
+     ],
+     [
+      17,
+      1920,
+      54.749
+     ],
+     [
+      17,
+      2400,
+      55.158
+     ],
+     [
+      17,
+      2880,
+      55.587
+     ],
+     [
+      17,
+      3727,
+      56.3
+     ]
+    ]
+   },
+   {
+    "start": 56.3,
+    "end": 59.53,
+    "name": "15",
+    "displayName": "15",
+    "color": "#4FD8E8",
+    "function": "G – F# pull-offs, D – E, ghost slide off",
+    "role": "answer",
+    "tabBars": [
+     17,
+     18
+    ],
+    "tabSync": [
+     [
+      17,
+      3727,
+      56.3
+     ],
+     [
+      18,
+      0,
+      56.395
+     ],
+     [
+      18,
+      240,
+      56.585
+     ],
+     [
+      18,
+      480,
+      56.814
+     ],
+     [
+      18,
+      720,
+      57.004
+     ],
+     [
+      18,
+      960,
+      57.213
+     ],
+     [
+      18,
+      1200,
+      57.383
+     ],
+     [
+      18,
+      1440,
+      57.602
+     ],
+     [
+      18,
+      1920,
+      58.001
+     ],
+     [
+      18,
+      2400,
+      58.68
+     ],
+     [
+      18,
+      2880,
+      58.83
+     ],
+     [
+      18,
+      3360,
+      59.299
+     ],
+     [
+      18,
+      3697,
+      59.53
+     ]
+    ]
+   },
+   {
+    "start": 59.53,
+    "end": 62.82,
+    "name": "16",
+    "displayName": "16",
+    "color": "#E35DF0",
+    "function": "Same line with a double muted click before the hammer-on",
+    "role": "repeat",
+    "tabBars": [
+     18,
+     19
+    ],
+    "tabSync": [
+     [
+      18,
+      3697,
+      59.53
+     ],
+     [
+      19,
+      0,
+      59.628
+     ],
+     [
+      19,
+      960,
+      60.466
+     ],
+     [
+      19,
+      1920,
+      61.244
+     ],
+     [
+      19,
+      2400,
+      61.693
+     ],
+     [
+      19,
+      2880,
+      62.102
+     ],
+     [
+      19,
+      3723,
+      62.82
+     ]
+    ]
+   },
+   {
+    "start": 62.82,
+    "end": 66.07,
+    "name": "17",
+    "displayName": "17",
+    "color": "#E35DF0",
+    "function": "G – F# pull-offs and D – E once more, leading to the bridge",
+    "role": "repeat",
+    "tabBars": [
+     19,
+     20
+    ],
+    "tabSync": [
+     [
+      19,
+      3723,
+      62.82
+     ],
+     [
+      20,
+      0,
+      62.92
+     ],
+     [
+      20,
+      240,
+      63.11
+     ],
+     [
+      20,
+      480,
+      63.319
+     ],
+     [
+      20,
+      720,
+      63.489
+     ],
+     [
+      20,
+      960,
+      63.709
+     ],
+     [
+      20,
+      1200,
+      63.898
+     ],
+     [
+      20,
+      1440,
+      64.128
+     ],
+     [
+      20,
+      1920,
+      64.487
+     ],
+     [
+      20,
+      2400,
+      64.936
+     ],
+     [
+      20,
+      2880,
+      65.335
+     ],
+     [
+      20,
+      3360,
+      65.874
+     ],
+     [
+      20,
+      3675,
+      66.07
+     ]
+    ]
+   },
+   {
+    "start": 66.07,
+    "end": 69.28,
+    "name": "18",
+    "displayName": "18",
+    "color": "#F2D94E",
+    "function": "Bridge on the low E: slide into B, a quarter-bent D on the A string, then B – A#",
+    "role": "call",
+    "tabBars": [
+     20,
+     21
+    ],
+    "tabSync": [
+     [
+      20,
+      3675,
+      66.07
+     ],
+     [
+      21,
+      0,
+      66.173
+     ],
+     [
+      21,
+      480,
+      66.572
+     ],
+     [
+      21,
+      1440,
+      67.41
+     ],
+     [
+      21,
+      2400,
+      68.178
+     ],
+     [
+      21,
+      3360,
+      68.977
+     ],
+     [
+      21,
+      3725,
+      69.28
+     ]
+    ]
+   },
+   {
+    "start": 69.28,
+    "end": 72.52,
+    "name": "19",
+    "displayName": "19",
+    "color": "#4FD8E8",
+    "function": "Climbs back: three A notes, the open E, then G# – A – A – A# up to B",
+    "role": "answer",
+    "tabBars": [
+     21,
+     22
+    ],
+    "tabSync": [
+     [
+      21,
+      3725,
+      69.28
+     ],
+     [
+      22,
+      0,
+      69.376
+     ],
+     [
+      22,
+      480,
+      69.805
+     ],
+     [
+      22,
+      960,
+      70.164
+     ],
+     [
+      22,
+      1680,
+      70.822
+     ],
+     [
+      22,
+      1920,
+      71.022
+     ],
+     [
+      22,
+      2400,
+      71.421
+     ],
+     [
+      22,
+      2880,
+      71.78
+     ],
+     [
+      22,
+      3360,
+      72.209
+     ],
+     [
+      22,
+      3725,
+      72.52
+     ]
+    ]
+   },
+   {
+    "start": 72.52,
+    "end": 75.73,
+    "name": "20",
+    "displayName": "20",
+    "color": "#E35DF0",
+    "function": "B – D (¼ bend) – B – A# again",
+    "role": "repeat",
+    "tabBars": [
+     22,
+     23
+    ],
+    "tabSync": [
+     [
+      22,
+      3725,
+      72.52
+     ],
+     [
+      23,
+      0,
+      72.618
+     ],
+     [
+      23,
+      480,
+      73.027
+     ],
+     [
+      23,
+      1440,
+      73.865
+     ],
+     [
+      23,
+      2400,
+      74.594
+     ],
+     [
+      23,
+      3360,
+      75.432
+     ],
+     [
+      23,
+      3718,
+      75.73
+     ]
+    ]
+   },
+   {
+    "start": 75.73,
+    "end": 78.88,
+    "name": "21",
+    "displayName": "21",
+    "color": "#E35DF0",
+    "function": "A – E – G# – A – A# climb again",
+    "role": "repeat",
+    "tabBars": [
+     23,
+     24
+    ],
+    "tabSync": [
+     [
+      23,
+      3718,
+      75.73
+     ],
+     [
+      24,
+      0,
+      75.831
+     ],
+     [
+      24,
+      480,
+      76.23
+     ],
+     [
+      24,
+      960,
+      76.639
+     ],
+     [
+      24,
+      1680,
+      77.228
+     ],
+     [
+      24,
+      1920,
+      77.437
+     ],
+     [
+      24,
+      2400,
+      77.846
+     ],
+     [
+      24,
+      2880,
+      78.245
+     ],
+     [
+      24,
+      3360,
+      78.635
+     ],
+     [
+      24,
+      3697,
+      78.88
+     ]
+    ]
+   },
+   {
+    "start": 78.88,
+    "end": 82.13,
+    "name": "22",
+    "displayName": "22",
+    "color": "#E35DF0",
+    "function": "B – D (¼ bend) – B – A# one more time",
+    "role": "repeat",
+    "tabBars": [
+     24,
+     25
+    ],
+    "tabSync": [
+     [
+      24,
+      3697,
+      78.88
+     ],
+     [
+      25,
+      0,
+      78.984
+     ],
+     [
+      25,
+      480,
+      79.413
+     ],
+     [
+      25,
+      1440,
+      80.171
+     ],
+     [
+      25,
+      2400,
+      81.029
+     ],
+     [
+      25,
+      3360,
+      81.797
+     ],
+     [
+      25,
+      3733,
+      82.13
+     ]
+    ]
+   },
+   {
+    "start": 82.13,
+    "end": 83.9,
+    "name": "23",
+    "displayName": "23",
+    "color": "#E35DF0",
+    "function": "Three A notes and stop: the phrase is left hanging",
+    "role": "hang",
+    "tabBars": [
+     25,
+     26
+    ],
+    "tabSync": [
+     [
+      25,
+      3733,
+      82.13
+     ],
+     [
+      26,
+      0,
+      82.226
+     ],
+     [
+      26,
+      480,
+      82.616
+     ],
+     [
+      26,
+      960,
+      82.965
+     ],
+     [
+      26,
+      2246,
+      83.9
+     ]
+    ]
+   }
+  ],
+  "dna": {
+   "overview": "Iron Man is a slow march built from one melody. The intro is a single open low E bent up from behind the nut: a heavy, sick groan. The main riff slides power chords up B5 – D5 – E5, then shakes G5 – F#5 a half step and falls through D5 home to E5. In the verse the same melody turns into single notes that the vocal sings in unison: B – D – E, then G – F# pull-offs and back home. The bridge drops to the low E string: B, a quarter-bent D, A#, and a chromatic climb A – G# – A – A# back up to B.",
+   "rule": "Slide B5 – D5 – E5, shake G5 – F#5, fall through D5 home to E5",
+   "law": "Every phrase is the same shape: a rise to E, then a half-step shake above it that falls back home. Slides glue the chords together and the rests leave space, so the riff walks like something heavy. Because the vocal sings the same notes, the guitar line is the song itself.",
+   "failure": "Pick every chord as a separate hit instead of sliding, or fill the rest after the first D5, and the riff stops walking: the weight comes from the slides and the space between them.",
+   "authorNotes": "",
+   "preserve": [
+    "Slides between the power chord shapes",
+    "The short rest after the first D5",
+    "The G5 – F#5 half-step shake",
+    "Every phrase ends home on E",
+    "The behind-the-nut groan in the intro"
+   ],
+   "change": [
+    "Power chords or single notes for the same melody",
+    "Palm mute on or off",
+    "The ghost slide at the end of a line",
+    "Quarter or dotted rhythm on the second note"
+   ],
+   "mutation": {
+    "title": "Build an Iron Man relative — without copying the riff",
+    "description": "Keep the march, not the notes: a rise to home, a half-step shake above it and a fall back home.",
+    "steps": [
+     "Pick a home power chord. Start a fourth below it, slide up to the chord a minor third above that, rest, then slide home.",
+     "Answer with a half-step shake a minor third above home, in four sixteenths.",
+     "Fall from the shake to the chord below home and slide back up to land on home.",
+     "Play the same melody as single notes on two strings, with pull-offs for the shake — that is your verse."
+    ]
+   },
+   "atoms": [
+    {
+     "technique": "bend",
+     "type": "Bend",
+     "label": "Open low E, 1½ tones from behind the nut",
+     "tip": "Press the low E down between the nut and the tuner, hold it, then let it sink back to a quarter tone sharp. The D string's 2nd fret is not bent — it just rings.",
+     "view": "left",
+     "speed": 0.75,
+     "segmentIndex": 0,
+     "time": 0.29
+    },
+    {
+     "technique": "double",
+     "type": "Double stop",
+     "label": "Open low E + 2nd fret on the D string",
+     "tip": "Pick both together and let them ring for two bars: the octave E under the groan.",
+     "view": "left",
+     "speed": 0.75,
+     "segmentIndex": 0,
+     "time": 0.29
+    },
+    {
+     "technique": "slide",
+     "type": "Slide",
+     "label": "B5 → D5: 7/9 slides up to 10/12",
+     "tip": "Index on the low E, ring finger on the A string. Lock the shape and slide it three frets without lifting.",
+     "view": "left",
+     "speed": 0.5,
+     "segmentIndex": 3,
+     "time": 19.94
+    },
+    {
+     "technique": "gap",
+     "type": "Pause",
+     "label": "16th rest after the first D5",
+     "tip": "Release the pressure right after D5 so it stops; the short silence makes the riff walk.",
+     "view": "right",
+     "speed": 0.5,
+     "segmentIndex": 3,
+     "time": 21.4
+    },
+    {
+     "technique": "slide",
+     "type": "Slide",
+     "label": "D5 → E5: 10/12 slides to 12/14",
+     "tip": "One pick stroke on D5, slide two frets up to E5, then pick E5 again.",
+     "view": "left",
+     "speed": 0.5,
+     "segmentIndex": 3,
+     "time": 21.64
+    },
+    {
+     "technique": "slide",
+     "type": "Slide",
+     "label": "G5 – F#5 shake: 15/17 ↔ 14/16",
+     "tip": "Four quick sixteenths: slide the shape one fret down and back up, twice, without lifting.",
+     "view": "left",
+     "speed": 0.5,
+     "segmentIndex": 4,
+     "time": 23.1
+    },
+    {
+     "technique": "ghost",
+     "type": "Ghost note",
+     "label": "(17) slide-off on the A string",
+     "tip": "After the last E5 just scrape down the A string — barely heard, it closes the phrase.",
+     "view": "left",
+     "speed": 0.75,
+     "segmentIndex": 4,
+     "time": 26.35
+    },
+    {
+     "technique": "hammer",
+     "type": "Hammer-on",
+     "label": "5h7 on the A string (D → E)",
+     "tip": "Pick the 5th fret, hammer the ring finger onto the 7th.",
+     "view": "left",
+     "speed": 0.5,
+     "segmentIndex": 7,
+     "time": 35.22
+    },
+    {
+     "technique": "vibrato",
+     "type": "Vibrato",
+     "label": "E at the 7th fret, A string",
+     "tip": "Hold the last note of the line and shake it slowly, like the vocal.",
+     "view": "left",
+     "speed": 0.75,
+     "segmentIndex": 7,
+     "time": 36.01
+    },
+    {
+     "technique": "pull",
+     "type": "Pull-off",
+     "label": "5p4 on the D string, three times (G → F#)",
+     "tip": "Pick the 5th fret, pull off to the 4th; pick again for each pair.",
+     "view": "left",
+     "speed": 0.5,
+     "segmentIndex": 8,
+     "time": 36.85
+    },
+    {
+     "technique": "palm",
+     "type": "Palm mute",
+     "label": "Verse 2 under P.M.",
+     "tip": "Rest the side of the picking hand by the bridge for the first notes of the line, lift it for the hammer-on.",
+     "view": "right",
+     "speed": 0.75,
+     "segmentIndex": 13,
+     "time": 53.1
+    },
+    {
+     "technique": "ghost",
+     "type": "Ghost note",
+     "label": "Muted click (x) on the A string",
+     "tip": "Keep the fretting finger touching the string without pressing: a percussive click before the hammer-on.",
+     "view": "right",
+     "speed": 0.75,
+     "segmentIndex": 13,
+     "time": 54.52
+    },
+    {
+     "technique": "slide",
+     "type": "Slide",
+     "label": "Slide into B from the 2nd fret",
+     "tip": "Start at the 2nd fret of the low E and glide up to the 7th as you pick.",
+     "view": "left",
+     "speed": 0.5,
+     "segmentIndex": 17,
+     "time": 66.17
+    },
+    {
+     "technique": "qbend",
+     "type": "Quarter-tone bend",
+     "label": "D at the 5th fret, A string, ¼ bend",
+     "tip": "Push the string just a little: the note should go sour, not up a step.",
+     "view": "left",
+     "speed": 0.5,
+     "segmentIndex": 17,
+     "time": 67.41
+    },
+    {
+     "technique": "open",
+     "type": "Open string",
+     "label": "Open low E between the A notes",
+     "tip": "Pick the open E in passing, then climb 4 – 5 – 5 – 6 back toward B.",
+     "view": "left",
+     "speed": 0.5,
+     "segmentIndex": 18,
+     "time": 70.82
+    }
+   ]
+  },
+  "tab": {
+   "tex": "\\title \"Iron Man\"\n\\artist \"Black Sabbath\"\n\\tempo 65\n.\n\\ts 4 4 (0.6{b (0 6 1)} 2.4).1 |\n(-.6 -.4).1 |\n(0.6{b (0 5 1)} 2.4).1 |\n(-.6 -.4).1 |\n(0.6{b (0 5 1)} 2.4).1 |\n\\ts 2 4 (-.6 -.4).2 |\n\\ts 4 4 \\tempo 70 (7.6{sl} 9.5{sl}).4 (10.6 12.5).8{d} r.16 (10.6{sl} 12.5{sl}).8 (12.6 14.5).8 (12.6{sod} 14.5{sod}).4 |\n(15.6{sl} 17.5{sl}).16 (14.6 16.5).16 (15.6{sl} 17.5{sl}).16 (14.6{sl} 16.5{sl}).16 (15.6{sl} 17.5{sl}).8 (10.6 12.5).8 (10.6{sl} 12.5{sl}).8 (12.6 14.5).8 (12.6 14.5).8 17.5{g sod}.8 |\n\\tempo 72 (7.6{sl} 9.5{sl}).4 (10.6 12.5).8{d} r.16 (10.6{sl} 12.5{sl}).8 (12.6 14.5).8 (12.6{sod} 14.5{sod}).4 |\n(15.6{sl} 17.5{sl}).16 (14.6 16.5).16 (15.6{sl} 17.5{sl}).16 (14.6{sl} 16.5{sl}).16 (15.6{sl} 17.5{sl}).8 (10.6 12.5).8 (10.6{sl} 12.5{sl}).8 (12.6 14.5).8 (12.6 14.5).8 12.6{sia}.8 |\n\\tempo 76 7.6.4 5.5.4 5.5{h}.8 7.5.8 7.5{v}.4 |\n5.4{h}.16 4.4.16 5.4{h}.16 4.4.16 5.4{h}.16 4.4.16 5.5.8 5.5{sl}.8 7.5.8 7.5{sl}.8 15.5{g sod}.8 |\n7.6.4 5.5.8{d} r.16 5.5{h}.8 7.5.8 7.5{v}.4 |\n5.4{h}.16 4.4.16 5.4{h}.16 4.4.16 5.4{h}.16 4.4.16 5.5.8 5.5{sl}.8 7.5.8 7.5{sl}.8 15.5{g sod}.8 |\n(7.6{sl} 9.5{sl}).4 (10.6 12.5).8{d} r.16 (10.6{sl} 12.5{sl}).8 (12.6 14.5).8 (12.6{sl} 14.5{sl}).4 |\n(15.6{sl} 17.5{sl}).16 (14.6 16.5).16 (15.6{sl} 17.5{sl}).16 (14.6{sl} 16.5{sl}).16 (15.6{sl} 17.5{sl}).8 (10.6 12.5).8 (10.6{sl} 12.5{sl}).8 (12.6 14.5).8 (12.6 14.5).8 12.6{g sl}.8 |\n7.6{pm}.4 5.5{pm}.8{d} x.5{pm}.16 5.5{h}.8 7.5.8 7.5{v}.4 |\n5.4{h}.16 4.4.16 5.4{h}.16 4.4.16 5.4{h}.16 4.4.16 5.5.8 5.5{sl}.8 7.5.8 7.5{sl}.8 15.5{g sod}.8 |\n7.6.4 5.5{pm}.8{d} (x.5{pm} x.6{pm}).16 5.5{h}.8 7.5.8 7.5{v}.4 |\n5.4{h}.16 4.4.16 5.4{h}.16 4.4.16 5.4{h}.16 4.4.16 5.5.8 5.5{sl}.8 7.5.8 7.5{sl}.8 15.5{g sod}.8 |\n7.6{sib}.8 7.6.4 5.5{b (0 1)}.4 7.6.4 6.6.8 |\n5.6.8 5.6.8 5.6{v}.8{d} 0.6.16 4.6.8 5.6.8 5.6.8 6.6.8 |\n7.6.8 7.6.4 5.5{b (0 1)}.4 7.6.4 6.6.8 |\n5.6.8 5.6.8 5.6{v}.8{d} 0.6.16 4.6.8 5.6.8 5.6.8 6.6.8 |\n7.6.8 7.6.4 5.5{b (0 1)}.4 7.6.4 6.6.8 |\n5.6.8 5.6.8 5.6.8 r.8 r.2 |"
+  },
+  "difficultyScore": {
+   "tempo": 1,
+   "leftHand": 2,
+   "rightHand": 1,
+   "rhythm": 1,
+   "fretboard": 1,
+   "stamina": 1
+  },
+  "difficulty": "intermediate"
+ }
+}
