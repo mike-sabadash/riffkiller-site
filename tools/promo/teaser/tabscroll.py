@@ -3,14 +3,14 @@ import sys, numpy as np
 from PIL import Image, ImageDraw, ImageFont
 W, HS, FPS, DUR = 1440, 360, 50, 24.19
 B0, BEAT, T_ON = 11.24, 0.832, 11.30
-PX, PH = 520, 300            # px per second, playhead x
+PX, PH = 520, 720            # px per second, playhead x
 LY = [40 + i * 43 for i in range(6)]   # e B G D A E (strip coords)
 FB = ImageFont.truetype('/usr/share/fonts/opentype/inter/Inter-Bold.otf', 44)
 FS = ImageFont.truetype('/usr/share/fonts/opentype/inter/Inter-SemiBold.otf', 36)
 # one riff cycle (8 beats): beat, low-E fret, A fret, slide-to-next ('u'/'d'/None), ghost
-CYC = [(0, 7, 9, 'u'), (1, 10, 12, None), (2, 10, 12, 'u'), (2.5, 12, 14, None), (3, 12, 14, None),
-       (4, 15, 17, 'd'), (4.25, 14, 16, None), (4.5, 15, 17, 'd'), (4.75, 14, 16, 'u'), (5, 15, 17, 'd'), (5.5, 10, 12, None),
-       (6, 10, 12, 'u'), (6.5, 12, 14, None), (7, 12, 14, None), (7.5, None, 17, 'g')]
+CYC = [(0, 7, None, 'u'), (1, 10, None, None), (2, 10, None, 'u'), (2.5, 12, None, None), (3, 12, None, None),
+       (4, 15, None, 'd'), (4.25, 14, None, None), (4.5, 15, None, 'd'), (4.75, 14, None, 'u'), (5, 15, None, 'd'), (5.5, 10, None, None),
+       (6, 10, None, 'u'), (6.5, 12, None, None), (7, 12, None, None)]
 NOTES = []
 for k in range(3):
     for b, e, a, m in CYC: NOTES.append((B0 + (8 * k + b) * BEAT, e, a, m))
@@ -34,7 +34,7 @@ for f in range(int(round(DUR * FPS))):
                 x2 = pos[i + 1][0]
                 if -60 < x < W + 60:
                     mx = (x + x2) / 2
-                    for yy in (LY[4], LY[5]):
+                    for yy in (LY[5],):
                         dy = 10 if m == 'u' else -10
                         d.line([mx - 13, yy + dy, mx + 13, yy - dy], fill=(int(220 * on),) * 3, width=4)
         for x, e, a, m, nt in pos:

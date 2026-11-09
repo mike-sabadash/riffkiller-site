@@ -7,8 +7,8 @@ FB = '/usr/share/fonts/opentype/inter/Inter-Bold.otf'
 im = Image.new('RGBA', (W * S, H * S), (0, 0, 0, 0)); d = ImageDraw.Draw(im)
 x0, y0, w, h = 164, 110, 707, 556
 d.rounded_rectangle([x0 * S, y0 * S, (x0 + w) * S, (y0 + h) * S], radius=40 * S, fill=(0, 0, 0, 255))
-t = ImageFont.truetype(F, 136 * S)
-d.text((220 * S, (y0 + 22) * S), 'Intro', font=t, fill=(132, 132, 132, 255))
+t = ImageFont.truetype(F, 112 * S)
+d.text((220 * S, (y0 + 34) * S), 'Intro', font=t, fill=(132, 132, 132, 255))
 # tab: 6 strings, numbers on D (4th) and low E (6th)
 L0, SP, lx0, lx1 = y0 + 310, 38, 220, 815
 ys = [L0 + i * SP for i in range(6)]
