@@ -186,6 +186,7 @@
                     else ctx.notify('Best speed saved.');
                     changed();
                     askToSave(res);
+                    askForEmail(res);
                 } },
                 { label: 'Not yet', id: 'progressCleanNo', onClick: function () {
                     asked[key] = { at: (run && run.loops) || 0, again: true };
@@ -237,6 +238,52 @@
             var r = card.getBoundingClientRect();
             if (r.top < 80 || r.bottom > global.innerHeight) card.scrollIntoView({ block: 'center', behavior: 'smooth' });
         }
+    }
+
+    /**
+     * A signed-in student without newsletter emails just earned a star: ask once, at this moment of success, whether
+     * the next riff may come by email (docs/NEWSLETTER.md). The server says who may be asked (prefs.php → askMoment:
+     * never answered, nothing turned on); Yes / No thanks is final, the cross only waits 7 days in this browser.
+     */
+    var emailAsked = false;
+    function askForEmail(res) {
+        var auth = global.authManager;
+        if (emailAsked || !auth || !auth.isAuthenticated) return;
+        if (!res || !res.after || !res.before || !(res.after.stars > res.before.stars)) return;
+        var last = 0;
+        try { last = Number(global.localStorage.getItem('rkNewsMomentAt')) || 0; } catch (e) {}
+        if (Date.now() - last < 7 * 24 * 3600 * 1000) return;
+        emailAsked = true;
+        var base = typeof global.getApiBase === 'function' ? global.getApiBase() : '';
+        var url = base + '/api/newsletter/prefs.php';
+        var count = global.rkCount || function () {};
+        var send = function (yes) {
+            return fetch(url, { method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ topics: yes ? { drops: true } : {}, how: 'practice', asked: yes ? 'yes' : 'no' }) }).catch(function () {});
+        };
+        fetch(url, { credentials: 'include' }).then(function (r) { return r.json(); }).then(function (d) {
+            if (!d || !d.success || !d.askMoment || card) return;
+            try { global.localStorage.setItem('rkNewsMomentAt', String(Date.now())); } catch (e) {}
+            count('mail_ask:practice_shown');
+            showCard({
+                className: 'progress-card--news',
+                title: 'Nice. Want the next riff in your inbox?',
+                text: 'A new riff drops every Friday. We’ll email you that day, nothing else. One click to unsubscribe.',
+                actions: [
+                    { label: 'Yes, email me', primary: true, id: 'progressNewsYes', onClick: function () {
+                        count('mail_ask:practice_yes');
+                        send(true);
+                        ctx.notify('Done. You’ll get an email when the next riff drops.');
+                    } },
+                    { label: 'No thanks', id: 'progressNewsNo', onClick: function () { count('mail_ask:practice_no'); send(false); } }
+                ],
+                onClose: function () { count('mail_ask:practice_later'); }
+            });
+            if (card && card.getBoundingClientRect) {
+                var r = card.getBoundingClientRect();
+                if (r.top < 80 || r.bottom > global.innerHeight) card.scrollIntoView({ block: 'center', behavior: 'smooth' });
+            }
+        }, function () {});
     }
 
     /** Should three (or more) loops at this speed open the question? */

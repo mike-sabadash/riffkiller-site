@@ -1004,7 +1004,10 @@ T = [
 ("Try Patreon again", "Ещё раз через Patreon", "Intentar con Patreon otra vez"),
 ("Sign up with email instead", "Зарегистрироваться по email", "Registrarme con email"),
 # --- newsletter (config/newsletter.php, js/newsletter.js, emails.html, api/newsletter/*)
-("Email me when a new riff drops (about once a week). Unsubscribe in one click.", "Присылать письмо, когда выходит новый рифф (примерно раз в неделю). Отписка в один клик.", "Envíame un email cuando salga un riff nuevo (más o menos una vez por semana). Te das de baja con un clic."),
+("Email me the new riff every Friday and which riff is free that week. One click to unsubscribe.", "Присылать новый рифф каждую пятницу и какой рифф бесплатный на этой неделе. Отписка в один клик.", "Envíame el riff nuevo cada viernes y cuál es gratis esa semana. Te das de baja con un clic."),
+("Nice. Want the next riff in your inbox?", "Отлично. Прислать следующий рифф на почту?", "Bien. ¿Te enviamos el próximo riff por email?"),
+("A new riff drops every Friday. We’ll email you that day, nothing else. One click to unsubscribe.", "Новый рифф выходит каждую пятницу. Напишем в этот день, и только об этом. Отписка в один клик.", "Cada viernes sale un riff nuevo. Te escribimos ese día y nada más. Te das de baja con un clic."),
+("Done. You’ll get an email when the next riff drops.", "Готово. Напишем, когда выйдет следующий рифф.", "Listo. Te escribiremos cuando salga el próximo riff."),
 ("Emails", "Письма", "Emails"),
 ("Riff Killer - Emails", "Riff Killer — письма", "Riff Killer — emails"),
 ("Your emails", "Ваши письма", "Tus emails"),
