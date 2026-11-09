@@ -554,4 +554,4 @@ html[data-theme='light'] .auth-provider-btn { background: #fff; color: #12121a; 
 html[data-theme='light'] .auth-provider-btn--google { background: #12121a; color: #fff; border-color: #12121a; }
 html[data-theme='light'] .auth-inapp-hint { color: #12121a; background: rgba(147, 85, 229, 0.08); }
 /* Newsletter opt-in on Sign up (config/newsletter.php): separate, never pre-ticked, a little quieter than the consent */
-.auth-modal .auth-consent--news { margin: -6px 0 14px; color: rgba(255, 255, 255, 0.6); font-size: 0.78rem; }
+.auth-modal .auth-consent--news { margin: -6px 0 14px; color: rgba(255, 255, 255, 0.82); font-size: 0.82rem; }

@@ -22,6 +22,8 @@
 - Только отдельное согласие, ничего не отмечено заранее. Согласие с Terms/Privacy/Consent при регистрации рассылку не включает (так и написано в Privacy и Consent, редакция 2026-11-09).
 - Новые аккаунты: своя галочка «Email me when a new riff drops…» в окне регистрации (для email, Google, Patreon). Записывается `consent {at, how: signup, version}`.
 - Аккаунты, согласившиеся с документами до 2026-11-09: один раз карточка в библиотеке «Want an email when a new riff drops?» (Yes / No thanks), ответ запоминается. Писем с просьбой подписаться не шлём — такое письмо само считается рекламой.
+- В момент успеха (решение Mike 09.11): вошедшему без рассылки после новой звезды в практике — один раз карточка «Nice. Want the next riff in your inbox?» (Yes, email me / No thanks), `askForEmail` в `js/practice-progress.js`; кто спрашивать — сервер (`nl_should_ask_moment`, prefs.php → `askMoment`: ничего не включено и ещё не отвечал ни здесь, ни в карточке библиотеки). Ответ окончательный; крестик — повтор не раньше чем через 7 дней в этом браузере. Согласие пишется как `how: practice`; счётчики `mail_ask:practice_shown|yes|no|later`.
+- Галочка при регистрации говорит о пользе: «Email me the new riff every Friday and which riff is free that week…» (не отмечена заранее).
 - В любой момент: профиль → Emails, страница `emails.html` по ссылке из письма (без входа).
 - Старый инструмент «Отправить кампанию» (слал всем и сам ставил согласие) выключен: `api/admin/send-campaign.php` отвечает 410.
 

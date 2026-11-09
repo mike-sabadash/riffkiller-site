@@ -165,10 +165,13 @@ test('switches API: signed link or session; the card is offered only to accounts
     const cookie=reg.headers.getSetCookie().at(-1).split(';')[0];
     const fresh=await (await fetch(site.base+'/api/newsletter/prefs.php',{headers:{Cookie:cookie}})).json();
     assert.equal(fresh.ask,false,'new accounts had the box at sign-up');
+    assert.equal(fresh.askMoment,true,'a new account that left the box empty is asked once in practice, after a star');
     assert.ok(Object.values(fresh.topics).every(v=>v===false),'agreeing to the Terms does not subscribe');
     assert.equal((await fetch(site.base+'/api/newsletter/prefs.php',{method:'POST',headers:{Cookie:cookie,'Content-Type':'text/plain'},body:JSON.stringify({topics:{drops:true}})})).status,415);
     const signed=await (await fetch(site.base+'/api/newsletter/prefs.php',{method:'POST',headers:{Cookie:cookie,'Content-Type':'application/json'},body:JSON.stringify({topics:{drops:true},how:'signup',asked:'yes'})})).json();
-    assert.equal(signed.topics.drops,true);
+    assert.equal(signed.topics.drops,true);assert.equal(signed.askMoment,false,'subscribed: never asked');
+    const answered=await (await fetch(site.base+'/api/newsletter/prefs.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({u:'u_none',t,topics:{offers:false},how:'practice',asked:'no'})})).json();
+    assert.equal(answered.askMoment,false,'No thanks is final');assert.equal(answered.ask,false);
     assert.equal(readJson('newsletter.json',{})[(await reg.json()).user.id].consent.how,'signup');
     assert.equal(php(`echo json_encode(nl_should_ask(['consent'=>['version'=>'2026-10-29']],nl_prefs('u_la')));`),'false','already subscribed');
     assert.equal(php(`echo json_encode(nl_should_ask(['consent'=>['version'=>'2026-10-29']],nl_prefs('nobody')));`),'true');

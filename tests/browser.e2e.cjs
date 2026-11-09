@@ -992,6 +992,24 @@ test('Patreon coming back without a code offers to try again or sign up with ema
     await page.click('#patreonUseEmail');await page.waitForSelector('#authModalConsentInput',{state:'visible'});
     assert.doesNotMatch(page.url(),/auth=signup/);
 });
+test('newsletter: a signed-in student without emails is asked once in practice, right after a new star',async t=>{
+    const nl=()=>{const f=path.join(site.dir,'data/newsletter.json');return fs.existsSync(f)?JSON.parse(fs.readFileSync(f,'utf8')):{};};
+    const page=await pageFor(t,390);await page.goto(site.base+'/index.html',{waitUntil:'domcontentloaded'});
+    const id=await page.evaluate(()=>fetch('api/auth/email-register.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({consent:true,email:'news-moment@example.com',password:'news-moment-pw'})}).then(r=>r.json()).then(d=>d.user.id));
+    await practice(page);
+    await page.evaluate(()=>{setPracticeMode('normal');setPlaybackSpeedUI(1);});
+    await page.locator('.segment-btn:not(.all-riff)').nth(2).click();
+    await page.waitForSelector('#progressCleanYes',{timeout:20000});await page.click('#progressCleanYes');
+    await page.waitForSelector('#progressNewsYes',{timeout:8000});
+    assert.match(await page.locator('.progress-card-title').innerText(),/Want the next riff in your inbox\?/);
+    assert.equal(await page.locator('#progressSaveYes').count(),0,'a signed-in student is not asked to save stars');
+    const box=await page.locator('.progress-card--news').boundingBox();assert.ok(box.x>=0&&box.x+box.width<=390,'fits a phone');
+    await page.click('#progressNewsYes');
+    for(let i=0;i<40&&!nl()[id];i++)await page.waitForTimeout(100);
+    assert.equal(nl()[id].topics.drops,true);assert.equal(nl()[id].consent.how,'practice');assert.equal(nl()[id].asked,'yes');
+    const again=await page.evaluate(()=>fetch('api/newsletter/prefs.php',{credentials:'include'}).then(r=>r.json()));
+    assert.equal(again.askMoment,false,'asked once');
+});
 test('newsletter: a separate unticked box at sign-up; older accounts get a one-time card; switches in the profile and on the emails page',async t=>{
     const nl=()=>{const f=path.join(site.dir,'data/newsletter.json');return fs.existsSync(f)?JSON.parse(fs.readFileSync(f,'utf8')):{};};
     const page=await pageFor(t,390);await page.goto(site.base+'/',{waitUntil:'domcontentloaded'});

@@ -126,6 +126,15 @@ function nl_should_ask($user, $prefs) {
     return $version === '' || $version < NL_START;
 }
 
+/**
+ * Should practice ask this account at a moment of success (a new star)? Any account without newsletter emails
+ * that has never answered: new accounts that left the sign-up box empty, older ones that have not seen the card.
+ * One answer (Yes or No thanks, here or in the library card) and it is never asked again.
+ */
+function nl_should_ask_moment($user, $prefs) {
+    return is_array($user) && !nl_any($prefs) && $prefs['asked'] === '';
+}
+
 /** Removes everything the newsletter keeps about an account (config/legal.php legal_delete_account). */
 function nl_forget($userId) {
     $userId = (string)$userId;
