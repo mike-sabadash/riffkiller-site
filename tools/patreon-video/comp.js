@@ -302,12 +302,35 @@
     rise($('oFoot'), t, 2.0, 14);
   }
 
-  window.frame = function (mode, t) {
+  var lastSect = '';
+  function setSect(o) {
+    var key = JSON.stringify(o); if (key === lastSect) return; lastSect = key;
+    $('sTitle').innerHTML = o.title; $('sParts').textContent = 'PARTS ' + o.from + '–' + o.to; $('sNote').textContent = o.note;
+    var ids = []; for (var k = o.from - 1; k < o.to; k++) ids.push(k);
+    $('sRoles').innerHTML = ids.map(function (k, n) { return (n ? '<div class="ar rv">→</div>' : '') + '<div class="r rv" style="background:' + segs[k].color + '">' + segs[k].role + '</div>'; }).join('');
+  }
+  function drawSect(t, o) {
+    setSect(o);
+    wipe($('sLime'), t, 0.0, 0.7, 'right');
+    rise($('sEb'), t, 0.2, 16); rise($('sTitle'), t, 0.25, 40, 1.0);
+    rise($('sParts'), t, 0.35, 16);
+    document.querySelectorAll('#sRoles > *').forEach(function (c, k) { rise(c, t, 0.45 + k * 0.07, 16, 0.7); });
+    rise($('sNote'), t, 0.8, 18);
+  }
+  function drawPack(t, o) {
+    var yt = !(o && o.yt === false);
+    $('pkYT').style.display = yt ? '' : 'none'; $('pkPat').style.display = yt ? 'none' : '';
+    if (!yt) { wipe($('pkLime'), t, 0.0, 0.8, 'left'); rise(document.querySelector('#pkPat .rv'), t, 0.5, 18); }
+    rise($('pkLogo'), t, 0.1, 14); rise($('pkHead'), t, 0.25, 36, 1.0); rise($('pkUrl'), t, 0.6, 20); rise($('pkSub'), t, 0.8, 16);
+    document.querySelectorAll('#pkYT .rv').forEach(function (c, k) { rise(c, t, 0.9 + k * 0.08, 12); });
+  }
+
+  window.frame = function (mode, t, o) {
+    $('chip').textContent = (o && o.chip) || '';
     $('main').style.display = mode === 'main' ? '' : 'none';
-    $('intro').style.display = mode === 'intro' ? 'block' : 'none';
-    $('outro').style.display = mode === 'outro' ? 'block' : 'none';
+    ['intro', 'outro', 'sect', 'pack'].forEach(function (m) { $(m).style.display = mode === m ? 'block' : 'none'; });
     document.body.style.background = 'transparent';
-    if (mode === 'main') drawMain(t); else if (mode === 'intro') drawIntro(t); else drawOutro(t);
+    if (mode === 'main') drawMain(t); else if (mode === 'intro') drawIntro(t); else if (mode === 'sect') drawSect(t, o); else if (mode === 'pack') drawPack(t, o); else drawOutro(t);
     return true;
   };
 

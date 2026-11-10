@@ -82,13 +82,33 @@ html,body{width:1920px;height:1080px;overflow:hidden;background:transparent;font
 #oFoot{left:900px;top:940px;width:940px;display:flex;align-items:center;justify-content:space-between}
 #oFoot .u{font-size:22px;font-weight:600}
 #oFoot .u b{color:var(--acc);font-weight:700}
+
+#chip{margin-left:auto;align-self:center;font-size:13px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--acc);box-shadow:inset 0 0 0 1.5px rgba(184,240,90,.7);padding:7px 10px 6px;line-height:1}
+#chip:empty{display:none}
+/* section card */
+#sLime{left:0;top:0;width:820px;height:1080px;background:var(--acc)}
+#sEb{left:72px;top:110px;font-size:16px;font-weight:700;letter-spacing:.16em;color:#0B0B0F}
+#sTitle{left:66px;top:150px;font-size:120px;font-weight:900;letter-spacing:-.045em;line-height:.92;color:#0B0B0F}
+#sParts{left:900px;top:330px;font-size:18px;font-weight:700;letter-spacing:.16em;color:var(--acc)}
+#sRoles{left:900px;top:372px;display:flex;gap:12px;align-items:center}
+#sRoles .r{font-size:22px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#0B0B0F;padding:10px 14px 9px}
+#sRoles .ar{font-size:24px;color:var(--mute)}
+#sNote{left:900px;top:470px;width:900px;font-size:30px;font-weight:600;line-height:1.3;letter-spacing:-.015em}
+/* packshot */
+#pkLogo{left:120px;top:170px;height:34px}
+#pkHead{left:120px;top:270px;font-size:78px;font-weight:800;line-height:1.02;letter-spacing:-.04em}
+#pkUrl{left:120px;top:590px;background:var(--acc);color:#0B0B0F;font-size:48px;font-weight:700;letter-spacing:-.02em;padding:22px 30px}
+#pkSub{left:120px;top:730px;width:720px;font-size:24px;font-weight:500;line-height:1.4;color:var(--mute)}
+.slot{position:absolute;box-shadow:inset 0 0 0 1.5px rgba(244,244,246,.18)}
+.slotL{position:absolute;font-size:14px;font-weight:700;letter-spacing:.16em;color:var(--mute)}
+#pkP .pr{background:var(--bg)}
 </style></head>
 <body>
 <div id="main">
   <div id="hdrBox" class="abs"></div>
   <div id="hdr" class="abs">
     <img id="logo" src="logo.svg"><div id="song">Iron Man · Black Sabbath</div>
-    <div id="partRow" class="rv"><div id="partNo"></div><div id="role"></div><div id="section"></div></div>
+    <div id="partRow" class="rv"><div id="partNo"></div><div id="role"></div><div id="section"></div><div id="chip"></div></div>
     <div id="func" class="rv"></div>
   </div>
   <div id="panel" class="abs"></div>
@@ -115,6 +135,31 @@ html,body{width:1920px;height:1080px;overflow:hidden;background:transparent;font
   <div id="oTag" class="abs rv">Don’t just learn the riff.<br>Understand its DNA.</div>
   <div id="oMut" class="abs"></div>
   <div id="oFoot" class="abs rv"><div class="u">Loop every part at your speed — <b>riffkiller.fun</b></div><img src="logo.svg" style="height:17px"></div>
+</div>
+
+<div id="sect" class="card">
+  <div class="abs" style="inset:0;background:var(--bg)"></div>
+  <div id="sLime" class="abs"></div>
+  <div id="sEb" class="abs rv">PART BY PART · EACH PART TWICE</div>
+  <div id="sTitle" class="abs rv"></div>
+  <div id="sParts" class="abs rv"></div>
+  <div id="sRoles" class="abs"></div>
+  <div id="sNote" class="abs rv"></div>
+</div>
+<div id="pack" class="card">
+  <div class="abs" style="inset:0;background:var(--bg)"></div>
+  <div id="pkBW" class="abs" style="left:0;top:0;width:820px;height:1080px;display:none"></div>
+  <img id="pkLogo" class="abs rv" src="logo.svg">
+  <div id="pkHead" class="abs rv">Loop any part.<br>Slow it down.<br>Kill the riff.</div>
+  <div id="pkUrl" class="abs rv">riffkiller.fun</div>
+  <div id="pkSub" class="abs rv">Every riff cut into parts, with a synced tab and its Riff DNA.</div>
+  <div id="pkPat" style="display:none"><div class="abs" id="pkLime" style="left:1100px;top:0;width:820px;height:1080px;background:var(--acc)"></div><div class="abs rv" style="left:1172px;top:170px;font-size:44px;font-weight:600;line-height:1.18;letter-spacing:-.025em;color:#0B0B0F">Don’t just learn the riff.<br>Understand its DNA.</div></div>
+  <div id="pkYT">
+    <div class="slotL rv" style="left:1000px;top:186px">WATCH NEXT</div>
+    <div class="slot rv" style="left:1000px;top:220px;width:800px;height:450px"></div>
+    <div class="slotL rv" style="left:1000px;top:726px">SUBSCRIBE</div>
+    <div class="slot rv" style="left:1000px;top:760px;width:180px;height:180px;border-radius:50%"></div>
+  </div>
 </div>
 <script src="alphaTab.min.js"></script>
 <script src="comp.js"></script>

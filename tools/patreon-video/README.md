@@ -9,3 +9,6 @@ Style (Mike, 10.11.2026): his Patreon cover grid — flat blocks, no rounding, #
 - `build.sh` — whole pipeline (Iron Man splice and crops are inside; change for another riff).
 
 Iron Man (10.11.2026): source "Iron man-for app.MOV" (4K, Drive «video for claud»), riff.json from branch `riff-media/iron-man`. Result 93 s, shared on branch `share` as `iron-man-patreon.mp4` + `iron-man-patreon-cover.png`.
+
+## YouTube version (10.11.2026)
+~2:46, rendered in 4K (overlay at deviceScaleFactor 2), delivered as 1440p (GitHub 100 MB limit; YouTube treats 1440p like 4K). Order: intro → full riff ("Full riff" chip) → Main riff part by part (each part twice) → Verse part by part → outro (Rule/Law, Mutate) → 15 s packshot with WATCH NEXT / SUBSCRIBE slots for the YouTube end screen. `render-youtube.sh` renders overlays (`render2.cjs <scale> <dir> <jobs>`), `youtube.sh` assembles. Patreon version got a 6 s packshot (`pack` with `{yt:false}`).
