@@ -12,7 +12,17 @@ cp "$W/riff.json" "$W/tab.tex" "$W/comp/"
 cd "$W"
 # 1) 4K -> 1080 (HEVC 4K in one filter graph runs out of memory), then splice
 ffmpeg -v error -y -i src/orig.MOV -vf "scale=1920:1080:flags=lanczos,format=yuv420p" -c:v libx264 -preset veryfast -crf 9 -c:a copy src/full1080.mov
-ffmpeg -v error -y -i src/full1080.mov -filter_complex "[0:v]trim=start_frame=0:end_frame=802,setpts=PTS-STARTPTS[v1];[0:v]trim=start_frame=597:end_frame=700,setpts=PTS-STARTPTS[v2];[0:v]trim=start_frame=907,setpts=PTS-STARTPTS[v3];[v1][v2][v3]concat=n=3:v=1:a=0[v];[0:a]atrim=0:26.735333,asetpts=PTS-STARTPTS[a1];[0:a]atrim=19.898:23.335333,asetpts=PTS-STARTPTS[a2];[0:a]atrim=30.231333,asetpts=PTS-STARTPTS[a3];[a1][a2]acrossfade=d=0.004:c1=tri:c2=tri[a12];[a12][a3]acrossfade=d=0.004:c1=tri:c2=tri[a]" -map "[v]" -map "[a]" -c:v libx264 -preset veryfast -crf 9 -r 30 -c:a pcm_s16le base.mov
+# video: splice by frame numbers
+ffmpeg -v error -y -i src/full1080.mov -filter_complex "[0:v]trim=start_frame=0:end_frame=802,setpts=PTS-STARTPTS[v1];[0:v]trim=start_frame=597:end_frame=700,setpts=PTS-STARTPTS[v2];[0:v]trim=start_frame=907,setpts=PTS-STARTPTS[v3];[v1][v2][v3]concat=n=3:v=1:a=0[v]" -map "[v]" -an -c:v libx264 -preset veryfast -crf 9 -r 30 base_v.mov
+# audio: cut each piece to its own file first. (One filter graph with three atrims of the same input silently DROPPED
+# the middle piece on 10.11.2026 -> sound ran 3.4 s ahead after 26.7 s. Always check: audio length == video length.)
+ffmpeg -v error -y -i src/orig.MOV -vn -ac 2 -ar 44100 -c:a pcm_s16le a_orig.wav
+ffmpeg -v error -y -i a_orig.wav -af "atrim=start=0:end=26.735333,asetpts=PTS-STARTPTS" a1.wav
+ffmpeg -v error -y -i a_orig.wav -af "atrim=start=19.898:end=23.335333,asetpts=PTS-STARTPTS" a2.wav
+ffmpeg -v error -y -i a_orig.wav -af "atrim=start=30.231333,asetpts=PTS-STARTPTS" a3.wav
+ffmpeg -v error -y -i a1.wav -i a2.wav -i a3.wav -filter_complex "[0:a][1:a]acrossfade=d=0.004:c1=tri:c2=tri[x];[x][2:a]acrossfade=d=0.004:c1=tri:c2=tri[a]" -map "[a]" -c:a pcm_s16le a_base.wav
+ffmpeg -v error -y -i base_v.mov -i a_base.wav -map 0:v -map 1:a -c copy -shortest base.mov
+python3 -c "import subprocess as s;d=lambda k:float(s.run(['ffprobe','-v','error','-select_streams',k,'-show_entries','stream=duration','-of','csv=p=0','base.mov'],capture_output=True,text=True).stdout);v,a=d('v'),d('a');print('base video',v,'audio',a);assert abs(v-a)<0.05,'audio/video length mismatch'"
 # 2) overlay frames (transparent PNG) from the page
 (cd comp && python3 -m http.server 8765 >/dev/null 2>&1 &) ; sleep 1
 N=$(ffprobe -v error -count_frames -select_streams v -show_entries stream=nb_read_frames -of csv=p=0 base.mov)
