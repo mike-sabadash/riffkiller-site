@@ -180,7 +180,7 @@
 
   // ---- per-frame ----
   var lastSeg = -1, lastHintKey = '';
-  function drawMain(t) {
+  function drawMain(t, o) {
     var w = where(t), i = w.seg, s = segs[i];
     // header
     if (i !== lastSeg) {
@@ -307,7 +307,22 @@
     var key = JSON.stringify(o); if (key === lastSect) return; lastSect = key;
     $('sTitle').innerHTML = o.title; $('sParts').textContent = 'PARTS ' + o.from + '–' + o.to; $('sNote').textContent = o.note;
     var ids = []; for (var k = o.from - 1; k < o.to; k++) ids.push(k);
-    $('sRoles').innerHTML = ids.map(function (k, n) { return (n ? '<div class="ar rv">→</div>' : '') + '<div class="r rv" style="background:' + segs[k].color + '">' + segs[k].role + '</div>'; }).join('');
+    $('sRoles').innerHTML = ids.map(function (k, n) { return (n ? '<div class="ar rv">—</div>' : '') + '<div class="r rv" style="color:' + segs[k].color + '">' + segs[k].role + '</div>'; }).join('');
+  }
+  function drawLoop(t, o) {
+    var on = !!(o && o.rep);
+    ['lb', 'lbar', 'lbarBg'].forEach(function (id) { $(id).style.display = on ? (id === 'lb' ? 'flex' : 'block') : 'none'; });
+    if (!on) return;
+    var s = segs[segAt(t)], dt = t - s.start, p = clamp(dt / (s.end - s.start), 0, 1);
+    $('lbar').style.width = (1920 * p).toFixed(1) + 'px';
+    $('lbCnt').innerHTML = o.rep + '<small>/' + o.of + '</small>';
+    var rep = o.rep > 1;
+    $('lbLbl').innerHTML = rep ? 'REPEAT' : 'FIRST PASS';
+    var blink = rep && dt < 1.6 ? (Math.floor(dt / 0.2) % 2 === 0 ? 1 : 0.15) : 1;
+    $('lbLbl').style.opacity = blink;
+    var pop = 1;
+    $('lb').style.transform = 'none'; $('lb').querySelector('.ic').style.transform = rep && dt < 0.8 ? 'rotate(' + (360 * eo(dt / 0.8)).toFixed(1) + 'deg)' : 'none';
+    $('lb').style.boxShadow = rep && dt < 0.5 ? '0 0 0 ' + (10 * (1 - dt / 0.5)).toFixed(1) + 'px rgba(184,240,90,' + (0.5 * (1 - dt / 0.5)).toFixed(2) + ')' : 'none';
   }
   function drawSect(t, o) {
     setSect(o);
@@ -315,7 +330,11 @@
     rise($('sEb'), t, 0.2, 16); rise($('sTitle'), t, 0.25, 40, 1.0);
     rise($('sParts'), t, 0.35, 16);
     document.querySelectorAll('#sRoles > *').forEach(function (c, k) { rise(c, t, 0.45 + k * 0.07, 16, 0.7); });
-    rise($('sNote'), t, 0.8, 18);
+    rise($('sNote'), t, 0.8, 18); var lt = t - 0.9, le = eo(lt / 0.7), sl = $('sLoop');
+    sl.style.opacity = clamp(lt / 0.25, 0, 1); sl.style.transform = 'translateY(' + (30 * (1 - le)).toFixed(1) + 'px)';
+    var ov = lt < 0 ? 0.7 : (lt < 0.4 ? 0.7 + 0.34 * eo(lt / 0.4) : 1.04 - 0.04 * ec((lt - 0.4) / 0.3));
+    var bx = sl.querySelector('.bx'); bx.style.transformOrigin = '0 100%'; bx.style.transform = 'scale(' + Math.min(1.04, ov).toFixed(3) + ')';
+    sl.querySelector('.sic').style.transform = 'rotate(' + (-360 * (1 - eo(lt / 1.0))).toFixed(1) + 'deg)';
   }
   function drawPack(t, o) {
     var yt = !(o && o.yt === false);
@@ -330,7 +349,7 @@
     $('main').style.display = mode === 'main' ? '' : 'none';
     ['intro', 'outro', 'sect', 'pack'].forEach(function (m) { $(m).style.display = mode === m ? 'block' : 'none'; });
     document.body.style.background = 'transparent';
-    if (mode === 'main') drawMain(t); else if (mode === 'intro') drawIntro(t); else if (mode === 'sect') drawSect(t, o); else if (mode === 'pack') drawPack(t, o); else drawOutro(t);
+    if (mode === 'main') { drawMain(t, o); drawLoop(t, o); } else if (mode === 'intro') drawIntro(t); else if (mode === 'sect') drawSect(t, o); else if (mode === 'pack') drawPack(t, o); else drawOutro(t);
     return true;
   };
 
